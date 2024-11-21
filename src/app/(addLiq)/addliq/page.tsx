@@ -23,7 +23,9 @@ export default function Main() {
         </div>
       }>
         <ThirdwebProvider>
-          <AddLiqSection />
+          <div className="flex w-full px-6 flex-col items-center justify-center min-h-screen">
+            <AddLiqSection />
+          </div>
         </ThirdwebProvider>
       </Suspense >
     </>
