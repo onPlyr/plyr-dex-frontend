@@ -293,6 +293,12 @@ export default function addLiqSection() {
                     transaction,
                     account: activeAccount,
                 })
+
+                const txHash = transactionResult.transactionHash;
+                const truncatedTxHash = txHash.slice(5, -5);
+                setResult(<>
+                    Liquidity added successfully!
+                    <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
             }
             else {
                 const amount0Min = amount0Desired.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000);
