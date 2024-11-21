@@ -187,11 +187,14 @@ export default function addLiqSection() {
     }
 
     const handleAddLiquidity = async (e: React.FormEvent) => {
+
+        e.preventDefault()
+        e.stopPropagation()
         if (!activeAccount || !activeWallet) {
             setError('Please connect your wallet first')
             return
         }
-        e.preventDefault()
+        
         setResult(null)
         setError('')
 
