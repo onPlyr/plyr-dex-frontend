@@ -364,7 +364,9 @@ export default function addLiqSection() {
 
                 const txHash = transactionResult.transactionHash;
                 const truncatedTxHash = txHash.slice(5, -5);
-                setResult(<a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>)
+                setResult(<>
+                    Liquidity added successfully!
+                    <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
             }
 
         } catch (error: any) {
