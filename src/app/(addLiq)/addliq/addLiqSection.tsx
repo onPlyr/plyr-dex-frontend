@@ -10,13 +10,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
+import { totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from './walletButton';
-import { client, tauChain } from '@/lib/thirdweb_client';
+import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
+import { NumericFormat } from "react-number-format";
 
 import { ethers } from "ethers";
 import { getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
@@ -31,7 +33,8 @@ const tokenList = [
     { symbol: 'DUMMY', address: '0x9C26f6E99c804ef17157449BC506d0acf77263e9', decimals: 18 },
 ]
 
-const CHAIN_ID = 62831
+const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
+const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
 
 export default function addLiqSection() {
@@ -44,6 +47,11 @@ export default function addLiqSection() {
     const [token1, setToken1] = useState(tokenList[1])
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [pair, setPair] = useState<Pair | null>(null)
+    const [poolShareInfo, setPoolShareInfo] = useState<any>({
+        tokenatob: 0,
+        tokenbtoa: 0,
+        sharePercent: 0,
+    })
     const [amount0, setAmount0] = useState('')
     const [amount1, setAmount1] = useState('')
     const [result, setResult] = useState<React.ReactNode | null>(null)
@@ -52,6 +60,29 @@ export default function addLiqSection() {
 
     const [isLoading, setIsLoading] = useState(false);
 
+    // Get my balance //
+    const { data: myBalance0, isLoading: isLoadingBalance0 } = useWalletBalance({
+        chain: CHAIN,
+        client: client,
+        address: activeAccount?.address,
+        tokenAddress: token0.address !== '0x0000000000000000000000000000000000000000' ? token0.address : undefined,
+    }, {
+        refetchInterval: 3000,
+    })
+
+    const { data: myBalance1, isLoading: isLoadingBalance1 } = useWalletBalance({
+        chain: CHAIN,
+        client: client,
+        address: activeAccount?.address,
+        tokenAddress: token1.address !== '0x0000000000000000000000000000000000000000' ? token1.address : undefined,
+    }, {
+        refetchInterval: 3000,
+        
+    })
+
+    console.log('myBalance0', myBalance0)
+    console.log('myBalance1', myBalance1)
+
     // console.log('default token0', token0, 'default token1', token1)
 
     const getAllPairs = async () => {
@@ -59,7 +90,7 @@ export default function addLiqSection() {
             const factoryContract = getContract({
                 client: client,
                 address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY as string,
-                chain: tauChain,
+                chain: CHAIN,
             });
 
             const pairsLength = await readContract({
@@ -118,12 +149,26 @@ export default function addLiqSection() {
             : new Token(CHAIN_ID, token1.address, token1.decimals, token1.symbol);
 
         try {
-            const provider = await ethers5Adapter.provider.toEthers({ client: client, chain: tauChain });
+            const provider = await ethers5Adapter.provider.toEthers({ client: client, chain: CHAIN });
             const pair = await Fetcher.fetchPairData(Token0, Token1, provider);
+            const price0 = pair.priceOf(Token0)
+            const price1 = pair.priceOf(Token1)
+            const poolShareInfo = {
+                tokenatob: price0.toSignificant(6),
+                tokenbtoa: price1.toSignificant(6),
+                sharePercent: 0,
+            }
+            console.log('poolShareInfo', poolShareInfo)
+            setPoolShareInfo(poolShareInfo)
             setPair(pair);
             setInfo('');
         }
         catch (error: any) {
+            setPoolShareInfo({
+                tokenatob: 0,
+                tokenbtoa: 0,
+                sharePercent: 100,
+            })
             setPair(null);
             setInfo(`You're the first to add liquidity to this pair!`)
         }
@@ -175,9 +220,33 @@ export default function addLiqSection() {
             const price = pair.priceOf(input === 0 ? Token0 : Token1);
             const outputAmount = inputAmount.multiply(price);
 
-            setAmount0(input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(token0.decimals));
-            setAmount1(input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(token1.decimals));
-            setError('');
+            const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(99);
+            const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(99);
+            setAmount0(newAmount0);
+            setAmount1(newAmount1);
+
+
+            /// Calculate share of pool in percent
+            const reserve0 = pair.reserve0;
+            const reserve1 = pair.reserve1;
+
+            const newReserve = inputAmount.token.symbol === reserve0.token.symbol ? reserve0.add(inputAmount) : reserve1.add(inputAmount);
+
+            let sharePercent = inputAmount.divide(newReserve).multiply(BigInt(100)).toSignificant(4);
+
+            setPoolShareInfo((prevInfo: any) => ({
+                ...prevInfo,
+                sharePercent: Number(sharePercent),
+            }));
+
+            
+            if (Number(newAmount0) > Number(myBalance0?.displayValue || 0) || Number(newAmount1) > Number(myBalance1?.displayValue || 0)) {
+                setError('Insufficient balance')
+            }
+            else
+            {
+                setError('');
+            }
         }
         catch (error: any) {
 
@@ -194,7 +263,7 @@ export default function addLiqSection() {
             setError('Please connect your wallet first')
             return
         }
-        
+
         setResult(null)
         setError('')
 
@@ -240,7 +309,7 @@ export default function addLiqSection() {
                     return
                 }
                 const erc20Contract = getContract({
-                    chain: tauChain,
+                    chain: CHAIN,
                     address: otherToken.address,
                     client: client
                 });
@@ -271,7 +340,7 @@ export default function addLiqSection() {
                 const uniswapRouterContract = getContract({
                     client: client,
                     address: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-                    chain: tauChain,
+                    chain: CHAIN,
                 });
                 console.log({
                     value: ethAmount.toBigInt(),
@@ -296,6 +365,7 @@ export default function addLiqSection() {
 
                 const txHash = transactionResult.transactionHash;
                 const truncatedTxHash = txHash.slice(5, -5);
+                
                 setResult(<>
                     Liquidity added successfully!
                     <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
@@ -306,7 +376,7 @@ export default function addLiqSection() {
 
                 // Approve token0
                 const token0Contract = getContract({
-                    chain: tauChain,
+                    chain: CHAIN,
                     address: token0.address,
                     client: client,
                 });
@@ -331,7 +401,7 @@ export default function addLiqSection() {
 
                 // Approve token1
                 const token1Contract = getContract({
-                    chain: tauChain,
+                    chain: CHAIN,
                     address: token1.address,
                     client: client,
                 });
@@ -357,7 +427,7 @@ export default function addLiqSection() {
                 const uniswapRouterContract = getContract({
                     client: client,
                     address: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-                    chain: tauChain,
+                    chain: CHAIN,
                 });
 
                 const transaction = prepareContractCall<any, any, any>({
@@ -373,6 +443,7 @@ export default function addLiqSection() {
 
                 const txHash = transactionResult.transactionHash;
                 const truncatedTxHash = txHash.slice(5, -5);
+                
                 setResult(<>
                     Liquidity added successfully!
                     <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
@@ -390,74 +461,127 @@ export default function addLiqSection() {
                 <CardDescription>Select tokens and enter amounts to add liquidity. New pairs will be created automatically if they don't exist.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleAddLiquidity}>
-
-                    <div className="text-sm">Token A</div>
-                    <div className="flex flex-row gap-2">
-                        <Select value={token0.symbol} onValueChange={(value) => {
-                            if (token1.symbol === value) {
-                                setToken1(token0)
-                            }
-                            setToken0(tokenList.find(t => t.symbol === value)!)
-                        }}>
-                            <SelectTrigger className="w-32" id="token0">
-                                <SelectValue placeholder="Select token" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {tokenList.map((token) => (
-                                    <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Input
-                            id="amount0"
-                            type="text"
-                            value={amount0}
-                            disabled={token0.symbol === token1.symbol || isLoading}
-                            onChange={(e) => {
-                                setAmount0(e.target.value);
-                                handleAmountChange(0, e.target.value);
-                            }}
-                            //onBlur={(e) => handleAmountChange(0, e.target.value)}
-                            placeholder="0.0"
-                            required
-                        />
+                <form onSubmit={handleAddLiquidity} className="flex flex-col gap-4">
+                    <div className="flex flex-col">
+                        <div className="flex flex-row justify-between">
+                            <div className="text-sm uppercase">Token A</div>
+                            <button onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                setAmount0(myBalance0?.displayValue || '');
+                                handleAmountChange(0, myBalance0?.displayValue || '');
+                            }} className="text-xs uppercase">Balance: {myBalance0 ? <NumericFormat
+                                value={toTokens(myBalance0.value, token0.decimals)}
+                                displayType={"text"}
+                                thousandSeparator={true}
+                                decimalScale={4}
+                                className="leading-none"
+                            /> : '0'}
+                            </button>
+                        </div>
+                        <div className="flex flex-row gap-2">
+                            <Select value={token0.symbol} onValueChange={(value) => {
+                                if (token1.symbol === value) {
+                                    setToken1(token0)
+                                }
+                                setToken0(tokenList.find(t => t.symbol === value)!)
+                            }}>
+                                <SelectTrigger className="w-32" id="token0">
+                                    <SelectValue placeholder="Select token" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tokenList.map((token) => (
+                                        <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Input
+                                id="amount0"
+                                type="text"
+                                value={amount0}
+                                disabled={token0.symbol === token1.symbol || isLoading}
+                                onChange={(e) => {
+                                    setAmount0(e.target.value);
+                                    handleAmountChange(0, e.target.value);
+                                }}
+                                //onBlur={(e) => handleAmountChange(0, e.target.value)}
+                                placeholder="0.0"
+                                required
+                            />
+                        </div>
                     </div>
 
-                    <div className="mt-4 text-sm">Token B</div>
-                    <div className="flex flex-row gap-2">
-                        <Select value={token1.symbol} onValueChange={(value) => {
-                            if (token0.symbol === value) {
-                                setToken0(token1)
-                            }
-                            setToken1(tokenList.find(t => t.symbol === value)!)
-                        }}>
-                            <SelectTrigger className="w-32" id="token1">
-                                <SelectValue placeholder="Select token" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {tokenList.map((token) => (
-                                    <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    <div className="flex flex-col">
+                        <div className="flex flex-row gap-2 justify-between">
+                            <div className="text-sm uppercase">Token B</div>
+                            <button onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                setAmount1(myBalance1?.displayValue || '');
+                                handleAmountChange(1, myBalance0?.displayValue || '');
+                            }} className="text-xs uppercase">Balance: {myBalance1 ? <NumericFormat
+                                value={toTokens(myBalance1.value, token1.decimals)}
+                                displayType={"text"}
+                                thousandSeparator={true}
+                                decimalScale={4}
+                                className="leading-none"
+                            /> : '0'}
+                            </button>
+                        </div>
+                        <div className="flex flex-row gap-2">
+                            <Select value={token1.symbol} onValueChange={(value) => {
+                                if (token0.symbol === value) {
+                                    setToken0(token1)
+                                }
+                                setToken1(tokenList.find(t => t.symbol === value)!)
+                            }}>
+                                <SelectTrigger className="w-32" id="token1">
+                                    <SelectValue placeholder="Select token" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {tokenList.map((token) => (
+                                        <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                        <Input
-                            id="amount1"
-                            type="text"
-                            value={amount1}
-                            disabled={token0.symbol === token1.symbol || isLoading}
-                            onChange={(e) => {
-                                setAmount1(e.target.value);
-                                handleAmountChange(1, e.target.value);
-                            }}
-                            placeholder="0.0"
-                            required
-                        />
+                            <Input
+                                id="amount1"
+                                type="text"
+                                value={amount1}
+                                disabled={token0.symbol === token1.symbol || isLoading}
+                                onChange={(e) => {
+                                    setAmount1(e.target.value);
+                                    handleAmountChange(1, e.target.value);
+                                }}
+                                placeholder="0.0"
+                                required
+                            />
+                        </div>
                     </div>
+                    {
 
+                        (token0 && token1) &&
+                        <>
+                            <div className="mt-4 text-sm uppercase">Price and Share</div>
+                            <div className="flex flex-row gap-2 w-full">
+                                <div className="flex flex-1 flex-col font-bold">
+                                    {poolShareInfo.tokenatob}
+                                    <div className="text-xs">{token1.symbol} per {token0.symbol}</div>
+                                </div>
+                                <div className="flex flex-1 flex-col font-bold">
+                                    {poolShareInfo.tokenbtoa}
+                                    <div className="text-xs">{token0.symbol} per {token1.symbol}</div>
+                                </div>
+                                <div className="flex flex-1 flex-col font-bold">
+                                    {poolShareInfo.sharePercent}
+                                    <div className="text-xs">Share %</div>
+                                </div>
+                            </div>
+                        </>
+                    }
 
-                    <Button type="submit" className="w-full mt-4" disabled={isLoading || token0.symbol === token1.symbol || amount0 === '' || amount1 === ''}>{'Add Liquidity'}</Button>
+                    <Button type="submit" className="w-full mt-4" disabled={isLoading || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{'Add Liquidity'}</Button>
                 </form>
 
                 {result && (
