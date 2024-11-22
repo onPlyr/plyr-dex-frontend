@@ -77,7 +77,7 @@ export default function addLiqSection() {
         tokenAddress: token1.address !== '0x0000000000000000000000000000000000000000' ? token1.address : undefined,
     }, {
         refetchInterval: 3000,
-        
+
     })
 
     console.log('myBalance0', myBalance0)
@@ -518,7 +518,7 @@ export default function addLiqSection() {
                                 e.preventDefault()
                                 e.stopPropagation()
                                 setAmount1(myBalance1?.displayValue || '');
-                                handleAmountChange(1, myBalance0?.displayValue || '');
+                                handleAmountChange(1, myBalance1?.displayValue || '');
                             }} className="text-xs uppercase">Balance: {myBalance1 ? <NumericFormat
                                 value={toTokens(myBalance1.value, token1.decimals)}
                                 displayType={"text"}
