@@ -25,16 +25,13 @@ import { getContract, prepareContractCall, readContract, sendAndConfirmTransacti
 import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
 
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-// Token list (for demonstration purposes)
-const tokenList = [
-    { symbol: 'PLYR', address: '0x0000000000000000000000000000000000000000', decimals: 18 },
-    // { symbol: 'WPLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR, decimals: 18 },
-    { symbol: 'GAMR', address: '0xa875625fe8A955406523E52E485f351b92908ce1', decimals: 18 },
-    { symbol: 'DUMMY', address: '0x9C26f6E99c804ef17157449BC506d0acf77263e9', decimals: 18 },
-]
+import { useSearchParams } from 'next/navigation';
+
+import { tokenList } from '@/config/tokenlist';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
+
 
 
 export default function addLiqSection() {
@@ -42,9 +39,16 @@ export default function addLiqSection() {
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
 
+    const params = useSearchParams();
+    const inputToken = params.get('inputToken');
+    const outputToken = params.get('outputToken');
 
-    const [token0, setToken0] = useState(tokenList[0])
-    const [token1, setToken1] = useState(tokenList[1])
+    console.log('inputToken', inputToken)
+    console.log('outputToken', outputToken)
+
+
+    const [token0, setToken0] = useState(inputToken ? tokenList?.find(t => t.symbol === inputToken) || tokenList[0] : tokenList[0])
+    const [token1, setToken1] = useState(outputToken ? tokenList?.find(t => t.symbol === outputToken) || tokenList[1] : tokenList[1])
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [pair, setPair] = useState<Pair | null>(null)
     const [poolShareInfo, setPoolShareInfo] = useState<any>({
@@ -82,47 +86,6 @@ export default function addLiqSection() {
 
     console.log('myBalance0', myBalance0)
     console.log('myBalance1', myBalance1)
-
-    // console.log('default token0', token0, 'default token1', token1)
-
-    const getAllPairs = async () => {
-        try {
-            const factoryContract = getContract({
-                client: client,
-                address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY as string,
-                chain: CHAIN,
-            });
-
-            const pairsLength = await readContract({
-                contract: factoryContract,
-                method: 'function allPairsLength() external view returns (uint)',
-                params: [],
-            });
-
-            const pairs = [];
-
-            for (let i = 0; i < pairsLength; i++) {
-                const pairAddress = await readContract({
-                    contract: factoryContract,
-                    method: 'function allPairs(uint) external view returns (address pair)',
-                    params: [BigInt(i)],
-                });
-
-                pairs.push(pairAddress);
-            }
-
-            console.log('pairs', pairs)
-            setAllPairs(pairs)
-        } catch (error) {
-            console.error('Error fetching pairs:', error);
-            setAllPairs([])
-        }
-    };
-
-    // useEffect(() => {
-    //     // Get All Pairs //
-    //     getAllPairs()
-    // }, [])
 
     const handlePairData = async () => {
 
@@ -457,7 +420,7 @@ export default function addLiqSection() {
     return (
         <Card className="w-full max-w-md mx-auto">
             <CardHeader>
-                <CardTitle>Auto Add Liquidity to Uniswap V2</CardTitle>
+                <CardTitle>Add Liquidity</CardTitle>
                 <CardDescription>Select tokens and enter amounts to add liquidity. New pairs will be created automatically if they don't exist.</CardDescription>
             </CardHeader>
             <CardContent>

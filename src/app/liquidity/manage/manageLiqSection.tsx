@@ -1,0 +1,206 @@
+
+"use client";
+import { useEffect, useState } from 'react'
+// import { Token, Fetcher } from '@uniswap/sdk'
+// import { Pair, } from 'custom-uniswap-v2-sdk'
+
+import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-testnet-sdk'
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
+import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
+import WalletButton from './walletButton';
+import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
+
+import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+import { NumericFormat } from "react-number-format";
+
+import { ethers } from "ethers";
+import { getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
+import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
+
+import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { useSearchParams } from 'next/navigation';
+
+import { tokenList } from '@/config/tokenlist';
+import { getWalletBalance } from 'thirdweb/wallets';
+
+const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
+const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
+
+export default function manageLiqSection() {
+
+    const activeWallet = useActiveWallet();
+    const activeAccount = useActiveAccount();
+
+    const [allPairs, setAllPairs] = useState<string[]>([])
+    const [myLpTokens, setMyLpTokens] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+
+    const getAllPairs = async () => {
+
+        if (!activeAccount) {
+            return;
+        }
+
+        try {
+            const factoryContract = getContract({
+                client: client,
+                address: process.env.NEXT_PUBLIC_UNISWAP_FACTORY as string,
+                chain: CHAIN,
+            });
+
+            const pairsLength = await readContract({
+                contract: factoryContract,
+                method: 'function allPairsLength() external view returns (uint)',
+                params: [],
+            });
+
+            // read from local storage
+            const pairs = localStorage.getItem('allPairs');
+            if (pairs) {
+                setAllPairs(JSON.parse(pairs));
+                return;
+            }
+            else {
+                const pairs = [];
+
+                for (let i = 0; i < pairsLength; i++) {
+                    const pairAddress = await readContract({
+                        contract: factoryContract,
+                        method: 'function allPairs(uint) external view returns (address pair)',
+                        params: [BigInt(i)],
+                    });
+
+                    pairs.push(pairAddress);
+                }
+
+                localStorage.setItem('allPairs', JSON.stringify(pairs));
+                setAllPairs(pairs);
+            }
+        } catch (error) {
+            console.error('Error fetching pairs:', error);
+            setAllPairs([])
+        }
+    };
+
+    const getMyLpTokens = async () => {
+        if (!activeAccount) {
+            return;
+        }
+
+        const promises = allPairs.map(async (pairAddress) => {
+            // Pair Contract //
+            const pairContract = getContract({
+                client: client,
+                address: pairAddress,
+                chain: CHAIN,
+            });
+
+            // Get Token info //
+            const [token0, token1, reserves, lpTokens, lpSupply] = await Promise.all([
+                readContract({ contract: pairContract, method: 'function token0() external view returns (address)', params: [] }),
+                readContract({ contract: pairContract, method: 'function token1() external view returns (address)', params: [] }),
+                readContract({ contract: pairContract, method: 'function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)', params: [] }),
+                balanceOf({ contract: pairContract, address: activeAccount?.address }),
+                totalSupply({ contract: pairContract }),
+            ]);
+
+            if (Number(lpTokens) <= 0) {
+                return null;
+            }
+
+            // get Pool Share //
+            const poolShare = Number(toTokens(lpTokens, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)) / Number((toTokens(lpSupply, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)));
+
+            const token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
+            const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
+
+            return {
+                pair: pairAddress,
+                lpTokens: lpTokens,
+                poolShare: poolShare,
+                reserves: reserves,
+                token0: token0Info,
+                token1: token1Info,
+                lpSupply: lpSupply,
+            };
+        });
+
+        const results = await Promise.all(promises);
+        const myLpTokens = results.filter(token => token !== null);
+
+        setMyLpTokens(myLpTokens);
+        setIsLoading(false);
+    };
+
+    useEffect(() => {
+
+        if (allPairs.length > 0) {
+            getMyLpTokens();
+        }
+    }, [allPairs]);
+
+    useEffect(() => {
+        if (activeAccount && activeWallet) {
+            getAllPairs();
+        }
+    }, [activeAccount, activeWallet]);
+
+
+    return (
+        // list all pairs
+        <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+                <CardTitle>Manage Liquidity</CardTitle>
+                <CardDescription>You can click to add more liquidity or remove liquidity from your wallet.</CardDescription>
+            </CardHeader>
+            <CardContent>
+
+                {
+                    isLoading && (
+                        <div>Loading...</div>
+                    )
+                }
+
+                {
+                    !isLoading && myLpTokens.length === 0 && (
+                        <div>No LP tokens found</div>
+                    )
+                }
+
+                {
+                    !isLoading && myLpTokens.length > 0 && (
+                        <div className="flex flex-col gap-4">
+                            {myLpTokens.map((token) => (
+                                <div key={token.pair} className="flex flex-row justify-between">
+                                    <div className="text-lg font-bold">
+                                        <div className="flex flex-row gap-2">
+                                            {token.token0.symbol} - {Number(toTokens(token.reserves[0], token.token0.decimals)) * token.poolShare}
+                                        </div>
+                                        <div className="flex flex-row gap-2">
+                                            {token.token1.symbol} - {Number(toTokens(token.reserves[1], token.token1.decimals)) * token.poolShare}
+                                        </div>
+                                        <div className="text-sm text-gray-500">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
+                                        <div className="text-sm text-gray-500">POOL SHARE: {token.poolShare * 100}%</div>
+                                    </div>
+
+                                </div>
+                            ))}
+                        </div>
+                    )
+                }
+
+                <div className="mt-4 w-full mx-auto">
+                    <WalletButton />
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
