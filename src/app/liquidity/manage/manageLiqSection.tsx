@@ -104,13 +104,28 @@ export default function manageLiqSection() {
             });
 
             // Get Token info //
-            const [token0, token1, reserves, lpTokens, lpSupply] = await Promise.all([
-                readContract({ contract: pairContract, method: 'function token0() external view returns (address)', params: [] }),
-                readContract({ contract: pairContract, method: 'function token1() external view returns (address)', params: [] }),
+            const [reserves, lpTokens, lpSupply] = await Promise.all([
                 readContract({ contract: pairContract, method: 'function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)', params: [] }),
                 balanceOf({ contract: pairContract, address: activeAccount?.address }),
                 totalSupply({ contract: pairContract }),
             ]);
+
+            // Check if token0 and token1 are already cached for this pair
+            const cachedPairInfo = localStorage.getItem('pair-tokens-' + pairAddress);
+            let token0, token1;
+
+            if (cachedPairInfo) {
+                const { token0: cachedToken0, token1: cachedToken1 } = JSON.parse(cachedPairInfo);
+                token0 = cachedToken0;
+                token1 = cachedToken1;
+            } else {
+                // If not cached, fetch token0 and token1 and cache them
+                [token0, token1] = await Promise.all([
+                    readContract({ contract: pairContract, method: 'function token0() external view returns (address)', params: [] }),
+                    readContract({ contract: pairContract, method: 'function token1() external view returns (address)', params: [] }),
+                ]);
+                localStorage.setItem('pair-tokens-' + pairAddress, JSON.stringify({ token0, token1 }));
+            }
 
             if (Number(lpTokens) <= 0) {
                 return null;
