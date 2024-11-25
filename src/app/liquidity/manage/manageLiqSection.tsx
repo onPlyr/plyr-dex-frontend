@@ -30,6 +30,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { tokenList } from '@/config/tokenlist';
 import { getWalletBalance } from 'thirdweb/wallets';
+import Link from 'next/link';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -138,7 +139,7 @@ export default function manageLiqSection() {
             const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
 
             return {
-                pair: pairAddress,
+                pairAddress: pairAddress,
                 lpTokens: lpTokens,
                 poolShare: poolShare,
                 reserves: reserves,
@@ -178,6 +179,12 @@ export default function manageLiqSection() {
             </CardHeader>
             <CardContent>
 
+                <div className="flex flex-row justify-end mb-4">
+                    <Link href={`/liquidity/add/`}>
+                        <Button>ADD LIQUIDITY</Button>
+                    </Link>
+                </div>
+
                 {
                     isLoading && (
                         <div>Loading...</div>
@@ -194,7 +201,7 @@ export default function manageLiqSection() {
                     !isLoading && myLpTokens.length > 0 && (
                         <div className="flex flex-col gap-4">
                             {myLpTokens.map((token) => (
-                                <div key={token.pair} className="flex flex-row justify-between">
+                                <div key={token.pair} className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4">
                                     <div className="text-lg font-bold">
                                         <div className="flex flex-row gap-2">
                                             {token.token0.symbol} - {Number(toTokens(token.reserves[0], token.token0.decimals)) * token.poolShare}
@@ -204,6 +211,14 @@ export default function manageLiqSection() {
                                         </div>
                                         <div className="text-sm text-gray-500">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
                                         <div className="text-sm text-gray-500">POOL SHARE: {token.poolShare * 100}%</div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <Link className='w-full' href={`/liquidity/add/?inputToken=${token.token0.symbol}&outputToken=${token.token1.symbol}`}>
+                                            <Button className='w-full'>ADD</Button>
+                                        </Link>
+                                        <Link href={`/liquidity/remove/?pair=${token.pairAddress}`}>
+                                            <Button className="bg-red-500 hover:bg-red-600">REMOVE</Button>
+                                        </Link>
                                     </div>
 
                                 </div>
