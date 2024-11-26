@@ -30,6 +30,9 @@ import { useSearchParams } from 'next/navigation';
 
 import { getWalletBalance } from 'thirdweb/wallets';
 import Link from 'next/link';
+
+import { BigNumber } from 'bignumber.js';
+
 import { Slider } from "@/components/ui/slider"
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -71,7 +74,13 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
             });
 
             // read from local storage
-            const pairs = localStorage.getItem('allPairs');
+            // read from local storage
+            let pairs = localStorage.getItem('allPairs');
+
+            if (pairs && JSON.parse(pairs).length !== pairsLength) {
+                localStorage.removeItem('allPairs');
+                pairs = null;
+            }
             if (pairs) {
                 setAllPairs(JSON.parse(pairs));
                 return;
@@ -126,6 +135,9 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
                 readContract({ contract: pairContract, method: 'function token0() external view returns (address)', params: [] }),
                 readContract({ contract: pairContract, method: 'function token1() external view returns (address)', params: [] }),
             ]);
+
+            console.log(reserves, lpTokens, lpSupply, token0, token1)
+
             if (Number(lpTokens) <= 0) {
                 setMyLpToken({});
                 setIsLoading(false);
@@ -198,22 +210,11 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
 
         setIsRemovingLiquidity(true);
 
-        const Token0 = new Token(CHAIN_ID, myLpToken.token0.address, myLpToken.token0.decimals, myLpToken.token0.symbol)
-        const Token1 = new Token(CHAIN_ID, myLpToken.token1.address, myLpToken.token1.decimals, myLpToken.token1.symbol)
-
-        // Use the SDK provider to get the reserves
-        //const pairAddress = Pair.getAddress(Token0 as any, Token1 as any)
-
-        console.log(Token0, Token1, process.env.NEXT_PUBLIC_UNISWAP_FACTORY, process.env.NEXT_PUBLIC_UNISWAP_INIT_CODE_HASH)
-
-        //console.log(pairAddress)
-
-
         try {
 
-            const liquidity = Number(toTokens(myLpToken.lpTokens, 18)) * sliderValue[0] / 100;
-            const amount0Min = (Number(toTokens(myLpToken.reserves[0], myLpToken.token0.decimals)) * myLpToken.poolShare * sliderValue[0] / 100) * 95 / 100; // 5% slippage
-            const amount1Min = (Number(toTokens(myLpToken.reserves[1], myLpToken.token1.decimals)) * myLpToken.poolShare * sliderValue[0] / 100) * 95 / 100; // 5% slippage
+            const liquidity = BigNumber(toTokens(myLpToken.lpTokens, 18)).multipliedBy(sliderValue[0]).dividedBy(100).toString();
+            const amount0Min = BigNumber(toTokens(myLpToken.reserves[0], myLpToken.token0.decimals)).multipliedBy(myLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).multipliedBy(95).dividedBy(100).toString(); // 5% slippage
+            const amount1Min = BigNumber(toTokens(myLpToken.reserves[1], myLpToken.token1.decimals)).multipliedBy(myLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).multipliedBy(95).dividedBy(100).toString(); // 5% slippage
             const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes from now
 
             console.log(liquidity, amount0Min, amount1Min)
@@ -241,7 +242,7 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 console.log('result', Number(toTokens(result, 18)), liquidity)
 
-                if (Number(toTokens(result, 18)) < liquidity) {
+                if (Number(toTokens(result, 18)) < Number(liquidity)) {
                     const approveTx = approve({
                         contract: erc20Contract,
                         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
@@ -297,160 +298,10 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
             }
             else {
                 // Token pair
+                
             }
 
-            // let tx;
-            // if (isEthPair) {
-            //     const ethAmount = ethToken === token0 ? amount0Desired : amount1Desired
-            //     const tokenAmount = ethToken === token0 ? amount1Desired : amount0Desired
-            //     const tokenAmountMin = tokenAmount.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000)
-            //     const ethAmountMin = ethAmount.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000)
-
-            //     // Approve other erc20 token //
-            //     if (!otherToken.address) {
-            //         setError('Invalid token address')
-            //         return
-            //     }
-            //     const erc20Contract = getContract({
-            //         chain: CHAIN,
-            //         address: otherToken.address,
-            //         client: client
-            //     });
-            //     const result = await allowance({
-            //         contract: erc20Contract,
-            //         owner: activeAccount?.address || '',
-            //         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //     })
-
-            //     console.log('result', result);
-
-            //     console.log('allowance', Number(toTokens(result, otherToken.decimals)), Number(toTokens(tokenAmount.toBigInt(), otherToken.decimals)));
-
-            //     if (Number(toTokens(result, otherToken.decimals)) < Number(toTokens(tokenAmount.toBigInt(), otherToken.decimals))) {
-            //         const approveTx = approve({
-            //             contract: erc20Contract,
-            //             spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //             amount: toTokens(tokenAmount.toBigInt(), otherToken.decimals),
-            //         });
-
-            //         await sendAndConfirmTransaction({
-            //             transaction: approveTx,
-            //             account: activeAccount,
-            //         });
-            //     }
-
-
-            //     const uniswapRouterContract = getContract({
-            //         client: client,
-            //         address: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //         chain: CHAIN,
-            //     });
-            //     console.log({
-            //         value: ethAmount.toBigInt(),
-            //         token: otherToken.address,
-            //         amountTokenDesired: tokenAmount.toBigInt(),
-            //         amountTokenMin: tokenAmountMin.toBigInt(),
-            //         amountETHMin: ethAmountMin.toBigInt(),
-            //         to: activeAccount?.address,
-            //         deadline: deadline,
-            //     })
-            //     const transaction = prepareContractCall<any, any, any>({
-            //         contract: uniswapRouterContract,
-            //         method: 'function addLiquidityETH(address token, uint amountTokenDesired, uint amountTokenMin, uint amountETHMin, address to, uint deadline) external payable returns (uint amountToken, uint amountETH, uint liquidity)',
-            //         params: [otherToken.address, tokenAmount.toBigInt(), tokenAmountMin.toBigInt(), ethAmountMin.toBigInt(), activeAccount?.address, deadline.toString()],
-            //         value: ethAmount.toBigInt(),
-            //     })
-
-            //     const transactionResult = await sendAndConfirmTransaction({
-            //         transaction,
-            //         account: activeAccount,
-            //     })
-
-            //     const txHash = transactionResult.transactionHash;
-            //     const truncatedTxHash = txHash.slice(5, -5);
-
-            //     setResult(<>
-            //         Liquidity added successfully!
-            //         <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
-            // }
-            // else {
-            //     const amount0Min = amount0Desired.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000);
-            //     const amount1Min = amount1Desired.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000);
-
-            //     // Approve token0
-            //     const token0Contract = getContract({
-            //         chain: CHAIN,
-            //         address: token0.address,
-            //         client: client,
-            //     });
-            //     const token0Allowance = await allowance({
-            //         contract: token0Contract,
-            //         owner: activeAccount?.address || '',
-            //         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //     });
-
-            //     if (Number(toTokens(token0Allowance, token0.decimals)) < Number(toTokens(amount0Desired.toBigInt(), token0.decimals))) {
-            //         const approveTx0 = approve({
-            //             contract: token0Contract,
-            //             spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //             amount: toTokens(amount0Desired.toBigInt(), token0.decimals),
-            //         });
-
-            //         await sendAndConfirmTransaction({
-            //             transaction: approveTx0,
-            //             account: activeAccount,
-            //         });
-            //     }
-
-            //     // Approve token1
-            //     const token1Contract = getContract({
-            //         chain: CHAIN,
-            //         address: token1.address,
-            //         client: client,
-            //     });
-            //     const token1Allowance = await allowance({
-            //         contract: token1Contract,
-            //         owner: activeAccount?.address || '',
-            //         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //     });
-
-            //     if (Number(toTokens(token1Allowance, token1.decimals)) < Number(toTokens(amount1Desired.toBigInt(), token1.decimals))) {
-            //         const approveTx1 = approve({
-            //             contract: token1Contract,
-            //             spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //             amount: toTokens(amount1Desired.toBigInt(), token1.decimals),
-            //         });
-
-            //         await sendAndConfirmTransaction({
-            //             transaction: approveTx1,
-            //             account: activeAccount,
-            //         });
-            //     }
-
-            //     const uniswapRouterContract = getContract({
-            //         client: client,
-            //         address: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-            //         chain: CHAIN,
-            //     });
-
-            //     const transaction = prepareContractCall<any, any, any>({
-            //         contract: uniswapRouterContract,
-            //         method: 'function addLiquidity(address tokenA, address tokenB, uint amountADesired, uint amountBDesired, uint amountAMin, uint amountBMin, address to, uint deadline) external returns (uint amountA, uint amountB, uint liquidity)',
-            //         params: [token0.address, token1.address, amount0Desired.toBigInt(), amount1Desired.toBigInt(), amount0Min.toBigInt(), amount1Min.toBigInt(), activeAccount?.address, deadline.toString()],
-            //     });
-
-            //     const transactionResult = await sendAndConfirmTransaction({
-            //         transaction,
-            //         account: activeAccount,
-            //     });
-
-            //     const txHash = transactionResult.transactionHash;
-            //     const truncatedTxHash = txHash.slice(5, -5);
-
-            //     setResult(<>
-            //         Liquidity added successfully!
-            //         <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
-            // }
+            
 
         } catch (error: any) {
             setError(`${error.message}`)
@@ -505,18 +356,18 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
                                     </div>
                                     <div className="flex flex-row gap-2 items-center">
                                         <Image src={myLpToken.token0.logoURI} alt={myLpToken.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                        {myLpToken.token0.symbol} - {Number(toTokens(myLpToken.reserves[0], myLpToken.token0.decimals)) * myLpToken.poolShare * sliderValue[0] / 100}
+                                        {myLpToken.token0.symbol} - {BigNumber(toTokens(myLpToken.reserves[0], myLpToken.token0.decimals)).multipliedBy(myLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()}
                                     </div>
                                     <div className="flex flex-row gap-2 items-center">
                                         <Image src={myLpToken.token1.logoURI} alt={myLpToken.token1.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                        {myLpToken.token1.symbol} - {Number(toTokens(myLpToken.reserves[1], myLpToken.token1.decimals)) * myLpToken.poolShare * sliderValue[0] / 100}
+                                        {myLpToken.token1.symbol} - {BigNumber(toTokens(myLpToken.reserves[1], myLpToken.token1.decimals)).multipliedBy(myLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()}
                                     </div>
 
                                     <div className="text-xl font-bold mt-4">
                                         Position decreases to:
                                     </div>
-                                    <div className="text-sm text-gray-500">LP TOKENS: {Number(toTokens(myLpToken.lpTokens, 18)) - Number(toTokens(myLpToken.lpTokens, 18)) * sliderValue[0] / 100}</div>
-                                    <div className="text-sm text-gray-500">POOL SHARE: {myLpToken.poolShare * 100 - (myLpToken.poolShare * 100 * sliderValue[0] / 100)}%</div>
+                                    <div className="text-sm text-gray-500">LP TOKENS: {BigNumber(toTokens(myLpToken.lpTokens, 18)).minus(BigNumber(toTokens(myLpToken.lpTokens, 18)).multipliedBy(sliderValue[0]).dividedBy(100)).toString()}</div>
+                                    <div className="text-sm text-gray-500">POOL SHARE: {BigNumber(myLpToken.poolShare).multipliedBy(100).minus(BigNumber(myLpToken.poolShare).multipliedBy(100).multipliedBy(sliderValue[0]).dividedBy(100)).toString()}%</div>
                                 </div>
 
                             </div>

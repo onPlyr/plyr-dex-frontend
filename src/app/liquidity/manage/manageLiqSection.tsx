@@ -62,8 +62,17 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 params: [],
             });
 
+        
+
             // read from local storage
-            const pairs = localStorage.getItem('allPairs');
+            let pairs = localStorage.getItem('allPairs');
+
+            if (pairs && JSON.parse(pairs).length !== pairsLength) {
+                localStorage.removeItem('allPairs');
+                pairs = null;
+            }
+
+
             if (pairs) {
                 setAllPairs(JSON.parse(pairs));
                 return;
@@ -118,6 +127,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 balanceOf({ contract: pairContract, address: activeAccount?.address }),
                 totalSupply({ contract: pairContract }),
             ]);
+
+            console.log('myLpTokens', reserves, lpTokens, lpSupply)
 
             // Check if token0 and token1 are already cached for this pair
             const cachedPairInfo = localStorage.getItem('pair-tokens-' + pairAddress);

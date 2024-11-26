@@ -27,6 +27,8 @@ import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useSearchParams } from 'next/navigation';
 
+import { BigNumber } from 'bignumber.js';
+
 //import { tokenList } from '@/config/tokenlist';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
@@ -185,8 +187,8 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             const price = pair.priceOf(input === 0 ? Token0 : Token1);
             const outputAmount = inputAmount.multiply(price);
 
-            const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(99);
-            const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(99);
+            const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(token0.decimals);
+            const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(token1.decimals);
             setAmount0(newAmount0);
             setAmount1(newAmount1);
 
@@ -259,10 +261,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             const ethToken = token0.symbol === 'PLYR' ? token0 : token1
             const otherToken = token0.symbol === 'PLYR' ? token1 : token0
 
-            const amount0Desired = ethers.utils.parseUnits(amount0, token0.decimals)
-            console.log(amount0Desired.toString())
-            const amount1Desired = ethers.utils.parseUnits(amount1, token1.decimals)
-            console.log(amount1Desired.toString())
+            const amount0Desired = BigNumber(amount0)
+            const amount1Desired = BigNumber(amount1)
+            
+            console.log('amount0Desired', amount0Desired.toString())
+            console.log('amount1Desired', amount1Desired.toString())
             const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes from now
 
             const slippageTolerance = 0.005 // 0.5%
@@ -271,8 +274,9 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             if (isEthPair) {
                 const ethAmount = ethToken === token0 ? amount0Desired : amount1Desired
                 const tokenAmount = ethToken === token0 ? amount1Desired : amount0Desired
-                const tokenAmountMin = tokenAmount.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000)
-                const ethAmountMin = ethAmount.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000)
+                const tokenAmountDecimals = ethToken === token0 ? token1.decimals : token0.decimals
+                const tokenAmountMin = tokenAmount.multipliedBy(1000 - Math.floor(slippageTolerance * 1000)).dividedBy(1000)
+                const ethAmountMin = ethAmount.multipliedBy(1000 - Math.floor(slippageTolerance * 1000)).dividedBy(1000)
 
                 // Approve other erc20 token //
                 if (!otherToken.address) {
@@ -292,13 +296,13 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 console.log('result', result);
 
-                console.log('allowance', Number(toTokens(result, otherToken.decimals)), Number(toTokens(tokenAmount.toBigInt(), otherToken.decimals)));
+                console.log('tokenAmount', tokenAmount.toString())
 
-                if (Number(toTokens(result, otherToken.decimals)) < Number(toTokens(tokenAmount.toBigInt(), otherToken.decimals))) {
+                if (BigNumber(toTokens(result, otherToken.decimals)).lt(tokenAmount)) {
                     const approveTx = approve({
                         contract: erc20Contract,
                         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-                        amount: toTokens(tokenAmount.toBigInt(), otherToken.decimals),
+                        amount: tokenAmount.toString(),
                     });
 
                     await sendAndConfirmTransaction({
@@ -314,19 +318,19 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     chain: CHAIN,
                 });
                 console.log('addLiquidityETH', {
-                    value: ethAmount.toBigInt(),
+                    value: ethAmount.toString(),
                     token: otherToken.address,
-                    amountTokenDesired: tokenAmount.toBigInt(),
-                    amountTokenMin: tokenAmountMin.toBigInt(),
-                    amountETHMin: ethAmountMin.toBigInt(),
+                    amountTokenDesired: tokenAmount.toString(),
+                    amountTokenMin: tokenAmountMin.toString(),
+                    amountETHMin: ethAmountMin.toString(),
                     to: activeAccount?.address,
                     deadline: deadline,
                 })
                 const transaction = prepareContractCall<any, any, any>({
                     contract: uniswapRouterContract,
                     method: 'function addLiquidityETH(address token, uint amountTokenDesired, uint amountTokenMin, uint amountETHMin, address to, uint deadline) external payable returns (uint amountToken, uint amountETH, uint liquidity)',
-                    params: [otherToken.address, tokenAmount.toBigInt(), tokenAmountMin.toBigInt(), ethAmountMin.toBigInt(), activeAccount?.address, deadline.toString()],
-                    value: ethAmount.toBigInt(),
+                    params: [otherToken.address, toUnits(tokenAmount.toString(), tokenAmountDecimals), toUnits(tokenAmountMin.toString(), tokenAmountDecimals), toUnits(ethAmountMin.toString(), 18), activeAccount?.address, deadline.toString()],
+                    value: toUnits(ethAmount.toString(), 18),
                 })
 
                 const transactionResult = await sendAndConfirmTransaction({
@@ -342,8 +346,8 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
             }
             else {
-                const amount0Min = amount0Desired.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000);
-                const amount1Min = amount1Desired.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000);
+                const amount0Min = amount0Desired.multipliedBy(1000 - Math.floor(slippageTolerance * 1000)).dividedBy(1000);
+                const amount1Min = amount1Desired.multipliedBy(1000 - Math.floor(slippageTolerance * 1000)).dividedBy(1000);
 
                 // Approve token0
                 const token0Contract = getContract({
@@ -357,11 +361,12 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
                 });
 
-                if (Number(toTokens(token0Allowance, token0.decimals)) < Number(toTokens(amount0Desired.toBigInt(), token0.decimals))) {
+
+                if (BigNumber(toTokens(token0Allowance, otherToken.decimals)).lt(amount0Desired)) {
                     const approveTx0 = approve({
                         contract: token0Contract,
                         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-                        amount: toTokens(amount0Desired.toBigInt(), token0.decimals),
+                        amount: amount0Desired.toString(),
                     });
 
                     await sendAndConfirmTransaction({
@@ -382,11 +387,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
                 });
 
-                if (Number(toTokens(token1Allowance, token1.decimals)) < Number(toTokens(amount1Desired.toBigInt(), token1.decimals))) {
+                if (BigNumber(toTokens(token1Allowance, otherToken.decimals)).lt(amount1Desired)) {
                     const approveTx1 = approve({
                         contract: token1Contract,
                         spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
-                        amount: toTokens(amount1Desired.toBigInt(), token1.decimals),
+                        amount: amount1Desired.toString(),
                     });
 
                     await sendAndConfirmTransaction({
@@ -404,7 +409,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                 const transaction = prepareContractCall<any, any, any>({
                     contract: uniswapRouterContract,
                     method: 'function addLiquidity(address tokenA, address tokenB, uint amountADesired, uint amountBDesired, uint amountAMin, uint amountBMin, address to, uint deadline) external returns (uint amountA, uint amountB, uint liquidity)',
-                    params: [token0.address, token1.address, amount0Desired.toBigInt(), amount1Desired.toBigInt(), amount0Min.toBigInt(), amount1Min.toBigInt(), activeAccount?.address, deadline.toString()],
+                    params: [token0.address, token1.address, toUnits(amount0Desired.toString(), token0.decimals), toUnits(amount1Desired.toString(), token1.decimals), toUnits(amount0Min.toString(), token0.decimals), toUnits(amount1Min.toString(), token1.decimals), activeAccount?.address, deadline.toString()],
                 });
 
                 const transactionResult = await sendAndConfirmTransaction({
