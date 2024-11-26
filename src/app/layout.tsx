@@ -3,6 +3,7 @@ import { Chivo } from "next/font/google";
 import "./globals.css";
 // import { SourceCodeProOverrided } from "@/components/font_overrided";
 import { Toaster } from "@/components/ui/toaster";
+import NProgress from "./nprogress";
 
 const chivo = Chivo({ subsets: ["latin"] });
 
@@ -55,7 +56,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff"></meta>
       </head>
       <body className={chivo.className}>
-
+        <NProgress />
 
         {children}
 

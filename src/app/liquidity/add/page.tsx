@@ -6,8 +6,13 @@ import { Suspense } from "react";
 
 import { Loader2 } from "lucide-react";
 import { ThirdwebProvider } from "thirdweb/react";
+import { loadTokenList } from "@/app/loadTokenList";
 
-export default function Main() {
+export default async function Main() {
+
+
+  // Fetch Token List //
+  const tokenList = await loadTokenList();
 
   return (
     <>
@@ -24,7 +29,7 @@ export default function Main() {
       }>
         <ThirdwebProvider>
           <div className="flex w-full px-6 flex-col items-center justify-center min-h-screen">
-            <AddLiqSection />
+            <AddLiqSection tokenList={tokenList} />
           </div>
         </ThirdwebProvider>
       </Suspense >

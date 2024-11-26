@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 // import { Token, Fetcher } from '@uniswap/sdk'
 // import { Pair, } from 'custom-uniswap-v2-sdk'
 
-import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-testnet-sdk'
+import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
 import { totalSupply } from "thirdweb/extensions/erc20";
-import WalletButton from './walletButton';
+import WalletButton from '@/app/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { AlertCircle } from 'lucide-react'
@@ -27,29 +27,29 @@ import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useSearchParams } from 'next/navigation';
 
-import { tokenList } from '@/config/tokenlist';
+//import { tokenList } from '@/config/tokenlist';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
 
 
-export default function addLiqSection() {
+export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
 
     const params = useSearchParams();
-    const inputToken = params.get('inputToken');
-    const outputToken = params.get('outputToken');
+    const currencyA = params.get('currencyA');
+    const currencyB = params.get('currencyB');
 
-    console.log('inputToken', inputToken)
-    console.log('outputToken', outputToken)
+    const [token0, setToken0] = useState(currencyA ? tokenList?.find(t => t.symbol === currencyA || t.address.toLowerCase() === currencyA.toLowerCase()) || tokenList?.find(t => t.symbol === 'PLYR') : tokenList?.find(t => t.symbol === 'PLYR'))
+    const [token1, setToken1] = useState(currencyB ? tokenList?.find(t => t.symbol === currencyB || t.address.toLowerCase() === currencyB.toLowerCase()) || tokenList?.find(t => t.symbol === 'GAMR') : tokenList?.find(t => t.symbol === 'GAMR'))
+
+    console.log('token0', token0)
+    console.log('token1', token1)
 
 
-    const [token0, setToken0] = useState(inputToken ? tokenList?.find(t => t.symbol === inputToken) || tokenList[0] : tokenList[0])
-    const [token1, setToken1] = useState(outputToken ? tokenList?.find(t => t.symbol === outputToken) || tokenList[1] : tokenList[1])
-    const [allPairs, setAllPairs] = useState<string[]>([])
     const [pair, setPair] = useState<Pair | null>(null)
     const [poolShareInfo, setPoolShareInfo] = useState<any>({
         tokenatob: 0,
@@ -63,6 +63,7 @@ export default function addLiqSection() {
     const [info, setInfo] = useState('')
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isAddingLiquidity, setIsAddingLiquidity] = useState(false);
 
     // Get my balance //
     const { data: myBalance0, isLoading: isLoadingBalance0 } = useWalletBalance({
@@ -86,6 +87,7 @@ export default function addLiqSection() {
 
     console.log('myBalance0', myBalance0)
     console.log('myBalance1', myBalance1)
+
 
     const handlePairData = async () => {
 
@@ -202,12 +204,11 @@ export default function addLiqSection() {
                 sharePercent: Number(sharePercent),
             }));
 
-            
+
             if (Number(newAmount0) > Number(myBalance0?.displayValue || 0) || Number(newAmount1) > Number(myBalance1?.displayValue || 0)) {
                 setError('Insufficient balance')
             }
-            else
-            {
+            else {
                 setError('');
             }
         }
@@ -222,18 +223,25 @@ export default function addLiqSection() {
 
         e.preventDefault()
         e.stopPropagation()
+
+        if (isAddingLiquidity) return;
+
         if (!activeAccount || !activeWallet) {
             setError('Please connect your wallet first')
             return
         }
 
+
+
         setResult(null)
         setError('')
 
         if (token0.address === undefined || token1.address === undefined) {
-            setError('Invalid token address')
+            setError('Invalid token address');
             return
         }
+
+        setIsAddingLiquidity(true);
 
         const Token0 = new Token(CHAIN_ID, token0.address, token0.decimals, token0.symbol)
         const Token1 = new Token(CHAIN_ID, token1.address, token1.decimals, token1.symbol)
@@ -328,7 +336,7 @@ export default function addLiqSection() {
 
                 const txHash = transactionResult.transactionHash;
                 const truncatedTxHash = txHash.slice(5, -5);
-                
+
                 setResult(<>
                     Liquidity added successfully!
                     <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
@@ -406,7 +414,7 @@ export default function addLiqSection() {
 
                 const txHash = transactionResult.transactionHash;
                 const truncatedTxHash = txHash.slice(5, -5);
-                
+
                 setResult(<>
                     Liquidity added successfully!
                     <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
@@ -414,6 +422,9 @@ export default function addLiqSection() {
 
         } catch (error: any) {
             setError(`${error.message}`)
+        }
+        finally {
+            setIsAddingLiquidity(false);
         }
     }
 
@@ -453,7 +464,7 @@ export default function addLiqSection() {
                                     <SelectValue placeholder="Select token" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {tokenList.map((token) => (
+                                    {tokenList?.map((token: any) => (
                                         <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -502,7 +513,7 @@ export default function addLiqSection() {
                                     <SelectValue placeholder="Select token" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {tokenList.map((token) => (
+                                    {tokenList?.map((token: any) => (
                                         <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -544,7 +555,7 @@ export default function addLiqSection() {
                         </>
                     }
 
-                    <Button type="submit" className="w-full mt-4" disabled={isLoading || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{'Add Liquidity'}</Button>
+                    <Button type="submit" className="w-full mt-4" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{isAddingLiquidity ? 'Adding Liquidity...' : 'Add Liquidity'}</Button>
                 </form>
 
                 {result && (
