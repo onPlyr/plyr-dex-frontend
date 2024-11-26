@@ -11,6 +11,7 @@ export async function loadTokenList() {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'PLYR',
         decimals: 18,
+        logoURI: 'https://tokenlist.onplyr.com/token_icons/16180/PLYR.png'
     })
 
     data.tokens.filter((token: any) => token.chainId === (process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831)).forEach((token: any) => {
@@ -21,6 +22,7 @@ export async function loadTokenList() {
             address: token.address,
             symbol: token.symbol,
             decimals: token.decimals,
+            logoURI: token.logoURI
         })
     })
     return tokenList;

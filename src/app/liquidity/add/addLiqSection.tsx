@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 // import { Token, Fetcher } from '@uniswap/sdk'
 // import { Pair, } from 'custom-uniswap-v2-sdk'
-
+import Image from 'next/image'
 import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
 
 import { Button } from "@/components/ui/button"
@@ -460,12 +460,17 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                 }
                                 setToken0(tokenList.find(t => t.symbol === value)!)
                             }}>
-                                <SelectTrigger className="w-32" id="token0">
+                                <SelectTrigger className="w-48" id="token0">
                                     <SelectValue placeholder="Select token" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {tokenList?.map((token: any) => (
-                                        <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
+                                        <SelectItem key={token.address} value={token.symbol}>
+                                            <div className="flex flex-row gap-2 items-center">
+                                                <Image src={token.logoURI} alt={token.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
+                                                {token.symbol}
+                                            </div>
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -509,12 +514,17 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                 }
                                 setToken1(tokenList.find(t => t.symbol === value)!)
                             }}>
-                                <SelectTrigger className="w-32" id="token1">
+                                <SelectTrigger className="w-48" id="token1">
                                     <SelectValue placeholder="Select token" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {tokenList?.map((token: any) => (
-                                        <SelectItem key={token.address} value={token.symbol}>{token.symbol}</SelectItem>
+                                        <SelectItem key={token.address} value={token.symbol}>
+                                            <div className="flex flex-row gap-2 items-center">
+                                                <Image src={token.logoURI} alt={token.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
+                                                {token.symbol}
+                                            </div>
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

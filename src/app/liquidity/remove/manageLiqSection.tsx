@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 // import { Pair, } from 'custom-uniswap-v2-sdk'
 
 import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
-
+import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -131,9 +131,11 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             // get Pool Share //
             const poolShare = Number(toTokens(lpTokens, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)) / Number((toTokens(lpSupply, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)));
             // @ts-ignore
-            const token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
+            const token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
             // @ts-ignore
-            const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
+            const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
+            
+            console.log(tokenList, token0Info, token1Info);
             setMyLpToken({
                 pairAddress: pairAddress,
                 lpTokens: lpTokens,
@@ -208,14 +210,16 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                                     <div className="text-xl font-bold">
                                         You will receive:
                                     </div>
-                                    <div className="flex flex-row gap-2">
+                                    <div className="flex flex-row gap-2 items-center">
+                                        <Image src={myLpToken.token0.logoURI} alt={myLpToken.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
                                         {myLpToken.token0.symbol} - {Number(toTokens(myLpToken.reserves[0], myLpToken.token0.decimals)) * myLpToken.poolShare * sliderValue[0] / 100}
                                     </div>
-                                    <div className="flex flex-row gap-2">
+                                    <div className="flex flex-row gap-2 items-center">
+                                        <Image src={myLpToken.token1.logoURI} alt={myLpToken.token1.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
                                         {myLpToken.token1.symbol} - {Number(toTokens(myLpToken.reserves[1], myLpToken.token1.decimals)) * myLpToken.poolShare * sliderValue[0] / 100}
                                     </div>
 
-                                    <div className="text-xl font-bold">
+                                    <div className="text-xl font-bold mt-4">
                                         Position decreases to:
                                     </div>
                                     <div className="text-sm text-gray-500">LP TOKENS: {Number(toTokens(myLpToken.lpTokens, 18)) - Number(toTokens(myLpToken.lpTokens, 18)) * sliderValue[0] / 100}</div>

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 // import { Pair, } from 'custom-uniswap-v2-sdk'
 
 import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
-
+import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -90,7 +90,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     setIsLoading(false);
                 }
 
-              
+
             }
         } catch (error) {
             console.error('Error fetching pairs:', error);
@@ -144,9 +144,9 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             const poolShare = Number(toTokens(lpTokens, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)) / Number((toTokens(lpSupply, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)));
 
             // @ts-ignore
-            const token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
+            const token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
             // @ts-ignore
-            const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? { symbol: 'PLYR', address: process.env.NEXT_PUBLIC_UNISWAP_WPLYR.toLowerCase(), decimals: 18 } : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
+            const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
 
             return {
                 pairAddress: pairAddress,
@@ -171,7 +171,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         if (allPairs.length > 0) {
             getMyLpTokens();
         }
-        
+
     }, [allPairs]);
 
     useEffect(() => {
@@ -214,13 +214,15 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                             {myLpTokens.map((token) => (
                                 <div key={token.pair} className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4">
                                     <div className="text-lg font-bold">
-                                        <div className="flex flex-row gap-2">
+                                        <div className="flex flex-row gap-2 items-center">
+                                            <Image src={token.token0.logoURI} alt={token.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
                                             {token.token0.symbol} - {Number(toTokens(token.reserves[0], token.token0.decimals)) * token.poolShare}
                                         </div>
-                                        <div className="flex flex-row gap-2">
+                                        <div className="flex flex-row gap-2 items-center">
+                                            <Image src={token.token1.logoURI} alt={token.token1.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
                                             {token.token1.symbol} - {Number(toTokens(token.reserves[1], token.token1.decimals)) * token.poolShare}
                                         </div>
-                                        <div className="text-sm text-gray-500">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
+                                        <div className="text-sm text-gray-500 mt-4">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
                                         <div className="text-sm text-gray-500">POOL SHARE: {token.poolShare * 100}%</div>
                                     </div>
                                     <div className="flex flex-col gap-2">
