@@ -313,7 +313,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     address: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
                     chain: CHAIN,
                 });
-                console.log({
+                console.log('addLiquidityETH', {
                     value: ethAmount.toBigInt(),
                     token: otherToken.address,
                     amountTokenDesired: tokenAmount.toBigInt(),
@@ -339,7 +339,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 setResult(<>
                     Liquidity added successfully!
-                    <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
+                    <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
             }
             else {
                 const amount0Min = amount0Desired.mul(1000 - Math.floor(slippageTolerance * 1000)).div(1000);
@@ -417,7 +417,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 setResult(<>
                     Liquidity added successfully!
-                    <br /><a href={`https://subnets-test.avax.network/plyr/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
+                    <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
             }
 
         } catch (error: any) {

@@ -1,7 +1,7 @@
 import Image from "next/image";
 // import { ConnectTWButton } from "@/components/thirdweb_connectbutton";
 
-import ManageLiqSection from "./manageLiqSection";
+import RemoveLiqSection from "./removeLiqSection";
 import { Suspense } from "react";
 
 import { Loader2 } from "lucide-react";
@@ -28,7 +28,7 @@ export default async function Main() {
       }>
         <ThirdwebProvider>
           <div className="flex w-full px-6 flex-col items-center justify-center min-h-screen">
-            <ManageLiqSection tokenList={tokenList} />
+            <RemoveLiqSection tokenList={tokenList} />
           </div>
         </ThirdwebProvider>
       </Suspense >
