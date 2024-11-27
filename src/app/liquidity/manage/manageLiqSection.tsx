@@ -31,6 +31,9 @@ import { useSearchParams } from 'next/navigation';
 import { getWalletBalance } from 'thirdweb/wallets';
 import Link from 'next/link';
 
+import { FastAverageColor } from 'fast-average-color';
+
+
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
@@ -42,6 +45,22 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
+
+    // Gradient color //
+    const [gradientColors, setGradientColors] = useState<{ [key: string]: string }>({});
+    useEffect(() => {
+        const fetchGradientColors = async () => {
+            const fac = new FastAverageColor();
+            const colors: { [key: string]: string } = {};
+            for (const token of myLpTokens) {
+                const color0 = await fac.getColorAsync(token.token0.logoURI);
+                const color1 = await fac.getColorAsync(token.token1.logoURI);
+                colors[token.pairAddress] = `linear-gradient(to right, ${color0.hex}, ${color1.hex})`;
+            }
+            setGradientColors(colors);
+        };
+        fetchGradientColors();
+    }, [myLpTokens]);
 
     const getAllPairs = async () => {
 
@@ -62,7 +81,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 params: [],
             });
 
-        
+
 
             // read from local storage
             let pairs = localStorage.getItem('allPairs');
@@ -171,7 +190,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         });
 
         const results = await Promise.all(promises);
-        const myLpTokens = results.filter(token => token !== null);
+        let myLpTokens = results.filter(token => token !== null);
 
         setMyLpTokens(myLpTokens);
         setIsLoading(false);
@@ -223,7 +242,10 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     !isLoading && myLpTokens.length > 0 && (
                         <div className="flex flex-col gap-4">
                             {myLpTokens.map((token) => (
-                                <div key={token.pair} className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4">
+                                <div key={token.pair} 
+                                className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4"
+                                style={{ background: gradientColors[token.pairAddress] }}
+                                >
                                     <div className="text-lg font-bold">
                                         <div className="flex flex-row gap-2 items-center">
                                             <Image src={token.token0.logoURI} alt={token.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
