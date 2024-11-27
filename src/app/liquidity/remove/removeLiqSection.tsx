@@ -297,12 +297,63 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
                     <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
             }
             else {
-                // Token pair
-                
+                // Remove liquidity for token pair
+                const erc20Contract = getContract({
+                    chain: CHAIN,
+                    address: pairAddress,
+                    client: client,
+                });
+                const result = await allowance({
+                    contract: erc20Contract,
+                    owner: activeAccount?.address || '',
+                    spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
+                });
+                if (Number(toTokens(result, 18)) < Number(liquidity)) {
+                    const approveTx = approve({
+                        contract: erc20Contract,
+                        spender: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
+                        amount: liquidity,
+                    });
+                    await sendAndConfirmTransaction({
+                        transaction: approveTx,
+                        account: activeAccount,
+                    });
+                }
+                const uniswapRouterContract = getContract({
+                    client: client,
+                    address: process.env.NEXT_PUBLIC_UNISWAP_ROUTER as string,
+                    chain: CHAIN,
+                });
+                const transaction = prepareContractCall<any, any, any>({
+                    contract: uniswapRouterContract,
+                    method: 'function removeLiquidity(address tokenA, address tokenB, uint liquidity, uint amountAMin, uint amountBMin, address to, uint deadline) external returns (uint amountA, uint amountB)',
+                    params: [
+                        myLpToken.token0.address,
+                        myLpToken.token1.address,
+                        toUnits(liquidity.toString(), 18),
+                        toUnits(amount0Min.toString(), myLpToken.token0.decimals),
+                        toUnits(amount1Min.toString(), myLpToken.token1.decimals),
+                        activeAccount?.address,
+                        deadline.toString(),
+                    ],
+                });
+                const transactionResult = await sendAndConfirmTransaction({
+                    transaction,
+                    account: activeAccount,
+                });
+                const txHash = transactionResult.transactionHash;
+                const truncatedTxHash = txHash.slice(5, -5);
+                getMyLpToken();
+                setResult(
+                    <>
+                        Liquidity removed successfully!
+                        <br />
+                        <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">
+                            {truncatedTxHash}
+                        </a>
+                    </>
+                );
             }
-
-            
-
         } catch (error: any) {
             setError(`${error.message}`)
         }
@@ -372,7 +423,7 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
 
                             </div>
 
-                            <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity}>Remove Liquidity</Button>
+                            <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity}>{isRemovingLiquidity ? 'Removing Liquidity...' : 'Remove Liquidity'}</Button>
 
                         </div>
                     )
