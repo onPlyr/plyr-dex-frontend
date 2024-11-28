@@ -181,7 +181,7 @@ b {
 }
 
 .shadow-grow-gray {
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
 }
 
 .shadow-grow-gray-sm {
@@ -246,10 +246,10 @@ b {
 }
 
 body {
-  background-color: #000000;
-  opacity: 1;
+  background-color: #1e1d1b;
+  /* opacity: 1;
   background-size: 6px 6px;
-  background-image: repeating-linear-gradient(45deg, #1e1e1e 0, #1e1e1e 0.6px, #000000 0, #000000 50%);
+  background-image: repeating-linear-gradient(45deg, #1e1e1e 0, #1e1e1e 0.6px, #000000 0, #000000 50%); */
 }
 
 /* body {

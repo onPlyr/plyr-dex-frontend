@@ -34,7 +34,7 @@ import { BigNumber } from 'bignumber.js';
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
-
+import { FastAverageColor } from 'fast-average-color';
 
 export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
@@ -47,6 +47,9 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const [token0, setToken0] = useState(currencyA ? tokenList?.find(t => t.symbol === currencyA || t.address.toLowerCase() === currencyA.toLowerCase()) || tokenList?.find(t => t.symbol === 'PLYR') : tokenList?.find(t => t.symbol === 'PLYR'))
     const [token1, setToken1] = useState(currencyB ? tokenList?.find(t => t.symbol === currencyB || t.address.toLowerCase() === currencyB.toLowerCase()) || tokenList?.find(t => t.symbol === 'GAMR') : tokenList?.find(t => t.symbol === 'GAMR'))
+
+    const [token0Color, setToken0Color] = useState<string | null>(null)
+    const [token1Color, setToken1Color] = useState<string | null>(null)
 
     console.log('token0', token0)
     console.log('token1', token1)
@@ -90,6 +93,28 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     console.log('myBalance0', myBalance0)
     console.log('myBalance1', myBalance1)
 
+    useEffect(() => {
+        if (!token0.address || !token1.address) {
+            return;
+        }
+        handlePairData();
+        // Set token colors
+        const fac = new FastAverageColor();
+        fac.getColorAsync(token0.logoURI)
+            .then(color => {
+                setToken0Color(color.hex);
+            })
+            .catch(e => {
+                console.log(e);
+            });
+        fac.getColorAsync(token1.logoURI)
+            .then(color => {
+                setToken1Color(color.hex);
+            })
+            .catch(e => {
+                console.log(e);
+            });
+    }, [token0, token1])
 
     const handlePairData = async () => {
 
@@ -263,7 +288,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
             const amount0Desired = BigNumber(amount0)
             const amount1Desired = BigNumber(amount1)
-            
+
             console.log('amount0Desired', amount0Desired.toString())
             console.log('amount1Desired', amount1Desired.toString())
             const deadline = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes from now
@@ -434,173 +459,309 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     }
 
     return (
-        <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-                <CardTitle>Add Liquidity</CardTitle>
-                <CardDescription>Select tokens and enter amounts to add liquidity. New pairs will be created automatically if they don't exist.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleAddLiquidity} className="flex flex-col gap-4">
-                    <div className="flex flex-col">
-                        <div className="flex flex-row justify-between">
-                            <div className="text-sm uppercase">Token A</div>
-                            <button onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                setAmount0(myBalance0?.displayValue || '');
-                                handleAmountChange(0, myBalance0?.displayValue || '');
-                            }} className="text-xs uppercase">Balance: {myBalance0 ? <NumericFormat
-                                value={toTokens(myBalance0.value, token0.decimals)}
-                                displayType={"text"}
-                                thousandSeparator={true}
-                                decimalScale={4}
-                                className="leading-none"
-                            /> : '0'}
-                            </button>
-                        </div>
-                        <div className="flex flex-row gap-2">
-                            <Select value={token0.symbol} onValueChange={(value) => {
-                                if (token1.symbol === value) {
-                                    setToken1(token0)
-                                }
-                                setToken0(tokenList.find(t => t.symbol === value)!)
-                            }}>
-                                <SelectTrigger className="w-48" id="token0">
-                                    <SelectValue placeholder="Select token" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {tokenList?.map((token: any) => (
-                                        <SelectItem key={token.address} value={token.symbol}>
-                                            <div className="flex flex-row gap-2 items-center">
-                                                <Image src={token.logoURI} alt={token.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                                {token.symbol}
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Input
-                                id="amount0"
-                                type="text"
-                                value={amount0}
-                                disabled={token0.symbol === token1.symbol || isLoading}
-                                onChange={(e) => {
-                                    setAmount0(e.target.value);
-                                    handleAmountChange(0, e.target.value);
-                                }}
-                                //onBlur={(e) => handleAmountChange(0, e.target.value)}
-                                placeholder="0.0"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col">
-                        <div className="flex flex-row gap-2 justify-between">
-                            <div className="text-sm uppercase">Token B</div>
-                            <button onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                setAmount1(myBalance1?.displayValue || '');
-                                handleAmountChange(1, myBalance1?.displayValue || '');
-                            }} className="text-xs uppercase">Balance: {myBalance1 ? <NumericFormat
-                                value={toTokens(myBalance1.value, token1.decimals)}
-                                displayType={"text"}
-                                thousandSeparator={true}
-                                decimalScale={4}
-                                className="leading-none"
-                            /> : '0'}
-                            </button>
-                        </div>
-                        <div className="flex flex-row gap-2">
-                            <Select value={token1.symbol} onValueChange={(value) => {
-                                if (token0.symbol === value) {
-                                    setToken0(token1)
-                                }
-                                setToken1(tokenList.find(t => t.symbol === value)!)
-                            }}>
-                                <SelectTrigger className="w-48" id="token1">
-                                    <SelectValue placeholder="Select token" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {tokenList?.map((token: any) => (
-                                        <SelectItem key={token.address} value={token.symbol}>
-                                            <div className="flex flex-row gap-2 items-center">
-                                                <Image src={token.logoURI} alt={token.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                                {token.symbol}
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Input
-                                id="amount1"
-                                type="text"
-                                value={amount1}
-                                disabled={token0.symbol === token1.symbol || isLoading}
-                                onChange={(e) => {
-                                    setAmount1(e.target.value);
-                                    handleAmountChange(1, e.target.value);
-                                }}
-                                placeholder="0.0"
-                                required
-                            />
-                        </div>
-                    </div>
-                    {
-
-                        (token0 && token1) &&
-                        <>
-                            <div className="mt-4 text-sm uppercase">Price and Share</div>
-                            <div className="flex flex-row gap-2 w-full">
-                                <div className="flex flex-1 flex-col font-bold">
-                                    {poolShareInfo.tokenatob}
-                                    <div className="text-xs">{token1.symbol} per {token0.symbol}</div>
-                                </div>
-                                <div className="flex flex-1 flex-col font-bold">
-                                    {poolShareInfo.tokenbtoa}
-                                    <div className="text-xs">{token0.symbol} per {token1.symbol}</div>
-                                </div>
-                                <div className="flex flex-1 flex-col font-bold">
-                                    {poolShareInfo.sharePercent}
-                                    <div className="text-xs">Share %</div>
-                                </div>
-                            </div>
-                        </>
-                    }
-
-                    <Button type="submit" className="w-full mt-4" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{isAddingLiquidity ? 'Adding Liquidity...' : 'Add Liquidity'}</Button>
-                </form>
-
-                {result && (
-                    <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
-                        <p className="text-sm">{result}</p>
-                    </div>
-                )}
-
-                {error && (
-                    <Alert variant="destructive" className="mt-4">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>
-                            {error}
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                {info && (
-                    <div className="mt-4 p-4 bg-blue-100 text-blue-800 rounded-md">
-                        <p className="text-sm">{info}</p>
-                    </div>
-                )}
-
+        <>
+            <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
                 <div className="mt-4 w-full mx-auto">
                     <WalletButton />
                 </div>
+                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
+                    <div className="flex flex-col items-start justify-center">
+                        <div className="text-white text-2xl font-black leading-none">LIQUIDITY</div>
+                        <div className="text-white text-2xl font-black leading-none">BUILDER</div>
+                        <div className="flex flex-row gap-2 mt-4">
+                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
+                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">My Positions</a>
+                        </div>
+                    </div>
+                </Card>
+                <div className="w-full flex flex-row gap-2 max-w-3xl mx-auto">
+                    {/* Add Liquidity */}
+                    <Card className="w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
+                        <div className="flex flex-col">
+                            <div className="text-lg font-bold leading-none text-white">CREATE YOUR LIQUIDITY PAIR</div>
+                            <div className="text-xs text-[#9B9A98]">Select tokens and enter amounts to add liquidity. New pairs will be created automatically if they don't exist.</div>
+                        </div>
+                        <div className="flex flex-col mt-4 gap-4">
+                            <form onSubmit={handleAddLiquidity} className="flex flex-col gap-4">
+                                {/* Token A */}
+                                <div className="flex flex-col">
+                                    <div className="flex flex-row justify-between">
+                                        <div className="text-sm uppercase text-[#9B9A98] ml-3">Token A</div>
 
-            </CardContent>
-        </Card>
+                                    </div>
+                                    <div className="flex flex-row gap-2 items-center">
+                                        <Select value={token0.symbol} onValueChange={(value) => {
+                                            if (token1.symbol === value) {
+                                                setToken1(token0)
+                                            }
+                                            setToken0(tokenList.find(t => t.symbol === value)!)
+                                        }}>
+                                            <SelectTrigger className="w-48 bg-[#3A3935] text-white border-none h-12 rounded-xl" id="token0">
+                                                <SelectValue placeholder="SELECT TOKEN" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-[#3A3935] text-white border-none">
+                                                {tokenList?.map((token: any) => (
+                                                    <SelectItem key={token.address} value={token.symbol}>
+                                                        <div className="flex flex-row gap-2 items-center">
+                                                            <Image src={token.logoURI} alt={token.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                            {token.symbol}
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <div className="w-full flex flex-col gap-1 justify-center items-start">
+                                            <Input
+                                                id="amount0"
+                                                type="text"
+                                                value={amount0}
+                                                disabled={token0.symbol === token1.symbol || isLoading}
+                                                onChange={(e) => {
+                                                    setAmount0(e.target.value);
+                                                    handleAmountChange(0, e.target.value);
+                                                }}
+                                                placeholder="0.0"
+                                                required
+                                                className="bg-transparent text-xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0 text-white !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none h-6 px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]"
+                                            />
+                                            <button onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                setAmount0(myBalance0?.displayValue || '');
+                                                handleAmountChange(0, myBalance0?.displayValue || '');
+                                            }} className="text-[10px] uppercase text-white font-bold">
+                                                <span className="font-light">Balance:</span> {myBalance0 ? <NumericFormat
+                                                    value={toTokens(myBalance0.value, token0.decimals)}
+                                                    displayType={"text"}
+                                                    thousandSeparator={true}
+                                                    decimalScale={4}
+                                                    suffix={' ' + token0.symbol}
+                                                    className="leading-none"
+                                                /> : '0 ' + token0.symbol}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
 
+                                {/* Token B */}
+                                <div className="flex flex-col">
+                                    <div className="flex flex-row justify-between">
+                                        <div className="text-sm uppercase text-[#9B9A98] ml-3">Token B</div>
+                                    </div>
+                                    <div className="flex flex-row gap-2 items-center">
+                                        <Select value={token1.symbol} onValueChange={(value) => {
+                                            if (token0.symbol === value) {
+                                                setToken0(token1)
+                                            }
+                                            setToken1(tokenList.find(t => t.symbol === value)!)
+                                        }}>
+                                            <SelectTrigger className="w-48 bg-[#3A3935] text-white border-none h-12 rounded-xl" id="token1">
+                                                <SelectValue placeholder="SELECT TOKEN" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {tokenList?.map((token: any) => (
+                                                    <SelectItem key={token.address} value={token.symbol}>
+                                                        <div className="flex flex-row gap-2 items-center">
+                                                            <Image src={token.logoURI} alt={token.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                            {token.symbol}
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <div className="w-full flex flex-col gap-1 justify-center items-start">
+                                            <Input
+                                                id="amount1"
+                                                type="text"
+                                                value={amount1}
+                                                disabled={token0.symbol === token1.symbol || isLoading}
+                                                onChange={(e) => {
+                                                    setAmount1(e.target.value);
+                                                    handleAmountChange(1, e.target.value);
+                                                }}
+                                                placeholder="0.0"
+                                                required
+                                                className="bg-transparent text-xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0 text-white !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none h-6 px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]"
+                                            />
+                                            <button onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                setAmount1(myBalance1?.displayValue || '');
+                                                handleAmountChange(1, myBalance1?.displayValue || '');
+                                            }} className="text-[10px] uppercase text-white font-bold">
+                                                <span className="font-light">Balance:</span> {myBalance1 ? <NumericFormat
+                                                    value={toTokens(myBalance1.value, token1.decimals)}
+                                                    displayType={"text"}
+                                                    thousandSeparator={true}
+                                                    decimalScale={4}
+                                                    suffix={' ' + token1.symbol}
+                                                    className="leading-none "
+                                                /> : '0 ' + token1.symbol}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/*Disclaimer*/}
+                                <div className="text-xs text-[#9B9A98]">
+                                    <div className="font-bold uppercase">Disclaimer</div>
+                                    <div className="text-[10px] leading-none">This is a demo app. Liquidity will not be added to the pool. The tokens will be displayed in the pool.</div>
+                                </div>
+
+                                <Button type="submit" className="w-full rounded-xl font-bold mt-4 uppercase text-white bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{isAddingLiquidity ? 'Providing Liquidity...' : 'Provide Liquidity'}</Button>
+                            </form>
+
+
+
+                            {result && (
+                                <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
+                                    <p className="text-sm">{result}</p>
+                                </div>
+                            )}
+
+                            {error && (
+                                <Alert variant="destructive" className="mt-4">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Error</AlertTitle>
+                                    <AlertDescription>
+                                        {error}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
+                            {info && (
+                                <div className="mt-4 p-4 bg-blue-100 text-blue-800 rounded-md">
+                                    <p className="text-sm">{info}</p>
+                                </div>
+                            )}
+
+
+
+                        </div>
+                    </Card>
+                    {/* Summarize */}
+                    <Card className="relative w-full flex flex-row bg-[#ffffff0d] rounded-3xl border-none">
+                        {/*LEFT RIGTH BG*/}
+                        <div className="flex-1 rounded-l-3xl flex flex-col items-center justify-between" style={{ background: token0Color || '#000000' }}>
+                        </div>
+                        <div className="flex-1 rounded-r-3xl flex flex-col items-center justify-between" style={{ background: token1Color || '#000000' }}>
+                        </div>
+
+                        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-between py-6">
+                            <div className="flex-1 flex flex-row w-full">
+                                {/*Token A*/}
+                                <div className="w-1/2  flex flex-col items-center justify-between">
+                                    {/* token0 logo */}
+                                    <Image src={token0.logoURI} alt={token0.symbol} width={80} height={80} className="rounded-full w-20 h-20 border-8 border-white bg-white" />
+                                </div>
+                                {/*Token B*/}
+                                <div className="w-1/2  flex flex-col items-center justify-between">
+                                    {/* token1 logo */}
+                                    <Image src={token1.logoURI} alt={token1.symbol} width={80} height={80} className="rounded-full w-20 h-2204 border-8 border-white bg-white" />
+                                </div>
+                            </div>
+
+                            {/*Middle Info */}
+                            <div className="flex-1 flex flex-row w-full px-2">
+                                <div className="w-full bg-[#1e1d1b] text-white rounded-2xl p-4 h-24 flex flex-row items-center justify-between">
+                                    {/* tokenatob */}
+                                    <div className="flex flex-col">
+                                        <NumericFormat
+                                            value={poolShareInfo.tokenatob}
+                                            displayType={"text"}
+                                            thousandSeparator={true}
+                                            decimalScale={4}
+                                            className="leading-none font-bold text-2xl"
+                                        />
+                                        <div className="text-xs font-bold">{token1.symbol} per {token0.symbol}</div>
+                                    </div>
+
+                                    {/*Separator*/}
+                                    <div className="h-12 rounded-xl font-bold p-2 text-center border border-[#9B9A98] text-[10px] flex flex-col items-center justify-center">
+                                        Liquidity<br />
+                                        Price
+                                    </div>
+
+                                    {/* tokenbtoa */}
+                                    <div className="flex flex-col">
+                                        <NumericFormat
+                                            value={poolShareInfo.tokenbtoa}
+                                            displayType={"text"}
+                                            thousandSeparator={true}
+                                            decimalScale={4}
+                                            className="leading-none font-bold text-2xl"
+                                        />
+                                        <div className="text-xs font-bold">{token0.symbol} per {token1.symbol}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 flex flex-row w-full">
+                                <div className="w-1/2  flex flex-col items-center justify-between">
+                                    {/*Circle gauge by percentage of pool share*/}
+                                    <div className="relative w-32 h-32">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle
+                                                cx="64"
+                                                cy="64"
+                                                r="48"
+                                                strokeWidth="16"
+                                                stroke="#ffffff30"
+                                                fill="transparent"
+                                            />
+                                            <circle
+                                                cx="64"
+                                                cy="64"
+                                                r="48"
+                                                strokeWidth="16"
+                                                stroke="#ffffff"
+                                                fill="transparent"
+                                                strokeDasharray={`${poolShareInfo.sharePercent * 3}, 300`}
+                                            />
+                                        </svg>
+                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-black rounded-full h-20 w-20 flex flex-col items-center justify-center">
+                                            <div className="text-xl font-bold">{Number(poolShareInfo.sharePercent).toFixed(1)}%</div>
+                                            <div className="text-[10px]">Share</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="w-1/2  flex flex-col items-center justify-between">
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+
+                        {/* <div className="flex flex-col mt-4 gap-4">
+                            {
+
+                                (token0 && token1) &&
+                                <>
+                                    <div className="mt-4 text-sm uppercase">Price and Share</div>
+                                    <div className="flex flex-row gap-2 w-full">
+                                        <div className="flex flex-1 flex-col font-bold">
+                                            {poolShareInfo.tokenatob}
+                                            <div className="text-xs">{token1.symbol} per {token0.symbol}</div>
+                                        </div>
+                                        <div className="flex flex-1 flex-col font-bold">
+                                            {poolShareInfo.tokenbtoa}
+                                            <div className="text-xs">{token0.symbol} per {token1.symbol}</div>
+                                        </div>
+                                        <div className="flex flex-1 flex-col font-bold">
+                                            {poolShareInfo.sharePercent}
+                                            <div className="text-xs">Share %</div>
+                                        </div>
+                                    </div>
+                                </>
+                            }
+
+
+                        </div> */}
+                    </Card>
+                </div >
+            </section >
+        </>
     )
 }
