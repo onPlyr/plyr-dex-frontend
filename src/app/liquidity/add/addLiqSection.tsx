@@ -15,7 +15,7 @@ import { totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/app/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, PiggyBank } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
@@ -474,7 +474,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                         </div>
                     </div>
                 </Card>
-                <div className="w-full flex flex-row gap-2 max-w-3xl mx-auto">
+                <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                     {/* Add Liquidity */}
                     <Card className="w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
                         <div className="flex flex-col">
@@ -640,11 +640,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                         </div>
                     </Card>
                     {/* Summarize */}
-                    <Card className="relative w-full flex flex-row bg-[#ffffff0d] rounded-3xl border-none">
+                    <Card className="relative w-full flex flex-row h-96 md:h-auto bg-[#ffffff0d] rounded-3xl border-none">
                         {/*LEFT RIGTH BG*/}
-                        <div className="flex-1 rounded-l-3xl flex flex-col items-center justify-between" style={{ background: token0Color || '#000000' }}>
+                        <div className="flex-1 h-full rounded-l-3xl flex flex-col items-center justify-between" style={{ background: token0Color || '#000000' }}>
                         </div>
-                        <div className="flex-1 rounded-r-3xl flex flex-col items-center justify-between" style={{ background: token1Color || '#000000' }}>
+                        <div className="flex-1 h-full rounded-r-3xl flex flex-col items-center justify-between" style={{ background: token1Color || '#000000' }}>
                         </div>
 
                         <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-between py-6">
@@ -696,7 +696,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                 </div>
                             </div>
 
-                            <div className="flex-1 flex flex-row w-full">
+                            <div className="flex-1 flex flex-row w-full items-center">
                                 <div className="w-1/2  flex flex-col items-center justify-between">
                                     {/*Circle gauge by percentage of pool share*/}
                                     <div className="relative w-32 h-32">
@@ -719,46 +719,35 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                                 strokeDasharray={`${poolShareInfo.sharePercent * 3}, 300`}
                                             />
                                         </svg>
-                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-black rounded-full h-20 w-20 flex flex-col items-center justify-center">
+                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[72px] w-[72px] flex flex-col items-center justify-center">
                                             <div className="text-xl font-bold">{Number(poolShareInfo.sharePercent).toFixed(1)}%</div>
                                             <div className="text-[10px]">Share</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="w-1/2  flex flex-col items-center justify-between">
+                                <div className="w-1/2 flex flex-col items-center justify-between px-4">
+                                    <div className="w-full h-32 bg-[#1e1d1b] rounded-2xl p-4 flex flex-col items-start justify-center">
+                                        <PiggyBank className="min-w-8 min-h-8 text-[#daff00]" />
+                                        <div className="text-white text-xs font-bold mt-1">
+                                            {/* SharePercent of 3% */}
+                                            <NumericFormat  
+                                                value={((Number(poolShareInfo.sharePercent) / 100) * (0.03))}
+                                                displayType={"text"}
+                                                thousandSeparator={true}
+                                                decimalScale={3}
+                                                className="leading-none font-bold text-xl"
+                                            /> %
+                                            <div className="text-[10px] leading-none">EARNED</div>
+                                            <div className="text-[10px] leading-none">TO EACH TRADE</div>
+                                        </div>
+                                        <div className="text-[#9B9A98] text-[10px] font-light mt-1 leading-none">
+                                            3% distributed through all {token0.symbol}/{token1.symbol} LPs.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-
-
-
-
-                        {/* <div className="flex flex-col mt-4 gap-4">
-                            {
-
-                                (token0 && token1) &&
-                                <>
-                                    <div className="mt-4 text-sm uppercase">Price and Share</div>
-                                    <div className="flex flex-row gap-2 w-full">
-                                        <div className="flex flex-1 flex-col font-bold">
-                                            {poolShareInfo.tokenatob}
-                                            <div className="text-xs">{token1.symbol} per {token0.symbol}</div>
-                                        </div>
-                                        <div className="flex flex-1 flex-col font-bold">
-                                            {poolShareInfo.tokenbtoa}
-                                            <div className="text-xs">{token0.symbol} per {token1.symbol}</div>
-                                        </div>
-                                        <div className="flex flex-1 flex-col font-bold">
-                                            {poolShareInfo.sharePercent}
-                                            <div className="text-xs">Share %</div>
-                                        </div>
-                                    </div>
-                                </>
-                            }
-
-
-                        </div> */}
                     </Card>
                 </div >
             </section >
