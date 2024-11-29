@@ -242,8 +242,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 {
                     isLoading && <div className="w-full flex items-center justify-center">
                         <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
-                            <Skeleton className="w-3/5 h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
-                            <Skeleton className="w-2/5 h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
+                            <Skeleton className="md:w-3/5 w-full h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
+                            <Skeleton className="md:w-2/5 w-full h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
                         </div>
                     </div>
                 }
@@ -261,14 +261,13 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     !isLoading && (!activeAccount || !activeWallet) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white text-center text-2xl font-black leading-none">PLEASE CONNECT YOUR WALLET</div>
-                            
                         </Card>
                     </div>
                 }
                 {
                     !isLoading && myLpTokens.length > 0 && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         {/* My Liquidity */}
-                        <Card className="w-3/5 bg-[#ffffff0d] rounded-3xl border-none p-6">
+                        <Card className="md:w-3/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
                             {/* Dropdown */}
                             <Select value={selectedLpToken ?? ''} onValueChange={(value) => {
                                 setSelectedLpToken(value);
@@ -291,9 +290,9 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                                 </SelectContent>
                             </Select>
                             {/* Summarize */}
-                            <div className="w-full flex flex-row gap-4 mt-4 px-2">
+                            <div className="w-full flex flex-row gap-2 mt-4 md:px-2">
                                 {
-                                    selectedLpTokenInfo && <div className="relative w-36 h-36">
+                                    selectedLpTokenInfo && <div className="relative min-w-36 w-36 h-36 -ml-2 md:-ml-0">
                                         <svg className="w-full h-full transform -rotate-90">
                                             <circle
                                                 cx="72"
@@ -350,7 +349,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
 
                         {/* Remove Liquidity */}
-                        <Card className="w-2/5 bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
+                        <Card className="md:w-2/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
                             <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
                             {
                                 selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
