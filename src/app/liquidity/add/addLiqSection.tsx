@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
 import { totalSupply } from "thirdweb/extensions/erc20";
-import WalletButton from '@/app/walletButton';
+
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { AlertCircle, Info, PiggyBank, SquarePlus } from 'lucide-react'
@@ -504,9 +504,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     return (
         <>
             <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
-                <div className="mt-4 w-full mx-auto">
-                    <WalletButton />
-                </div>
+                
                 <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
                     <div className="flex flex-col items-start justify-center">
                         <div className="text-white text-2xl font-black leading-none">LIQUIDITY</div>

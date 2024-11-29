@@ -1,6 +1,6 @@
 
 "use client";
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 // import { Token, Fetcher } from '@uniswap/sdk'
 // import { Pair, } from 'custom-uniswap-v2-sdk'
 
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
-import WalletButton from '@/app/walletButton';
+import WalletButton from '@/components/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { AlertCircle } from 'lucide-react'
@@ -45,6 +45,9 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
+
+    const [selectedLpToken, setSelectedLpToken] = useState<string | null>(null)
+    const [selectedLpTokenInfo, setSelectedLpTokenInfo] = useState<any | null>(null)
 
     // Gradient color //
     const [gradientColors, setGradientColors] = useState<{ [key: string]: string }>({});
@@ -178,6 +181,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             // @ts-ignore
             const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
 
+
+
             return {
                 pairAddress: pairAddress,
                 lpTokens: lpTokens,
@@ -193,6 +198,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         let myLpTokens = results.filter(token => token !== null);
 
         setMyLpTokens(myLpTokens);
+        setSelectedLpToken(myLpTokens[0].pairAddress);
+
         setIsLoading(false);
     };
 
@@ -210,73 +217,186 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         }
     }, [activeAccount, activeWallet]);
 
+    useEffect(() => {
+        if (selectedLpToken) {
+            const selectedObject = myLpTokens.find(token => token.pairAddress === selectedLpToken);
+            console.log('selectedObject', selectedObject)
+            setSelectedLpTokenInfo(selectedObject);
+        }
+        else {
+            setSelectedLpTokenInfo(null);
+        }
+    }, [selectedLpToken]);
 
     return (
-        // list all pairs
-        <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-                <CardTitle>Manage Liquidity</CardTitle>
-                <CardDescription>You can click to add more liquidity or remove liquidity from your wallet.</CardDescription>
-            </CardHeader>
-            <CardContent>
+        <>
+            <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
 
-                <div className="flex flex-row justify-end mb-4">
-                    <Link href={`/liquidity/add/`}>
-                        <Button>ADD LIQUIDITY</Button>
-                    </Link>
-                </div>
+                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
+                    <div className="flex flex-col items-start justify-center">
+                        <div className="text-white text-2xl font-black leading-none">LIQUIDITY</div>
+                        <div className="text-white text-2xl font-black leading-none">BUILDER</div>
+                        <div className="flex flex-row gap-2 mt-4">
+                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
+                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">My Positions</a>
+                        </div>
+                    </div>
+                </Card>
 
-                {
-                    isLoading && (
-                        <div>Loading...</div>
-                    )
-                }
-
-                {
-                    !isLoading && myLpTokens.length === 0 && (
-                        <div>No LP tokens found</div>
-                    )
-                }
-
-                {
-                    !isLoading && myLpTokens.length > 0 && (
-                        <div className="flex flex-col gap-4">
-                            {myLpTokens.map((token) => (
-                                <div key={token.pair} 
-                                className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4"
-                                style={{ background: gradientColors[token.pairAddress] }}
-                                >
-                                    <div className="text-lg font-bold">
-                                        <div className="flex flex-row gap-2 items-center">
-                                            <Image src={token.token0.logoURI} alt={token.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                            {token.token0.symbol} - {Number(toTokens(token.reserves[0], token.token0.decimals)) * token.poolShare}
+                <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                    {/* My Liquidity */}
+                    <Card className="w-3/5 bg-[#ffffff0d] rounded-3xl border-none p-6">
+                        {/* Dropdown */}
+                        <Select value={selectedLpToken ?? ''} onValueChange={(value) => {
+                            setSelectedLpToken(value);
+                        }}>
+                            <SelectTrigger className="w-full bg-[#3A3935] text-white border-none h-16 rounded-2xl" id="token0">
+                                <SelectValue placeholder="SELECT MY LP" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#3A3935] text-white border-none">
+                                {myLpTokens?.map((token: any) => (
+                                    <SelectItem key={token.pairAddress} value={token.pairAddress}>
+                                        <div className="flex flex-row gap-2 items-center font-bold">
+                                            <div className="flex flex-row gap-2 items-center">
+                                                <Image src={token.token0.logoURI} alt={token.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                <Image src={token.token1.logoURI} alt={token.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 relative ml-[-10px]" />
+                                            </div>
+                                            {token.token0.symbol}+{token.token1.symbol}
                                         </div>
-                                        <div className="flex flex-row gap-2 items-center">
-                                            <Image src={token.token1.logoURI} alt={token.token1.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                            {token.token1.symbol} - {Number(toTokens(token.reserves[1], token.token1.decimals)) * token.poolShare}
-                                        </div>
-                                        <div className="text-sm text-gray-500 mt-4">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
-                                        <div className="text-sm text-gray-500">POOL SHARE: {token.poolShare * 100}%</div>
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        <Link className='w-full' href={`/liquidity/add/?currencyA=${token.token0.symbol}&currencyB=${token.token1.symbol}`}>
-                                            <Button className='w-full'>ADD</Button>
-                                        </Link>
-                                        <Link href={`/liquidity/remove/?pair=${token.pairAddress}`}>
-                                            <Button className="bg-red-500 hover:bg-red-600">REMOVE</Button>
-                                        </Link>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {/* Summarize */}
+                        <div className="w-full flex flex-row gap-4 mt-4 px-2">
+                            {
+                                selectedLpTokenInfo && <div className="relative w-36 h-36">
+                                    <svg className="w-full h-full transform -rotate-90">
+                                        <circle
+                                            cx="72"
+                                            cy="72"
+                                            r="54"
+                                            strokeWidth="18"
+                                            stroke="#ffffff30"
+                                            fill="transparent"
+                                        />
+                                        <circle
+                                            cx="72"
+                                            cy="72"
+                                            r="54"
+                                            strokeWidth="18"
+                                            stroke="#ffffff"
+                                            fill="transparent"
+                                            strokeDasharray={`${(selectedLpTokenInfo.poolShare * 100) * 3.375}, 337.5`}
+                                        />
+                                    </svg>
+                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[81px] w-[81px] flex flex-col items-center justify-center">
+                                        <div className="text-xl font-bold">{Number(selectedLpTokenInfo.poolShare * 100).toFixed(1)}%</div>
+                                        <div className="text-[10px]">Pool Share</div>
                                     </div>
 
                                 </div>
-                            ))}
-                        </div>
-                    )
-                }
+                            }
 
-                <div className="mt-4 w-full mx-auto">
-                    <WalletButton />
+                            {
+                                selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
+                                    <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                        <Image src={selectedLpTokenInfo.token0.logoURI} alt={selectedLpTokenInfo.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                        <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                    </div>
+                                    <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                        <Image src={selectedLpTokenInfo.token1.logoURI} alt={selectedLpTokenInfo.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                        <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                    </div>
+                                    <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                        <div className="h-7 w-7 bg-white rounded-full font-bold flex flex-row items-center justify-center text-black">
+                                            LP
+                                        </div>
+                                        <NumericFormat value={Number(toTokens(selectedLpTokenInfo.lpTokens, 18))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        {/* Add more liquidity */}
+                        {
+                            selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0.symbol}&currencyB=${selectedLpTokenInfo.token1.symbol}`}>
+                                <Button className="relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">ADD MORE <span className="font-bold">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY</Button>
+                            </Link>
+                        }
+                    </Card>
+
+
+                    {/* Remove Liquidity */}
+                    <Card className="w-2/5 bg-[#ffffff0d] rounded-3xl border-none p-6">
+
+                    </Card>
                 </div>
-            </CardContent>
-        </Card>
+            </section>
+            <Card className="w-full max-w-md mx-auto">
+                <CardHeader>
+                    <CardTitle>Manage Liquidity</CardTitle>
+                    <CardDescription>You can click to add more liquidity or remove liquidity from your wallet.</CardDescription>
+                </CardHeader>
+                <CardContent>
+
+                    <div className="flex flex-row justify-end mb-4">
+                        <Link href={`/liquidity/add/`}>
+                            <Button>ADD LIQUIDITY</Button>
+                        </Link>
+                    </div>
+
+                    {
+                        isLoading && (
+                            <div>Loading...</div>
+                        )
+                    }
+
+                    {
+                        !isLoading && myLpTokens.length === 0 && (
+                            <div>No LP tokens found</div>
+                        )
+                    }
+
+                    {
+                        !isLoading && myLpTokens.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                                {myLpTokens.map((token) => (
+                                    <div key={token.pair}
+                                        className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4"
+                                        style={{ background: gradientColors[token.pairAddress] }}
+                                    >
+                                        <div className="text-lg font-bold">
+                                            <div className="flex flex-row gap-2 items-center">
+                                                <Image src={token.token0.logoURI} alt={token.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
+                                                {token.token0.symbol} - {Number(toTokens(token.reserves[0], token.token0.decimals)) * token.poolShare}
+                                            </div>
+                                            <div className="flex flex-row gap-2 items-center">
+                                                <Image src={token.token1.logoURI} alt={token.token1.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
+                                                {token.token1.symbol} - {Number(toTokens(token.reserves[1], token.token1.decimals)) * token.poolShare}
+                                            </div>
+                                            <div className="text-sm text-gray-500 mt-4">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
+                                            <div className="text-sm text-gray-500">POOL SHARE: {token.poolShare * 100}%</div>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <Link className='w-full' href={`/liquidity/add/?currencyA=${token.token0.symbol}&currencyB=${token.token1.symbol}`}>
+                                                <Button className='w-full'>ADD</Button>
+                                            </Link>
+                                            <Link href={`/liquidity/remove/?pair=${token.pairAddress}`}>
+                                                <Button className="bg-red-500 hover:bg-red-600">REMOVE</Button>
+                                            </Link>
+                                        </div>
+
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    }
+
+                    <div className="mt-4 w-full mx-auto">
+                        <WalletButton />
+                    </div>
+                </CardContent>
+            </Card>
+        </>
     )
 }

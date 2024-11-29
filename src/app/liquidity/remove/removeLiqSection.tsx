@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
-import WalletButton from '@/app/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { AlertCircle } from 'lucide-react'
@@ -445,9 +444,7 @@ export default function removeLiqSection({ tokenList }: { tokenList: any[] }) {
                     </Alert>
                 )}
 
-                <div className="mt-4 w-full mx-auto">
-                    <WalletButton />
-                </div>
+               
             </CardContent>
         </Card>
     )

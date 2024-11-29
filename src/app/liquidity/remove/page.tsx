@@ -27,7 +27,7 @@ export default async function Main() {
         </div>
       }>
         <ThirdwebProvider>
-          <div className="flex w-full px-6 flex-col items-center justify-center min-h-screen">
+          <div className="flex w-full px-6 flex-col items-center justify-center mt-16 md:mt-28">
             <RemoveLiqSection tokenList={tokenList} />
           </div>
         </ThirdwebProvider>
