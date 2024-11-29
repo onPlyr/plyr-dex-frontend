@@ -283,3 +283,33 @@ body {
   pointer-events: all !important;
  
 } */
+
+/* Chrome, Edge and Safari */
+*::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+*::-webkit-scrollbar-track {
+  background-color: #ffffff0d;
+}
+
+*::-webkit-scrollbar-track:hover {
+  background-color: #ffffff0d;
+}
+
+*::-webkit-scrollbar-track:active {
+  background-color: #ffffff0d;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: black
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: black
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: black;
+}
