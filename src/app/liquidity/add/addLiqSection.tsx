@@ -15,7 +15,7 @@ import { totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/app/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
-import { AlertCircle, PiggyBank } from 'lucide-react'
+import { AlertCircle, Info, PiggyBank } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
@@ -35,11 +35,14 @@ const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
 import { FastAverageColor } from 'fast-average-color';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
+
+    const { toast } = useToast();
 
     const params = useSearchParams();
     const currencyA = params.get('currencyA');
@@ -47,6 +50,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const [token0, setToken0] = useState(currencyA ? tokenList?.find(t => t.symbol === currencyA || t.address.toLowerCase() === currencyA.toLowerCase()) || tokenList?.find(t => t.symbol === 'PLYR') : tokenList?.find(t => t.symbol === 'PLYR'))
     const [token1, setToken1] = useState(currencyB ? tokenList?.find(t => t.symbol === currencyB || t.address.toLowerCase() === currencyB.toLowerCase()) || tokenList?.find(t => t.symbol === 'GAMR') : tokenList?.find(t => t.symbol === 'GAMR'))
+
 
     const [token0Color, setToken0Color] = useState<string | null>(null)
     const [token1Color, setToken1Color] = useState<string | null>(null)
@@ -118,16 +122,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const handlePairData = async () => {
 
-        if (token0.symbol === token1.symbol) {
-            setError('Tokens cannot be the same')
-            return
-        }
-
         setIsLoading(true);
-        // if (allPairs.length === 0) {
-        //     return
-        // }
-
         setError('')
         setInfo('')
 
@@ -176,17 +171,42 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             return;
         }
 
+        if (token0.symbol === token1.symbol) {
+            toast({
+                title: 'Tokens cannot be the same',
+                description: 'Please select different tokens',
+                variant: 'destructive',
+            })
+            return
+        }
+
         handlePairData();
 
     }, [token0, token1]) // allPairs
 
     const handleAmountChange = async (input: number, value: string) => {
-        if (value === '' || Number(value) <= 0) {
-            //setAmount0('');
-            //setAmount1('');
-            setError('Invalid amount')
-            return;
+
+        if (!activeAccount || !activeWallet) {
+            setError('Please connect your wallet')
+            return
         }
+
+        if (value[value.length - 1] !== '.') {
+            if (value === '' || Number(value) <= 0) {
+                setError('Invalid amount')
+                if (input === 0) {
+                    setAmount1('')
+                }
+                else {
+                    setAmount0('')
+                }
+                return;
+            }
+        }
+
+        setError('')
+       
+        //alert(value)
 
         if (!token0.address || !token1.address) {
             return;
@@ -214,8 +234,13 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
             const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(token0.decimals);
             const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(token1.decimals);
-            setAmount0(newAmount0);
-            setAmount1(newAmount1);
+            
+            if (input === 0) {
+               setAmount1(newAmount1);
+            }
+            else {
+               setAmount0(newAmount0);
+            }
 
 
             /// Calculate share of pool in percent
@@ -235,13 +260,10 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             if (Number(newAmount0) > Number(myBalance0?.displayValue || 0) || Number(newAmount1) > Number(myBalance1?.displayValue || 0)) {
                 setError('Insufficient balance')
             }
-            else {
-                setError('');
-            }
+
         }
         catch (error: any) {
-
-            setError(error.message)
+            setError('Unknown Error')
         }
 
     }
@@ -254,17 +276,17 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         if (isAddingLiquidity) return;
 
         if (!activeAccount || !activeWallet) {
-            setError('Please connect your wallet first')
             return
         }
 
-
-
         setResult(null)
-        setError('')
 
         if (token0.address === undefined || token1.address === undefined) {
-            setError('Invalid token address');
+            toast({
+                title: 'Error',
+                description: 'Invalid token address',
+                variant: 'destructive',
+            })
             return
         }
 
@@ -305,7 +327,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 // Approve other erc20 token //
                 if (!otherToken.address) {
-                    setError('Invalid token address')
+                    toast({
+                        title: 'Error',
+                        description: 'Invalid token address',
+                        variant: 'destructive',
+                    })
                     return
                 }
                 const erc20Contract = getContract({
@@ -364,11 +390,22 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                 })
 
                 const txHash = transactionResult.transactionHash;
-                const truncatedTxHash = txHash.slice(5, -5);
+                const truncatedTxHash = `${txHash.slice(0, 5)}...${txHash.slice(-5)}`;
 
-                setResult(<>
-                    Liquidity added successfully!
-                    <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
+
+                toast({
+                    title: 'Liquidity added successfully!',
+                    description:
+                        <>
+                            <strong>Added:</strong> {amount0} {token0.symbol} and {amount1} {token1.symbol}
+                            <br />
+                            <strong>TxHash:</strong> <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>
+                        </>
+                })
+
+                setAmount0('')
+                setAmount1('')
+
             }
             else {
                 const amount0Min = amount0Desired.multipliedBy(1000 - Math.floor(slippageTolerance * 1000)).dividedBy(1000);
@@ -445,13 +482,19 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                 const txHash = transactionResult.transactionHash;
                 const truncatedTxHash = txHash.slice(5, -5);
 
-                setResult(<>
-                    Liquidity added successfully!
-                    <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
+
+                toast({
+                    title: 'Liquidity added successfully!',
+                    description: <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>,
+                })
             }
 
         } catch (error: any) {
-            setError(`${error.message}`)
+            toast({
+                title: 'Error',
+                description: error.message,
+                variant: 'destructive',
+            })
         }
         finally {
             setIsAddingLiquidity(false);
@@ -474,6 +517,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                         </div>
                     </div>
                 </Card>
+                {info && (<Card className="w-full flex flex-row items-center gap-2 max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
+                    <Info className="min-w-8 min-h-8 text-[#daff00]" />
+                    <div className="text-lg text-white">{info}</div>
+                </Card>
+                )}
                 <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                     {/* Add Liquidity */}
                     <Card className="w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
@@ -522,7 +570,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                                 }}
                                                 placeholder="0.0"
                                                 required
-                                                className="bg-transparent text-xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0 text-white !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none h-6 px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]"
+                                                className={`bg-transparent text-xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0  !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none h-6 px-0 !outline-none !ring-0 placeholder:text-[#9B9A98] ${token0.symbol === token1.symbol || Number(amount0) > Number(myBalance0?.displayValue || 0) ? 'text-red-500' : 'text-white'}`}
                                             />
                                             <button onClick={(e) => {
                                                 e.preventDefault()
@@ -581,7 +629,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                                 }}
                                                 placeholder="0.0"
                                                 required
-                                                className="bg-transparent text-xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0 text-white !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none h-6 px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]"
+                                                className={`bg-transparent text-xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0  !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none h-6 px-0 !outline-none !ring-0 placeholder:text-[#9B9A98] ${token0.symbol === token1.symbol || Number(amount1) > Number(myBalance1?.displayValue || 0) ? 'text-red-500' : 'text-white'}`}
                                             />
                                             <button onClick={(e) => {
                                                 e.preventDefault()
@@ -608,7 +656,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                     <div className="text-[10px] leading-none">This is a demo app. Liquidity will not be added to the pool. The tokens will be displayed in the pool.</div>
                                 </div>
 
-                                <Button type="submit" className="w-full rounded-xl font-bold mt-4 uppercase text-white bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{isAddingLiquidity ? 'Providing Liquidity...' : 'Provide Liquidity'}</Button>
+                                <Button type="submit" className="w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}</Button>
                             </form>
 
 
@@ -618,24 +666,6 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                     <p className="text-sm">{result}</p>
                                 </div>
                             )}
-
-                            {error && (
-                                <Alert variant="destructive" className="mt-4">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <AlertTitle>Error</AlertTitle>
-                                    <AlertDescription>
-                                        {error}
-                                    </AlertDescription>
-                                </Alert>
-                            )}
-
-                            {info && (
-                                <div className="mt-4 p-4 bg-blue-100 text-blue-800 rounded-md">
-                                    <p className="text-sm">{info}</p>
-                                </div>
-                            )}
-
-
 
                         </div>
                     </Card>
@@ -730,7 +760,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                         <PiggyBank className="min-w-8 min-h-8 text-[#daff00]" />
                                         <div className="text-white text-xs font-bold mt-1">
                                             {/* SharePercent of 3% */}
-                                            <NumericFormat  
+                                            <NumericFormat
                                                 value={((Number(poolShareInfo.sharePercent) / 100) * (0.03))}
                                                 displayType={"text"}
                                                 thousandSeparator={true}
