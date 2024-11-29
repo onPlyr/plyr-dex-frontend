@@ -33,6 +33,8 @@ import Link from 'next/link';
 import { BigNumber } from 'bignumber.js';
 
 import { Slider } from "@/components/ui/slider"
+import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
@@ -41,8 +43,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
 
-    const params = useSearchParams();
-    const pairAddress = params.get('pair');
+    const { toast } = useToast();
 
     const [sliderValue, setSliderValue] = useState([50])
 
@@ -57,26 +58,14 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
         e.preventDefault()
         e.stopPropagation()
 
-        if (isRemovingLiquidity) return;
-
         if (!activeAccount || !activeWallet) {
-            setError('Please connect your wallet first')
             return
         }
 
-        if (!pairAddress) {
-            setError('Invalid pair address')
-            return
-        }
+        if (isRemovingLiquidity) return;
 
         setResult(null)
         setError('')
-
-        if (mySelectedLpToken.token0.address === undefined || mySelectedLpToken.token1.address === undefined) {
-            setError('Invalid token address');
-            return
-        }
-
         setIsRemovingLiquidity(true);
 
         try {
@@ -95,12 +84,12 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                 // Get LP Contract //
                 const erc20Contract = getContract({
                     chain: CHAIN,
-                    address: pairAddress,
+                    address: mySelectedLpToken.pairAddress,
                     client: client
                 });
 
                 console.log('CHAIN', CHAIN)
-                console.log('pairAddress', pairAddress)
+                console.log('pairAddress', mySelectedLpToken.pairAddress)
                 console.log('erc20Contract', erc20Contract)
 
                 const result = await allowance({
@@ -146,7 +135,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                 const transaction = prepareContractCall<any, any, any>({
                     contract: uniswapRouterContract,
                     method: 'function removeLiquidityETH(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline) external returns (uint amountToken, uint amountETH)',
-                    params: [tokenAddress, toUnits(liquidity.toString(), 18), toUnits(amount0Min.toString(), myLpToken.token0.decimals), toUnits(amount1Min.toString(), myLpToken.token1.decimals), activeAccount?.address, deadline.toString()],
+                    params: [tokenAddress, toUnits(liquidity.toString(), 18), toUnits(amount0Min.toString(), mySelectedLpToken.token0.decimals), toUnits(amount1Min.toString(), mySelectedLpToken.token1.decimals), activeAccount?.address, deadline.toString()],
                 })
 
                 console.log('transaction', transaction)
@@ -156,20 +145,27 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                     account: activeAccount,
                 })
 
-                const txHash = transactionResult.transactionHash;
-                const truncatedTxHash = txHash.slice(5, -5);
+                
 
                 getMyLpToken();
 
-                setResult(<>
-                    Liquidity removed successfully!
-                    <br /><a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a></>)
+                const txHash = transactionResult.transactionHash;
+                const truncatedTxHash = `${txHash.slice(0, 5)}...${txHash.slice(-5)}`;
+                toast({
+                    title: 'Liquidity removed successfully!',
+                    description:
+                        <>
+                            <strong>Removed:</strong> {liquidity} LPs of <strong>{mySelectedLpToken.token0.symbol}+{mySelectedLpToken.token1.symbol}</strong>
+                            <br />
+                            <strong>TxHash:</strong> <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>
+                        </>
+                })
             }
             else {
                 // Remove liquidity for token pair
                 const erc20Contract = getContract({
                     chain: CHAIN,
-                    address: pairAddress,
+                    address: mySelectedLpToken.pairAddress,
                     client: client,
                 });
                 const result = await allowance({
@@ -210,18 +206,20 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                     transaction,
                     account: activeAccount,
                 });
-                const txHash = transactionResult.transactionHash;
-                const truncatedTxHash = txHash.slice(5, -5);
+
                 getMyLpToken();
-                setResult(
-                    <>
-                        Liquidity removed successfully!
-                        <br />
-                        <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">
-                            {truncatedTxHash}
-                        </a>
-                    </>
-                );
+
+                const txHash = transactionResult.transactionHash;
+                const truncatedTxHash = `${txHash.slice(0, 5)}...${txHash.slice(-5)}`;
+                toast({
+                    title: 'Liquidity removed successfully!',
+                    description:
+                        <>
+                            <strong>Removed:</strong> {liquidity} LPs of <strong>{mySelectedLpToken.token0.symbol}+{mySelectedLpToken.token1.symbol}</strong>
+                            <br />
+                            <strong>TxHash:</strong> <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>
+                        </>
+                })
             }
         } catch (error: any) {
             setError(`${error.message}`)

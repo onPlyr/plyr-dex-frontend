@@ -134,7 +134,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 totalSupply({ contract: pairContract }),
             ]);
 
-            console.log('myLpTokens', reserves, lpTokens, lpSupply)
+            
 
             // Check if token0 and token1 are already cached for this pair
             const cachedPairInfo = localStorage.getItem('pair-tokens-' + pairAddress);
@@ -179,6 +179,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         const results = await Promise.all(promises);
         let myLpTokens = results.filter(token => token !== null);
 
+        console.log('myLpTokens', myLpTokens)
+
         setMyLpTokens(myLpTokens);
         setSelectedLpToken(myLpTokens[0].pairAddress);
 
@@ -208,7 +210,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         else {
             setSelectedLpTokenInfo(null);
         }
-    }, [selectedLpToken]);
+    }, [myLpTokens, selectedLpToken]);
 
     return (
         <>
