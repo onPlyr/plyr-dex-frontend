@@ -722,9 +722,9 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                             displayType={"text"}
                                             thousandSeparator={true}
                                             decimalScale={4}
-                                            className="leading-none font-bold text-2xl"
+                                            className="leading-none font-bold text-2xl text-right"
                                         />
-                                        <div className="text-xs font-bold">{token0.symbol} per {token1.symbol}</div>
+                                        <div className="text-xs font-bold text-right">{token0.symbol} per {token1.symbol}</div>
                                     </div>
                                 </div>
                             </div>
