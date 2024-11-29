@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
 
+
 import { ethers } from "ethers";
 import { getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
 import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
@@ -145,7 +146,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                     account: activeAccount,
                 })
 
-                
+
 
                 getMyLpToken();
 
@@ -251,16 +252,35 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
                         <div className="flex flex-row justify-between">
                             <div className="flex flex-col gap-2">
-                                <Input
+                                <NumericFormat
                                     id="amount0"
-                                    type="text"
-                                    value={sliderValue[0].toString()+'%'}
+                                    value={sliderValue[0]}
+                                    onValueChange={(values) => {
+                                        const { value } = values;
+                                        if (value === '') {
+                                            setSliderValue([0]);
+                                        } else if (Number(value) < 0) {
+                                            setSliderValue([0]);
+                                        } else if (Number(value) > 100) {
+                                            setSliderValue([100]);
+                                        } else {
+                                            setSliderValue([Number(value)]);
+                                        }
+                                    }}
+                                    suffix="%"
                                     disabled={mySelectedLpToken.token0.symbol === mySelectedLpToken.token1.symbol || isLoading}
-                                    placeholder="0.0"
-                                    className={`text-white h-10 font-bold bg-transparent text-3xl rounded-none border-[#9B9A98] border-b-1 border-t-0 border-r-0 border-l-0  !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]`}
+                                    placeholder="0"
+                                    className={`text-white w-full h-10 font-bold bg-transparent text-3xl rounded-none border-[#9B9A98] border-b border-t-0 border-r-0 border-l-0 !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]`}
+                                    allowNegative={false}
+                                    allowLeadingZeros={false}
+                                    decimalScale={0}
+                                    isAllowed={(values) => {
+                                        const { value } = values;
+                                        return value === '' || (Number(value) >= 0 && Number(value) <= 100);
+                                    }}
                                 />
                                 <div className="flex flex-row gap-2 items-center text-white text-[10px]">
-                                    <span className="font-light">BALANCE:</span> 
+                                    <span className="font-light">BALANCE:</span>
                                     <NumericFormat
                                         value={Number(toTokens(mySelectedLpToken.lpTokens, 18))}
                                         displayType={"text"}
