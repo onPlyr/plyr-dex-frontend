@@ -16,7 +16,7 @@ import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/components/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
@@ -32,6 +32,7 @@ import { getWalletBalance } from 'thirdweb/wallets';
 import Link from 'next/link';
 
 import RemoveLiq from './components/removeLiq';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
@@ -44,7 +45,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
 
     const [selectedLpToken, setSelectedLpToken] = useState<string | null>(null)
     const [selectedLpTokenInfo, setSelectedLpTokenInfo] = useState<any | null>(null)
@@ -54,6 +55,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         if (!activeAccount) {
             return;
         }
+
+        setIsLoading(true);
 
         try {
             const factoryContract = getContract({
@@ -134,7 +137,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 totalSupply({ contract: pairContract }),
             ]);
 
-            
+
 
             // Check if token0 and token1 are already cached for this pair
             const cachedPairInfo = localStorage.getItem('pair-tokens-' + pairAddress);
@@ -182,7 +185,9 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         console.log('myLpTokens', myLpTokens)
 
         setMyLpTokens(myLpTokens);
-        setSelectedLpToken(myLpTokens[0].pairAddress);
+        if (myLpTokens.length > 0) {
+            setSelectedLpToken(myLpTokens[0].pairAddress);
+        }
 
         setIsLoading(false);
     };
@@ -199,10 +204,17 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         if (activeAccount && activeWallet) {
             getAllPairs();
         }
+        else {
+            setAllPairs([]);
+            setIsLoading(false);
+            setMyLpTokens([]);
+            setSelectedLpToken(null);
+            setSelectedLpTokenInfo(null);
+        }
     }, [activeAccount, activeWallet]);
 
     useEffect(() => {
-        if (selectedLpToken) {
+        if (selectedLpToken && myLpTokens.length > 0) {
             const selectedObject = myLpTokens.find(token => token.pairAddress === selectedLpToken);
             console.log('selectedObject', selectedObject)
             setSelectedLpTokenInfo(selectedObject);
@@ -222,102 +234,130 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                         <div className="text-white text-2xl font-black leading-none">POSITIONS</div>
                         <div className="flex flex-row gap-2 mt-4">
                             <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
-                            
+
                         </div>
                     </div>
                 </Card>
 
-                <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
-                    {/* My Liquidity */}
-                    <Card className="w-3/5 bg-[#ffffff0d] rounded-3xl border-none p-6">
-                        {/* Dropdown */}
-                        <Select value={selectedLpToken ?? ''} onValueChange={(value) => {
-                            setSelectedLpToken(value);
-                        }}>
-                            <SelectTrigger className="w-full bg-[#3A3935] text-white border-none h-16 rounded-2xl" id="token0">
-                                <SelectValue placeholder="SELECT MY LP" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#3A3935] text-white border-none">
-                                {myLpTokens?.map((token: any) => (
-                                    <SelectItem key={token.pairAddress} value={token.pairAddress}>
-                                        <div className="flex flex-row gap-2 items-center font-bold">
-                                            <div className="flex flex-row gap-2 items-center">
-                                                <Image src={token.token0.logoURI} alt={token.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                <Image src={token.token1.logoURI} alt={token.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 relative ml-[-10px]" />
-                                            </div>
-                                            {token.token0.symbol}+{token.token1.symbol}
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {/* Summarize */}
-                        <div className="w-full flex flex-row gap-4 mt-4 px-2">
-                            {
-                                selectedLpTokenInfo && <div className="relative w-36 h-36">
-                                    <svg className="w-full h-full transform -rotate-90">
-                                        <circle
-                                            cx="72"
-                                            cy="72"
-                                            r="54"
-                                            strokeWidth="18"
-                                            stroke="#ffffff30"
-                                            fill="transparent"
-                                        />
-                                        <circle
-                                            cx="72"
-                                            cy="72"
-                                            r="54"
-                                            strokeWidth="18"
-                                            stroke="#ffffff"
-                                            fill="transparent"
-                                            strokeDasharray={`${(selectedLpTokenInfo.poolShare * 100) * 3.375}, 337.5`}
-                                        />
-                                    </svg>
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[81px] w-[81px] flex flex-col items-center justify-center">
-                                        <div className="text-xl font-bold">{Number(selectedLpTokenInfo.poolShare * 100).toFixed(1)}%</div>
-                                        <div className="text-[10px]">Pool Share</div>
-                                    </div>
-
-                                </div>
-                            }
-
-                            {
-                                selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
-                                    <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
-                                        <Image src={selectedLpTokenInfo.token0.logoURI} alt={selectedLpTokenInfo.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                        <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
-                                    </div>
-                                    <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
-                                        <Image src={selectedLpTokenInfo.token1.logoURI} alt={selectedLpTokenInfo.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                        <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
-                                    </div>
-                                    <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
-                                        <div className="h-7 w-7 bg-white rounded-full font-bold flex flex-row items-center justify-center text-black">
-                                            LP
-                                        </div>
-                                        <NumericFormat value={Number(toTokens(selectedLpTokenInfo.lpTokens, 18))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
-                                    </div>
-                                </div>
-                            }
+                {
+                    isLoading && <div className="w-full flex items-center justify-center">
+                        <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                            <Skeleton className="w-3/5 h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
+                            <Skeleton className="w-2/5 h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
                         </div>
-                        {/* Add more liquidity */}
-                        {
-                            selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0.symbol}&currencyB=${selectedLpTokenInfo.token1.symbol}`}>
-                                <Button className="relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">ADD MORE <span className="font-bold">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY</Button>
-                            </Link>
-                        }
-                    </Card>
+                    </div>
+                }
+                {
+                    !isLoading && myLpTokens.length === 0 && activeAccount && activeWallet && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                        <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
+                            <div className="text-white text-center text-2xl font-black leading-none">NO LIQUIDITY POSITIONS</div>
+                            <Button className="relative w-fit px-6 py-2 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                                ADD LIQUIDITY
+                            </Button>
+                        </Card>
+                    </div>
+                }
+                {
+                    !isLoading && (!activeAccount || !activeWallet) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                        <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
+                            <div className="text-white text-center text-2xl font-black leading-none">PLEASE CONNECT YOUR WALLET</div>
+                            
+                        </Card>
+                    </div>
+                }
+                {
+                    !isLoading && myLpTokens.length > 0 && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                        {/* My Liquidity */}
+                        <Card className="w-3/5 bg-[#ffffff0d] rounded-3xl border-none p-6">
+                            {/* Dropdown */}
+                            <Select value={selectedLpToken ?? ''} onValueChange={(value) => {
+                                setSelectedLpToken(value);
+                            }}>
+                                <SelectTrigger className="w-full bg-[#3A3935] text-white border-none h-16 rounded-2xl" id="token0">
+                                    <SelectValue placeholder="SELECT MY LP" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#3A3935] text-white border-none">
+                                    {myLpTokens?.map((token: any) => (
+                                        <SelectItem key={token.pairAddress} value={token.pairAddress}>
+                                            <div className="flex flex-row gap-2 items-center font-bold">
+                                                <div className="flex flex-row gap-2 items-center">
+                                                    <Image src={token.token0.logoURI} alt={token.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                    <Image src={token.token1.logoURI} alt={token.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 relative ml-[-10px]" />
+                                                </div>
+                                                {token.token0.symbol}+{token.token1.symbol}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {/* Summarize */}
+                            <div className="w-full flex flex-row gap-4 mt-4 px-2">
+                                {
+                                    selectedLpTokenInfo && <div className="relative w-36 h-36">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle
+                                                cx="72"
+                                                cy="72"
+                                                r="54"
+                                                strokeWidth="18"
+                                                stroke="#ffffff30"
+                                                fill="transparent"
+                                            />
+                                            <circle
+                                                cx="72"
+                                                cy="72"
+                                                r="54"
+                                                strokeWidth="18"
+                                                stroke="#ffffff"
+                                                fill="transparent"
+                                                strokeDasharray={`${(selectedLpTokenInfo.poolShare * 100) * 3.375}, 337.5`}
+                                            />
+                                        </svg>
+                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[81px] w-[81px] flex flex-col items-center justify-center">
+                                            <div className="text-xl font-bold">{Number(selectedLpTokenInfo.poolShare * 100).toFixed(1)}%</div>
+                                            <div className="text-[10px]">Pool Share</div>
+                                        </div>
+
+                                    </div>
+                                }
+
+                                {
+                                    selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
+                                        <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                            <Image src={selectedLpTokenInfo.token0.logoURI} alt={selectedLpTokenInfo.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                            <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                        </div>
+                                        <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                            <Image src={selectedLpTokenInfo.token1.logoURI} alt={selectedLpTokenInfo.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                            <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                        </div>
+                                        <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                            <div className="h-7 w-7 bg-white rounded-full font-bold flex flex-row items-center justify-center text-black">
+                                                LP
+                                            </div>
+                                            <NumericFormat value={Number(toTokens(selectedLpTokenInfo.lpTokens, 18))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            {/* Add more liquidity */}
+                            {
+                                selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0.symbol}&currencyB=${selectedLpTokenInfo.token1.symbol}`}>
+                                    <Button className="relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">ADD MORE <span className="font-bold">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY</Button>
+                                </Link>
+                            }
+                        </Card>
 
 
-                    {/* Remove Liquidity */}
-                    <Card className="w-2/5 bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
-                        <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
-                        {
-                            selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
-                        }
-                    </Card>
-                </div>
+                        {/* Remove Liquidity */}
+                        <Card className="w-2/5 bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
+                            <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
+                            {
+                                selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
+                            }
+                        </Card>
+                    </div>
+                }
             </section>
         </>
     )
