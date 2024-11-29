@@ -249,7 +249,7 @@ body {
   background-color: #1e1d1b;
   opacity: 1;
   background-size: 6px 6px;
-  background-image: repeating-linear-gradient(45deg, #1e1e1e 0, #1e1e1e 0.6px, #000000 0, #000000 50%);
+  background-image: repeating-linear-gradient(45deg, #232323 0, #232323 1px, #1e1d1b 0, #1e1d1b 50%);
 }
 
 /* body {
