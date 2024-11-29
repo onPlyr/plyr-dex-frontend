@@ -31,7 +31,7 @@ import { useSearchParams } from 'next/navigation';
 import { getWalletBalance } from 'thirdweb/wallets';
 import Link from 'next/link';
 
-import { FastAverageColor } from 'fast-average-color';
+import RemoveLiq from './components/removeLiq';
 
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
@@ -48,22 +48,6 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const [selectedLpToken, setSelectedLpToken] = useState<string | null>(null)
     const [selectedLpTokenInfo, setSelectedLpTokenInfo] = useState<any | null>(null)
-
-    // Gradient color //
-    const [gradientColors, setGradientColors] = useState<{ [key: string]: string }>({});
-    useEffect(() => {
-        const fetchGradientColors = async () => {
-            const fac = new FastAverageColor();
-            const colors: { [key: string]: string } = {};
-            for (const token of myLpTokens) {
-                const color0 = await fac.getColorAsync(token.token0.logoURI);
-                const color1 = await fac.getColorAsync(token.token1.logoURI);
-                colors[token.pairAddress] = `linear-gradient(to right, ${color0.hex}, ${color1.hex})`;
-            }
-            setGradientColors(colors);
-        };
-        fetchGradientColors();
-    }, [myLpTokens]);
 
     const getAllPairs = async () => {
 
@@ -181,8 +165,6 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             // @ts-ignore
             const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
 
-
-
             return {
                 pairAddress: pairAddress,
                 lpTokens: lpTokens,
@@ -234,11 +216,11 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
                     <div className="flex flex-col items-start justify-center">
-                        <div className="text-white text-2xl font-black leading-none">LIQUIDITY</div>
-                        <div className="text-white text-2xl font-black leading-none">BUILDER</div>
+                        <div className="text-white text-2xl font-black leading-none">MY LIQUIDITY</div>
+                        <div className="text-white text-2xl font-black leading-none">POSITIONS</div>
                         <div className="flex flex-row gap-2 mt-4">
                             <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
-                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">My Positions</a>
+                            
                         </div>
                     </div>
                 </Card>
@@ -327,76 +309,14 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
 
                     {/* Remove Liquidity */}
-                    <Card className="w-2/5 bg-[#ffffff0d] rounded-3xl border-none p-6">
-
+                    <Card className="w-2/5 bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
+                        <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
+                        {
+                            selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
+                        }
                     </Card>
                 </div>
             </section>
-            <Card className="w-full max-w-md mx-auto">
-                <CardHeader>
-                    <CardTitle>Manage Liquidity</CardTitle>
-                    <CardDescription>You can click to add more liquidity or remove liquidity from your wallet.</CardDescription>
-                </CardHeader>
-                <CardContent>
-
-                    <div className="flex flex-row justify-end mb-4">
-                        <Link href={`/liquidity/add/`}>
-                            <Button>ADD LIQUIDITY</Button>
-                        </Link>
-                    </div>
-
-                    {
-                        isLoading && (
-                            <div>Loading...</div>
-                        )
-                    }
-
-                    {
-                        !isLoading && myLpTokens.length === 0 && (
-                            <div>No LP tokens found</div>
-                        )
-                    }
-
-                    {
-                        !isLoading && myLpTokens.length > 0 && (
-                            <div className="flex flex-col gap-4">
-                                {myLpTokens.map((token) => (
-                                    <div key={token.pair}
-                                        className="flex flex-row justify-between  border-2 border-gray-200 rounded-lg p-4"
-                                        style={{ background: gradientColors[token.pairAddress] }}
-                                    >
-                                        <div className="text-lg font-bold">
-                                            <div className="flex flex-row gap-2 items-center">
-                                                <Image src={token.token0.logoURI} alt={token.token0.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                                {token.token0.symbol} - {Number(toTokens(token.reserves[0], token.token0.decimals)) * token.poolShare}
-                                            </div>
-                                            <div className="flex flex-row gap-2 items-center">
-                                                <Image src={token.token1.logoURI} alt={token.token1.symbol} width={20} height={20} className="rounded-full w-5 h-5" />
-                                                {token.token1.symbol} - {Number(toTokens(token.reserves[1], token.token1.decimals)) * token.poolShare}
-                                            </div>
-                                            <div className="text-sm text-gray-500 mt-4">LP TOKENS: {toTokens(token.lpTokens, 18)}</div>
-                                            <div className="text-sm text-gray-500">POOL SHARE: {token.poolShare * 100}%</div>
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            <Link className='w-full' href={`/liquidity/add/?currencyA=${token.token0.symbol}&currencyB=${token.token1.symbol}`}>
-                                                <Button className='w-full'>ADD</Button>
-                                            </Link>
-                                            <Link href={`/liquidity/remove/?pair=${token.pairAddress}`}>
-                                                <Button className="bg-red-500 hover:bg-red-600">REMOVE</Button>
-                                            </Link>
-                                        </div>
-
-                                    </div>
-                                ))}
-                            </div>
-                        )
-                    }
-
-                    <div className="mt-4 w-full mx-auto">
-                        <WalletButton />
-                    </div>
-                </CardContent>
-            </Card>
         </>
     )
 }
