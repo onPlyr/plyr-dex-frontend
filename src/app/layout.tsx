@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Chivo } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 // import { SourceCodeProOverrided } from "@/components/font_overrided";
 import { Toaster } from "@/components/ui/toaster";
 import NProgress from "./nprogress";
 
 const chivo = Chivo({ subsets: ["latin"] });
+const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
 
 export const metadata: Metadata = {
   title: "PLYR[DEX]",
@@ -55,7 +57,7 @@ export default function RootLayout({
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
         <meta name="theme-color" content="#ffffff"></meta>
       </head>
-      <body className={chivo.className}>
+      <body className={`${chivo.className} ${roadRage.variable}`}>
         <NProgress />
 
         {children}

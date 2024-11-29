@@ -228,10 +228,10 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         <>
             <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
 
-                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
+                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-8">
                     <div className="flex flex-col items-start justify-center">
-                        <div className="text-white text-2xl font-black leading-none">MY LIQUIDITY</div>
-                        <div className="text-white text-2xl font-black leading-none">POSITIONS</div>
+                        <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>MY LP</div>
+                        <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>POSITIONS</div>
                         <div className="flex flex-row gap-2 mt-4">
                             <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
 
