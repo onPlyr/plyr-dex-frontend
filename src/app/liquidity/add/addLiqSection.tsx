@@ -15,7 +15,7 @@ import { totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/app/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
-import { AlertCircle, Info, PiggyBank } from 'lucide-react'
+import { AlertCircle, Info, PiggyBank, SquarePlus } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
@@ -205,7 +205,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         }
 
         setError('')
-       
+
         //alert(value)
 
         if (!token0.address || !token1.address) {
@@ -234,12 +234,12 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
             const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(token0.decimals);
             const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(token1.decimals);
-            
+
             if (input === 0) {
-               setAmount1(newAmount1);
+                setAmount1(newAmount1);
             }
             else {
-               setAmount0(newAmount0);
+                setAmount0(newAmount0);
             }
 
 
@@ -656,7 +656,12 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                     <div className="text-[10px] leading-none">This is a demo app. Liquidity will not be added to the pool. The tokens will be displayed in the pool.</div>
                                 </div>
 
-                                <Button type="submit" className="w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>{isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}</Button>
+                                <Button type="submit" className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>
+                                    {
+                                        (!isAddingLiquidity && !error) && <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
+                                    }
+                                    {isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}
+                                </Button>
                             </form>
 
 
