@@ -37,7 +37,7 @@ const AccountHistoryParameterItem = React.forwardRef<HTMLDivElement, AccountHist
                 <div className="flex flex-row flex-1 justify-start items-center">
                     {label}
                 </div>
-                <div className={twMerge("flex flex-row flex-1 justify-end items-center", value !== undefined ? "font-bold" : "font-normal text-muted-500")}>
+                <div className={twMerge("flex flex-row flex-1 justify-end items-center text-end", value !== undefined ? "font-bold" : "font-normal text-muted-500")}>
                     {value !== undefined ? value : loadingValue}
                 </div>
             </div>
@@ -46,7 +46,7 @@ const AccountHistoryParameterItem = React.forwardRef<HTMLDivElement, AccountHist
                     <div className="flex flex-row flex-1 justify-start items-center">
                         {secondaryLabel}
                     </div>
-                    <div className="flex flex-row flex-1 justify-end items-center">
+                    <div className="flex flex-row flex-1 justify-end items-center text-end">
                         {secondaryValue !== undefined ? secondaryValue : secondaryLoadingValue}
                     </div>
                 </div>

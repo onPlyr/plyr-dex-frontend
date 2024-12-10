@@ -193,7 +193,6 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                                 allRoutes={allRoutes}
                                 selectedRoute={route}
                                 maxDstAmount={maxDstAmount}
-                                showSrcToken={true}
                             />
                         </div>
                     )}

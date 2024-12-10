@@ -3,9 +3,8 @@ import { twMerge } from "tailwind-merge"
 
 import RouteTypeIcon from "@/app/components/icons/RouteTypeIcon"
 import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
-import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { PlatformImage } from "@/app/components/images/PlatformImage"
-import { TokenImage } from "@/app/components/images/TokenImage"
+import RouteEventTokenDetail from "@/app/components/routes/RouteEventTokenDetail"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import { iconSizes } from "@/app/config/styling"
@@ -34,6 +33,10 @@ const SwapEventStatusDetailItem = React.forwardRef<React.ElementRef<typeof Selec
         chain: hopData?.srcChain,
         tx: hop.tx?.hash,
     })
+    const hopTxidElement = hop.tx ? <div>
+        <span className="flex sm:hidden">{toShort(hop.tx.hash, 4)}</span>
+        <span className="hidden sm:flex">{toShort(hop.tx.hash, 6)}</span>
+    </div> : undefined
     const eventData = getSwapHistoryEventData(event)
     const platform = getPlatform(event.adapter?.platform)
     const platformName = (event.type === RouteType.Bridge ? event.bridge : platform?.name) || (event.adapterAddress && toShort(event.adapterAddress))
@@ -68,53 +71,25 @@ const SwapEventStatusDetailItem = React.forwardRef<React.ElementRef<typeof Selec
                                         href={hopTxUrl}
                                         iconSize="xs"
                                     >
-                                        {toShort(hop.tx.hash, 6)}
+                                        {hopTxidElement}
                                     </ExternalLink>
-                                ) : toShort(hop.tx.hash, 6)}
+                                ) : hopTxidElement}
                             </div>
                         </>) : <SwapStatusIcon status={hop.status} />}
                     </div>
                 </div>
             </div>
             <div className="flex flex-col flex-1 w-full gap-1">
-                <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-                    <div className="flex flex-row flex-initial w-12 text-muted-500">
-                        From
-                    </div>
-                    <div className="flex flex-row flex-1 gap-4 items-center text-muted-500">
-                        <ChainImageInline
-                            chain={eventData.srcChain}
-                            size="xs"
-                        />
-                        {eventData.srcChain.name}
-                    </div>
-                    <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
-                        {eventData.srcToken.symbol}
-                        <TokenImage
-                            token={eventData.srcToken}
-                            size="xs"
-                        />
-                    </div>
-                </div>
-                <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-                    <div className="flex flex-row flex-initial w-12 text-muted-500">
-                        To
-                    </div>
-                    <div className="flex flex-row flex-1 gap-4 items-center text-muted-500">
-                        <ChainImageInline
-                            chain={eventData.dstChain}
-                            size="xs"
-                        />
-                        {eventData.dstChain.name}
-                    </div>
-                    <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
-                        {eventData.dstToken.symbol}
-                        <TokenImage
-                            token={eventData.dstToken}
-                            size="xs"
-                        />
-                    </div>
-                </div>
+                <RouteEventTokenDetail
+                    label="From"
+                    chain={eventData.srcChain}
+                    token={eventData.srcToken}
+                />
+                <RouteEventTokenDetail
+                    label="To"
+                    chain={eventData.dstChain}
+                    token={eventData.dstToken}
+                />
             </div>
         </SelectItem>
     )

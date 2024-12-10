@@ -4,12 +4,9 @@ import { Address, Hash } from "viem"
 
 import RouteTypeIcon from "@/app/components/icons/RouteTypeIcon"
 import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
-import { ChainImageInline } from "@/app/components/images/ChainImage"
-import { TokenImage } from "@/app/components/images/TokenImage"
-import DecimalAmount from "@/app/components/ui/DecimalAmount"
+import RouteEventTokenDetail from "@/app/components/routes/RouteEventTokenDetail"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { SelectItem } from "@/app/components/ui/SelectItem"
-import { NumberFormatType } from "@/app/config/numbers"
 import { iconSizes } from "@/app/config/styling"
 import useWatchSwapStatus from "@/app/hooks/swap/useWatchSwapStatus"
 import { getBlockExplorerLink } from "@/app/lib/chains"
@@ -42,6 +39,10 @@ const SwapStatusSelectItem = React.forwardRef<React.ElementRef<typeof SelectItem
         chain: swapData?.srcChain,
         tx: swapHistory?.id,
     })
+    const txidElement = swapHistory ? <div>
+        <span className="flex sm:hidden">{toShort(swapHistory.id, 4)}</span>
+        <span className="hidden sm:flex">{toShort(swapHistory.id, 6)}</span>
+    </div> : undefined
 
     return swapHistory && swapData && (
         <SelectItem
@@ -61,7 +62,7 @@ const SwapStatusSelectItem = React.forwardRef<React.ElementRef<typeof SelectItem
                             <SwapStatusIcon status={swapHistory.status} className={iconSizes.sm} />
                         </div>
                     </div>
-                    <div className="flex flex-col flex-1">
+                    <div className="flex flex-col flex-1 text-end">
                         <div className="flex flex-row flex-1 justify-end items-start font-bold">
                             {timestampAgo(swapHistory.timestamp)}
                         </div>
@@ -71,61 +72,25 @@ const SwapStatusSelectItem = React.forwardRef<React.ElementRef<typeof SelectItem
                                     href={initiateTxUrl}
                                     iconSize="xs"
                                 >
-                                    {toShort(swapHistory.id, 6)}
+                                    {txidElement}
                                 </ExternalLink>
-                            ) : toShort(swapHistory.id, 6)}
+                            ) : txidElement}
                         </div>
                     </div>
                 </div>
                 <div className="flex flex-col flex-1 w-full gap-1">
-                    <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-                        <div className="flex flex-row flex-initial w-12 text-muted-500">
-                            From
-                        </div>
-                        <div className="flex flex-row flex-1 gap-4 items-center text-muted-500">
-                            <ChainImageInline
-                                chain={swapData.srcChain}
-                                size="xs"
-                            />
-                            {swapData.srcChain.name}
-                        </div>
-                        <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
-                            <DecimalAmount
-                                amount={swapData.srcAmount}
-                                symbol={swapData.srcToken.symbol}
-                                token={swapData.srcToken}
-                                type={NumberFormatType.Precise}
-                            />
-                            <TokenImage
-                                token={swapData.srcToken}
-                                size="xs"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-                        <div className="flex flex-row flex-initial w-12 text-muted-500">
-                            To
-                        </div>
-                        <div className="flex flex-row flex-1 gap-4 items-center text-muted-500">
-                            <ChainImageInline
-                                chain={swapData.dstChain}
-                                size="xs"
-                            />
-                            {swapData.dstChain.name}
-                        </div>
-                        <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
-                            <DecimalAmount
-                                amount={swapData.dstAmount}
-                                symbol={swapData.dstToken.symbol}
-                                token={swapData.dstToken}
-                                type={NumberFormatType.Precise}
-                            />
-                            <TokenImage
-                                token={swapData.dstToken}
-                                size="xs"
-                            />
-                        </div>
-                    </div>
+                    <RouteEventTokenDetail
+                        label="From"
+                        chain={swapData.srcChain}
+                        token={swapData.srcToken}
+                        amount={swapData.srcAmount}
+                    />
+                    <RouteEventTokenDetail
+                        label="To"
+                        chain={swapData.dstChain}
+                        token={swapData.dstToken}
+                        amount={swapData.dstAmount}
+                    />
                 </div>
             </div>
         </SelectItem>

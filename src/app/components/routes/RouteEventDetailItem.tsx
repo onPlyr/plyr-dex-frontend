@@ -2,52 +2,17 @@ import * as React from "react"
 import { twMerge } from "tailwind-merge"
 
 import RouteTypeIcon from "@/app/components/icons/RouteTypeIcon"
-import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { PlatformImage } from "@/app/components/images/PlatformImage"
-import { TokenImage } from "@/app/components/images/TokenImage"
+import RouteEventTokenDetail from "@/app/components/routes/RouteEventTokenDetail"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import { getPlatform } from "@/app/lib/platforms"
 import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
 import { RouteEvent, RouteType } from "@/app/types/swaps"
-import { Chain } from "@/app/types/chains"
-import { Token } from "@/app/types/tokens"
 
 interface RouteEventDetailItemProps extends React.ComponentPropsWithoutRef<typeof SelectItem> {
     event: RouteEvent,
 }
-
-const RouteEventTokenDetail = ({
-    label,
-    chain,
-    token,
-}: {
-    label: React.ReactNode,
-    chain: Chain,
-    token: Token,
-}) => (
-    <div className="flex flex-col sm:flex-row flex-1 gap-x-4 gap-y-2">
-        <div className="flex flex-row flex-initial w-12 items-center text-muted-400">
-            {label}
-        </div>
-        <div className="flex flex-col-reverse sm:flex-row flex-1 gap-x-4 gap-y-1">
-            <div className="flex flex-row-reverse sm:flex-row flex-1 gap-4 justify-start items-center text-muted-300">
-                <ChainImageInline
-                    chain={chain}
-                    size="xs"
-                />
-                {chain.name}
-            </div>
-            <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
-                {token.symbol}
-                <TokenImage
-                    token={token}
-                    size="xs"
-                />
-            </div>
-        </div>
-    </div>
-)
 
 const RouteEventDetailItem = React.forwardRef<React.ElementRef<typeof SelectItem>, RouteEventDetailItemProps>(({
     className,
@@ -79,11 +44,13 @@ const RouteEventDetailItem = React.forwardRef<React.ElementRef<typeof SelectItem
                     label="From"
                     chain={event.srcChain}
                     token={event.srcToken}
+                    lighterMuted={true}
                 />
                 <RouteEventTokenDetail
                     label="To"
                     chain={event.dstChain}
                     token={event.dstToken}
+                    lighterMuted={true}
                 />
             </div>
         </SelectItem>
