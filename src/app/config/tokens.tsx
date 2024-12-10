@@ -35,6 +35,28 @@ const baseTokens: BaseToken[] = [
         },
     },
     {
+        id: "coq",
+        symbol: "MCOQ",
+        name: "COQ",
+        decimals: 18,
+        chains: {
+            [plyrTau.id]: {
+                address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
+            },
+        },
+    },
+    {
+        id: "super",
+        symbol: "MSUPER",
+        name: "SUPER",
+        decimals: 18,
+        chains: {
+            [plyrTau.id]: {
+                address: "0xa79F25CBfe32f5f29F4Ca96aAe67acD49D65655f",
+            },
+        },
+    },
+    {
         id: "plyr",
         symbol: "PLYR",
         name: "Native PLYR",
@@ -204,5 +226,8 @@ export const Tokens: Token[] = Object.values(SupportedChains).map((chain) => {
 
     })
 }).flat()
+
+
+//console.log(Tokens)
 
 export const DefaultTokenSortType = TokenSortType.BalanceValue

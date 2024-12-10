@@ -62,7 +62,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(({
     glow = false,
     ...props
 }, ref) => (
-    <div className={twMerge(hideBorder ? "contents" : "gradient-border", borderClassName)}>
+    <div className={twMerge(hideBorder ? "contents" : "gradient-border w-full", borderClassName)}>
         <div
             ref={ref}
             className={twMerge("flex flex-col flex-1 h-fit pt-6 gap-6 rounded-lg transition overflow-hidden", hideBorder ? "bg-container-900" : "bg-container-900/90", className)}

@@ -338,17 +338,17 @@ const SwapPage = () => {
     }
 
     return (
-        <Card glow={true}>
+        <Card glow={true} className="w-full">
             <CardHeader>
                 <CardTitle>
                     <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>SWAP</div>
                 </CardTitle>
                 <CardActions>
-                    <RefreshIcon onClick={handleRefetch} className="transition hover:rotate-180" />
+                    <RefreshIcon onClick={handleRefetch} className="text-[#daff00] transition hover:rotate-180" />
                     <PreferencesDialog
                         header="Preferences"
                         className="bg-[#3A3935]"
-                        trigger=<SettingsIcon className="transition hover:rotate-90" />
+                        trigger=<SettingsIcon className="transition text-[#daff00] hover:rotate-90" />
                     />
                 </CardActions>
             </CardHeader>
@@ -363,10 +363,10 @@ const SwapPage = () => {
                 />
                 <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
                     <Button
-                        className="btn p-3 rounded-full transition hover:rotate-180"
+                        className="btn bg-[#3A3935] p-3 rounded-full transition hover:rotate-180"
                         onClick={handleSwitchSrcDstTokens.bind(this, srcChain, srcToken, dstChain, dstToken, selectedRoute?.dstAmountFormatted)}
                     >
-                        <ArrowIcon toggleDirection={StyleToggleDirection.UpDown} />
+                        <ArrowIcon className="text-[#daff00]" toggleDirection={StyleToggleDirection.UpDown} />
                     </Button>
                 </div>
                 <TokenSelectAmountComboItem

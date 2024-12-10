@@ -1,6 +1,7 @@
 
 "use client";
 import { use, useEffect, useState } from 'react'
+import Link from 'next/link';
 // import { Token, Fetcher } from '@uniswap/sdk'
 // import { Pair, } from 'custom-uniswap-v2-sdk'
 
@@ -29,7 +30,7 @@ import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useSearchParams } from 'next/navigation';
 
 import { getWalletBalance } from 'thirdweb/wallets';
-import Link from 'next/link';
+
 
 import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -253,9 +254,9 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     !isLoading && myLpTokens.length === 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white text-center text-2xl font-black leading-none">NO LIQUIDITY POSITIONS</div>
-                            <Button className="relative w-fit px-6 py-2 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                            <Link href={`/liquidity/add/`} className="relative w-fit px-6 py-2 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
                                 ADD LIQUIDITY
-                            </Button>
+                            </Link>
                         </Card>
                     </div>
                 }

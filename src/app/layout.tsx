@@ -11,7 +11,7 @@ const chivo = Chivo({ subsets: ["latin"] });
 const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
 
 export const metadata: Metadata = {
-  title: "PLYR[DEX]",
+  title: "PLYR[SWAP]",
   description: "Explore the future of gaming with PLYR Chain. Empowering developers and gamers alike, our blockchain platform revolutionizes the gaming experience.",
   openGraph: {
     title: "PLYR[CONNECT]",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     ]
   },
   twitter: {
-    title: "PLYR[DEX]",
+    title: "PLYR[SWAP]",
     card: "summary_large_image",
     creator: "@onPlyr",
     images: [
