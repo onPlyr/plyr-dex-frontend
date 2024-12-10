@@ -5,7 +5,7 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { ReactNode, useEffect, useState } from "react"
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister"
 import { QueryClient } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { Persister, PersistQueryClientProvider } from "@tanstack/react-query-persist-client"
 import { deserialize, serialize, WagmiProvider } from "wagmi"
 import { hashFn } from "@wagmi/core/query"
@@ -51,7 +51,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
                                 {children}
                             </AccountDataProvider>
 
-                            <ReactQueryDevtools initialIsOpen={false} />
+                            {/* <ReactQueryDevtools initialIsOpen={false} /> */}
                         </PersistQueryClientProvider>}
                     </WagmiProvider>
                 </ThirdwebProvider>
