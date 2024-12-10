@@ -341,8 +341,7 @@ const SwapPage = () => {
         <Card glow={true}>
             <CardHeader>
                 <CardTitle>
-                    <SwapIcon />
-                    Swap
+                    <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>SWAP</div>
                 </CardTitle>
                 <CardActions>
                     <RefreshIcon onClick={handleRefetch} className="transition hover:rotate-180" />

@@ -4,7 +4,7 @@ import Image from "next/image";
 // import { ConnectTWButton } from "@/components/thirdweb_connectbutton";
 
 import SwapPage from "@/app/components/swap/SwapPage";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { Loader2 } from "lucide-react";
 
@@ -24,7 +24,7 @@ import {
     MediaRenderer,
     useReadContract,
 } from "thirdweb/react";
-import { createWalletAdapter } from "thirdweb/wallets";
+import { createWalletAdapter, Wallet, WalletId } from "thirdweb/wallets";
 import { claimTo, getNFT } from "thirdweb/extensions/erc1155";
 import {
     useAccount,
@@ -44,9 +44,22 @@ export default function Main() {
     const { switchChainAsync } = useSwitchChain();
     const setActiveWallet = useSetActiveWallet();
 
+    // handle disconnecting from wagmi
+    const thirdwebWallet = useActiveWallet();
+    // Store the previous active wallet
+    const [previousActiveWallet, setPreviousActiveWallet] = useState<Wallet<WalletId> | undefined>(undefined);
+    
     useEffect(() => {
+        setPreviousActiveWallet(thirdwebWallet);
+    }, [thirdwebWallet])
+
+    useEffect(() => {
+       
         const setActive = async () => {
-            if (walletClient) {
+
+            if (walletClient && thirdwebWallet) {
+                // Store the current active wallet before setting the new one
+
                 const adaptedAccount = viemAdapter.walletClient.fromViem({
                     walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
                 });
@@ -61,14 +74,23 @@ export default function Main() {
                         await switchChainAsync({ chainId: chain.id as any });
                     },
                 });
+
                 setActiveWallet(w);
             }
         };
         setActive();
+
+        // Clean up function to restore the previous active wallet when unmounting
+        return () => {
+            console.log('previousActiveWallet', previousActiveWallet)
+            if (previousActiveWallet) {
+
+                setActiveWallet(previousActiveWallet);
+            }
+        };
     }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
 
-    // handle disconnecting from wagmi
-    const thirdwebWallet = useActiveWallet();
+
     useEffect(() => {
         const disconnectIfNeeded = async () => {
             if (thirdwebWallet && wagmiAccount.status === "disconnected") {

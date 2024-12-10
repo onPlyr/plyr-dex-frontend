@@ -35,8 +35,7 @@ const AccountHistoryPage = () => {
         <Card glow={true}>
             <CardHeader>
                 <CardTitle>
-                    <TxIcon />
-                    Transaction History
+                    <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Transaction History</div>
                 </CardTitle>
             </CardHeader>
             <CardContent>

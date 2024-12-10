@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/components/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -42,6 +42,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
+    const activeChain = useActiveWalletChain();
 
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
@@ -201,7 +202,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     }, [allPairs]);
 
     useEffect(() => {
-        if (activeAccount && activeWallet) {
+        
+        if (activeAccount && activeWallet && activeChain?.id === CHAIN_ID) {
             getAllPairs();
         }
         else {
@@ -211,7 +213,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             setSelectedLpToken(null);
             setSelectedLpTokenInfo(null);
         }
-    }, [activeAccount, activeWallet]);
+    }, [activeAccount, activeWallet, activeChain]);
 
     useEffect(() => {
         if (selectedLpToken && myLpTokens.length > 0) {
@@ -248,7 +250,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     </div>
                 }
                 {
-                    !isLoading && myLpTokens.length === 0 && activeAccount && activeWallet && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                    !isLoading && myLpTokens.length === 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white text-center text-2xl font-black leading-none">NO LIQUIDITY POSITIONS</div>
                             <Button className="relative w-fit px-6 py-2 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
@@ -258,14 +260,14 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     </div>
                 }
                 {
-                    !isLoading && (!activeAccount || !activeWallet) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                    !isLoading && (!activeAccount || !activeWallet || activeChain?.id !== CHAIN_ID) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
-                            <div className="text-white text-center text-2xl font-black leading-none">PLEASE CONNECT YOUR WALLET</div>
+                            <div className="text-white text-center text-2xl font-black leading-none">{activeChain?.id !== CHAIN_ID ? 'PLEASE CONNECT TO PLYR NETWORK' : 'PLEASE CONNECT YOUR WALLET'}</div>
                         </Card>
                     </div>
                 }
                 {
-                    !isLoading && myLpTokens.length > 0 && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                    !isLoading && myLpTokens.length  > 0  && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         {/* My Liquidity */}
                         <Card className="md:w-3/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
                             {/* Dropdown */}
@@ -352,7 +354,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                         <Card className="md:w-2/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
                             <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
                             {
-                                selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
+                                selectedLpTokenInfo  && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
                             }
                         </Card>
                     </div>

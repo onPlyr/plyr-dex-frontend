@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { totalSupply } from "thirdweb/extensions/erc20";
 
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -41,6 +41,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
+    const activeChain = useActiveWalletChain();
 
     const { toast } = useToast();
 
@@ -188,8 +189,10 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
         if (!activeAccount || !activeWallet) {
             setError('Please connect your wallet')
-            return
+            return;
         }
+
+
 
         if (value[value.length - 1] !== '.') {
             if (value === '' || Number(value) <= 0) {
@@ -276,6 +279,10 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         if (isAddingLiquidity) return;
 
         if (!activeAccount || !activeWallet) {
+            return
+        }
+
+        if (activeChain?.id !== CHAIN_ID) {
             return
         }
 
@@ -654,12 +661,15 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                     <div className="text-[10px] leading-none">This is a demo app. Liquidity will not be added to the pool. The tokens will be displayed in the pool.</div>
                                 </div>
 
-                                <Button type="submit" className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>
-                                    {
-                                        (!isAddingLiquidity && !error) && <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
-                                    }
-                                    {isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}
-                                </Button>
+                                {
+                                    activeChain?.id === CHAIN_ID ? <Button type="submit" className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>
+                                        {
+                                            (!isAddingLiquidity && !error) && <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
+                                        }
+                                        {isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}
+                                    </Button> :
+                                    <Button disabled={true} className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">PLEASE CONNECT TO PLYR NETWORK</Button>
+                                }
                             </form>
 
 
