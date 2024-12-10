@@ -20,6 +20,7 @@ export default function WalletButton() {
             colors: {
                 accentText: "#ff6600",
                 accentButtonBg: "#ff6600",
+                primaryButtonBg: "#000000",
                 primaryButtonText: "#ffffff",
                 skeletonBg: "#fdfcfd",
                 selectedTextColor: "#fdfcfd",

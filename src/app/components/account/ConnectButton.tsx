@@ -1,0 +1,31 @@
+"use client"
+
+import { useConnectModal } from "@rainbow-me/rainbowkit"
+import * as React from "react"
+import { twMerge } from "tailwind-merge"
+
+import Button from "@/app/components/ui/Button"
+
+const ConnectButton = React.forwardRef<React.ElementRef<typeof Button>, React.ButtonHTMLAttributes<HTMLButtonElement>>(({
+    className,
+    disabled = false,
+    ...props
+}, ref) => {
+
+    const { openConnectModal } = useConnectModal()
+
+    return (
+        <Button
+            ref={ref}
+            onClick={openConnectModal?.bind(this)}
+            className={twMerge("btn-gradient px-3 py-2", className)}
+            disabled={disabled}
+            {...props}
+        >
+            Connect Wallet
+        </Button>
+    )
+})
+ConnectButton.displayName = "ConnectButton"
+
+export default ConnectButton

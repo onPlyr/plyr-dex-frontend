@@ -65,7 +65,7 @@ export default function RootLayout({
         <Toaster />
 
         {
-          process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' && <div className="fixed z-50 bottom-0 left-0 bg-yellow-300 w-full h-6 text-xs flex items-center justify-center">
+          process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' && <div className="text-black fixed z-50 bottom-0 left-0 bg-yellow-300 w-full h-6 text-xs flex items-center justify-center">
             You're on the Testnet environment.
           </div>
         }

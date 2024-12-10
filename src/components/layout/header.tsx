@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import styles from './header.module.scss';
 import Image from 'next/image';
 import { Settings } from 'lucide-react';
@@ -13,6 +14,12 @@ export default function Header() {
                     <div className="text-2xl font-black leading-none" style={{ lineHeight: '20px' }}>PLYR</div>
                     <div className="text-[13px] font-light leading-none" style={{ lineHeight: '12px' }}>SWAP</div>
                 </div>
+            </div>
+
+            <div className="flex flex-row items-center justify-center gap-8">
+                <Link href="/swap">SWAP</Link>
+                <Link href="/history">HISTORY</Link>
+                <Link href="/liquidity/manage">POOLS</Link>
             </div>
 
             <WalletButton />
