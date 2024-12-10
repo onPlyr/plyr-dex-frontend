@@ -97,7 +97,7 @@
 
     .select-item {
         @apply flex flex-row flex-1 w-full p-4 gap-4 justify-start items-center rounded-3xl transition cursor-pointer bg-transparent;
-        @apply p-6 rounded-3xl text-white shadow-sm bg-[#ffffff0d] focus:bg-gray-950/50 focus-within:bg-gray-950/50 data-[selected=true]:bg-gray-950 data-[selected=true]:hover:bg-gray-950/50;
+        @apply p-6 rounded-3xl text-white shadow-sm bg-white/5 hover:bg-white/10 active:bg-white/10 focus:bg-gray-950/50 focus-within:bg-white/50 data-[selected=true]:bg-white/50 data-[selected=true]:hover:bg-white/50;
         @apply data-[disabled=true]:cursor-not-allowed;
     }
     .select-item-toggle {

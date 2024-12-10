@@ -113,14 +113,9 @@ export const getQuoteBridgeRoutes = (srcChain?: Chain, srcToken?: Token, dstChai
     }
 
     initialSrcBridgeRoutes.forEach((route) => {
-        if (route.dstChain.id !== dstChain.id) {
-            const routeSrcTokenNative = route.srcToken.isNative !== true ? getNativeTokenVariant(route.srcToken, route.srcChain) : undefined
-            if (route.srcToken.isNative !== true && routeSrcTokenNative) {
-                if (initialSrcBridgeRoutes.some((r) => r.srcToken.id === routeSrcTokenNative.id) !== true) {
-                    srcBridgeRoutes.push(route)
-                }
-            }
-            else {
+        const routeSrcTokenNative = route.srcToken.isNative !== true ? getNativeTokenVariant(route.srcToken, route.srcChain) : undefined
+        if (route.srcToken.isNative !== true && routeSrcTokenNative) {
+            if (initialSrcBridgeRoutes.some((r) => r.srcToken.id === routeSrcTokenNative.id) !== true) {
                 srcBridgeRoutes.push(route)
             }
         }
@@ -140,14 +135,9 @@ export const getQuoteBridgeRoutes = (srcChain?: Chain, srcToken?: Token, dstChai
     }
 
     initialDstBridgeRoutes.forEach((route) => {
-        if (route.srcChain.id !== srcChain.id) {
-            const routeSrcTokenNative = route.srcToken.isNative !== true ? getNativeTokenVariant(route.srcToken, route.srcChain) : undefined
-            if (route.srcToken.isNative !== true && routeSrcTokenNative) {
-                if (initialDstBridgeRoutes.some((r) => r.srcToken.id === routeSrcTokenNative.id) !== true) {
-                    dstBridgeRoutes.push(route)
-                }
-            }
-            else {
+        const routeSrcTokenNative = route.srcToken.isNative !== true ? getNativeTokenVariant(route.srcToken, route.srcChain) : undefined
+        if (route.srcToken.isNative !== true && routeSrcTokenNative) {
+            if (initialDstBridgeRoutes.some((r) => r.srcToken.id === routeSrcTokenNative.id) !== true) {
                 dstBridgeRoutes.push(route)
             }
         }
@@ -1157,9 +1147,9 @@ export const getRouteData = (quote: RouteQuote) => {
         const isSwap = getIsTradeHop(data.action)
         const isBridge = getIsBridgeHop(data.action)
         // const bridgeStep = data.steps.find((step) => step.type === RouteType.Bridge) ?? data.steps[data.steps.length - 1]
-        
-        
-        
+
+
+
         const gasEstimate = getHopGasEstimate(data.action, data.result?.estimatedGasFee || tmpHopGasEstimate)
         const recipientGasLimit = gasEstimate + tmpGasBuffer
         const totalGasLimit = recipientGasLimit + (data.action === HopAction.SwapAndTransfer ? BigInt(0) : tmpHopGasEstimate)
@@ -1275,7 +1265,7 @@ export const getRouteData = (quote: RouteQuote) => {
 
     const routeDstAmount = routeHopData[routeHopData.length - 1].dstAmount
     const totalGasEstimate = routeHopData.reduce((sum, hop) => sum + hop.gasEstimate, BigInt(0))
-    
+
 
     const totalGasCostFormatted = formatUnits(totalGasEstimate * quote.srcChain.minGasPrice, quote.srcChain.gasPriceExponent)
     const gasToken = getNativeToken(quote.srcChain)
