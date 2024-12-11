@@ -107,7 +107,7 @@
     }
     .summary-detail-item {
         @apply flex flex-col flex-1 w-full p-4 gap-4 justify-start items-start rounded-3xl transition cursor-pointer;
-        @apply p-6 rounded-3xl text-white shadow-sm bg-[#3A3935];
+        @apply p-6 rounded-3xl text-white shadow-sm bg-[#3A393550] border-2 border-transparent hover:border-[#daff00] data-[selected=true]:border-[#daff00] data-[selected=true]:border-2;
         @apply data-[disabled=true]:cursor-not-allowed;
     }
 
