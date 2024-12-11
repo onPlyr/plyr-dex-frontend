@@ -97,7 +97,7 @@ export default function Main() {
                 setActiveWallet(previousActiveWallet);
             }
         };
-    }, [walletClient]);
+    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
 
     useEffect(() => {
         const disconnectIfNeeded = async () => {
