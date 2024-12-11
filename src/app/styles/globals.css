@@ -19,6 +19,9 @@
     .clear-border-outline {
         @apply border-0 hover:border-0 active:border-0 focus:border-0 focus-within:border-0 outline-none hover:outline-none active:outline-none focus:outline-none focus-within:outline-none;
     }
+    .gradient-border-neon {
+        @apply border-2 border-[#daff00] rounded-3xl;
+    }
     .gradient-border-base {
         @apply relative rounded-3xl transition p-[3px];
     }
@@ -37,6 +40,9 @@
     }
     .animate-fade-zoom-slide-in-out {
         @apply animate-fade-zoom-slide-in animate-fade-zoom-slide-out;
+    }
+    .animate-fade-zoom-in-out {
+        @apply animate-fade-in-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95;
     }
     .animate-slide-in-out-base {
         @apply data-[state=open]:animate-in data-[state=open]:duration-300 data-[state=closed]:animate-out data-[state=closed]:duration-300;

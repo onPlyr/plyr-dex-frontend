@@ -103,26 +103,6 @@ html {
   overflow-x: hidden;
 }
 
-/*Overrided Tailwind*/
-/* .rounded-l-3xl
-  {
-    border-radius: 36px 0 0 36px;
-  }
-  .rounded-r-3xl
-  {
-    border-radius: 0 36px 36px 0;
-  }
-  .rounded-3xl
-  {
-    border-radius: 36px;
-  } */
-
-/* Overrided Header NAV */
-@media (min-width:1024px) and (max-width:1200px) {
-  .header-nav {
-    font-size: 0.65rem !important;
-  }
-}
 
 b {
   text-transform: uppercase !important;
@@ -252,38 +232,6 @@ body {
   background-image: repeating-linear-gradient(45deg, #232323 0, #232323 1px, #1e1d1b 0, #1e1d1b 50%);
 }
 
-/* body {
-	background: linear-gradient(133deg,#5e73ee,#ccdbca,#fe750f);
-	background-size: 400% 400%;
-	animation: gradient 15s ease infinite;
-	height: 100vh;
-}
-
-@keyframes gradient {
-	0% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-	100% {
-		background-position: 0% 50%;
-	}
-} */
-
-
-/* Atropos */
-.atropos-inner {
-  overflow: visible !important;
-}
-
-/* 
-.atropos-shadow, .atropos-highlight {
-
-  pointer-events: all !important;
- 
-} */
-
 /* Chrome, Edge and Safari */
 *::-webkit-scrollbar {
   height: 12px;
@@ -303,15 +251,15 @@ body {
 
 *::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  background-color: black
+  background-color: #daff00
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: black
+  background-color: #daff00
 }
 
 *::-webkit-scrollbar-thumb:active {
-  background-color: black;
+  background-color: #daff00;
 }
 
 .ThirdwebWalletBtn {

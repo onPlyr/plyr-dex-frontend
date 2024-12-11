@@ -90,9 +90,10 @@ export const SelectTokenDialog = React.forwardRef<React.ElementRef<typeof Dialog
                                 key={i}
                                 onClick={setSelectedFilterChain.bind(this, isSelected ? undefined : chain)}
                                 isSelected={isSelected}
+                                className="pe-3 sm:pe-4"
                             >
                                 <ChainImage chain={chain} size="xs" />
-                                {chain.name}
+                                <span className="hidden sm:flex">{chain.name}</span>
                             </SelectItemToggle>
                         )
                     })}

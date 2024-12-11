@@ -363,7 +363,6 @@ const SwapPage = () => {
                     <RefreshIcon onClick={handleRefetch} className="text-[#daff00] transition hover:rotate-180" />
                     <PreferencesDialog
                         header="Preferences"
-                        className="bg-[#3A3935]"
                         trigger=<SettingsIcon className="transition text-[#daff00] hover:rotate-90" />
                     />
                 </CardActions>

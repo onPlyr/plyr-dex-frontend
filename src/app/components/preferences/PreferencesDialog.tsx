@@ -121,16 +121,16 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
             disabled={disabled}
             {...props}
         >
-            <SwitchItem
+            {/* <SwitchItem
                 label="Dark mode"
                 htmlFor="darkMode"
                 pressed={darkMode}
                 setPressed={toggleDarkMode}
-            />
+            /> */}
             <div className="flex flex-row flex-1 font-bold">
                 Slippage tolerance
             </div>
-            <div className="flex flex-row flex-1 grid grid-cols-4 gap-4">
+            <div className="flex-1 grid grid-cols-4 gap-4">
                 {slippagePercentOptions.map((option, i) => (
                     <Button
                         key={i}

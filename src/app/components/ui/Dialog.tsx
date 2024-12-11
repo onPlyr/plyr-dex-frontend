@@ -30,7 +30,7 @@ export interface DialogContentProps extends React.ComponentPropsWithoutRef<typeo
     preventOutsideClose?: boolean,
 }
 
-const defaultDialogMaxDimensions = "w-full max-w-full md:max-w-screen-sm lg:max-w-screen-sm h-fit max-h-[90vh]"
+const defaultDialogMaxDimensions = "w-full max-w-full md:max-w-screen-md lg:max-w-screen-md h-fit max-h-[90vh]"
 const dialogSideMaxDimensions: Record<StyleSide, string> = {
     "left": "w-full max-w-full md:max-w-screen-sm h-full",
     "right": "w-full max-w-full md:max-w-screen-sm h-full",
@@ -38,21 +38,10 @@ const dialogSideMaxDimensions: Record<StyleSide, string> = {
     "bottom": "w-full max-h-[80vh]",
 }
 const dialogSideStyles: Record<StyleSide, string> = {
-    // "left": twMerge(dialogSideMaxDimensions.left, "inset-y-0 left-0 animate-slide-in-out-left"),
-    // "right": twMerge(dialogSideMaxDimensions.right, "inset-y-0 right-0 animate-slide-in-out-right"),
-    // "top": twMerge(dialogSideMaxDimensions.top, "inset-x-0 top-0 animate-slide-in-out-top"),
-    // "bottom": twMerge(dialogSideMaxDimensions.bottom, "inset-x-0 bottom-0 animate-slide-in-out-bottom"),
-    "left": twMerge(dialogSideMaxDimensions.left, "animate-slide-in-out-left"),
-    "right": twMerge(dialogSideMaxDimensions.right, "animate-slide-in-out-right"),
-    "top": twMerge(dialogSideMaxDimensions.top, "animate-slide-in-out-top"),
-    "bottom": twMerge(dialogSideMaxDimensions.bottom, "animate-slide-in-out-bottom"),
-}
-
-const dialogContainerSideStyles: Record<StyleSide, string> = {
-    "left": "justify-start items-start",
-    "right": "justify-end items-start",
-    "top": "justify-start items-start",
-    "bottom": "justify-start items-end",
+    "left": twMerge(dialogSideMaxDimensions.left, "inset-y-0 left-0 animate-slide-in-out-left"),
+    "right": twMerge(dialogSideMaxDimensions.right, "inset-y-0 right-0 animate-slide-in-out-right"),
+    "top": twMerge(dialogSideMaxDimensions.top, "inset-x-0 top-0 animate-slide-in-out-top"),
+    "bottom": twMerge(dialogSideMaxDimensions.bottom, "inset-x-0 bottom-0 animate-slide-in-out-bottom"),
 }
 
 export const DialogTrigger = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>>(({
@@ -78,11 +67,11 @@ export const DialogClose = React.forwardRef<React.ElementRef<typeof DialogPrimit
 }, ref) => (
     <DialogPrimitive.Close
         ref={ref}
-        className={twMerge("z-[200] absolute top-6 end-6 transition text-muted-400 hover:text-white hover:rotate-90", className)}
+        className={twMerge("z-[200] absolute top-6 end-6 transition zoom-in-105 text-muted-400 hover:text-white hover:rotate-90", className)}
         aria-label={ariaLabel}
         {...props}
     >
-        {children ?? <CloseIcon />}
+        {children ?? <CloseIcon className="w-8 h-8"/>}
     </DialogPrimitive.Close>
 ))
 DialogClose.displayName = DialogPrimitive.Close.displayName
@@ -93,7 +82,7 @@ export const DialogOverlay = React.forwardRef<React.ElementRef<typeof DialogPrim
 }, ref) => (
     <DialogPrimitive.Overlay
         ref={ref}
-        className={twMerge("z-[100] fixed inset-0 transition bg-black/80 backdrop-blur animate-fade-in-out", className)}
+        className={twMerge("z-[100] fixed inset-0 transition bg-black/80 backdrop-blur-3xl animate-fade-in-out", className)}
         {...props}
     />
 ))
@@ -168,7 +157,8 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
     "aria-describedby": ariaDescribedBy,
     ...props
 }, ref) => (
-    <div className={twMerge("z-[175] flex flex-row flex-none absolute start-0 top-0 max-w-full w-full max-h-screen h-full justify-center items-center overflow-hidden", side ? dialogContainerSideStyles[side] : undefined)}>
+
+    
         <DialogPrimitive.Content
             ref={ref}
             asChild={asChild}
@@ -181,21 +171,19 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
         >
             <div
                 className={twMerge(
-                    // "z-[150] fixed transition",
-                    "z-[150] transition",
+                    "z-[150] fixed transition px-6",
                     side ? dialogSideStyles[side] : twMerge(
-                        // "px-6 md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out",
-                        "px-6 md:px-0 animate-fade-zoom-in-out",
+                        "md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out",
                         defaultDialogMaxDimensions,
                     ),
                 )}
             >
                 <Card
-                    className={twMerge("pb-6", side ? dialogSideMaxDimensions[side] : defaultDialogMaxDimensions, className)}
+                    className={twMerge("gradient-border-neon pb-6", side ? dialogSideMaxDimensions[side] : defaultDialogMaxDimensions, className)}
                     borderClassName="h-full"
                     glow={true}
                 >
-                    <DialogClose />
+                    <DialogClose className="mr-6 md:mr-0"/>
                     <DialogHeader>
                         <DialogTitle>
                             {header}
@@ -217,7 +205,7 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
                 </Card>
             </div>
         </DialogPrimitive.Content>
-    </div>
+    
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
