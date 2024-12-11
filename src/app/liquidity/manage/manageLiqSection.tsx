@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/components/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -44,6 +44,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
     const activeChain = useActiveWalletChain();
+    const switchChain = useSwitchActiveWalletChain()
 
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
@@ -263,7 +264,12 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 {
                     !isLoading && (!activeAccount || !activeWallet || activeChain?.id !== CHAIN_ID) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
-                            <div className="text-white text-center text-2xl font-black leading-none">{activeChain?.id !== CHAIN_ID ? 'PLEASE CONNECT TO PLYR NETWORK' : 'PLEASE CONNECT YOUR WALLET'}</div>
+                            <div className="text-white flex flex-col gap-2 items-center justify-center text-center text-2xl font-black leading-none">{activeChain?.id !== CHAIN_ID && activeAccount ? <>
+                            
+                                PLEASE SWITCH TO PLYR NETWORK
+                                <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2 relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" onClick={() => switchChain(CHAIN)}>SWITCH TO PLYR NETWORK</Button>
+                            
+                            </> : 'PLEASE CONNECT YOUR WALLET'}</div>
                         </Card>
                     </div>
                 }

@@ -9,7 +9,8 @@ export default function WalletButton() {
         autoConnect={true}
         client={client}
         wallets={wallets} 
-        //chain={process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain}
+        // Remove chain prop if reqChain is undefined
+        //chain={reqChain ? reqChain : null}
         walletConnect={
             {
                 projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID

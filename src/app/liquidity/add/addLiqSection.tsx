@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { totalSupply } from "thirdweb/extensions/erc20";
 
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -42,6 +42,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
     const activeChain = useActiveWalletChain();
+    const switchChain = useSwitchActiveWalletChain()
 
     const { toast } = useToast();
 
@@ -668,7 +669,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                         }
                                         {isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}
                                     </Button> :
-                                    <Button disabled={true} className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">PLEASE CONNECT TO PLYR NETWORK</Button>
+                                    <Button onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        switchChain(CHAIN);
+                                    }} className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">SWITCH TO PLYR NETWORK</Button>
                                 }
                             </form>
 

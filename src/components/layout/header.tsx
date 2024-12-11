@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Box, ChartBar, ChartCandlestick, ChartNoAxesCombined, ChevronDown, CircleDollarSign, History, PaintBucket, Settings } from 'lucide-react';
 import WalletButton from '@/components/walletButton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
+import { phiChain, tauChain } from '@/lib/thirdweb_client';
 const NavList = () => {
     return (
         <>
@@ -70,7 +70,7 @@ export default function Header() {
                     </div>
 
                     <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
-                        <WalletButton />
+                        <WalletButton/>
                     </div>
 
                     {/* <div className="hidden lg:flex w-full lg:flex-1 flex-row items-center justify-end gap-2">
