@@ -71,20 +71,14 @@
 
     .btn {
         @apply clear-bg clear-border-outline;
-        @apply flex flex-row flex-initial p-4 gap-4 justify-center items-center rounded-xl transition font-bold cursor-pointer bg-gray-950/75;
-        @apply hover:bg-gray-950;
+        @apply flex flex-row flex-initial p-4 gap-4 justify-center items-center rounded-3xl transition font-bold cursor-pointer text-black bg-[#daff00] hover:bg-[#daff00] active:bg-[#daff00] focus:bg-[#daff00] focus-within:bg-[#daff00] disabled:opacity-30;
         @apply disabled:cursor-not-allowed;
     }
-    .btn-gray {
-        @apply btn bg-gray-950/75 hover:bg-gray-950 active:bg-gray-950 focus:bg-gray-950 focus-within:bg-gray-950;
-    }
+    
     .btn-error {
         @apply btn bg-rose-500 hover:bg-rose-400 active:bg-rose-400 active:hover:bg-rose-400 focus:bg-rose-400 focus:hover:bg-rose-400 focus-within:bg-rose-400 focus-within:hover:bg-rose-400;
     }
-    .btn-gradient {
-        @apply btn transition disabled:brightness-75 disabled:hover:paused hover:brightness-110 disabled:hover:brightness-75;
-        @apply border border-white/10 hover:border hover:border-white/15 active:border active:border-white/15 active:hover:border-white/15 focus:border focus:border-white/15 focus:hover:border-white/15 focus-within:border focus-within:border-white/15 focus-within:hover:border-white/15;
-    }
+    
     .btn-full {
         @apply flex-1 w-full p-6 text-xl running disabled:paused;
     }

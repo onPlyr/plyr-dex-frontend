@@ -30,7 +30,7 @@ export interface DialogContentProps extends React.ComponentPropsWithoutRef<typeo
     preventOutsideClose?: boolean,
 }
 
-const defaultDialogMaxDimensions = "w-full max-w-full md:max-w-screen-md lg:max-w-screen-md h-fit max-h-[90vh]"
+const defaultDialogMaxDimensions = "w-full max-w-full md:max-w-screen-sm lg:max-w-screen-sm h-fit max-h-[90vh]"
 const dialogSideMaxDimensions: Record<StyleSide, string> = {
     "left": "w-full max-w-full md:max-w-screen-sm h-full",
     "right": "w-full max-w-full md:max-w-screen-sm h-full",
@@ -38,10 +38,21 @@ const dialogSideMaxDimensions: Record<StyleSide, string> = {
     "bottom": "w-full max-h-[80vh]",
 }
 const dialogSideStyles: Record<StyleSide, string> = {
-    "left": twMerge(dialogSideMaxDimensions.left, "inset-y-0 left-0 animate-slide-in-out-left"),
-    "right": twMerge(dialogSideMaxDimensions.right, "inset-y-0 right-0 animate-slide-in-out-right"),
-    "top": twMerge(dialogSideMaxDimensions.top, "inset-x-0 top-0 animate-slide-in-out-top"),
-    "bottom": twMerge(dialogSideMaxDimensions.bottom, "inset-x-0 bottom-0 animate-slide-in-out-bottom"),
+    // "left": twMerge(dialogSideMaxDimensions.left, "inset-y-0 left-0 animate-slide-in-out-left"),
+    // "right": twMerge(dialogSideMaxDimensions.right, "inset-y-0 right-0 animate-slide-in-out-right"),
+    // "top": twMerge(dialogSideMaxDimensions.top, "inset-x-0 top-0 animate-slide-in-out-top"),
+    // "bottom": twMerge(dialogSideMaxDimensions.bottom, "inset-x-0 bottom-0 animate-slide-in-out-bottom"),
+    "left": twMerge(dialogSideMaxDimensions.left, "animate-slide-in-out-left"),
+    "right": twMerge(dialogSideMaxDimensions.right, "animate-slide-in-out-right"),
+    "top": twMerge(dialogSideMaxDimensions.top, "animate-slide-in-out-top"),
+    "bottom": twMerge(dialogSideMaxDimensions.bottom, "animate-slide-in-out-bottom"),
+}
+
+const dialogContainerSideStyles: Record<StyleSide, string> = {
+    "left": "justify-start items-start",
+    "right": "justify-end items-start",
+    "top": "justify-start items-start",
+    "bottom": "justify-start items-end",
 }
 
 export const DialogTrigger = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>>(({
@@ -157,52 +168,56 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
     "aria-describedby": ariaDescribedBy,
     ...props
 }, ref) => (
-    <DialogPrimitive.Content
-        ref={ref}
-        asChild={asChild}
-        onOpenAutoFocus={onOpenAutoFocus}
-        onCloseAutoFocus={onCloseAutoFocus}
-        onPointerDownOutside={preventOutsideClose ? (e) => e.preventDefault() : undefined}
-        onInteractOutside={preventOutsideClose ? (e) => e.preventDefault() : undefined}
-        aria-describedby={description ? ariaDescribedBy : undefined}
-        {...props}
-    >
-        <div
-            className={twMerge(
-                "z-[150] fixed transition",
-                side ? dialogSideStyles[side] : twMerge(
-                    "px-6 md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out",
-                    defaultDialogMaxDimensions,
-                ),
-            )}
+    <div className={twMerge("z-[175] flex flex-row flex-none absolute start-0 top-0 max-w-full w-full max-h-screen h-full justify-center items-center overflow-hidden", side ? dialogContainerSideStyles[side] : undefined)}>
+        <DialogPrimitive.Content
+            ref={ref}
+            asChild={asChild}
+            onOpenAutoFocus={onOpenAutoFocus}
+            onCloseAutoFocus={onCloseAutoFocus}
+            onPointerDownOutside={preventOutsideClose ? (e) => e.preventDefault() : undefined}
+            onInteractOutside={preventOutsideClose ? (e) => e.preventDefault() : undefined}
+            aria-describedby={description ? ariaDescribedBy : undefined}
+            {...props}
         >
-            <Card
-                className={twMerge("pb-6", side ? dialogSideMaxDimensions[side] : defaultDialogMaxDimensions, className)}
-                borderClassName="h-full"
-                glow={true}
-            >
-                <DialogClose />
-                <DialogHeader>
-                    <DialogTitle>
-                        {header}
-                    </DialogTitle>
-                    {description && (
-                        <DialogDescription>
-                            {description}
-                        </DialogDescription>
-                    )}
-                </DialogHeader>
-                <CardContent className="pb-0 flex-initial">
-                    {children}
-                </CardContent>
-                {footer && (
-                    <DialogFooter>
-                        {footer}
-                    </DialogFooter>
+            <div
+                className={twMerge(
+                    // "z-[150] fixed transition",
+                    "z-[150] transition",
+                    side ? dialogSideStyles[side] : twMerge(
+                        // "px-6 md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out",
+                        "px-6 md:px-0 animate-fade-zoom-in-out",
+                        defaultDialogMaxDimensions,
+                    ),
                 )}
-            </Card>
-        </div>
-    </DialogPrimitive.Content>
+            >
+                <Card
+                    className={twMerge("pb-6", side ? dialogSideMaxDimensions[side] : defaultDialogMaxDimensions, className)}
+                    borderClassName="h-full"
+                    glow={true}
+                >
+                    <DialogClose />
+                    <DialogHeader>
+                        <DialogTitle>
+                            {header}
+                        </DialogTitle>
+                        {description && (
+                            <DialogDescription>
+                                {description}
+                            </DialogDescription>
+                        )}
+                    </DialogHeader>
+                    <CardContent className="pb-0 flex-initial">
+                        {children}
+                    </CardContent>
+                    {footer && (
+                        <DialogFooter>
+                            {footer}
+                        </DialogFooter>
+                    )}
+                </Card>
+            </div>
+        </DialogPrimitive.Content>
+    </div>
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
