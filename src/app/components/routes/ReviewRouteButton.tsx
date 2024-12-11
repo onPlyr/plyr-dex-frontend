@@ -1,4 +1,4 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit"
+//import { useConnectModal } from "@rainbow-me/rainbowkit"
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
 import { QueryStatus } from "@tanstack/react-query"
@@ -6,6 +6,8 @@ import { QueryStatus } from "@tanstack/react-query"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import Button from "@/app/components/ui/Button"
+import { useConnectModal } from "thirdweb/react"
+import { client } from "@/lib/thirdweb_client"
 
 export interface ReviewRouteButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
     err?: string,
@@ -21,12 +23,16 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
     disabled = false,
     ...props
 }, ref) => {
-    const { openConnectModal } = useConnectModal()
+    const { connect, isConnecting } = useConnectModal()
+    async function handleConnect() {
+        const wallet = await connect({ client }); // opens the connect modal
+        console.log('connected to', wallet);
+     }
     return (
         <Button
             ref={ref}
             className={twMerge("btn-gradient btn-full", className)}
-            onClick={isConnectWalletErr ? openConnectModal?.bind(this) : undefined}
+            onClick={isConnectWalletErr ? handleConnect : undefined}
             disabled={isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error")}
             {...props}
         >
