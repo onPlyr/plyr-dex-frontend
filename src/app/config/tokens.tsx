@@ -148,6 +148,12 @@ const baseTokens: BaseToken[] = [
             },
             [plyrTau.id]: {
                 address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
+                // bridges: {
+                //     [avalancheFuji.id]: {
+                //         address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
+                //         type: TokenBridgeType.NativeHome,
+                //     },
+                // },
             },
         },
     },
