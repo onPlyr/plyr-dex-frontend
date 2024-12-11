@@ -62,7 +62,7 @@ export const TokenSelectAmountComboItem = React.forwardRef<HTMLDivElement, Token
                 <DecimalInput
                     id={`${dst ? "dst" : "src"}Amount`}
                     name={`${dst ? "dst" : "src"}Amount`}
-                    className="clear-border-outline clear-bg px-0 m-0 font-bold text-2xl"
+                    className="clear-border-outline clear-bg px-0 m-0 font-bold text-3xl"
                     value={amountValue}
                     setValue={handleAmountInput}
                     disabled={selectedChain === undefined || selectedToken === undefined}

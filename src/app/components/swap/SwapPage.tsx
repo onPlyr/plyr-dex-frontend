@@ -85,6 +85,10 @@ const SwapPage = () => {
 
     const [srcChain, setSrcChain] = useState<Chain>()
     const [srcToken, setSrcToken] = useState<Token>()
+
+    const [dstChain, setDstChain] = useState<Chain>()
+    const [dstToken, setDstToken] = useState<Token>()
+
     const setSelectedSrcToken = useCallback((token?: Token) => {
         setSrcToken(token)
         if (token) {
@@ -94,10 +98,15 @@ const SwapPage = () => {
             srcChainId: token?.chainId,
             srcTokenId: token?.id,
         })
-    }, [setSrcChain, setSrcToken])
+        if (token && dstToken && token.chainId === dstToken.chainId && token.id === dstToken.id) {
+            setDstToken(undefined)
+            setSelectedSwapData({
+                dstChainId: undefined,
+                dstTokenId: undefined,
+            })
+        }
+    }, [setSrcChain, setSrcToken, dstToken, setDstToken])
 
-    const [dstChain, setDstChain] = useState<Chain>()
-    const [dstToken, setDstToken] = useState<Token>()
     const setSelectedDstToken = useCallback((token?: Token) => {
         setDstToken(token)
         if (token) {
@@ -107,7 +116,14 @@ const SwapPage = () => {
             dstChainId: token?.chainId,
             dstTokenId: token?.id,
         })
-    }, [setDstChain, setDstToken])
+        if (token && srcToken && token.chainId === srcToken.chainId && token.id === srcToken.id) {
+            setSrcToken(undefined)
+            setSelectedSwapData({
+                srcChainId: undefined,
+                srcTokenId: undefined,
+            })
+        }
+    }, [srcToken, setSrcToken, setDstChain, setDstToken])
 
     useEffect(() => {
         const { srcToken: storedSrcToken, dstToken: storedDstToken } = getSelectedSwapData()
