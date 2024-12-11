@@ -10,6 +10,12 @@ const nextConfig = {
             },
         ],
     },
+    // redirect / to /swap
+    async redirects() {
+        return [
+            { source: '/', destination: '/swap', permanent: true },
+        ]
+    },
 };
 
 export default nextConfig;

@@ -2,36 +2,49 @@
 import Link from 'next/link';
 import styles from './header.module.scss';
 import Image from 'next/image';
-import { ChartBar, ChartCandlestick, ChartNoAxesCombined, CircleDollarSign, History, Settings } from 'lucide-react';
+import { Box, ChartBar, ChartCandlestick, ChartNoAxesCombined, ChevronDown, CircleDollarSign, History, PaintBucket, Settings } from 'lucide-react';
 import WalletButton from '@/components/walletButton';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const NavList = () => {
     return (
         <>
             <Link href="/swap" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 relative flex-1 w-full lg:w-32 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <ChartCandlestick className="w-6 h-6 text-[#daff00]" />
                     SWAP
-                    <div className="absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
+                    <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
             </Link>
             <Link href="/history" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 relative flex-1 w-full lg:w-32 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <History className="w-6 h-6 text-[#daff00]" />
                     HISTORY
-                    <div className="absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
+                    <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
             </Link>
-            <Link href="/liquidity/manage" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 relative flex-1 w-full lg:w-32 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
-                    <CircleDollarSign className="w-6 h-6 text-[#daff00]" />
-                    LIQUIDITY
-                    <div className="absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
-                </div>
-            </Link>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button className="w-full lg:w-fit flex-1 lg:flex-auto outline-none">
+                        <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                            <CircleDollarSign className="min-w-6 min-h-6 text-[#daff00]" />
+                            LIQUIDITY
+                            <ChevronDown className="hidden lg:block min-w-6 min-h-6 text-[#daff00]" />
+                            <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
+                        </div>
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="rounded-2xl backdrop-blur-lg bg-[#ffffff0d] border-none text-white">
+                    <DropdownMenuItem className="rounded-2xl !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
+                        <Link href="/liquidity/manage" className="flex flex-row items-center gap-2"><Box className="w-6 h-6 text-[#daff00]" />MY LIQUIDITY</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="rounded-2xl !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
+                        <Link href="/liquidity/add" className="flex flex-row items-center gap-2"><PaintBucket className="w-6 h-6 text-[#daff00]" />ADD LIQUIDITY</Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
             <Link href="#" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 flex-1 w-full lg:w-32 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                <div className="px-4 flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <ChartNoAxesCombined className="w-6 h-6 text-[#daff00]" />
                     ANALYTICS
                 </div>
