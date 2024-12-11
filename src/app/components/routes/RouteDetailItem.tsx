@@ -29,13 +29,7 @@ const RouteDetailItem = React.forwardRef<React.ElementRef<typeof SummaryDetailIt
 }, ref) => {
     const isSelected = isEqualObj(selectedRoute, route)
     return (
-        <SummaryDetailItem
-            ref={ref}
-            className={className}
-            onClick={isSelected && setIsOpen ? setIsOpen.bind(this, false) : setSelectedRoute?.bind(this, route)}
-            isSelected={isSelected}
-            {...props}
-        >
+       
             <div className="flex flex-col flex-1 w-full gap-6">
                 <div className="flex flex-col sm:flex-row flex-1 gap-4">
                     <div className="flex flex-row flex-1">
@@ -66,7 +60,7 @@ const RouteDetailItem = React.forwardRef<React.ElementRef<typeof SummaryDetailIt
                     </div>
                 </div>
             </div>
-        </SummaryDetailItem>
+       
     )
 })
 RouteDetailItem.displayName = "RouteDetailItem"

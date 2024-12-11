@@ -23,6 +23,7 @@ import {
     useActiveWallet,
     MediaRenderer,
     useReadContract,
+    useActiveAccount,
 } from "thirdweb/react";
 import { createWalletAdapter, Wallet, WalletId } from "thirdweb/wallets";
 import { claimTo, getNFT } from "thirdweb/extensions/erc1155";
@@ -49,6 +50,8 @@ export default function Main() {
     const thirdwebWallet = useActiveWallet();
     // Store the previous active wallet
     const [previousActiveWallet, setPreviousActiveWallet] = useState<Wallet<WalletId> | undefined>(undefined);
+
+    const activeAccount = useActiveAccount();
 
     useEffect(() => {
         setPreviousActiveWallet(thirdwebWallet);
@@ -84,7 +87,7 @@ export default function Main() {
         // Clean up function to restore the previous active wallet when unmounting
         return () => {
             console.log('previousActiveWallet', previousActiveWallet)
-            if (previousActiveWallet) {
+            if (previousActiveWallet && activeAccount) {
 
                 setActiveWallet(previousActiveWallet);
             }
