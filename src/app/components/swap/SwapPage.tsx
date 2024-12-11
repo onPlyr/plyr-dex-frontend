@@ -379,7 +379,7 @@ const SwapPage = () => {
                 />
                 <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
                     <Button
-                        className="btn bg-[#3A3935] p-3 rounded-full transition hover:rotate-180"
+                        className="btn bg-[#3A3935] hover:bg-[#3A3935] focus:bg-[#3A3935] p-3 rounded-full transition hover:rotate-180"
                         onClick={handleSwitchSrcDstTokens.bind(this, srcChain, srcToken, dstChain, dstToken, selectedRoute?.dstAmountFormatted)}
                     >
                         <ArrowIcon className="text-[#daff00]" toggleDirection={StyleToggleDirection.UpDown} />
