@@ -58,10 +58,15 @@ export default function Main() {
     }, [thirdwebWallet])
 
     useEffect(() => {
+        console.log('thirdwebWallet', thirdwebWallet)
+            setPreviousActiveWallet(thirdwebWallet);
+    }, [thirdwebWallet])
 
+    useEffect(() => {
+       
         const setActive = async () => {
 
-            if (walletClient && thirdwebWallet) {
+            if (walletClient) {
                 // Store the current active wallet before setting the new one
 
                 const adaptedAccount = viemAdapter.walletClient.fromViem({
@@ -84,15 +89,15 @@ export default function Main() {
         };
         setActive();
 
-        // Clean up function to restore the previous active wallet when unmounting
+        //Clean up function to restore the previous active wallet when unmounting
         return () => {
-            console.log('previousActiveWallet', previousActiveWallet)
+            
             if (previousActiveWallet && activeAccount) {
-
+                console.log('previousActiveWallet', previousActiveWallet)
                 setActiveWallet(previousActiveWallet);
             }
         };
-    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
+    }, [walletClient]);
 
     useEffect(() => {
         const disconnectIfNeeded = async () => {

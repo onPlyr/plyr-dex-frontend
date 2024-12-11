@@ -50,6 +50,7 @@ export default function RootLayout({
       <body className={`${chivo.className} ${roadRage.variable}`}>
         <NProgress />
         <ThirdwebProvider>
+ 
           {children}
         </ThirdwebProvider>
 

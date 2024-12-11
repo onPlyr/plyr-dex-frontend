@@ -17,7 +17,7 @@ export default async function Main() {
 
   return (
     <>
-      <ThirdwebProvider>
+
         <Header />
 
         <Suspense fallback={
@@ -37,7 +37,7 @@ export default async function Main() {
           </div>
 
         </Suspense >
-      </ThirdwebProvider>
+
     </>
   );
 }

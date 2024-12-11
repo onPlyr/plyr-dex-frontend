@@ -43,7 +43,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
 
         <PreferencesProvider>
             <FavouriteTokensProvider>
-                <ThirdwebProvider>
+                
                     <WagmiProvider config={wagmiConfig}>
                         {persister && <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
 
@@ -54,7 +54,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
                             {/* <ReactQueryDevtools initialIsOpen={false} /> */}
                         </PersistQueryClientProvider>}
                     </WagmiProvider>
-                </ThirdwebProvider>
+                
             </FavouriteTokensProvider>
         </PreferencesProvider>
 

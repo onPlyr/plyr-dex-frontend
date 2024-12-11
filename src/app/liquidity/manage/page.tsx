@@ -16,7 +16,7 @@ export default async function Main() {
 
   return (
     <>
-      <ThirdwebProvider>
+
         <Header />
         <Suspense fallback={
           <div className="flex w-full px-6 flex-col items-center min-h-screen">
@@ -34,7 +34,7 @@ export default async function Main() {
           </div>
 
         </Suspense >
-      </ThirdwebProvider>
+
     </>
   );
 }
