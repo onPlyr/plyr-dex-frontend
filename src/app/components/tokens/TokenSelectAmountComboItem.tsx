@@ -68,7 +68,15 @@ export const TokenSelectAmountComboItem = React.forwardRef<HTMLDivElement, Token
                     disabled={selectedChain === undefined || selectedToken === undefined}
                 />
             </div>
-            <div className="flex flex-row flex-initial">
+            <div className="flex flex-row flex-initial items-center gap-4">
+                {dst !== true && selectedChain && selectedToken && selectedToken.balanceFormatted !== undefined && parseFloat(selectedToken.balanceFormatted) > 0 && (
+                    <div
+                        className="px-2 py-1 border border-white rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer"
+                        onClick={handleAmountInput?.bind(this, selectedToken.balanceFormatted)}
+                    >
+                        Max
+                    </div>
+                )}
                 <SelectTokenDialog
                     trigger=<Button className="clear-border-outline clear-bg flex flex-row flex-1 p-0 min-w-fit w-full h-full justify-center items-center transition text-muted-500 hover:text-white">
                         {selectedToken ? (
@@ -90,14 +98,7 @@ export const TokenSelectAmountComboItem = React.forwardRef<HTMLDivElement, Token
                 $0.00
             </div>
             <div className="flex flex-row flex-1 gap-6 justify-end font-bold text-muted-500">
-                {dst !== true && selectedChain && selectedToken && selectedToken.balanceFormatted !== undefined && parseFloat(selectedToken.balanceFormatted) > 0 && (
-                    <div
-                        className="hover:text-brand-500 cursor-pointer"
-                        onClick={handleAmountInput?.bind(this, selectedToken.balanceFormatted)}
-                    >
-                        Max
-                    </div>
-                )}
+
                 {selectedToken ? (
                     <DecimalAmount
                         amountFormatted={selectedToken.balanceFormatted}
