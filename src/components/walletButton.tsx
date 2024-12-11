@@ -8,7 +8,8 @@ export default function WalletButton() {
     return <ConnectButton
         autoConnect={true}
         client={client}
-        wallets={wallets} chain={process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain}
+        wallets={wallets} 
+        //chain={process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain}
         walletConnect={
             {
                 projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID
