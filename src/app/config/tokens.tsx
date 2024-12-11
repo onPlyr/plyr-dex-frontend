@@ -57,6 +57,17 @@ const baseTokens: BaseToken[] = [
         },
     },
     {
+        id: "avax",
+        symbol: "WAVAX",
+        name: "AVAX",
+        decimals: 18,
+        chains: {
+            [plyrTau.id]: {
+                address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
+            },
+        },
+    },
+    {
         id: "plyr",
         symbol: "PLYR",
         name: "Native PLYR",
