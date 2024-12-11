@@ -28,8 +28,8 @@ export default function WalletButton() {
             },
         })}
         connectButton={{
-            label: "CONNECT WALLET",
-            className: "ThirdwebWalletBtn big"
+            label: "CONNECT",
+            className: "ThirdwebWalletBtn"
         }}
         connectModal={{
             size: "compact",
@@ -38,14 +38,14 @@ export default function WalletButton() {
             showThirdwebBranding: false,
         }}
         detailsButton={{
-            className: "ThirdwebWalletBtn big",
+            className: "ThirdwebWalletBtn",
             
         }}
         detailsModal={{
             showTestnetFaucet: true,
         }}
         switchButton={{
-            className: "ThirdwebWalletBtn big",
+            className: "ThirdwebWalletBtn",
         }}
 
     />

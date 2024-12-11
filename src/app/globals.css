@@ -313,3 +313,10 @@ body {
 *::-webkit-scrollbar-thumb:active {
   background-color: black;
 }
+
+.ThirdwebWalletBtn {
+  background-color: #000000 !important;
+  border-radius: 36px !important;
+  height: 40px !important;
+  box-shadow: 0 0 10px #daff00 !important;
+}
