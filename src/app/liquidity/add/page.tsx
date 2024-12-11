@@ -32,7 +32,7 @@ export default async function Main() {
         }>
 
 
-          <div className="flex w-full px-6 flex-col items-center justify-center mt-16">
+          <div className="flex w-full px-6 flex-col items-center justify-center mt-16 pb-24 lg:pb-0">
             <AddLiqSection tokenList={tokenList} />
           </div>
 

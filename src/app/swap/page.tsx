@@ -120,7 +120,7 @@ export default function Main() {
             }>
 
 
-                <div className="flex w-full max-w-3xl mx-auto px-6 flex-col items-center justify-center mt-16">
+                <div className="flex w-full max-w-3xl mx-auto flex-col items-center justify-center mt-16 pb-24 lg:pb-0">
                     <SwapPage />
                 </div>
 

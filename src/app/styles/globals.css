@@ -23,7 +23,7 @@
         @apply relative rounded-3xl transition p-[3px];
     }
     .gradient-glow-base {
-        @apply absolute -inset-3 -z-50 blur-xl opacity-50;
+        @apply absolute -inset-3 -z-50  opacity-50;
     }
 
     .animate-fade-in-out {
