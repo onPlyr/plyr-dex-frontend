@@ -44,6 +44,12 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
 
+    useEffect(() => {
+        if (activeWallet) {
+            switchChain(CHAIN);
+        }
+    },[activeWallet])
+
     const { toast } = useToast();
 
     const params = useSearchParams();

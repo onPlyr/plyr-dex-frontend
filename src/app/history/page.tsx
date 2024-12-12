@@ -54,16 +54,15 @@ export default function Main() {
     const activeAccount = useActiveAccount();
 
     useEffect(() => {
-        setPreviousActiveWallet(thirdwebWallet);
-    }, [thirdwebWallet])
-
-    useEffect(() => {
-        console.log('thirdwebWallet', thirdwebWallet)
+        
+        if (thirdwebWallet && thirdwebWallet?.id !== 'adapter') {
+            console.log('thirdwebWallet', thirdwebWallet)
             setPreviousActiveWallet(thirdwebWallet);
+        }
     }, [thirdwebWallet])
 
     useEffect(() => {
-       
+
         const setActive = async () => {
 
             if (walletClient) {
@@ -91,9 +90,8 @@ export default function Main() {
 
         //Clean up function to restore the previous active wallet when unmounting
         return () => {
-            
-            if (previousActiveWallet && activeAccount) {
-                console.log('previousActiveWallet', previousActiveWallet)
+            if (previousActiveWallet) {
+                console.log('previousActiveWallet2', previousActiveWallet)
                 setActiveWallet(previousActiveWallet);
             }
         };

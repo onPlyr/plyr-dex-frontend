@@ -46,6 +46,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
 
+    console.log('activeWallet', activeWallet)
+
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -194,6 +196,12 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
         setIsLoading(false);
     };
+
+    useEffect(() => {
+        if (activeWallet) {
+            switchChain(CHAIN);
+        }
+    },[activeWallet])
 
     useEffect(() => {
 
