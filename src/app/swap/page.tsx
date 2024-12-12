@@ -63,6 +63,9 @@ export default function Main() {
         }
     }, [thirdwebWallet])
 
+
+    
+
     useEffect(() => {
 
         const setActive = async () => {

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useConnectModal, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { totalSupply } from "thirdweb/extensions/erc20";
 
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -37,6 +37,7 @@ const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : ta
 import { FastAverageColor } from 'fast-average-color';
 import { useToast } from '@/components/ui/use-toast';
 import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
+import { wallets } from '@/config/wallet';
 
 export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
@@ -45,18 +46,30 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
     const setActiveWallet = useSetActiveWallet();
+    const { connect, isConnecting } = useConnectModal();
     const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
+    
+    const handleConnect = async () => {
+        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
+        console.log('connected to', wallet);
+    }
+    
     useEffect(() => {
         if (activeWallet) {
             if (activeWallet.id === 'adapter') {
                 console.log('previousActiveWallet', previousActiveWallet)
-                setActiveWallet(previousActiveWallet);
+                if (Object.keys(previousActiveWallet).length > 0) {
+                    setActiveWallet(previousActiveWallet);
+                }
+                else {
+                    handleConnect();
+                }
             }
             else {
                 switchChain(CHAIN);
             }
         }
-    },[activeWallet])
+    }, [activeWallet])
 
     const { toast } = useToast();
 

@@ -17,9 +17,9 @@ const ConnectButton = React.forwardRef<React.ElementRef<typeof Button>, React.Bu
 
     const { connect, isConnecting } = useConnectModal()
     async function handleConnect() {
-        const wallet = await connect({ client , size: 'compact', wallets: wallets }); // opens the connect modal
+        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
         console.log('connected to', wallet);
-     }
+    }
 
     return (
         <Button

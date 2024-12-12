@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useConnect, useConnectModal, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/components/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -35,6 +35,7 @@ import { getWalletBalance } from 'thirdweb/wallets';
 import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
+import { wallets } from '@/config/wallet';
 
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
@@ -47,18 +48,30 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
     const setActiveWallet = useSetActiveWallet();
+    const { connect, isConnecting } = useConnectModal();
     const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
+    
+    const handleConnect = async () => {
+        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
+        console.log('connected to', wallet);
+    }
+    
     useEffect(() => {
         if (activeWallet) {
             if (activeWallet.id === 'adapter') {
                 console.log('previousActiveWallet', previousActiveWallet)
-                setActiveWallet(previousActiveWallet);
+                if (Object.keys(previousActiveWallet).length > 0) {
+                    setActiveWallet(previousActiveWallet);
+                }
+                else {
+                    handleConnect();
+                }
             }
             else {
                 switchChain(CHAIN);
             }
         }
-    },[activeWallet])
+    }, [activeWallet])
 
 
     const [allPairs, setAllPairs] = useState<string[]>([])
@@ -210,7 +223,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         setIsLoading(false);
     };
 
-   
+
 
     useEffect(() => {
 
@@ -221,7 +234,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     }, [allPairs]);
 
     useEffect(() => {
-        
+
         if (activeAccount && activeWallet && activeWallet.id !== 'adapter' && activeChain?.id === CHAIN_ID) {
             getAllPairs();
         }
@@ -282,16 +295,16 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     !isLoading && (!activeAccount || !activeWallet || activeChain?.id !== CHAIN_ID) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white flex flex-col gap-2 items-center justify-center text-center text-2xl font-black leading-none">{activeChain?.id !== CHAIN_ID && activeAccount ? <>
-                            
+
                                 PLEASE SWITCH TO PLYR NETWORK
                                 <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2 relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" onClick={() => switchChain(CHAIN)}>SWITCH TO PLYR NETWORK</Button>
-                            
+
                             </> : 'PLEASE CONNECT YOUR WALLET'}</div>
                         </Card>
                     </div>
                 }
                 {
-                    !isLoading && myLpTokens.length  > 0  && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
+                    !isLoading && myLpTokens.length > 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         {/* My Liquidity */}
                         <Card className="md:w-3/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
                             {/* Dropdown */}
@@ -378,7 +391,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                         <Card className="md:w-2/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
                             <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
                             {
-                                selectedLpTokenInfo  && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
+                                selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />
                             }
                         </Card>
                     </div>
