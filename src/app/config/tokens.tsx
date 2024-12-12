@@ -7,7 +7,7 @@ const baseTokens: BaseToken[] = [
     {
         id: "avax",
         symbol: "AVAX",
-        name: "Native AVAX",
+        name: "AVAX",
         decimals: 18,
         chains: {
             [avalancheFuji.id]: {
