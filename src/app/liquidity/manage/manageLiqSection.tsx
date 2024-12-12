@@ -47,7 +47,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
     const setActiveWallet = useSetActiveWallet();
-
+    const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
     useEffect(() => {
         if (activeWallet) {
             if (activeWallet.id === 'adapter') {
@@ -60,9 +60,6 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         }
     },[activeWallet])
 
-    console.log('activeWallet', activeWallet)
-
-    const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
 
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
