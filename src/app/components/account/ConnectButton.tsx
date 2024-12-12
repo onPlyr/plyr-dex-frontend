@@ -7,6 +7,7 @@ import { twMerge } from "tailwind-merge"
 import Button from "@/app/components/ui/Button"
 import { client } from "@/lib/thirdweb_client"
 import { useConnectModal } from "thirdweb/react"
+import { wallets } from "@/config/wallet"
 
 const ConnectButton = React.forwardRef<React.ElementRef<typeof Button>, React.ButtonHTMLAttributes<HTMLButtonElement>>(({
     className,
@@ -16,7 +17,7 @@ const ConnectButton = React.forwardRef<React.ElementRef<typeof Button>, React.Bu
 
     const { connect, isConnecting } = useConnectModal()
     async function handleConnect() {
-        const wallet = await connect({ client }); // opens the connect modal
+        const wallet = await connect({ client , size: 'compact', wallets: wallets }); // opens the connect modal
         console.log('connected to', wallet);
      }
 

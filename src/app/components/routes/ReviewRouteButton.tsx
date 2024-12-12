@@ -8,6 +8,7 @@ import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import Button from "@/app/components/ui/Button"
 import { useConnectModal } from "thirdweb/react"
 import { client } from "@/lib/thirdweb_client"
+import { wallets } from "@/config/wallet"
 
 export interface ReviewRouteButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
     err?: string,
@@ -25,7 +26,7 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
 }, ref) => {
     const { connect, isConnecting } = useConnectModal()
     async function handleConnect() {
-        const wallet = await connect({ client }); // opens the connect modal
+        const wallet = await connect({ client , size: 'compact', wallets: wallets }); // opens the connect modal
         console.log('connected to', wallet);
      }
     return (

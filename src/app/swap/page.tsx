@@ -52,7 +52,7 @@ export default function Main() {
     const [previousActiveWallet, setPreviousActiveWallet] = useState<Wallet<WalletId> | undefined>(undefined);
 
     useEffect(() => {
-        
+        //console.log('thirdwebWallet', thirdwebWallet)
         if (thirdwebWallet && thirdwebWallet?.id !== 'adapter') {
             console.log('thirdwebWallet', thirdwebWallet)
             setPreviousActiveWallet(thirdwebWallet);
@@ -82,6 +82,7 @@ export default function Main() {
                 });
 
                 setActiveWallet(w);
+
             }
         };
         setActive();
@@ -89,21 +90,20 @@ export default function Main() {
         //Clean up function to restore the previous active wallet when unmounting
         return () => {
             if (previousActiveWallet) {
-                console.log('previousActiveWallet2', previousActiveWallet)
                 setActiveWallet(previousActiveWallet);
             }
         };
-    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
+    }, [walletClient]);
 
 
-    useEffect(() => {
-        const disconnectIfNeeded = async () => {
-            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
-                await thirdwebWallet.disconnect();
-            }
-        };
-        disconnectIfNeeded();
-    }, [wagmiAccount, thirdwebWallet]);
+    // useEffect(() => {
+    //     const disconnectIfNeeded = async () => {
+    //         if (thirdwebWallet && wagmiAccount.status === "disconnected") {
+    //             await thirdwebWallet.disconnect();
+    //         }
+    //     };
+    //     disconnectIfNeeded();
+    // }, [wagmiAccount, thirdwebWallet]);
 
     // Fetch Token List //
     // const tokenList = await loadTokenList();

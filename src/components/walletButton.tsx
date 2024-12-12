@@ -6,7 +6,7 @@ import { wallets } from "@/config/wallet";
 export default function WalletButton() {
 
     return <ConnectButton
-        autoConnect={true}
+        autoConnect={false}
         client={client}
         wallets={wallets} 
         // Remove chain prop if reqChain is undefined
