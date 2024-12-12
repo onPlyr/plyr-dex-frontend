@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
 import WalletButton from '@/components/walletButton';
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -34,6 +34,7 @@ import { getWalletBalance } from 'thirdweb/wallets';
 
 import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/components/ui/skeleton';
+import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
 
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
@@ -45,8 +46,23 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeAccount = useActiveAccount();
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
+    const setActiveWallet = useSetActiveWallet();
+
+    useEffect(() => {
+        if (activeWallet) {
+            if (activeWallet.id === 'adapter') {
+                console.log('previousActiveWallet', previousActiveWallet)
+                setActiveWallet(previousActiveWallet);
+            }
+            else {
+                switchChain(CHAIN);
+            }
+        }
+    },[activeWallet])
 
     console.log('activeWallet', activeWallet)
+
+    const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
 
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
@@ -197,11 +213,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         setIsLoading(false);
     };
 
-    useEffect(() => {
-        if (activeWallet) {
-            switchChain(CHAIN);
-        }
-    },[activeWallet])
+   
 
     useEffect(() => {
 
@@ -213,7 +225,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
     useEffect(() => {
         
-        if (activeAccount && activeWallet && activeChain?.id === CHAIN_ID) {
+        if (activeAccount && activeWallet && activeWallet.id !== 'adapter' && activeChain?.id === CHAIN_ID) {
             getAllPairs();
         }
         else {

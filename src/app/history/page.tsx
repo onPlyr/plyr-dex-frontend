@@ -36,6 +36,7 @@ import {
 } from "wagmi";
 import { client } from "@/lib/thirdweb_client";
 import AccountHistoryPage from "../components/account/AccountHistoryPage";
+import { usePreviousActiveWallet } from "@/store/previousActiveWallet";
 
 export default function Main() {
     const wagmiAccount = useAccount();
@@ -48,10 +49,7 @@ export default function Main() {
 
     // handle disconnecting from wagmi
     const thirdwebWallet = useActiveWallet();
-    // Store the previous active wallet
-    const [previousActiveWallet, setPreviousActiveWallet] = useState<Wallet<WalletId> | undefined>(undefined);
-
-    const activeAccount = useActiveAccount();
+    const setPreviousActiveWallet = usePreviousActiveWallet((state: any) => state.setPreviousActiveWallet);
 
     useEffect(() => {
         //console.log('thirdwebWallet', thirdwebWallet)
@@ -88,13 +86,6 @@ export default function Main() {
             }
         };
         setActive();
-
-        //Clean up function to restore the previous active wallet when unmounting
-        return () => {
-            if (previousActiveWallet) {
-                setActiveWallet(previousActiveWallet);
-            }
-        };
     }, [walletClient]);
 
 

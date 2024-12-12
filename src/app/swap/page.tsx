@@ -35,6 +35,8 @@ import {
     useWalletClient,
 } from "wagmi";
 import { client } from "@/lib/thirdweb_client";
+import { usePlyrIdInfo } from "@/store/plyridinfo";
+import { usePreviousActiveWallet } from "@/store/previousActiveWallet";
 
 export default function Main() {
     const wagmiAccount = useAccount();
@@ -49,7 +51,9 @@ export default function Main() {
     const thirdwebWallet = useActiveWallet();
     const activeAccount = useActiveAccount();
     // Store the previous active wallet
-    const [previousActiveWallet, setPreviousActiveWallet] = useState<Wallet<WalletId> | undefined>(undefined);
+    // plyr info //
+    
+    const setPreviousActiveWallet = usePreviousActiveWallet((state: any) => state.setPreviousActiveWallet);
 
     useEffect(() => {
         //console.log('thirdwebWallet', thirdwebWallet)
@@ -86,13 +90,6 @@ export default function Main() {
             }
         };
         setActive();
-
-        //Clean up function to restore the previous active wallet when unmounting
-        return () => {
-            if (previousActiveWallet) {
-                setActiveWallet(previousActiveWallet);
-            }
-        };
     }, [walletClient]);
 
 

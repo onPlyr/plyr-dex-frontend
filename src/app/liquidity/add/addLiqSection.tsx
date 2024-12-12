@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 import { totalSupply } from "thirdweb/extensions/erc20";
 
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
@@ -36,6 +36,7 @@ const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : ta
 
 import { FastAverageColor } from 'fast-average-color';
 import { useToast } from '@/components/ui/use-toast';
+import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
 
 export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
@@ -43,10 +44,17 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeAccount = useActiveAccount();
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
-
+    const setActiveWallet = useSetActiveWallet();
+    const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
     useEffect(() => {
         if (activeWallet) {
-            switchChain(CHAIN);
+            if (activeWallet.id === 'adapter') {
+                console.log('previousActiveWallet', previousActiveWallet)
+                setActiveWallet(previousActiveWallet);
+            }
+            else {
+                switchChain(CHAIN);
+            }
         }
     },[activeWallet])
 
