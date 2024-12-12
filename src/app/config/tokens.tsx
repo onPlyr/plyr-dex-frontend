@@ -127,6 +127,23 @@ const baseTokens: BaseToken[] = [
         },
     },
     {
+        id: "avax",
+        symbol: "WAVAX",
+        name: "AVAX",
+        decimals: 18,
+        chains: {
+            [plyrTau.id]: {
+                address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
+                bridges: {
+                    [avalancheFuji.id]: {
+                        address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
+                        type: TokenBridgeType.Erc20Remote,
+                    },
+                },
+            },
+        },
+    },
+    {
         id: "wavax",
         symbol: "WAVAX",
         name: "Wrapped AVAX",
@@ -146,15 +163,6 @@ const baseTokens: BaseToken[] = [
                 bridges: {
                     [avalancheFuji.id]: {
                         address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
-                        type: TokenBridgeType.Erc20Remote,
-                    },
-                },
-            },
-            [plyrTau.id]: {
-                address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
-                bridges: {
-                    [avalancheFuji.id]: {
-                        address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
                         type: TokenBridgeType.Erc20Remote,
                     },
                 },
