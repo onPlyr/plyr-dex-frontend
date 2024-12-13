@@ -7,10 +7,13 @@ import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import Button from "@/app/components/ui/Button"
 import { useConnectModal } from "thirdweb/react"
+import { getRouteTypeLabel } from "@/app/lib/swaps"
+import { Route } from "@/app/types/swaps"
 import { client } from "@/lib/thirdweb_client"
 import { wallets } from "@/config/wallet"
 
 export interface ReviewRouteButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
+    route?: Route,
     err?: string,
     isConnectWalletErr?: boolean,
     queryStatus?: QueryStatus,
@@ -18,6 +21,7 @@ export interface ReviewRouteButtonProps extends React.ComponentPropsWithoutRef<t
 
 export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button>, ReviewRouteButtonProps>(({
     className,
+    route,
     err,
     isConnectWalletErr,
     queryStatus,
@@ -26,13 +30,14 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
 }, ref) => {
     const { connect, isConnecting } = useConnectModal()
     async function handleConnect() {
-        const wallet = await connect({ client , size: 'compact', wallets: wallets }); // opens the connect modal
+        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
         console.log('connected to', wallet);
-     }
+    }
     return (
         <Button
             ref={ref}
-            className={twMerge("btn-gradient btn-full", className)}
+            // className={twMerge("btn-gradient btn-full", className)}
+            className={twMerge("btn gradient-btn rounded w-full", className)}
             onClick={isConnectWalletErr ? handleConnect : undefined}
             disabled={isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error")}
             {...props}
@@ -43,7 +48,7 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
             </>) : queryStatus === "pending" ? (<>
                 Finding Routes
                 <LoadingIcon />
-            </>) : "Review Selected Route"}
+            </>) : `Review ${route ? getRouteTypeLabel(route.type) : "Route"}`}
         </Button>
     )
 })

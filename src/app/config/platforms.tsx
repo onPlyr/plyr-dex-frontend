@@ -4,6 +4,7 @@ const basePlatforms: Platform[] = [
     {
         id: "lfj",
         name: "LFJ",
+        icon: "square.png",
         img: {
             square: "square.png",
             brandDark: "brand-dark.png",
@@ -13,6 +14,7 @@ const basePlatforms: Platform[] = [
     {
         id: "pangolin",
         name: "Pangolin",
+        icon: "square.png",
         img: {
             square: "square.svg",
             squareDark: "square-dark.svg",
@@ -23,6 +25,7 @@ const basePlatforms: Platform[] = [
     {
         id: "uniswap",
         name: "PLYR[SWAP]",
+        icon: "square.png",
         img: {
             square: "square.svg",
             squareDark: "square-dark.svg",

@@ -33,7 +33,7 @@ const RouteSummaryBadges = React.forwardRef<HTMLDivElement, RouteSummaryBadgesPr
                     {diffMaxDstAmount}
                 </Badge>
             ) : (
-                <Badge className="bg-brand-purple-500">
+                <Badge className="bg-[#daff00] text-black">
                     Best return
                 </Badge>
             )}
