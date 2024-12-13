@@ -16,3 +16,4 @@ export enum StyleShape {
     Circle = "circle",
     Square = "square",
 }
+export type IconFormat = "png" | "svg"

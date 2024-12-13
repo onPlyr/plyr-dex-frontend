@@ -750,6 +750,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
             const adapterAddresses = hop.result.tradeData.trade[CellTradeParameter.Adapters]
             const tradePath = hop.result.tradeData.trade[CellTradeParameter.Path]
             const amountOut = hop.result.tradeData.trade[CellTradeParameter.AmountOut]
+            const tokenOut = hop.result.tradeData.trade[CellTradeParameter.TokenOut]
 
             if (adapterAddresses && tradePath) {
                 adapterAddresses.forEach((adapterAddress, i) => {
@@ -773,9 +774,31 @@ export const getRouteEvents = (hops: HopQuote[]) => {
                     }
                 })
             }
-            else {
-                const swapDstTokenAddress = hop.result.tradeData.trade[CellTradeParameter.TokenOut]
-                const swapDstToken = swapDstTokenAddress ? getTokenByAddress(swapDstTokenAddress, hop.srcChain) : undefined
+            else if (tradePath && tradePath.length !== 0) {
+                for (let i = 0; i < tradePath.length - 1; i++) {
+                    const swapSrcToken = getTokenByAddress(tradePath[i], hop.srcChain)
+                    const swapDstToken = getTokenByAddress(tradePath[i + 1], hop.srcChain)
+                    const adapterAddress = hop.srcCell.address
+                    const adapter = hop.srcChain.adapters?.[adapterAddress]
+                    if (swapSrcToken && swapDstToken) {
+                        const swapEvent: RouteEvent = {
+                            srcChain: hop.srcChain,
+                            srcToken: swapSrcToken,
+                            srcAmount: i === 0 ? hop.srcAmount : undefined,
+                            dstChain: hop.srcChain,
+                            dstToken: swapDstToken,
+                            dstAmount: i === tradePath.length - 1 ? amountOut : undefined,
+                            hop: hopIdx,
+                            type: RouteType.Swap,
+                            adapterAddress: adapterAddress,
+                            adapter: adapter,
+                        }
+                        events.push(swapEvent)
+                    }
+                }
+            }
+            else if (tokenOut) {
+                const swapDstToken = getTokenByAddress(tokenOut, hop.srcChain)
                 if (swapDstToken) {
                     const swapEvent: RouteEvent = {
                         srcChain: hop.srcChain,

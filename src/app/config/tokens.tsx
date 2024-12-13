@@ -9,6 +9,7 @@ const baseTokens: BaseToken[] = [
         symbol: "AVAX",
         name: "AVAX",
         decimals: 18,
+        icon: `avax.png`,
         chains: {
             [avalancheFuji.id]: {
                 address: "0x0000000000000000000000000000000000000000",
@@ -32,6 +33,7 @@ const baseTokens: BaseToken[] = [
         symbol: "GAMR",
         name: "GAMR",
         decimals: 18,
+        icon: `gamr.png`,
         chains: {
             [plyrTau.id]: {
                 address: "0xa875625fe8A955406523E52E485f351b92908ce1",
@@ -40,22 +42,26 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "coq",
-        symbol: "MCOQ",
+        symbol: "COQ",
         name: "COQ",
         decimals: 18,
+        icon: `coq.png`,
         chains: {
             [plyrTau.id]: {
+                chainSymbol: "MCOQ",
                 address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
             },
         },
     },
     {
         id: "super",
-        symbol: "MSUPER",
+        symbol: "SUPER",
         name: "SUPER",
         decimals: 18,
+        icon: `super.png`,
         chains: {
             [plyrTau.id]: {
+                chainSymbol: "MSUPER",
                 address: "0xa79F25CBfe32f5f29F4Ca96aAe67acD49D65655f",
             },
         },
@@ -65,6 +71,7 @@ const baseTokens: BaseToken[] = [
         symbol: "PLYR",
         name: "Native PLYR",
         decimals: 18,
+        icon: `plyr.png`,
         chains: {
             [plyrTau.id]: {
                 address: "0x0000000000000000000000000000000000000000",
@@ -84,6 +91,7 @@ const baseTokens: BaseToken[] = [
         symbol: "TES",
         name: "Native TES",
         decimals: 18,
+        icon: `tes.png`,
         chains: {
             [teschain.id]: {
                 address: "0x0000000000000000000000000000000000000000",
@@ -103,6 +111,7 @@ const baseTokens: BaseToken[] = [
         symbol: "USDC",
         name: "Native USDC",
         decimals: 6,
+        icon: `usdc.png`,
         chains: {
             [avalancheFuji.id]: {
                 address: "0x5425890298aed601595a70AB815c96711a31Bc65",
@@ -128,11 +137,13 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "avax",
-        symbol: "WAVAX",
+        symbol: "AVAX",
         name: "AVAX",
         decimals: 18,
+        icon: `wavax.png`,
         chains: {
             [plyrTau.id]: {
+                chainSymbol: "wAVAX",
                 address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
                 bridges: {
                     [avalancheFuji.id]: {
@@ -148,6 +159,7 @@ const baseTokens: BaseToken[] = [
         symbol: "WAVAX",
         name: "Wrapped AVAX",
         decimals: 18,
+        icon: `wavax.png`,
         chains: {
             [avalancheFuji.id]: {
                 address: "0xd00ae08403B9bbb9124bB305C09058E32C39A48c",
@@ -174,6 +186,7 @@ const baseTokens: BaseToken[] = [
         symbol: "wPLYR",
         name: "Wrapped PLYR",
         decimals: 18,
+        icon: `wplyr.png`,
         chains: {
             [avalancheFuji.id]: {
                 address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
@@ -200,6 +213,7 @@ const baseTokens: BaseToken[] = [
         symbol: "wTES",
         name: "Wrapped TES",
         decimals: 18,
+        icon: `wtes.png`,
         chains: {
             [avalancheFuji.id]: {
                 address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",

@@ -2,7 +2,7 @@ import { AbiParameter, decodeAbiParameters, encodeAbiParameters, Hex, parseUnits
 
 import { cellRouteDataParameters, cellTradeDataParameters, cellTradeParameters } from "@/app/config/cells"
 import { defaultGasPriceExponent, defaultMinGasPrice, defaultSlippageBps, tmpMaxSteps, tmpYakSwapFee } from "@/app/config/swaps"
-import { Cell, CellRouteData, CellRouteDataParameter, CellTradeData } from "@/app/types/cells"
+import { Cell, CellRouteData, CellRouteDataParameter, CellTrade, CellTradeData } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
 
 export const getSwapCells = (chain?: Chain) => {
@@ -85,9 +85,15 @@ export const getCellTradeDataParams = (cell?: Cell) => {
 }
 
 export const getDecodedCellTradeData = (cell?: Cell, data?: Hex) => {
-    const params = getCellTradeDataParams(cell)
+    const params = cell?.tradeDataParams ? getCellTradeDataParams(cell) : getCellTradeParams(cell)
     if (cell === undefined || data === undefined || data === toHex("") || params === undefined || params.length === 0) {
         return undefined
     }
-    return decodeAbiParameters(params, data)?.[0] as CellTradeData
+    if (cell.tradeDataParams) {
+        return decodeAbiParameters(params, data)?.[0] as CellTradeData
+    }
+    const trade = decodeAbiParameters(params, data)?.[0] as CellTrade
+    return {
+        trade: trade,
+    } as CellTradeData
 }

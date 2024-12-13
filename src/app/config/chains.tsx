@@ -55,6 +55,7 @@ export const wagmiChains = [
 export const SupportedChains: Record<ChainId, Chain> = {
     [avalanche.id]: {
         ...avalanche,
+        icon: `${avalanche.id}.png`,
         cells: [],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
         minGasPrice: BigInt(25),
@@ -68,6 +69,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
     },
     [avalancheFuji.id]: {
         ...avalancheFuji,
+        icon: `${avalancheFuji.id}.png`,
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
@@ -100,18 +102,29 @@ export const SupportedChains: Record<ChainId, Chain> = {
     },
     [teschain.id]: {
         ...teschain,
+        icon: `${teschain.id}.png`,
         cells: [
+            // {
+            //     ...cellTypeDefinitions[CellType.UniV2],
+            //     address: "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f",
+            // },
             {
                 ...cellTypeDefinitions[CellType.UniV2],
-                address: "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f",
+                address: "0x4C5b32F836017d4686FDB3A7eB129c8642A97495",
             },
         ],
         blockchainId: "0x7ca356c6720a432ffb58563d59b3424eb441239e373a93a6de9da358b81366f0",
         minGasPrice: BigInt(25),
         gasPriceExponent: 9,
         avgBlockTimeMs: 2000,
+        // adapters: {
+        //     "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f": {
+        //         name: "Uniswap V2",
+        //         platform: "uniswap",
+        //     },
+        // },
         adapters: {
-            "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f": {
+            "0x4C5b32F836017d4686FDB3A7eB129c8642A97495": {
                 name: "Uniswap V2",
                 platform: "uniswap",
             },
@@ -124,10 +137,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
     },
     [plyrTau.id]: {
         ...plyrTau,
+        icon: `${plyrTau.id}.png`,
         cells: [
             {
                 ...cellTypeDefinitions[CellType.UniV2],
-                address: "0x02f42fef382B38967489b91a972d7926f9671a12",
+                address: "0xcC76c9F36193Ba61BF92020eAc5De177A6cE2E3A",//"0x02f42fef382B38967489b91a972d7926f9671a12",
             },
         ],
         blockchainId: "0x59b5bdd59c9a138861e499f871c3cf10f2517394f6ff77f8067430d57e8e9489",
@@ -135,7 +149,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         gasPriceExponent: 9,
         avgBlockTimeMs: 60000,
         adapters: {
-            "0x02f42fef382B38967489b91a972d7926f9671a12": {
+            "0xcC76c9F36193Ba61BF92020eAc5De177A6cE2E3A": { //"0x02f42fef382B38967489b91a972d7926f9671a12"
                 name: "Uniswap V2",
                 platform: "uniswap",
             },

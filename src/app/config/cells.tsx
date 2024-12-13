@@ -100,7 +100,7 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
             CellRouteDataParameter.SlippageBips,
         ],
         tradeParams: [
-            CellTradeParameter.TokenOut,
+            CellTradeParameter.Path,
             CellTradeParameter.AmountOut,
             CellTradeParameter.MinAmountOut,
         ],

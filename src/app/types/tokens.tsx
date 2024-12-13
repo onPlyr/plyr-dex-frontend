@@ -1,6 +1,7 @@
 import { Address } from "viem"
 
 import { ChainId } from "@/app/types/chains"
+import { IconFormat } from "@/app/types/styling"
 
 // note: must be unique
 // use slugify function in lib/strings for formatting
@@ -11,6 +12,7 @@ interface BaseTokenData {
     readonly symbol: string,
     readonly name: string,
     readonly decimals: number,
+    readonly icon: `${string}.${IconFormat}`,
 }
 
 export interface TokenBridgeData {
