@@ -57,7 +57,7 @@ export default function Header() {
     return (
         <>
             <section className="absolute top-0 flex flex-col items-center justify-center w-full">
-                <div className={`${styles.header} aboslute text-white w-full top-0 h-16 flex flex-row px-6 items-center justify-between`}>
+                <div className={`${styles.header} aboslute text-white w-full top-0 h-24 flex flex-row px-6 items-center justify-between`}>
 
                     <div className="flex flex-1 flex-row items-center justify-start gap-2">
                         <Link href="/swap" className="w-full lg:w-fit flex-1 lg:flex-auto">
