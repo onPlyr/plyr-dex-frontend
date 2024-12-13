@@ -65,7 +65,7 @@ export const TokenSelectAmountComboItem = React.forwardRef<HTMLDivElement, Token
                     className="clear-border-outline clear-bg px-0 m-0 font-bold text-3xl"
                     value={amountValue}
                     setValue={handleAmountInput}
-                    disabled={selectedChain === undefined || selectedToken === undefined}
+                    disabled={dst || selectedChain === undefined || selectedToken === undefined}
                 />
             </div>
             <div className="flex flex-row flex-initial items-center gap-4">
