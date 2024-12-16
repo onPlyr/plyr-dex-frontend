@@ -62,7 +62,7 @@ export default function Main() {
                 });
                 const w = createWalletAdapter({
                     adaptedAccount,
-                    chain: defineChain(CHAIN_ID),
+                    chain: defineChain(await walletClient.getChainId()),
                     client: client,
                     onDisconnect: async () => {
                         await disconnectAsync();
