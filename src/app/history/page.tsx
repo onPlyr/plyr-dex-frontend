@@ -49,16 +49,6 @@ export default function Main() {
 
     // handle disconnecting from wagmi
     const thirdwebWallet = useActiveWallet();
-    const activeAccount = useActiveAccount();
-    const setPreviousActiveWallet = usePreviousActiveWallet((state: any) => state.setPreviousActiveWallet);
-
-    useEffect(() => {
-        //console.log('thirdwebWallet', thirdwebWallet)
-        if (thirdwebWallet && thirdwebWallet?.id !== 'adapter') {
-            console.log('thirdwebWallet', thirdwebWallet)
-            setPreviousActiveWallet(thirdwebWallet);
-        }
-    }, [thirdwebWallet])
 
     useEffect(() => {
 
@@ -87,13 +77,14 @@ export default function Main() {
             }
         };
         setActive();
-    }, [walletClient, activeAccount]);
+    }, [walletClient]);
 
 
     useEffect(() => {
         const disconnectIfNeeded = async () => {
             if (thirdwebWallet && wagmiAccount.status === "disconnected") {
-                await thirdwebWallet.disconnect();
+                //alert('disconnecting')
+                await thirdwebWallet?.disconnect();
             }
         };
         disconnectIfNeeded();

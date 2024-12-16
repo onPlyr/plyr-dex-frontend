@@ -1,6 +1,6 @@
 "use client"
 
-import { ThirdwebProvider } from "thirdweb/react";
+//import { ThirdwebProvider } from "thirdweb/react";
 
 import { ReactNode, useEffect, useState } from "react"
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister"
@@ -14,6 +14,8 @@ import { wagmiConfig } from "@/app/config/wagmi"
 import { AccountDataProvider } from "@/app/providers/accountData"
 import FavouriteTokensProvider from "@/app/providers/favouriteTokens"
 import PreferencesProvider from "@/app/providers/preferences"
+
+import { ThirdwebProvider } from "thirdweb/react";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -43,7 +45,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
 
         <PreferencesProvider>
             <FavouriteTokensProvider>
-                
+                <ThirdwebProvider>
                     <WagmiProvider config={wagmiConfig}>
                         {persister && <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
 
@@ -54,7 +56,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
                             {/* <ReactQueryDevtools initialIsOpen={false} /> */}
                         </PersistQueryClientProvider>}
                     </WagmiProvider>
-                
+                </ThirdwebProvider>
             </FavouriteTokensProvider>
         </PreferencesProvider>
 

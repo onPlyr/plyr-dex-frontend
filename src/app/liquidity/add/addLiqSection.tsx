@@ -21,13 +21,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { NumericFormat } from "react-number-format";
 
 import { ethers } from "ethers";
-import { getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
+import { defineChain, getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
 import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
 
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useSearchParams } from 'next/navigation';
 
 import { BigNumber } from 'bignumber.js';
+
+import { useAccount, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { createWalletAdapter, Wallet, WalletId } from "thirdweb/wallets";
 
 //import { tokenList } from '@/config/tokenlist';
 
@@ -46,30 +50,56 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
     const setActiveWallet = useSetActiveWallet();
-    const { connect, isConnecting } = useConnectModal();
-    const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
-    
-    const handleConnect = async () => {
-        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
-        console.log('connected to', wallet);
-    }
-    
+
+
+    const wagmiAccount = useAccount();
+    const { disconnectAsync } = useDisconnect();
+    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components including Pay
+    const { data: walletClient } = useWalletClient();
+    const { switchChainAsync } = useSwitchChain();
+
+    // handle disconnecting from wagmi
+    const thirdwebWallet = useActiveWallet();
+
     useEffect(() => {
-        if (activeWallet) {
-            if (activeWallet.id === 'adapter') {
-                console.log('previousActiveWallet', previousActiveWallet)
-                if (Object.keys(previousActiveWallet).length > 0) {
-                    setActiveWallet(previousActiveWallet);
-                }
-                else {
-                    handleConnect();
-                }
+
+        const setActive = async () => {
+
+            if (walletClient) {
+                // Store the current active wallet before setting the new one
+
+                const adaptedAccount = viemAdapter.walletClient.fromViem({
+                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
+                });
+                const w = createWalletAdapter({
+                    adaptedAccount,
+                    chain: defineChain(await walletClient.getChainId()),
+                    client: client,
+                    onDisconnect: async () => {
+                        await disconnectAsync();
+                    },
+                    switchChain: async (chain) => {
+                        await switchChainAsync({ chainId: chain.id as any });
+                    },
+                });
+
+                setActiveWallet(w);
+
             }
-            else {
-                switchChain(CHAIN);
+        };
+        setActive();
+    }, [walletClient]);
+
+
+    useEffect(() => {
+        const disconnectIfNeeded = async () => {
+            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
+                //alert('disconnecting')
+                await thirdwebWallet?.disconnect();
             }
-        }
-    }, [activeWallet])
+        };
+        disconnectIfNeeded();
+    }, [wagmiAccount, thirdwebWallet]);
 
     const { toast } = useToast();
 
@@ -690,17 +720,21 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                 </div>
 
                                 {
-                                    activeChain?.id === CHAIN_ID ? <Button type="submit" className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>
+                                    activeChain?.id === CHAIN_ID && activeWallet ? <Button type="submit" className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" disabled={isLoading || isAddingLiquidity || token0.symbol === token1.symbol || amount0 === '' || amount1 === '' || Number(amount0) > Number(myBalance0?.displayValue || 0) || Number(amount1) > Number(myBalance1?.displayValue || 0)}>
                                         {
                                             (!isAddingLiquidity && !error) && <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
                                         }
                                         {isAddingLiquidity ? 'Providing Liquidity...' : error ? error : 'Provide Liquidity'}
                                     </Button> :
-                                    <Button onClick={(e) => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        switchChain(CHAIN);
-                                    }} className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">SWITCH TO PLYR NETWORK</Button>
+                                        !activeWallet ?
+                                            <Button disabled className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">PLEASE CONNECT WALLET</Button>
+
+                                            :
+                                            <Button onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                switchChain(CHAIN);
+                                            }} className="relative w-full rounded-xl font-bold mt-4 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">SWITCH TO PLYR NETWORK</Button>
                                 }
                             </form>
 

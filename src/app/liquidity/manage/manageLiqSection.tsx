@@ -23,20 +23,22 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { NumericFormat } from "react-number-format";
 
 import { ethers } from "ethers";
-import { getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
+import { defineChain, getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
 import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
 
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useSearchParams } from 'next/navigation';
 
-import { getWalletBalance } from 'thirdweb/wallets';
+import { createWallet, getWalletBalance } from 'thirdweb/wallets';
 
 
 import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
 import { wallets } from '@/config/wallet';
-
+import { useAccount, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
+import { viemAdapter } from "thirdweb/adapters/viem";
+import { createWalletAdapter, Wallet, WalletId } from "thirdweb/wallets";
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -48,30 +50,56 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
     const setActiveWallet = useSetActiveWallet();
-    const { connect, isConnecting } = useConnectModal();
-    const previousActiveWallet = usePreviousActiveWallet((state: any) => state.previousActiveWallet);
     
-    const handleConnect = async () => {
-        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
-        console.log('connected to', wallet);
-    }
-    
+
+    const wagmiAccount = useAccount();
+    const { disconnectAsync } = useDisconnect();
+    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components including Pay
+    const { data: walletClient } = useWalletClient();
+    const { switchChainAsync } = useSwitchChain();
+
+    // handle disconnecting from wagmi
+    const thirdwebWallet = useActiveWallet();
+
     useEffect(() => {
-        if (activeWallet) {
-            if (activeWallet.id === 'adapter') {
-                console.log('previousActiveWallet', previousActiveWallet)
-                if (Object.keys(previousActiveWallet).length > 0) {
-                    setActiveWallet(previousActiveWallet);
-                }
-                else {
-                    handleConnect();
-                }
+
+        const setActive = async () => {
+
+            if (walletClient) {
+                // Store the current active wallet before setting the new one
+
+                const adaptedAccount = viemAdapter.walletClient.fromViem({
+                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
+                });
+                const w = createWalletAdapter({
+                    adaptedAccount,
+                    chain: defineChain(await walletClient.getChainId()),
+                    client: client,
+                    onDisconnect: async () => {
+                        await disconnectAsync();
+                    },
+                    switchChain: async (chain) => {
+                        await switchChainAsync({ chainId: chain.id as any });
+                    },
+                });
+
+                setActiveWallet(w);
+
             }
-            else {
-                switchChain(CHAIN);
+        };
+        setActive();
+    }, [walletClient]);
+
+
+    useEffect(() => {
+        const disconnectIfNeeded = async () => {
+            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
+                //alert('disconnecting')
+                await thirdwebWallet?.disconnect();
             }
-        }
-    }, [activeWallet])
+        };
+        disconnectIfNeeded();
+    }, [wagmiAccount, thirdwebWallet]);
 
 
     const [allPairs, setAllPairs] = useState<string[]>([])
@@ -235,7 +263,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
     useEffect(() => {
 
-        if (activeAccount && activeWallet && activeWallet.id !== 'adapter' && activeChain?.id === CHAIN_ID) {
+        if (activeAccount && activeWallet && activeChain?.id === CHAIN_ID) {
             getAllPairs();
         }
         else {

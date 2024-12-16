@@ -5,7 +5,7 @@ import AddLiqSection from "./addLiqSection";
 import { Suspense } from "react";
 
 import { Loader2 } from "lucide-react";
-import { ThirdwebProvider } from "thirdweb/react";
+//import { ThirdwebProvider } from "thirdweb/react";
 import { loadTokenList } from "@/app/loadTokenList";
 import Header from "@/components/layout/header";
 
