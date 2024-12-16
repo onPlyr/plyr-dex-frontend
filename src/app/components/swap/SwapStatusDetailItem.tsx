@@ -194,7 +194,7 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
                         <StackIcon />
                         {swapType} Steps
                     </div>
-                    <div className="flex flex-col flex-1">
+                    <div className="flex flex-col flex-1 gap-4">
                         {swapHistory.events.map((event, i) => (
                             <SwapEventStatusDetailItem
                                 key={i}

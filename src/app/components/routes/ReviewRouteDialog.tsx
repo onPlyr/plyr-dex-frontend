@@ -82,9 +82,9 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     const [isOpen, setIsOpen] = useState<boolean>(false)
 
     const [activeTab, setActiveTab] = useState<ReviewRouteDialogTab>(reviewRouteDialogDefaultTab)
-    const setTab = useCallback((tab: string) => {
-        setActiveTab(tab && (Object.values(ReviewRouteDialogTab) as string[]).includes(tab) ? tab as ReviewRouteDialogTab : reviewRouteDialogDefaultTab)
-    }, [setActiveTab])
+    // const setTab = useCallback((tab: string) => {
+    //     setActiveTab(tab && (Object.values(ReviewRouteDialogTab) as string[]).includes(tab) ? tab as ReviewRouteDialogTab : reviewRouteDialogDefaultTab)
+    // }, [setActiveTab])
 
     const approvalTxData = getActionTxStatus(TxActionType.Approve, approveTxStatus, approveTxReceiptStatus, approveTxHash, routeTxData)
     const initiateTxData = getActionTxStatus(route?.type === RouteType.Bridge ? TxActionType.Bridge : TxActionType.Swap, initiateTxStatus, initiateTxReceiptStatus, initiateTxHash, routeTxData)
@@ -255,8 +255,8 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 </div>
 
                 {/* Destination Address */}
-                <div className="flex mt-4 flex-row flex-1 justify-center items-center gap-4">
-                    <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                <div className="flex mt-4 flex-col md:flex-row flex-1 justify-center items-center gap-4">
+                    <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`w-full flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                         <Wallet2 className="w-10 h-10 text-white mr-4 ml-1" />
                         <div className="flex flex-col flex-1 justify-center items-start gap-0">
                             <div className="font-bold text-xs">EVM ADDRESS ADDRESS</div>
@@ -264,7 +264,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         </div>
                     </div>
                     {
-                        (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`relative flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`w-full relative flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); getUserInfo(accountAddress || '', true) }} className="absolute top-2 right-3">
                                 <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
                             </button>
@@ -335,7 +335,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
             disabled={disabled}
             {...props}
         >
-            <TabsContainer value={activeTab} onValueChange={(tab) => setTab(tab)}>
+            <TabsContainer value={activeTab}>
                 <TabsList className="hidden">
                     <TabTrigger value={ReviewRouteDialogTab.RouteDetail}>
                         Route Detail
