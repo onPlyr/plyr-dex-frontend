@@ -49,6 +49,7 @@ export default function Main() {
 
     // handle disconnecting from wagmi
     const thirdwebWallet = useActiveWallet();
+    const activeAccount = useActiveAccount();
     const setPreviousActiveWallet = usePreviousActiveWallet((state: any) => state.setPreviousActiveWallet);
 
     useEffect(() => {
@@ -86,7 +87,7 @@ export default function Main() {
             }
         };
         setActive();
-    }, [walletClient]);
+    }, [walletClient, activeAccount]);
 
 
     // useEffect(() => {

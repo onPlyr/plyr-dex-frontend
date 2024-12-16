@@ -93,7 +93,7 @@ export default function Main() {
             }
         };
         setActive();
-    }, [walletClient]);
+    }, [walletClient, activeAccount]);
 
 
     // useEffect(() => {
