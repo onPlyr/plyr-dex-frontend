@@ -35,8 +35,10 @@ import {
     useWalletClient,
 } from "wagmi";
 import { client } from "@/lib/thirdweb_client";
-import { usePlyrIdInfo } from "@/store/plyridinfo";
-import { usePreviousActiveWallet } from "@/store/previousActiveWallet";
+// import { usePlyrIdInfo } from "@/store/plyridinfo";
+// import { usePreviousActiveWallet } from "@/store/previousActiveWallet";
+
+const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 
 export default function Main() {
     const wagmiAccount = useAccount();
@@ -62,7 +64,7 @@ export default function Main() {
                 });
                 const w = createWalletAdapter({
                     adaptedAccount,
-                    chain: defineChain(await walletClient.getChainId()),
+                    chain: defineChain(CHAIN_ID),
                     client: client,
                     onDisconnect: async () => {
                         await disconnectAsync();

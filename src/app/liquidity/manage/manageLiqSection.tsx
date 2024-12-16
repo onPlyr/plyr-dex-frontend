@@ -73,7 +73,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 });
                 const w = createWalletAdapter({
                     adaptedAccount,
-                    chain: defineChain(await walletClient.getChainId()),
+                    chain: defineChain(CHAIN_ID),
                     client: client,
                     onDisconnect: async () => {
                         await disconnectAsync();
