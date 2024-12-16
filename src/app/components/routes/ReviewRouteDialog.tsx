@@ -82,9 +82,9 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     const [isOpen, setIsOpen] = useState<boolean>(false)
 
     const [activeTab, setActiveTab] = useState<ReviewRouteDialogTab>(reviewRouteDialogDefaultTab)
-    // const setTab = useCallback((tab: string) => {
-    //     setActiveTab(tab && (Object.values(ReviewRouteDialogTab) as string[]).includes(tab) ? tab as ReviewRouteDialogTab : reviewRouteDialogDefaultTab)
-    // }, [setActiveTab])
+    const setTab = useCallback((tab: string) => {
+        setActiveTab(tab && (Object.values(ReviewRouteDialogTab) as string[]).includes(tab) ? tab as ReviewRouteDialogTab : reviewRouteDialogDefaultTab)
+    }, [setActiveTab])
 
     const approvalTxData = getActionTxStatus(TxActionType.Approve, approveTxStatus, approveTxReceiptStatus, approveTxHash, routeTxData)
     const initiateTxData = getActionTxStatus(route?.type === RouteType.Bridge ? TxActionType.Bridge : TxActionType.Swap, initiateTxStatus, initiateTxReceiptStatus, initiateTxHash, routeTxData)
