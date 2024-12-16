@@ -90,7 +90,7 @@ const SwapPage = () => {
     const [dstChain, setDstChain] = useState<Chain>()
     const [dstToken, setDstToken] = useState<Token>()
 
-    const setSelectedSrcToken = useCallback((token?: Token) => {
+    const setSelectedSrcToken = useCallback((token?: Token, skipDstCheck?: boolean) => {
         setSrcToken(token)
         if (token) {
             setSrcChain(getChain(token.chainId))
@@ -99,7 +99,7 @@ const SwapPage = () => {
             srcChainId: token?.chainId,
             srcTokenId: token?.id,
         })
-        if (token && dstToken && token.chainId === dstToken.chainId && token.id === dstToken.id) {
+        if (skipDstCheck !== true && token && dstToken && token.chainId === dstToken.chainId && token.id === dstToken.id) {
             setDstToken(undefined)
             setSelectedSwapData({
                 dstChainId: undefined,
@@ -108,7 +108,7 @@ const SwapPage = () => {
         }
     }, [setSrcChain, setSrcToken, dstToken, setDstToken])
 
-    const setSelectedDstToken = useCallback((token?: Token) => {
+    const setSelectedDstToken = useCallback((token?: Token, skipSrcCheck?: boolean) => {
         setDstToken(token)
         if (token) {
             setDstChain(getChain(token.chainId))
@@ -117,7 +117,7 @@ const SwapPage = () => {
             dstChainId: token?.chainId,
             dstTokenId: token?.id,
         })
-        if (token && srcToken && token.chainId === srcToken.chainId && token.id === srcToken.id) {
+        if (skipSrcCheck !== true && token && srcToken && token.chainId === srcToken.chainId && token.id === srcToken.id) {
             setSrcToken(undefined)
             setSelectedSwapData({
                 srcChainId: undefined,
@@ -152,7 +152,7 @@ const SwapPage = () => {
             }
         }
     }, [srcToken, dstToken, tokenBalanceData, getTokenBalanceData, setSelectedSrcToken, setSelectedDstToken])
-
+    
     const [srcAmount, setSrcAmount] = useState<bigint>(BigInt(0))
     const [srcAmountFormatted, setSrcAmountFormatted] = useState<string>("")
 
@@ -204,12 +204,12 @@ const SwapPage = () => {
     const handleSwitchSrcDstTokens = useCallback((srcChain?: Chain, srcToken?: Token, dstChain?: Chain, dstToken?: Token, dstAmountFormatted?: string) => {
         if (srcChain || srcToken || dstChain || dstToken || dstAmountFormatted) {
             setSrcChain(dstChain)
-            setSelectedSrcToken(dstToken)
+            setSelectedSrcToken(dstToken, true)
             setDstChain(srcChain)
-            setSelectedDstToken(srcToken)
+            setSelectedDstToken(srcToken, true)
             handleSrcAmountInput(dstAmountFormatted ?? "")
         }
-    }, [setSelectedSrcToken, setSelectedDstToken, handleSrcAmountInput])
+    }, [setSrcChain, setSelectedSrcToken, setDstChain, setSelectedDstToken, handleSrcAmountInput])
 
     ////////////////////////////////////////////////////////////////////////////////
 
