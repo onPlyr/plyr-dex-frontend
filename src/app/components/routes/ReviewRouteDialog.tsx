@@ -16,7 +16,7 @@ import { Route, RouteTxData, RouteType, SwapHistory } from "@/app/types/swaps"
 import { TxActionType, TxReceiptStatusType, TxStatusType } from "@/app/types/txs"
 import DecimalAmount from "../ui/DecimalAmount"
 import { shortenAddress } from "thirdweb/utils"
-import { Wallet } from "lucide-react"
+import { Cross, Pencil, RefreshCcw, Wallet, Wallet2, X } from "lucide-react"
 
 export interface ReviewRouteDialogProps extends DialogProps {
     route?: Route,
@@ -102,6 +102,8 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
     const [plyrAvatar, setPlyrAvatar] = useState<string | undefined>(undefined)
     const [mirrorAddress, setMirrorAddress] = useState<string | undefined>(undefined)
+    const [isEditingPlyrId, setIsEditingPlyrId] = useState<boolean>(false)
+    const [isEditedPlyrId, setIsEditedPlyrId] = useState<boolean>(false)
 
     useEffect(() => {
         if (accountAddress) {
@@ -110,7 +112,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     }, []);
 
     // get user info //
-    const getUserInfo = async (address: string) => {
+    const getUserInfo = async (address: string, isEdited: boolean = false) => {
         if (address === '') {
             setPlyrId(undefined)
             setMirrorAddress(undefined)
@@ -126,6 +128,9 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
             if (retJson?.success === false) {
 
                 setPlyrId('');
+                setMirrorAddress('');
+                setPlyrAvatar('');
+                setDestinationAddress(accountAddress || '');
                 // toast({
                 //     description: 'This PLYR[ID] not found',
                 //     variant: 'destructive',
@@ -136,10 +141,15 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 setPlyrId(retJson.plyrId);
                 setMirrorAddress(retJson.mirrorAddress);
                 setPlyrAvatar(retJson.avatar);
+                if (isEdited) {
+                    setIsEditedPlyrId(false);
+                    setDestinationAddress(retJson.mirrorAddress || '');
+                }
             }
         }
         catch (e) {
             console.log(e);
+            setDestinationAddress(accountAddress || '');
         }
     }
 
@@ -204,25 +214,51 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         token={route.dstToken}
                     />
                 </div>
+                <div className="flex flex-row flex-1 justify-between items-center">
+                    <div>Destination Address</div>
+                    <div>{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
+                </div>
 
                 {/* Destination Address */}
                 <div className="flex mt-4 flex-row flex-1 justify-center items-center gap-4">
-                    <div onClick={() => setDestinationAddress(accountAddress || undefined)} className={`flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                        <Wallet className="w-10 h-10 text-white mr-4 ml-1" />
+                    <div onClick={() => setDestinationAddress(accountAddress || undefined)} className={`flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <Wallet2 className="w-10 h-10 text-white mr-4 ml-1" />
                         <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                            <div className="font-bold text-sm leading-none">WEB3 ADDRESS</div>
-                            <div className="text-xs leading-none">{accountAddress && shortenAddress(accountAddress)}</div>
+                            <div className="font-bold text-xs">EVM ADDRESS ADDRESS</div>
+                            <div className="text-base">{accountAddress && shortenAddress(accountAddress)}</div>
                         </div>
                     </div>
                     {
-                        plyrId && (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                            <img src={plyrAvatar} alt="PLYR Avatar" className="w-10 h-10 rounded-full mr-4 ml-1" />
-                            <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                                <div className="font-bold text-sm leading-none">PLYR[ID]</div>
-                                <div className="text-xs leading-none">{plyrId ? plyrId.toUpperCase() : ''}
+                        (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`relative flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                            <button onClick={() => { getUserInfo(accountAddress || '', true) }} className="absolute top-2 right-3">
+                                <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                            </button>
+                            {
+                                !isEditingPlyrId && <button onClick={() => setIsEditingPlyrId(true)} className="absolute top-2 right-10">
+                                    <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                                </button>
+                            }
+                            {
+                                plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-10 h-10 rounded-full mr-4 ml-1" />
+                            }
+                            {
+                                !plyrId && <X className="w-10 h-10 rounded-full mr-4 ml-1" />
+                            }
+                            <div className=" flex flex-col flex-1 justify-center items-start gap-0">
 
-                                    {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
-                                </div>
+                                {
+
+                                    isEditingPlyrId ? <>
+                                        <input autoFocus={true} className="bg-transparent uppercase text-lg border-b border-white text-white focus:outline-none" type="text" value={plyrId} onChange={(e) => setPlyrId(e.target.value)} onBlur={(e) => { setIsEditingPlyrId(false); getUserInfo(e.target.value.trim().toUpperCase(), true); }} />
+                                    </> :
+                                        <>
+                                            <div className="font-bold text-xs">PLYR[ID]</div>
+                                            <div className="text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
+
+                                                {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
+                                            </div>
+                                        </>
+                                }
                             </div>
                         </div>
                     }
