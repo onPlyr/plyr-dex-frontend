@@ -247,7 +247,7 @@ export const getReviewRouteErrMsg = ({
     else if (selectedRoute === undefined) {
         err = "Select Route"
     }
-    else if (accountAddress === undefined || connectedChain === undefined) {
+    else if (accountAddress === undefined) {
         err = "Connect Wallet"
         isConnectWalletErr = true
     }
@@ -275,7 +275,7 @@ export const getInitiateSwapErrMsg = ({
 
     let err = undefined
 
-    if (accountAddress === undefined || connectedChain === undefined) {
+    if (accountAddress === undefined) {
         err = "Connect Wallet"
     }
     else if (route === undefined) {

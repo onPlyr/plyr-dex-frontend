@@ -282,6 +282,9 @@ const SwapPage = () => {
                 approvalRequired = (selectedRoute.srcToken.isNative || (allowance !== undefined && allowance >= selectedRoute.srcAmount)) ? false : true
             }
         }
+        else if (accountAddress && connectedChain === undefined) {
+            switchChainRequired = true
+        }
 
         setIsSwitchChainRequired(switchChainRequired)
         setIsApprovalRequired(approvalRequired)
