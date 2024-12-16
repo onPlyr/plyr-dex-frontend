@@ -3,7 +3,6 @@ import { Hash, TransactionReceipt } from "viem"
 import { useAccount } from "wagmi"
 
 import { useToast } from "@/app/hooks/toast/useToast"
-import { getChain } from "@/app/lib/chains"
 import { Token, TokenBalance } from "@/app/types/tokens"
 import { AccountDataContext, addSwapHistoryItem, getAccountBalances, getSwapStatusToastData, sortAccountSwapHistory, updateSwapHistoryItemStatus } from "@/app/lib/account"
 import { AccountBalancesContextType, AccountDataContextType, AccountHistoryContextType } from "@/app/types/account"
@@ -28,8 +27,7 @@ export const AccountDataProvider = ({
     const storageAvailable = isStorageAvailable(storageType)
     const historyStorageKey = StorageDataKey.History
 
-    const { address: accountAddress, chainId: connectedChainId } = useAccount()
-    const connectedChain = connectedChainId ? getChain(connectedChainId) : undefined
+    const { address: accountAddress } = useAccount()
     const enabled = storageAvailable === true
 
     const [accountBalanceData, setAccountBalanceData] = useState<Token[]>([])
@@ -40,17 +38,16 @@ export const AccountDataProvider = ({
     const fetchAccountBalanceData = useCallback(() => {
         if (enabled) {
             getAccountBalances({
-                connectedChain: connectedChain,
                 accountAddress: accountAddress,
                 setData: setBalanceData,
                 _enabled: enabled,
             })
         }
-    }, [enabled, connectedChain, accountAddress, setBalanceData])
+    }, [enabled, accountAddress, setBalanceData])
 
     useEffect(() => {
         fetchAccountBalanceData()
-    }, [enabled, connectedChain, accountAddress, fetchAccountBalanceData])
+    }, [enabled, accountAddress, fetchAccountBalanceData])
 
     const getTokenBalance = useCallback((token?: Token) => {
         const result = token ? accountBalanceData.find((data) => data.id === token.id && data.chainId === token.chainId) : undefined

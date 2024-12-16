@@ -88,7 +88,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
 
     const approvalTxData = getActionTxStatus(TxActionType.Approve, approveTxStatus, approveTxReceiptStatus, approveTxHash, routeTxData)
     const initiateTxData = getActionTxStatus(route?.type === RouteType.Bridge ? TxActionType.Bridge : TxActionType.Swap, initiateTxStatus, initiateTxReceiptStatus, initiateTxHash, routeTxData)
-    const submitDisabled = disabled || reviewErr !== undefined || initiateErr !== undefined
+    const submitDisabled = disabled || reviewErr !== undefined || initiateErr !== undefined || destinationAddress === undefined
     const actionMsg = reviewErr ?? initiateErr ?? (isApprovalRequired ? approvalTxData.msg : initiateTxData.msg)
 
     useEffect(() => {
@@ -210,7 +210,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                     <div onClick={() => setDestinationAddress(accountAddress || undefined)} className={`flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                         <Wallet className="w-10 h-10 text-white mr-4 ml-1" />
                         <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                            <div className="font-bold text-sm leading-none">MY WEB3 ADDRESS</div>
+                            <div className="font-bold text-sm leading-none">WEB3 ADDRESS</div>
                             <div className="text-xs leading-none">{accountAddress && shortenAddress(accountAddress)}</div>
                         </div>
                     </div>
@@ -218,7 +218,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         plyrId && (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                             <img src={plyrAvatar} alt="PLYR Avatar" className="w-10 h-10 rounded-full mr-4 ml-1" />
                             <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                                <div className="font-bold text-sm leading-none">MY PLYR[ID]</div>
+                                <div className="font-bold text-sm leading-none">PLYR[ID]</div>
                                 <div className="text-xs leading-none">{plyrId ? plyrId.toUpperCase() : ''}
 
                                     {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}

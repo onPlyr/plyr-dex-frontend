@@ -33,7 +33,6 @@ export const AccountDataContext = createContext({} as AccountDataContextType)
 
 // todo: check balances are cleared/updated when disconnecting or switching accounts
 export const getAccountBalances = async ({
-    connectedChain,
     accountAddress,
     setData,
     _enabled = true,
@@ -44,7 +43,7 @@ export const getAccountBalances = async ({
     _enabled?: boolean,
 }) => {
 
-    const enabled = _enabled !== false && connectedChain !== undefined && accountAddress !== undefined && setData !== undefined
+    const enabled = _enabled !== false && accountAddress !== undefined && setData !== undefined
 
     if (enabled) {
 
