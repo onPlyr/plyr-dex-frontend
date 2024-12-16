@@ -208,7 +208,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         <div className="text-xs">{accountAddress && shortenAddress(accountAddress)}</div>
                     </div>
                     {
-                       plyrId && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                       plyrId && (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180')  && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                             <div className="font-bold">MY PLYR[ID]</div>
                             <div className="text-xs">{plyrId ? plyrId.toUpperCase() : ''}
 
