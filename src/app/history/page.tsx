@@ -77,7 +77,7 @@ export default function Main() {
             }
         };
         setActive();
-    }, [walletClient]);
+    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
 
 
     useEffect(() => {

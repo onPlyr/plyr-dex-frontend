@@ -88,7 +88,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             }
         };
         setActive();
-    }, [walletClient]);
+    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
 
 
     useEffect(() => {
