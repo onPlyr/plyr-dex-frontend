@@ -90,14 +90,14 @@ export default function Main() {
     }, [walletClient, activeAccount]);
 
 
-    // useEffect(() => {
-    //     const disconnectIfNeeded = async () => {
-    //         if (thirdwebWallet && wagmiAccount.status === "disconnected") {
-    //             await thirdwebWallet.disconnect();
-    //         }
-    //     };
-    //     disconnectIfNeeded();
-    // }, [wagmiAccount, thirdwebWallet]);
+    useEffect(() => {
+        const disconnectIfNeeded = async () => {
+            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
+                await thirdwebWallet.disconnect();
+            }
+        };
+        disconnectIfNeeded();
+    }, [wagmiAccount, thirdwebWallet]);
 
     // Fetch Token List //
     // const tokenList = await loadTokenList();
