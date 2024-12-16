@@ -16,6 +16,7 @@ import { Route, RouteTxData, RouteType, SwapHistory } from "@/app/types/swaps"
 import { TxActionType, TxReceiptStatusType, TxStatusType } from "@/app/types/txs"
 import DecimalAmount from "../ui/DecimalAmount"
 import { shortenAddress } from "thirdweb/utils"
+import { Wallet } from "lucide-react"
 
 export interface ReviewRouteDialogProps extends DialogProps {
     route?: Route,
@@ -99,6 +100,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
 
     // Mirror Address //
     const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
+    const [plyrAvatar, setPlyrAvatar] = useState<string | undefined>(undefined)
     const [mirrorAddress, setMirrorAddress] = useState<string | undefined>(undefined)
 
     useEffect(() => {
@@ -112,6 +114,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
         if (address === '') {
             setPlyrId(undefined)
             setMirrorAddress(undefined)
+            setPlyrAvatar(undefined)
             return
         }
         try {
@@ -132,6 +135,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
             else {
                 setPlyrId(retJson.plyrId);
                 setMirrorAddress(retJson.mirrorAddress);
+                setPlyrAvatar(retJson.avatar);
             }
         }
         catch (e) {
@@ -203,16 +207,22 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
 
                 {/* Destination Address */}
                 <div className="flex mt-4 flex-row flex-1 justify-center items-center gap-4">
-                    <div onClick={() => setDestinationAddress(accountAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                        <div className="font-bold">MY WEB3 ADDRESS</div>
-                        <div className="text-xs">{accountAddress && shortenAddress(accountAddress)}</div>
+                    <div onClick={() => setDestinationAddress(accountAddress || undefined)} className={`flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <Wallet className="w-10 h-10 text-white mr-4 ml-1" />
+                        <div className="flex flex-col flex-1 justify-center items-start gap-0">
+                            <div className="font-bold text-sm leading-none">MY WEB3 ADDRESS</div>
+                            <div className="text-xs leading-none">{accountAddress && shortenAddress(accountAddress)}</div>
+                        </div>
                     </div>
                     {
-                       plyrId && (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180')  && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                            <div className="font-bold">MY PLYR[ID]</div>
-                            <div className="text-xs">{plyrId ? plyrId.toUpperCase() : ''}
+                        plyrId && (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                            <img src={plyrAvatar} alt="PLYR Avatar" className="w-10 h-10 rounded-full mr-4 ml-1" />
+                            <div className="flex flex-col flex-1 justify-center items-start gap-0">
+                                <div className="font-bold text-sm leading-none">MY PLYR[ID]</div>
+                                <div className="text-xs leading-none">{plyrId ? plyrId.toUpperCase() : ''}
 
-                                {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
+                                    {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
+                                </div>
                             </div>
                         </div>
                     }

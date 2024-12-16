@@ -40,8 +40,8 @@ export const ProgressCheckpoint = React.forwardRef<HTMLDivElement, ProgressCheck
     <div
         ref={ref}
         className={twMerge(
-            "absolute -translate-x-1/2 p-2 rounded-full transition",
-            value && value >= position ? `bg-brand-600 hover:bg-brand-500 ${value >= 100 && "group-hover/indicator:bg-brand-500"}` : "bg-brand-700 hover:bg-brand-600",
+            "absolute -translate-x-1/2 p-2 rounded-full transition text-black",
+            value && value >= position ? `bg-[#daff00] hover:bg-[#daff00] ${value >= 100 && "group-hover/indicator:bg-[#daff00]"}` : "bg-[#daff00] hover:bg-[#daff00]",
             className,
         )}
         style={{
@@ -109,7 +109,7 @@ export const ProgressIndicator = React.forwardRef<React.ElementRef<typeof Progre
         ref={ref}
         className={twMerge(
             "flex flex-row w-full h-full rounded-full transition",
-            value && value >= 100 ? "bg-brand-500 group-hover/indicator:bg-brand-400 paused" : "bg-brand-gradient animate-bg-wave running",
+            value && value >= 100 ? "bg-[#daff00] group-hover/indicator:bg-[#daff00] paused" : "bg-[#daff00] animate-bg-wave running",
             className,
         )}
         style={{
@@ -149,7 +149,7 @@ export const Progress = React.forwardRef<React.ElementRef<typeof ProgressPrimiti
         {...props}
     >
         <div className="group/indicator flex flex-row flex-1 w-full relative items-center">
-            <div className={twMerge("flex flex-row flex-1 w-full h-4 relative rounded-full overflow-hidden transition bg-select-950/50 border border-transparent", indicatorContainerClass)}>
+            <div className={twMerge("flex flex-row flex-1 w-full h-2 relative rounded-full overflow-hidden transition bg-select-950/50 border border-transparent", indicatorContainerClass)}>
                 {indicator ?? <ProgressIndicator value={value ?? undefined} />}
             </div>
             {checkpoints?.map((checkpoint, i) => (
