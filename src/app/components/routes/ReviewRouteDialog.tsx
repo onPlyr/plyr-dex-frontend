@@ -319,6 +319,10 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
         setActiveTab(showProgress ? ReviewRouteDialogTab.SwapStatus : ReviewRouteDialogTab.RouteDetail)
     }, [showProgress])
 
+
+    console.log('showProgress', showProgress);
+    console.log('activeTab', activeTab);
+
     return (
         <Dialog
             ref={ref}
