@@ -10,21 +10,24 @@ import { getErrorToastData } from "@/app/lib/utils"
 import { Chain } from "@/app/types/chains"
 import { Route } from "@/app/types/swaps"
 
+// Add support for custom destination address //
 const useWriteInitiateSwap = ({
     connectedChain,
     accountAddress,
+    destinationAddress,
     route,
     setRoute,
     _enabled = true,
 }: {
     connectedChain?: Chain,
     accountAddress?: Address,
+    destinationAddress?: Address,
     route?: Route,
     setRoute?: (route?: Route) => void,
     _enabled?: boolean,
 }) => {
 
-    const instructions = getRouteInstructions(accountAddress, route)
+    const instructions = getRouteInstructions((destinationAddress ? destinationAddress : accountAddress), route)
     const enabled = _enabled !== false && connectedChain !== undefined && accountAddress !== undefined && route !== undefined && route.initiateTx === undefined && instructions !== undefined && connectedChain.id === route.srcChain.id
 
     const { data, error: simulateError } = useSimulateContract({

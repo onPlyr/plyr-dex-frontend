@@ -171,7 +171,7 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
         >
             <div
                 className={twMerge(
-                    "z-[150] fixed transition px-6",
+                    "z-[150] fixed transition px-4",
                     side ? dialogSideStyles[side] : twMerge(
                         "md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out",
                         defaultDialogMaxDimensions,

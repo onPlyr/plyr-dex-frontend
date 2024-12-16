@@ -51,11 +51,11 @@ export const TokenSelectAmountComboItem = React.forwardRef<HTMLDivElement, Token
                     {selectedChain.name}
                 </div>
             )}
-            {selectedToken && (
+            {/* {selectedToken && (
                 <div className="flex flex-row flex-initial justify-end items-center">
                     {selectedToken.name}
                 </div>
-            )}
+            )} */}
         </div>
         <div className="flex flex-row flex-1 gap-4 justify-start">
             <div className="flex flex-row flex-1">
@@ -78,13 +78,13 @@ export const TokenSelectAmountComboItem = React.forwardRef<HTMLDivElement, Token
                     </div>
                 )}
                 <SelectTokenDialog
-                    trigger=<Button className="clear-border-outline clear-bg flex flex-row flex-1 p-0 min-w-fit w-full h-full justify-center items-center transition text-muted-500 hover:text-white">
+                    trigger=<Button className="clear-border-outline !text-white flex flex-row flex-1 p-0 min-w-fit w-full h-fit px-2 py-2 bg-white/5 hover:bg-white/10 focus:bg-white/10 justify-center items-center transition text-muted-500 hover:text-white">
                         {selectedToken ? (
-                            <TokenImage token={selectedToken} />
+                            <><TokenImage token={selectedToken} /> {selectedToken.name}</>
                         ) : (
                             <CurrencyIcon variant={CurrencyIconVariant.UsdCircle} className={iconSizes.xl} />
                         )}
-                        <ChevronIcon direction={StyleDirection.Down} />
+                        <ChevronIcon direction={StyleDirection.Down} className="text-[#daff00]"/>
                     </Button>
                     header="Select Token"
                     selectedChain={selectedChain}

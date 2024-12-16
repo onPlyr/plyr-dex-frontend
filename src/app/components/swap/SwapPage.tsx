@@ -37,6 +37,7 @@ import { Token } from "@/app/types/tokens"
 
 import { serialize } from "wagmi"
 import { isEqualObj } from "@/app/lib/utils"
+import { shortenAddress } from "thirdweb/utils"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -293,9 +294,13 @@ const SwapPage = () => {
         }
     }, [approveTxReceipt, refetchAllowance])
 
+
+    const [destinationAddress, setDestinationAddress] = useState<string | undefined>(undefined)
+
     const { write: writeInitiate, txHash: initiateTxHash, status: initiateTxStatus, txReceiptStatus: initiateTxReceiptStatus } = useWriteInitiateSwap({
         connectedChain: connectedChain,
         accountAddress: accountAddress,
+        destinationAddress: destinationAddress,
         route: selectedRoute,
         setRoute: setRoute,
         _enabled: selectedRoute !== undefined && errReviewRoute === undefined && errInitiateSwap === undefined && isSwitchChainRequired === false && isApprovalRequired === false,
@@ -351,6 +356,9 @@ const SwapPage = () => {
         initiateTxReceiptStatus: initiateTxReceiptStatus,
         latestSwap: latestSwapHistory,
         pendingSwap: pendingSwapHistory,
+        accountAddress: accountAddress,
+        destinationAddress: destinationAddress,
+        setDestinationAddress: setDestinationAddress,
     }
 
     return (
@@ -434,6 +442,8 @@ const SwapPage = () => {
                     })}
                 </CardContent>
             </>)}
+
+
 
             <CardContent className="-mt-6 overflow-visible">
                 {accountAddress ? (

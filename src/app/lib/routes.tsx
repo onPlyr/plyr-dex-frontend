@@ -47,12 +47,12 @@ export const getSuggestedRoute = (routes?: Route[], sortType?: RouteSortType) =>
     return sortRoutes(routes, sortType)?.[0]
 }
 
-export const getRouteInstructions = (accountAddress?: Address, route?: Route) => {
-    if (accountAddress === undefined || route === undefined) {
+export const getRouteInstructions = (destinationAddress?: Address, route?: Route) => {
+    if (destinationAddress === undefined || route === undefined) {
         return undefined
     }
     return {
-        receiver: accountAddress,
+        receiver: destinationAddress,
         payableReceiver: route.dstToken.isNative ? true : false,
         rollbackTeleporterFee: tmpRollbackTeleporterFee,
         rollbackGasLimit: tmpHopGasEstimate,

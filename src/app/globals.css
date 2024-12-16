@@ -234,8 +234,8 @@ body {
 
 /* Chrome, Edge and Safari */
 *::-webkit-scrollbar {
-  height: 12px;
-  width: 12px;
+  height: 8px;
+  width: 8px;
 }
 *::-webkit-scrollbar-track {
   background-color: #ffffff0d;
@@ -267,4 +267,6 @@ body {
   border-radius: 36px !important;
   height: 40px !important;
   box-shadow: 0 0 10px #daff00 !important;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
 }

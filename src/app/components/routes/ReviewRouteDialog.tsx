@@ -15,6 +15,7 @@ import { getActionTxStatus, getRouteTypeLabel } from "@/app/lib/swaps"
 import { Route, RouteTxData, RouteType, SwapHistory } from "@/app/types/swaps"
 import { TxActionType, TxReceiptStatusType, TxStatusType } from "@/app/types/txs"
 import DecimalAmount from "../ui/DecimalAmount"
+import { shortenAddress } from "thirdweb/utils"
 
 export interface ReviewRouteDialogProps extends DialogProps {
     route?: Route,
@@ -36,6 +37,9 @@ export interface ReviewRouteDialogProps extends DialogProps {
     initiateTxReceiptStatus: TxReceiptStatusType,
     latestSwap?: SwapHistory,
     pendingSwap?: SwapHistory,
+    accountAddress?: string,
+    destinationAddress?: string,
+    setDestinationAddress: (address: string | undefined) => void,
 }
 
 enum ReviewRouteDialogTab {
@@ -67,6 +71,9 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     latestSwap,
     pendingSwap,
     disabled = false,
+    accountAddress,
+    destinationAddress,
+    setDestinationAddress,
     ...props
 }, ref) => {
 
@@ -88,6 +95,16 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
             handleInitiateTxComplete?.()
         }
     }, [initiateTxData, handleInitiateTxComplete])
+
+
+    // Mirror Address //
+    const [mirrorAddress, setMirrorAddress] = useState<string | undefined>(undefined)
+
+    useEffect(() => {
+        if (accountAddress) {
+            setDestinationAddress(accountAddress)
+        }
+    }, [])
 
     // todo: add msg if routes refresh and a better rate is found
     // todo: add msg if alternative better route available
@@ -146,6 +163,19 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         token={route.dstToken}
                     />
                 </div>
+
+                {/* Destination Address */}
+                <div className="flex mt-4 flex-row flex-1 justify-center items-center gap-4">
+                    <div onClick={() => setDestinationAddress(accountAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <div className="font-bold">MY WEB3 ADDRESS</div>
+                        <div className="text-xs">{accountAddress && shortenAddress(accountAddress)}</div>
+                    </div>
+                    <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${accountAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <div className="font-bold">MY PLYR[ID]</div>
+                        <div className="text-xs">{mirrorAddress && shortenAddress(mirrorAddress)}</div>
+                    </div>
+                </div>
+
             </div>
             <Button
                 className="btn-gradient btn-full"

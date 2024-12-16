@@ -38,7 +38,7 @@ const RouteSummaryBadges = React.forwardRef<HTMLDivElement, RouteSummaryBadgesPr
                 </Badge>
             )}
             {route.durationEstimate === minDuration && (
-                <Badge className="bg-brand-light-blue-500">
+                <Badge className="bg-[#daff00] text-black">
                     Fastest
                 </Badge>
             )}

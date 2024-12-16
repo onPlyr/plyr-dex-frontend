@@ -25,10 +25,12 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
     err,
     isConnectWalletErr,
     queryStatus,
+    onClick,
     disabled = false,
     ...props
 }, ref) => {
     const { connect, isConnecting } = useConnectModal()
+    const isDisabled = isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error")
     async function handleConnect() {
         const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
         console.log('connected to', wallet);
@@ -37,9 +39,9 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
         <Button
             ref={ref}
             // className={twMerge("btn-gradient btn-full", className)}
-            className={twMerge("btn gradient-btn rounded w-full", className)}
-            onClick={isConnectWalletErr ? handleConnect : undefined}
-            disabled={isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error")}
+            className={twMerge("btn gradient-btn rounded-3xl w-full", className)}
+            onClick={isDisabled ? undefined : isConnectWalletErr ? handleConnect : onClick?.bind(this)}
+            disabled={isDisabled}
             {...props}
         >
             {err ? err : queryStatus === "error" ? (<>
