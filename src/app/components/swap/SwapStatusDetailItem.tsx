@@ -25,11 +25,14 @@ import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel, getSwapHistoryQuoteData, getSwapProgress } from "@/app/lib/swaps"
 import { StyleDirection } from "@/app/types/styling"
 import { SwapHistory } from "@/app/types/swaps"
+import { toTokens, toUnits } from "thirdweb"
 
 interface SwapStatusDetailItemProps extends React.ComponentPropsWithoutRef<"div"> {
     history?: SwapHistory,
     pendingHistory?: SwapHistory,
     initialValue?: number,
+    plyrId?: string,
+    isPlyrDestination?: boolean,
 }
 
 const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailItemProps>(({
@@ -37,12 +40,17 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
     history,
     pendingHistory,
     initialValue,
+    plyrId,
+    isPlyrDestination,
     ...props
 }, ref) => {
 
     const initialProgress = initialValue ?? 10
     const { address: accountAddress } = useAccount()
     const [swapProgress, setSwapProgress] = useState<number>(initialProgress)
+
+
+   
 
     const confirmedSwapHistory = useWatchSwapStatus({
         accountAddress: accountAddress,
@@ -66,6 +74,29 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
         chain: swapData?.dstChain,
         tx: finalTx?.hash,
     })
+
+    const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {
+        await fetch('/api/addDepositLog', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plyrId: plyrId,
+                gameId: null,
+                token: token,
+                amount: amount,
+                hash: hash,
+            })
+        });
+    }
+
+    useEffect(() => {
+        console.log('swapProgress', plyrId, isPlyrDestination, swapProgress);
+        if (isPlyrDestination && plyrId && swapProgress >= 100 && finalTx?.hash && swapData?.dstToken?.id && swapData?.dstAmount) {
+            addDepositLog(plyrId, swapData?.dstToken?.id, toTokens(swapData?.dstAmount, swapData?.dstToken?.decimals), finalTx?.hash)
+        }
+    }, [isPlyrDestination, swapProgress, finalTx])
 
     return (
         <div
