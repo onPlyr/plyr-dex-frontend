@@ -98,13 +98,50 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
 
 
     // Mirror Address //
+    const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
     const [mirrorAddress, setMirrorAddress] = useState<string | undefined>(undefined)
 
     useEffect(() => {
         if (accountAddress) {
             setDestinationAddress(accountAddress)
         }
-    }, [])
+    }, []);
+
+    // get user info //
+    const getUserInfo = async (address: string) => {
+        if (address === '') {
+            setPlyrId(undefined)
+            setMirrorAddress(undefined)
+            return
+        }
+        try {
+            const response = await fetch('/api/userInfo/', {
+                method: 'POST',
+                body: JSON.stringify({ searchTxt: address })
+            });
+            const retJson = await response.json();
+            if (retJson?.success === false) {
+
+                setPlyrId('');
+                // toast({
+                //     description: 'This PLYR[ID] not found',
+                //     variant: 'destructive',
+                // })
+                throw new Error('Failed to get PLYR[ID]');
+            }
+            else {
+                setPlyrId(retJson.plyrId);
+                setMirrorAddress(retJson.mirrorAddress);
+            }
+        }
+        catch (e) {
+            console.log(e);
+        }
+    }
+
+    useEffect(() => {
+        getUserInfo(accountAddress || '')
+    }, [accountAddress])
 
     // todo: add msg if routes refresh and a better rate is found
     // todo: add msg if alternative better route available
@@ -170,10 +207,15 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         <div className="font-bold">MY WEB3 ADDRESS</div>
                         <div className="text-xs">{accountAddress && shortenAddress(accountAddress)}</div>
                     </div>
-                    <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${accountAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                        <div className="font-bold">MY PLYR[ID]</div>
-                        <div className="text-xs">{mirrorAddress && shortenAddress(mirrorAddress)}</div>
-                    </div>
+                    {
+                       plyrId && <div onClick={() => setDestinationAddress(mirrorAddress || undefined)} className={`flex flex-col items-center justify-center p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-full bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                            <div className="font-bold">MY PLYR[ID]</div>
+                            <div className="text-xs">{plyrId ? plyrId.toUpperCase() : ''}
+
+                                {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
+                            </div>
+                        </div>
+                    }
                 </div>
 
             </div>
