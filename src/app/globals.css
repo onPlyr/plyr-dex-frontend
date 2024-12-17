@@ -98,11 +98,6 @@
   }
 }
 
-body,
-html {
-  overflow-x: hidden;
-}
-
 
 b {
   text-transform: uppercase !important;
