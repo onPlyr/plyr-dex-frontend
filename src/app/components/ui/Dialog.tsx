@@ -82,7 +82,7 @@ export const DialogOverlay = React.forwardRef<React.ElementRef<typeof DialogPrim
 }, ref) => (
     <DialogPrimitive.Overlay
         ref={ref}
-        className={twMerge("z-[100] fixed inset-0 transition bg-black/80 backdrop-blur-3xl animate-fade-in-out", className)}
+        className={twMerge("z-[100] fixed inset-0 transition bg-black/80 backdrop-blur-lg animate-fade-in-out", className)}
         {...props}
     />
 ))
