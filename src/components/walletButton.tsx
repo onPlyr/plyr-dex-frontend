@@ -16,7 +16,11 @@ export default function WalletButton() {
                 projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID
             }
         }
-        showAllWallets={false}
+        showAllWallets={true}
+
+        // onConnect={(wallet) => {
+        //     console.log("onConnect", wallet)
+        // }}
         
         theme={darkTheme({
             colors: {
@@ -38,6 +42,7 @@ export default function WalletButton() {
             title: "Choose your Wallet",
             titleIcon: "https://plyr.network/logo/plyr_icon_orange.svg",
             showThirdwebBranding: false,
+            
         }}
         detailsButton={{
             className: "ThirdwebWalletBtn",

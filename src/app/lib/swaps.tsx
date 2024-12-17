@@ -248,6 +248,7 @@ export const getReviewRouteErrMsg = ({
         err = "Select Route"
     }
     else if (accountAddress === undefined) {
+       // console.log("accountAddress", accountAddress)
         err = "Connect Wallet"
         isConnectWalletErr = true
     }

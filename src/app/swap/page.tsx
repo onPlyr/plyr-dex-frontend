@@ -44,18 +44,25 @@ export default function Main() {
     const wagmiAccount = useAccount();
     const { connectors, connect, status, error } = useConnect();
     const { disconnectAsync } = useDisconnect();
-    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components including Pay
+    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components
     const { data: walletClient } = useWalletClient();
     const { switchChainAsync } = useSwitchChain();
     const setActiveWallet = useSetActiveWallet();
 
     // handle disconnecting from wagmi
     const thirdwebWallet = useActiveWallet();
+    console.log("thirdwebWallet", thirdwebWallet)
+
+    //  const { connectAsync } = useConnect();
+
+    // useEffect(() => {
+    //     connectAsync({ connector: connectors[1] })
+    // }, [])
 
     useEffect(() => {
 
         const setActive = async () => {
-
+            //console.log("walletClient", walletClient)
             if (walletClient) {
                 // Store the current active wallet before setting the new one
                 console.log("walletClient", walletClient)

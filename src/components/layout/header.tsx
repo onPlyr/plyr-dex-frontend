@@ -6,6 +6,8 @@ import { Box, ChartBar, ChartCandlestick, ChartNoAxesCombined, ChevronDown, Circ
 import WalletButton from '@/components/walletButton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { phiChain, tauChain } from '@/lib/thirdweb_client';
+import { AccountButton } from '@/app/components/account/AccountButton';
+import AccountDetail from '@/app/components/account/AccountDetail';
 const NavList = () => {
     return (
         <>
@@ -69,8 +71,12 @@ export default function Header() {
                         <NavList />
                     </div>
 
-                    <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
+                    {/* <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
                         <WalletButton/>
+                    </div> */}
+
+                    <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
+                        <AccountDetail />
                     </div>
 
                     {/* <div className="hidden lg:flex w-full lg:flex-1 flex-row items-center justify-end gap-2">

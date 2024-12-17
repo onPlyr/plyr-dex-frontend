@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Chivo } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+
 // import { SourceCodeProOverrided } from "@/components/font_overrided";
 import { Toaster } from "@/components/ui/toaster";
 import NProgress from "./nprogress";

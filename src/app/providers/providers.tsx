@@ -16,6 +16,8 @@ import FavouriteTokensProvider from "@/app/providers/favouriteTokens"
 import PreferencesProvider from "@/app/providers/preferences"
 
 import { ThirdwebProvider } from "thirdweb/react";
+import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit"
+import "@rainbow-me/rainbowkit/styles.css"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -48,11 +50,11 @@ export const Providers = ({ children }: { children: ReactNode }) => {
                 <ThirdwebProvider>
                     <WagmiProvider config={wagmiConfig}>
                         {persister && <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
-
-                            <AccountDataProvider>
-                                {children}
-                            </AccountDataProvider>
-
+                            <RainbowKitProvider showRecentTransactions={false} theme={darkTheme()}>
+                                <AccountDataProvider>
+                                    {children}
+                                </AccountDataProvider>
+                            </RainbowKitProvider>
                             {/* <ReactQueryDevtools initialIsOpen={false} /> */}
                         </PersistQueryClientProvider>}
                     </WagmiProvider>
