@@ -63,7 +63,7 @@
     "thirdweb": "^5.78.0",
     "vaul": "^0.9.1",
     "viem": "2.x",
-    "wagmi": "^2.14.13",
+    "wagmi": "^2.12.25",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
