@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { phiChain, tauChain } from '@/lib/thirdweb_client';
 import { AccountButton } from '@/app/components/account/AccountButton';
 import AccountDetail from '@/app/components/account/AccountDetail';
+import { useAccount, useWalletClient } from 'wagmi';
 const NavList = () => {
     return (
         <>
@@ -56,6 +57,10 @@ const NavList = () => {
 }
 
 export default function Header() {
+
+    const activeWagmiAccount = useAccount();
+    console.log("activeWagmiAccount", activeWagmiAccount.status)
+
     return (
         <>
             <section className="absolute top-0 flex flex-col items-center justify-center w-full">
@@ -71,14 +76,16 @@ export default function Header() {
                         <NavList />
                     </div>
 
-                    {/* <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
-                        <WalletButton/>
-                    </div> */}
-
-                    <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
-                        <AccountDetail />
-                    </div>
-
+                    {
+                        activeWagmiAccount.status === 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
+                            <WalletButton />
+                        </div>
+                    }
+                    {
+                        activeWagmiAccount.status !== 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
+                            <AccountDetail />
+                        </div>
+                    }
                     {/* <div className="hidden lg:flex w-full lg:flex-1 flex-row items-center justify-end gap-2">
                         <WalletButton />
                     </div> */}

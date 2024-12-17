@@ -37,9 +37,9 @@ const AccountDetail = () => {
                 const rainbowKitChain = chain
                 const connected = mounted && account !== undefined && rainbowKitChain !== undefined && accountAddress !== undefined
                 return (
-                    <div className={twMerge("flex flex-row flex-1 p-6 gap-4 justify-end items-center", !mounted && "hidden")}>
+                    <div className={twMerge("w-fit", !mounted && "hidden")}>
                         {!connected ? (
-                             <ConnectButton />
+                             <ConnectButton className="ThirdwebWalletBtn text-white !px-8"/>
                         ) : rainbowKitChain.unsupported ? (
                             <SelectChainDialog
                                 trigger=<ErrorButton>
@@ -48,19 +48,19 @@ const AccountDetail = () => {
                                 header="Switch Connected Chain"
                                 setSelectedChain={switchConnectedChain}
                             />
-                        ) : connectedChain && (
-                            <div className="flex flex-row shrink gap-4">
-                                <AccountDetailDialog
-                                    trigger=<AccountButton
-                                        account={account}
-                                        accountAddress={accountAddress}
-                                    />
-                                    header="Account"
-                                    accountAddress={accountAddress}
-                                    connectedChain={connectedChain}
+                        ) : connectedChain && (<></>
+                            // <div className="flex flex-row shrink gap-4">
+                            //     <AccountDetailDialog
+                            //         trigger=<AccountButton
+                            //             account={account}
+                            //             accountAddress={accountAddress}
+                            //         />
+                            //         header="Account"
+                            //         accountAddress={accountAddress}
+                            //         connectedChain={connectedChain}
 
-                                />
-                            </div>
+                            //     />
+                            // </div>
                         )}
                     </div>
                 )
