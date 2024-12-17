@@ -50,8 +50,10 @@ export const Providers = ({ children }: { children: ReactNode }) => {
                 <ThirdwebProvider>
                     <WagmiProvider config={wagmiConfig}>
                         {persister && <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
-                            <RainbowKitProvider showRecentTransactions={true} modalSize="compact" theme={darkTheme({
-                                accentColor: '#daff00'
+                            <RainbowKitProvider showRecentTransactions={false} modalSize="compact" theme={darkTheme({
+                                accentColor: '#daff00',
+                                borderRadius: 'large',
+                                overlayBlur: 'large'
                             })}>
                                 <AccountDataProvider>
                                     {children}
