@@ -64,12 +64,13 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     useEffect(() => {
 
         const setActive = async () => {
-
+            //console.log("walletClient", walletClient)
             if (walletClient) {
                 // Store the current active wallet before setting the new one
+                console.log("walletClient", walletClient)
 
                 const adaptedAccount = viemAdapter.walletClient.fromViem({
-                    walletClient: walletClient,
+                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
                 });
                 const w = createWalletAdapter({
                     adaptedAccount,
