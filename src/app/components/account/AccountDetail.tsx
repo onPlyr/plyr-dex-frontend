@@ -39,7 +39,7 @@ const AccountDetail = () => {
                 return (
                     <div className={twMerge("w-fit", !mounted && "hidden")}>
                         {!connected ? (
-                             <ConnectButton className="ThirdwebWalletBtn text-white !px-8"/>
+                             <ConnectButton className="ThirdwebWalletBtn text-white !px-8" />
                         ) : rainbowKitChain.unsupported ? (
                             <SelectChainDialog
                                 trigger=<ErrorButton>
