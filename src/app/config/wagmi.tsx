@@ -19,7 +19,7 @@ import { metaMaskWallet, walletConnectWallet, rabbyWallet, coreWallet } from "@r
 import { clientTransports, wagmiChains } from "@/app/config/chains"
 import { getDefaultConfig } from "@rainbow-me/rainbowkit"
 
-const appName = "Tesseract"
+const appName = "PLYR[SWAP]"
 const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || ""
 
 export const wagmiConfig = getDefaultConfig({
@@ -33,5 +33,5 @@ export const wagmiConfig = getDefaultConfig({
             wallets: [coreWallet, rabbyWallet, metaMaskWallet, walletConnectWallet],
         },
     ],
-    ssr: true,
+    //ssr: true,
 })
