@@ -138,7 +138,7 @@ export const SelectTokenDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         )}
                     </div>
                 </div>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 gap-2">
                     {tokens && tokens.length > 0 ? tokens.map((token, i) => {
                         const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
                         return (

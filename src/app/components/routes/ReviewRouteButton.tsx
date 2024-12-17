@@ -6,7 +6,8 @@ import { QueryStatus } from "@tanstack/react-query"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import Button from "@/app/components/ui/Button"
-import { useConnectModal } from "thirdweb/react"
+
+import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
 import { Route } from "@/app/types/swaps"
 import { client } from "@/lib/thirdweb_client"
@@ -29,18 +30,16 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
     disabled = false,
     ...props
 }, ref) => {
-    const { connect, isConnecting } = useConnectModal()
+    const { openConnectModal } = useConnectModal()
+    
     const isDisabled = isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error")
-    async function handleConnect() {
-        const wallet = await connect({ client, size: 'compact', wallets: wallets }); // opens the connect modal
-        console.log('connected to', wallet);
-    }
+    
     return (
         <Button
             ref={ref}
             // className={twMerge("btn-gradient btn-full", className)}
             className={twMerge("btn gradient-btn rounded-3xl w-full", className)}
-            onClick={isDisabled ? undefined : isConnectWalletErr ? handleConnect : onClick?.bind(this)}
+            onClick={isDisabled ? undefined : isConnectWalletErr ? openConnectModal?.bind(this) : onClick?.bind(this)}
             disabled={isDisabled}
             {...props}
         >
