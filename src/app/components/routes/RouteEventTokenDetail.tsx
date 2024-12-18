@@ -35,7 +35,7 @@ const RouteEventTokenDetail = React.forwardRef<HTMLDivElement, RouteEventTokenDe
         <div className={twMerge("flex flex-row flex-initial w-12 items-center", lighterMuted ? "text-muted-400" : "text-muted-500")}>
             {label}
         </div>
-        <div className="flex flex-col-reverse sm:flex-row flex-1 gap-x-4 gap-y-1">
+        <div className="flex flex-col-reverse items-start sm:flex-row flex-1 gap-x-4 gap-y-1">
             <div className={twMerge("flex flex-row-reverse sm:flex-row flex-1 gap-4 justify-start items-center", lighterMuted ? "text-muted-300" : "text-muted-500")}>
                 <ChainImageInline
                     chain={chain}
