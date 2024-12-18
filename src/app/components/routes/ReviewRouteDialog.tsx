@@ -88,9 +88,9 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     const [isOpen, setIsOpen] = useState<boolean>(false)
 
     const [activeTab, setActiveTab] = useState<ReviewRouteDialogTab>(reviewRouteDialogDefaultTab)
-    const setTab = useCallback((tab: string) => {
-        setActiveTab(tab && (Object.values(ReviewRouteDialogTab) as string[]).includes(tab) ? tab as ReviewRouteDialogTab : reviewRouteDialogDefaultTab)
-    }, [setActiveTab])
+    // const setTab = useCallback((tab: string) => {
+    //     setActiveTab(tab && (Object.values(ReviewRouteDialogTab) as string[]).includes(tab) ? tab as ReviewRouteDialogTab : reviewRouteDialogDefaultTab)
+    // }, [setActiveTab])
 
     const approvalTxData = getActionTxStatus(TxActionType.Approve, approveTxStatus, approveTxReceiptStatus, approveTxHash, routeTxData)
     const initiateTxData = getActionTxStatus(route?.type === RouteType.Bridge ? TxActionType.Bridge : TxActionType.Swap, initiateTxStatus, initiateTxReceiptStatus, initiateTxHash, routeTxData)
@@ -232,7 +232,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     const dialogHeader = showProgress ? `${activeSwapHistory ? getRouteTypeLabel(activeSwapHistory.type) : "Swap"} Status` : header
     const dialogFooter = route && showProgress !== true ? (
         <div className="flex flex-col flex-1 gap-4">
-            <div className="flex flex-col flex-1 -mt-2 text-sm">
+            <div className="flex flex-col flex-1 -mt-2 text-xs md:text-sm">
                 <div className="flex flex-row flex-1 justify-between items-center">
                     <div>To send</div>
                     <DecimalAmount
@@ -262,24 +262,24 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 </div>
                 <div className="flex flex-row flex-1 justify-between items-center">
                     <div>Max. slippage</div>
-                    <div>{bpsToPercent(preferences[PreferenceType.Slippage] ?? defaultSlippageBps)}%</div>
+                    <div className="font-bold">{bpsToPercent(preferences[PreferenceType.Slippage] ?? defaultSlippageBps)}%</div>
                 </div>
                 <div className="flex flex-row flex-1 justify-between items-center">
                     <div>Destination Address</div>
-                    <div>{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
+                    <div className="font-bold text-right">{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
                 </div>
 
                 {/* Destination Address */}
-                <div className="flex mt-4 flex-col md:flex-row flex-1 justify-center items-center gap-4">
-                    <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`w-full flex flex-row items-center justify-center p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                        <Wallet2 className="w-10 h-10 text-white mr-4 ml-1" />
+                <div className="flex mt-4 flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
+                    <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
                         <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                            <div className="font-bold text-xs">EVM ADDRESS ADDRESS</div>
-                            <div className="text-base">{accountAddress && shortenAddress(accountAddress)}</div>
+                            <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
+                            <div className="text-sm md:text-base">{accountAddress && shortenAddress(accountAddress)}</div>
                         </div>
                     </div>
                     {
-                        (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`w-full relative flex flex-row items-center justify-start p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-2.5xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); getUserInfo(accountAddress || '', true) }} className="absolute top-2 right-3">
                                 <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
                             </button>
@@ -289,10 +289,10 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                                 </button>
                             }
                             {
-                                plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-10 h-10 rounded-full mr-4 ml-1" />
+                                plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
                             }
                             {
-                                !plyrId && <X className="w-10 h-10 rounded-full mr-4 ml-1" />
+                                !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
                             }
                             <div className=" flex flex-col flex-1 justify-center items-start gap-0">
 
@@ -304,8 +304,8 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                                         </form>
                                     </> :
                                         <>
-                                            <div className="font-bold text-xs">PLYR[ID]</div>
-                                            <div className="text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
+                                            <div className="font-bold text-[10px] md:text-xs">PLYR[ID]</div>
+                                            <div className="text-sm md:text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
 
                                                 {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
                                             </div>
@@ -318,7 +318,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
 
             </div>
             <Button
-                className="btn-gradient btn-full"
+                className="btn-gradient btn-full text-base md:text-lg leading-none"
                 onClick={submitDisabled !== true ? onClickAction?.bind(this) : undefined}
                 disabled={submitDisabled}
             >

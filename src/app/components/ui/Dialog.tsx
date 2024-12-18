@@ -194,7 +194,7 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
                             </DialogDescription>
                         )}
                     </DialogHeader>
-                    <CardContent className="pb-0 flex-initial">
+                    <CardContent className="pb-0 flex-initial px-0">
                         {children}
                     </CardContent>
                     {footer && (

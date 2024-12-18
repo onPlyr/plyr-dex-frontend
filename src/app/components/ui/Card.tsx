@@ -43,7 +43,7 @@ export const CardContent = React.forwardRef<HTMLDivElement, React.ComponentProps
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge("flex flex-col flex-1 h-fit px-6 pb-6 gap-4 rounded-lg overflow-auto", className)}
+        className={twMerge("flex flex-col flex-1 h-fit px-6 pb-6 gap-4 overflow-auto", className)}
         {...props}
     />
 ))

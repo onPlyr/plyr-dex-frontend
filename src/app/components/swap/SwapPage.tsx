@@ -339,7 +339,7 @@ const SwapPage = () => {
     />
 
     const reviewRouteDialogProps = {
-        header: "Review Selected Route",
+        header: "Review",
         route: selectedRoute,
         allRoutes: routes,
         routeTxData: selectedRouteTxData,

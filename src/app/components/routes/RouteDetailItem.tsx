@@ -30,7 +30,7 @@ const RouteDetailItem = React.forwardRef<React.ElementRef<typeof SummaryDetailIt
     const isSelected = isEqualObj(selectedRoute, route)
     return (
        
-            <div className="flex flex-col flex-1 w-full gap-6">
+            <div className="flex flex-col flex-1 w-full px-6 gap-6">
                 <div className="flex flex-col sm:flex-row flex-1 gap-4">
                     <div className="flex flex-row flex-1">
                         <RouteSummaryTokenItem

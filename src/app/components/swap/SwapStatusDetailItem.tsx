@@ -101,7 +101,7 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
     return (
         <div
             ref={ref}
-            className={twMerge("flex flex-col flex-1 gap-4", className)}
+            className={twMerge("flex flex-col flex-1 gap-4 px-6", className)}
             {...props}
         >
             {swapHistory ? (<>

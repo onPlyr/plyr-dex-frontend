@@ -82,7 +82,7 @@ export const SelectTokenDialog = React.forwardRef<React.ElementRef<typeof Dialog
             {...props}
         >
             {chains && chains.length !== 0 && (
-                <div className="flex flex-row flex-1 justify-start items-start flex-wrap gap-2">
+                <div className="flex flex-row flex-1 justify-start items-start flex-wrap gap-2 px-6">
                     {chains?.map((chain, i) => {
                         const isSelected = selectedFilterChain && selectedFilterChain.id === chain.id
                         return (
@@ -99,13 +99,16 @@ export const SelectTokenDialog = React.forwardRef<React.ElementRef<typeof Dialog
                     })}
                 </div>
             )}
-            <SearchInput
-                value={query}
-                clearValue={clearQuery}
-                handleInput={handleSearchInput}
-                placeholder="Search by name, symbol or address"
-            />
-            <div className="flex flex-col flex-1 gap-4">
+            <div className="px-6">
+                <SearchInput
+                    value={query}
+                    clearValue={clearQuery}
+                    handleInput={handleSearchInput}
+                    placeholder="Search by name, symbol or address"
+
+                />
+            </div>
+            <div className="flex flex-col flex-1 gap-4 px-6">
                 <div className="flex flex-row flex-1 items-center">
                     <div className="flex flex-col sm:flex-row flex-1 gap-x-2 gap-y-1">
                         <div className="flex flex-row flex-1 items-center text-sm">
