@@ -234,6 +234,8 @@ body {
 }
 *::-webkit-scrollbar-track {
   background-color: #ffffff0d;
+  border-right: 5px transparent solid;
+  background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-track:hover {
