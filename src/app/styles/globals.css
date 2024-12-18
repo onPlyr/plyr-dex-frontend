@@ -80,6 +80,12 @@
         @apply flex flex-row flex-initial p-4 gap-4 justify-center items-center rounded-3xl transition font-bold cursor-pointer text-black bg-[#daff00] hover:bg-[#daff00] active:bg-[#daff00] focus:bg-[#daff00] focus-within:bg-[#daff00] disabled:opacity-30;
         @apply disabled:cursor-not-allowed;
     }
+
+    .btn-inactive {
+        @apply clear-bg clear-border-outline;
+        @apply flex flex-row flex-initial p-4 gap-4 justify-center items-center rounded-3xl transition font-bold cursor-pointer text-white bg-[#ffffff10] hover:bg-[#ffffff10] active:bg-[#ffffff10] focus:bg-[#ffffff10] focus-within:bg-[#ffffff10] disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
+    }
     
     .btn-error {
         @apply btn bg-rose-500 hover:bg-rose-400 active:bg-rose-400 active:hover:bg-rose-400 focus:bg-rose-400 focus:hover:bg-rose-400 focus-within:bg-rose-400 focus-within:hover:bg-rose-400;

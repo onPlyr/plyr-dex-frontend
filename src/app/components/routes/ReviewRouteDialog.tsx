@@ -17,6 +17,10 @@ import { TxActionType, TxReceiptStatusType, TxStatusType } from "@/app/types/txs
 import DecimalAmount from "../ui/DecimalAmount"
 import { shortenAddress } from "thirdweb/utils"
 import { Cross, Pencil, RefreshCcw, Wallet, Wallet2, X } from "lucide-react"
+import { bpsToPercent } from "@/app/lib/numbers"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
+import { PreferenceType } from "@/app/types/preferences"
+import { defaultSlippageBps } from "@/app/config/swaps"
 
 export interface ReviewRouteDialogProps extends DialogProps {
     route?: Route,
@@ -77,6 +81,8 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     setDestinationAddress,
     ...props
 }, ref) => {
+
+    const { preferences } = usePreferences()
 
     const { switchChainAsync } = useSwitchChain()
     const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -248,6 +254,10 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         symbol={route.dstToken.symbol}
                         token={route.dstToken}
                     />
+                </div>
+                <div className="flex flex-row flex-1 justify-between items-center">
+                    <div>Max. slippage</div>
+                    <div>{bpsToPercent(preferences[PreferenceType.Slippage] ?? defaultSlippageBps)}%</div>
                 </div>
                 <div className="flex flex-row flex-1 justify-between items-center">
                     <div>Destination Address</div>

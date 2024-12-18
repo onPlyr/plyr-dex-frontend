@@ -60,11 +60,20 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
 
     const [slippagePercent, setSlippagePercent] = useState<string>(preferences[PreferenceType.Slippage] !== undefined ? (preferences[PreferenceType.Slippage] / 100).toString() : defaultSlippagePercent)
     const [slippageBps, setSlippageBps] = useState<number>(preferences[PreferenceType.Slippage] ?? defaultSlippageBps)
+    const [isSlippageValid, setIsSlippageValid] = useState<boolean>(false)
 
     const setSlippage = useCallback((value: string) => {
         setSlippagePercent(value)
-        setSlippageBps(Math.floor(parseFloat(value) * 100))
-    }, [setSlippagePercent, setSlippageBps])
+        const bps = Math.floor(parseFloat(value) * 100)
+        setSlippageBps(bps)
+
+        if (bps !== undefined && Number.isNaN(bps) !== true && bps >= 0 && bps <= 10000) {
+            setIsSlippageValid(true)
+        } else {
+            setIsSlippageValid(false)
+        }
+        
+    }, [setSlippagePercent, setSlippageBps, setIsSlippageValid])
 
     const [directRouteOnly, setDirectRouteOnly] = useState<boolean>(preferences[PreferenceType.DirectRouteOnly] ?? false)
     const toggleDirectRouteOnly = useCallback((pressed: boolean) => {
@@ -75,6 +84,7 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
     const toggleExcludeChains = useCallback((pressed: boolean) => {
         setExcludeChains(pressed)
     }, [setExcludeChains])
+    
 
     const saveUserPreferences = useCallback(() => {
 
@@ -131,13 +141,15 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 Slippage tolerance
             </div>
             <div className="flex-1 grid grid-cols-4 gap-4">
+                
                 {slippagePercentOptions.map((option, i) => (
-                    <Button
+                    <button
+                        className={twMerge(Number(slippagePercent) === Number(option) ? "btn" : "btn-inactive")}
                         key={i}
                         onClick={setSlippage.bind(this, option)}
                     >
                         {option}%
-                    </Button>
+                    </button>
                 ))}
                 <div className="flex flex-row flex-1 relative">
                     <DecimalInput
@@ -168,7 +180,7 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 <Button
                     className="btn-gradient btn-full"
                     onClick={saveUserPreferences}
-                    disabled={!isUnsaved}
+                    disabled={!isUnsaved || !isSlippageValid}
                 >
                     {isUnsaved ? "Save Changes" : "Preferences Saved"}
                 </Button>
