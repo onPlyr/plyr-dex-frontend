@@ -30,16 +30,16 @@
     }
 
     .animate-fade-in-out {
-        @apply data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0;
+        @apply data-[state=open]:animate-in duration-100 data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0;
     }
     .animate-fade-zoom-slide-in {
-        @apply data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%];
+        @apply data-[state=open]:animate-in duration-100 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%];
     }
     .animate-fade-zoom-slide-out {
-        @apply data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%];
+        @apply data-[state=closed]:animate-out duration-100 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%];
     }
     .animate-fade-zoom-slide-in-out {
-        @apply animate-fade-zoom-slide-in animate-fade-zoom-slide-out;
+        @apply animate-fade-zoom-slide-in animate-fade-zoom-slide-out duration-100;
     }
     .animate-fade-zoom-in-out {
         @apply animate-fade-in-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95;

@@ -173,7 +173,7 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
                 className={twMerge(
                     "z-[150] fixed transition px-4",
                     side ? dialogSideStyles[side] : twMerge(
-                        "md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out",
+                        "md:px-0 left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] animate-fade-zoom-slide-in-out !duration-75",
                         defaultDialogMaxDimensions,
                     ),
                 )}
@@ -185,7 +185,7 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrim
                 >
                     <DialogClose className="mr-6 md:mr-0"/>
                     <DialogHeader>
-                        <DialogTitle>
+                        <DialogTitle className="uppercase">
                             {header}
                         </DialogTitle>
                         {description && (
