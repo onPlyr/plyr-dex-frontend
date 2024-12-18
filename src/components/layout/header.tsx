@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 import {
     useAccount,
-    useConnect,
+   // useConnect,
     useDisconnect,
     useSwitchChain,
     useWalletClient,
@@ -74,34 +74,30 @@ const NavList = () => {
 
 export default function Header() {
 
-    const activeWagmiAccount = useAccount();
-
-    const wagmiAccount = useAccount();
-    const { connectors, connect, status, error } = useConnect();
+    // Wagmi stuff
+    const wagmiActiveAccount = useAccount();
     const { disconnectAsync } = useDisconnect();
-    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components
-    const { data: walletClient } = useWalletClient();
     const { switchChainAsync } = useSwitchChain();
+    const { data: wagmiWalletClient } = useWalletClient();
     const setActiveWallet = useSetActiveWallet();
 
-    // handle disconnecting from wagmi
+    // Thirdweb stuff
     const thirdwebWallet = useActiveWallet();
-    console.log("thirdwebWallet", thirdwebWallet)
+
 
     useEffect(() => {
 
         const setActive = async () => {
-            //console.log("walletClient", walletClient)
-            if (walletClient) {
+            if (wagmiWalletClient) {
                 // Store the current active wallet before setting the new one
-                console.log("walletClient", walletClient)
+                //console.log("walletClient", wagmiWalletClient)
 
                 const adaptedAccount = viemAdapter.walletClient.fromViem({
-                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
+                    walletClient: wagmiWalletClient as any, // accounts for wagmi/viem version mismatches
                 });
                 const w = createWalletAdapter({
                     adaptedAccount,
-                    chain: defineChain(await walletClient.getChainId()),
+                    chain: defineChain(await wagmiWalletClient.getChainId()),
                     client: client,
                     onDisconnect: async () => {
                         await disconnectAsync();
@@ -116,17 +112,19 @@ export default function Header() {
             }
         };
         setActive();
-    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
+    }, [wagmiWalletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
 
 
     useEffect(() => {
         const disconnectIfNeeded = async () => {
-            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
+            if (thirdwebWallet && wagmiActiveAccount.status === "disconnected") {
                 await thirdwebWallet?.disconnect();
             }
         };
         disconnectIfNeeded();
-    }, [wagmiAccount, thirdwebWallet]);
+    }, [wagmiActiveAccount, thirdwebWallet]);
+
+    console.log("wagmiActiveAccount", wagmiActiveAccount.status)
 
     return (
         <>
@@ -144,12 +142,12 @@ export default function Header() {
                     </div>
 
                     {
-                        activeWagmiAccount.status === 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
+                        wagmiActiveAccount.status === 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
                             <WalletButton />
                         </div>
                     }
                     {
-                        activeWagmiAccount.status !== 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
+                        wagmiActiveAccount.status !== 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
                             <ConnectButton className="ThirdwebWalletBtn text-white !px-8" />
                         </div>
                     }
