@@ -229,8 +229,8 @@ body {
 
 /* Chrome, Edge and Safari */
 *::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 10px;
+  width: 10px;
 }
 *::-webkit-scrollbar-track {
   background-color: #ffffff0d;
@@ -245,8 +245,10 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: #daff00
+  
+  background-color: #daff00;
+  border-right: 5px transparent solid;
+  background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
