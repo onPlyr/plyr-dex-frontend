@@ -372,7 +372,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         pendingHistory={pendingSwap}
                         plyrId={plyrId}
                         isPlyrDestination={destinationAddress?.toLowerCase() !== accountAddress?.toLowerCase()}
-                        className={showProgress ? "flex" : "hidden"}
+                        className={showProgress ? "flex" : ""}
                     />
                 </TabContent>
             </TabsContainer>
