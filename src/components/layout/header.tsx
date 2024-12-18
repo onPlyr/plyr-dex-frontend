@@ -2,13 +2,29 @@
 import Link from 'next/link';
 import styles from './header.module.scss';
 import Image from 'next/image';
-import { Box, ChartBar, ChartCandlestick, ChartNoAxesCombined, ChevronDown, CircleDollarSign, History, PaintBucket, Settings } from 'lucide-react';
+import { Box, ChartCandlestick, ChartNoAxesCombined, ChevronDown, CircleDollarSign, History, PaintBucket } from 'lucide-react';
 import WalletButton from '@/components/walletButton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { phiChain, tauChain } from '@/lib/thirdweb_client';
-import { AccountButton } from '@/app/components/account/AccountButton';
-import AccountDetail from '@/app/components/account/AccountDetail';
-import { useAccount, useWalletClient } from 'wagmi';
+
+import {
+    useAccount,
+    useConnect,
+    useDisconnect,
+    useSwitchChain,
+    useWalletClient,
+} from 'wagmi';
+import ConnectButton from '@/app/components/account/ConnectButton';
+
+import { defineChain } from "thirdweb";
+import { viemAdapter } from "thirdweb/adapters/viem";
+import {
+    useSetActiveWallet,
+    useActiveWallet,
+} from "thirdweb/react";
+import { createWalletAdapter } from "thirdweb/wallets";
+import { client } from "@/lib/thirdweb_client";
+import { useEffect } from 'react';
+
 const NavList = () => {
     return (
         <>
@@ -59,7 +75,58 @@ const NavList = () => {
 export default function Header() {
 
     const activeWagmiAccount = useAccount();
-    console.log("activeWagmiAccount", activeWagmiAccount.status)
+
+    const wagmiAccount = useAccount();
+    const { connectors, connect, status, error } = useConnect();
+    const { disconnectAsync } = useDisconnect();
+    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components
+    const { data: walletClient } = useWalletClient();
+    const { switchChainAsync } = useSwitchChain();
+    const setActiveWallet = useSetActiveWallet();
+
+    // handle disconnecting from wagmi
+    const thirdwebWallet = useActiveWallet();
+    console.log("thirdwebWallet", thirdwebWallet)
+
+    useEffect(() => {
+
+        const setActive = async () => {
+            //console.log("walletClient", walletClient)
+            if (walletClient) {
+                // Store the current active wallet before setting the new one
+                console.log("walletClient", walletClient)
+
+                const adaptedAccount = viemAdapter.walletClient.fromViem({
+                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
+                });
+                const w = createWalletAdapter({
+                    adaptedAccount,
+                    chain: defineChain(await walletClient.getChainId()),
+                    client: client,
+                    onDisconnect: async () => {
+                        await disconnectAsync();
+                    },
+                    switchChain: async (chain) => {
+                        await switchChainAsync({ chainId: chain.id as any });
+                    },
+                });
+
+                setActiveWallet(w);
+
+            }
+        };
+        setActive();
+    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
+
+
+    useEffect(() => {
+        const disconnectIfNeeded = async () => {
+            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
+                await thirdwebWallet?.disconnect();
+            }
+        };
+        disconnectIfNeeded();
+    }, [wagmiAccount, thirdwebWallet]);
 
     return (
         <>
@@ -83,7 +150,7 @@ export default function Header() {
                     }
                     {
                         activeWagmiAccount.status !== 'connected' && <div className="flex w-full flex-1 flex-row items-center justify-end gap-2">
-                            <AccountDetail />
+                            <ConnectButton className="ThirdwebWalletBtn text-white !px-8" />
                         </div>
                     }
                     {/* <div className="hidden lg:flex w-full lg:flex-1 flex-row items-center justify-end gap-2">

@@ -1,44 +1,26 @@
 
 "use client";
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link';
-// import { Token, Fetcher } from '@uniswap/sdk'
-// import { Pair, } from 'custom-uniswap-v2-sdk'
 
-import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
 import Image from 'next/image';
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useConnect, useConnectModal, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
-import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
-import WalletButton from '@/components/walletButton';
-import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
-import { AlertCircle, Loader2 } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card } from "@/components/ui/card"
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
+
+import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { NumericFormat } from "react-number-format";
 
-import { ethers } from "ethers";
-import { defineChain, getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
-import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
-
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-import { useSearchParams } from 'next/navigation';
-
-import { createWallet, getWalletBalance } from 'thirdweb/wallets';
+import { getContract, readContract, toTokens } from 'thirdweb';
 
 
 import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/components/ui/skeleton';
-import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
-import { wallets } from '@/config/wallet';
-import { useAccount, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
-import { viemAdapter } from "thirdweb/adapters/viem";
-import { createWalletAdapter, Wallet, WalletId } from "thirdweb/wallets";
+
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -49,59 +31,6 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeAccount = useActiveAccount();
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
-    const setActiveWallet = useSetActiveWallet();
-    
-
-    const wagmiAccount = useAccount();
-    const { disconnectAsync } = useDisconnect();
-    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components including Pay
-    const { data: walletClient } = useWalletClient();
-    const { switchChainAsync } = useSwitchChain();
-
-    // handle disconnecting from wagmi
-    const thirdwebWallet = useActiveWallet();
-
-    useEffect(() => {
-
-        const setActive = async () => {
-            //console.log("walletClient", walletClient)
-            if (walletClient) {
-                // Store the current active wallet before setting the new one
-                console.log("walletClient", walletClient)
-
-                const adaptedAccount = viemAdapter.walletClient.fromViem({
-                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
-                });
-                const w = createWalletAdapter({
-                    adaptedAccount,
-                    chain: defineChain(await walletClient.getChainId()),
-                    client: client,
-                    onDisconnect: async () => {
-                        await disconnectAsync();
-                    },
-                    switchChain: async (chain) => {
-                        await switchChainAsync({ chainId: chain.id as any });
-                    },
-                });
-
-                setActiveWallet(w);
-
-            }
-        };
-        setActive();
-    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
-
-
-    useEffect(() => {
-        const disconnectIfNeeded = async () => {
-            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
-                //alert('disconnecting')
-                await thirdwebWallet?.disconnect();
-            }
-        };
-        disconnectIfNeeded();
-    }, [wagmiAccount, thirdwebWallet]);
-
 
     const [allPairs, setAllPairs] = useState<string[]>([])
     const [myLpTokens, setMyLpTokens] = useState<any[]>([])
@@ -252,8 +181,6 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         setIsLoading(false);
     };
 
-
-
     useEffect(() => {
 
         if (allPairs.length > 0) {
@@ -291,15 +218,21 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         <>
             <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
 
-                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-8">
+                <Card className="w-full flex flex-row items-center justify-between max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-8">
                     <div className="flex flex-col items-start justify-center">
                         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>MY LP</div>
                         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>POSITIONS</div>
                         <div className="flex flex-row gap-2 mt-4">
                             <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
-
                         </div>
                     </div>
+                    {/* <div className="flex flex-col flex-1 items-center justify-center">
+                        <Link href={`/liquidity/add/`}>
+                            <Button className="relative w-full rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                                CREATE A NEW LIQUIDITY
+                            </Button>
+                        </Link>
+                    </div> */}
                 </Card>
 
                 {

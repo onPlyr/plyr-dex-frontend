@@ -6,8 +6,8 @@ import "./globals.css";
 // import { SourceCodeProOverrided } from "@/components/font_overrided";
 import { Toaster } from "@/components/ui/toaster";
 import NProgress from "./nprogress";
-import { ThirdwebProvider } from "thirdweb/react";
 import { Providers } from "./providers/providers";
+import Header from "@/components/layout/header";
 
 const chivo = Chivo({ subsets: ["latin"] });
 const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
@@ -52,6 +52,7 @@ export default function RootLayout({
       <body className={`${chivo.className} ${roadRage.variable}`}>
         <NProgress />
         <Providers>
+          <Header />
           {children}
         </Providers>
 

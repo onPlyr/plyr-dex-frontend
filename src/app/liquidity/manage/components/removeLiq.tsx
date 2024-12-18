@@ -1,18 +1,12 @@
 
 "use client";
-import { useEffect, useState } from 'react'
-// import { Token, Fetcher } from '@uniswap/sdk'
-// import { Pair, } from 'custom-uniswap-v2-sdk'
+import { useState } from 'react'
 
-import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
-import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
+
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
 import { AlertCircle } from 'lucide-react'
@@ -20,16 +14,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
 
+import { getContract, prepareContractCall, sendAndConfirmTransaction, toTokens, toUnits } from 'thirdweb';
+import { allowance, approve } from "thirdweb/extensions/erc20";
 
-import { ethers } from "ethers";
-import { getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
-import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
-
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-import { useSearchParams } from 'next/navigation';
-
-import { getWalletBalance } from 'thirdweb/wallets';
-import Link from 'next/link';
 
 import { BigNumber } from 'bignumber.js';
 
@@ -50,7 +37,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
     const [isLoading, setIsLoading] = useState(false)
     const [isRemovingLiquidity, setIsRemovingLiquidity] = useState(false)
-    const [error, setError] = useState('')
+
     const [result, setResult] = useState<React.ReactNode | null>(null)
 
 
@@ -66,7 +53,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
         if (isRemovingLiquidity) return;
 
         setResult(null)
-        setError('')
+
         setIsRemovingLiquidity(true);
 
         try {
@@ -223,7 +210,19 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                 })
             }
         } catch (error: any) {
-            setError(`${error.message}`)
+            if (error.message.includes('User rejected the request')) {
+                toast({
+                    title: 'Error',
+                    description: 'User rejected the request',
+                    variant: 'destructive',
+                })
+            } else {
+                toast({
+                    title: 'Error',
+                    description: error.message,
+                    variant: 'destructive',
+                })
+            }
         }
         finally {
             setIsRemovingLiquidity(false);
@@ -331,18 +330,6 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                 </div>
             )}
 
-            {error && (
-                <Alert variant="destructive" className="mt-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>
-                        {error}
-                    </AlertDescription>
-                </Alert>
-            )}
-
         </>
-
-
     )
 }

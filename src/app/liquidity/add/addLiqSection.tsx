@@ -1,47 +1,37 @@
 "use client";
 import { useEffect, useState } from 'react'
-// import { Token, Fetcher } from '@uniswap/sdk'
-// import { Pair, } from 'custom-uniswap-v2-sdk'
+
 import Image from 'next/image'
-import { Token, Fetcher, Pair, Trade, Route, TokenAmount, Fraction } from '@plyrnetwork/plyrswap-sdk'
+import { Token, Fetcher, Pair, TokenAmount } from '@plyrnetwork/plyrswap-sdk'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain, useConnectModal, useSetActiveWallet, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
-import { totalSupply } from "thirdweb/extensions/erc20";
+import { Card } from "@/components/ui/card"
+import { useActiveAccount, useActiveWallet, useActiveWalletChain,  useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 
 import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
 
-import { AlertCircle, Info, PiggyBank, SquarePlus } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Info, PiggyBank, SquarePlus } from 'lucide-react'
 
 import { NumericFormat } from "react-number-format";
 
 import { ethers } from "ethers";
-import { defineChain, getContract, prepareContractCall, readContract, sendAndConfirmTransaction, toEther, toTokens, toUnits, toWei } from 'thirdweb';
-import { allowance, approve, transfer } from "thirdweb/extensions/erc20";
+import { getContract, prepareContractCall, sendAndConfirmTransaction, toTokens, toUnits } from 'thirdweb';
+import { allowance, approve } from "thirdweb/extensions/erc20";
 
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { useSearchParams } from 'next/navigation';
 
 import { BigNumber } from 'bignumber.js';
 
-import { useAccount, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
-import { viemAdapter } from "thirdweb/adapters/viem";
-import { createWalletAdapter, Wallet, WalletId } from "thirdweb/wallets";
-
-//import { tokenList } from '@/config/tokenlist';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
 import { FastAverageColor } from 'fast-average-color';
 import { useToast } from '@/components/ui/use-toast';
-import { usePreviousActiveWallet } from '@/store/previousActiveWallet';
-import { wallets } from '@/config/wallet';
+
 
 export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
@@ -49,58 +39,6 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     const activeAccount = useActiveAccount();
     const activeChain = useActiveWalletChain();
     const switchChain = useSwitchActiveWalletChain()
-    const setActiveWallet = useSetActiveWallet();
-
-
-    const wagmiAccount = useAccount();
-    const { disconnectAsync } = useDisconnect();
-    // This is how to set a wagmi account in the thirdweb context to use with all the thirdweb components including Pay
-    const { data: walletClient } = useWalletClient();
-    const { switchChainAsync } = useSwitchChain();
-
-    // handle disconnecting from wagmi
-    const thirdwebWallet = useActiveWallet();
-
-    useEffect(() => {
-
-        const setActive = async () => {
-            //console.log("walletClient", walletClient)
-            if (walletClient) {
-                // Store the current active wallet before setting the new one
-                console.log("walletClient", walletClient)
-
-                const adaptedAccount = viemAdapter.walletClient.fromViem({
-                    walletClient: walletClient as any, // accounts for wagmi/viem version mismatches
-                });
-                const w = createWalletAdapter({
-                    adaptedAccount,
-                    chain: defineChain(await walletClient.getChainId()),
-                    client: client,
-                    onDisconnect: async () => {
-                        await disconnectAsync();
-                    },
-                    switchChain: async (chain) => {
-                        await switchChainAsync({ chainId: chain.id as any });
-                    },
-                });
-
-                setActiveWallet(w);
-
-            }
-        };
-        setActive();
-    }, [walletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
-
-
-    useEffect(() => {
-        const disconnectIfNeeded = async () => {
-            if (thirdwebWallet && wagmiAccount.status === "disconnected") {
-                //alert('disconnecting')
-                await thirdwebWallet?.disconnect();
-            }
-        };
-        disconnectIfNeeded();
-    }, [wagmiAccount, thirdwebWallet]);
 
     const { toast } = useToast();
 
@@ -556,11 +494,20 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             }
 
         } catch (error: any) {
-            toast({
-                title: 'Error',
-                description: error.message,
-                variant: 'destructive',
-            })
+            if (error.message.includes('User rejected the request')) {
+                //setError('User rejected the request')
+                toast({
+                    title: 'Error',
+                    description: 'User rejected the request',
+                    variant: 'destructive',
+                })
+            } else {
+                toast({
+                    title: 'Error',
+                    description: error.message,
+                    variant: 'destructive',
+                })
+            }
         }
         finally {
             setIsAddingLiquidity(false);
