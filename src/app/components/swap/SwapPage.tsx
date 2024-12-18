@@ -152,7 +152,7 @@ const SwapPage = () => {
             }
         }
     }, [srcToken, dstToken, tokenBalanceData, getTokenBalanceData, setSelectedSrcToken, setSelectedDstToken])
-    
+
     const [srcAmount, setSrcAmount] = useState<bigint>(BigInt(0))
     const [srcAmountFormatted, setSrcAmountFormatted] = useState<string>("")
 
@@ -449,14 +449,10 @@ const SwapPage = () => {
 
 
             <CardContent className="-mt-6 overflow-visible">
-                {accountAddress ? (
-                    <ReviewRouteDialog
-                        {...reviewRouteDialogProps}
-                        trigger={reviewRouteBtn}
-                    />
-                ) : (<>
-                    {reviewRouteBtn}
-                </>)}
+                <ReviewRouteDialog
+                    {...reviewRouteDialogProps}
+                    trigger={reviewRouteBtn}
+                />
             </CardContent>
         </Card>
     )

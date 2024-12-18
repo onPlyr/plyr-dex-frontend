@@ -126,6 +126,8 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
             return
         }
 
+
+
         if (address === '' && isEdited) {
             address = accountAddress || '';
         }
@@ -141,7 +143,7 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 setPlyrAvatar(localInfoJson.avatar);
 
                 if (isEdited) {
-                   // alert(localInfoJson.mirrorAddress)
+                    // alert(localInfoJson.mirrorAddress)
                     setIsEditedPlyrId(false);
                     setDestinationAddress(localInfoJson.mirrorAddress || '');
                 }
@@ -149,53 +151,56 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 return;
             }
         }
-        else {
-
-            try {
-                const response = await fetch('/api/userInfo/', {
-                    method: 'POST',
-                    body: JSON.stringify({ searchTxt: address })
-                });
-                const retJson = await response.json();
-                if (retJson?.success === false) {
-
-                    setPlyrId('');
-                    setMirrorAddress('');
-                    setPlyrAvatar('');
-                    setDestinationAddress(accountAddress || '');
 
 
-                    // toast({
-                    //     description: 'This PLYR[ID] not found',
-                    //     variant: 'destructive',
-                    // })
-                    throw new Error('Failed to get PLYR[ID]');
-                }
-                else {
-                    setPlyrId(retJson.plyrId);
-                    setMirrorAddress(retJson.mirrorAddress);
-                    setPlyrAvatar(retJson.avatar);
+        try {
+            const response = await fetch('/api/userInfo/', {
+                method: 'POST',
+                body: JSON.stringify({ searchTxt: address })
+            });
+            const retJson = await response.json();
+            if (retJson?.success === false) {
 
-                    // Save to local storage with address as key and expiry time as value
-                    const expiryTime = new Date().getTime() + 1000 * 60 * 60 * 24; // 1 day
-                    localStorage.setItem('plyrswapInfo-' + address, JSON.stringify({ plyrId: retJson.plyrId, mirrorAddress: retJson.mirrorAddress, avatar: retJson.avatar, expiryTime: expiryTime }));
-
-
-                    if (isEdited) {
-                        setIsEditedPlyrId(false);
-                        setDestinationAddress(retJson.mirrorAddress || '');
-                    }
-                }
-            }
-            catch (e) {
-                console.log(e);
+                setPlyrId('');
+                setMirrorAddress('');
+                setPlyrAvatar('');
                 setDestinationAddress(accountAddress || '');
+
+
+                // toast({
+                //     description: 'This PLYR[ID] not found',
+                //     variant: 'destructive',
+                // })
+                throw new Error('Failed to get PLYR[ID]');
+            }
+            else {
+                setPlyrId(retJson.plyrId);
+                setMirrorAddress(retJson.mirrorAddress);
+                setPlyrAvatar(retJson.avatar);
+
+                // Save to local storage with address as key and expiry time as value
+                const expiryTime = new Date().getTime() + 1000 * 60 * 60 * 24; // 1 day
+                localStorage.setItem('plyrswapInfo-' + address, JSON.stringify({ plyrId: retJson.plyrId, mirrorAddress: retJson.mirrorAddress, avatar: retJson.avatar, expiryTime: expiryTime }));
+
+
+                if (isEdited) {
+                    setIsEditedPlyrId(false);
+                    setDestinationAddress(retJson.mirrorAddress || '');
+                }
             }
         }
+        catch (e) {
+            console.log(e);
+            setDestinationAddress(accountAddress || '');
+        }
+
     }
 
     useEffect(() => {
-        getUserInfo(accountAddress || '')
+        if (accountAddress) {
+
+            getUserInfo(accountAddress)
+        }
     }, [accountAddress])
 
     // todo: add msg if routes refresh and a better rate is found
@@ -372,7 +377,6 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
                         pendingHistory={pendingSwap}
                         plyrId={plyrId}
                         isPlyrDestination={destinationAddress?.toLowerCase() !== accountAddress?.toLowerCase()}
-                        className={showProgress ? "flex" : ""}
                     />
                 </TabContent>
             </TabsContainer>

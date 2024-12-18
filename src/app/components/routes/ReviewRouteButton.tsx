@@ -49,7 +49,7 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
             </>) : queryStatus === "pending" ? (<>
                 Finding Routes
                 <LoadingIcon />
-            </>) : `Review ${route ? getRouteTypeLabel(route.type) : "Route"}`}
+            </>) : `Review`}
         </Button>
     )
 })
