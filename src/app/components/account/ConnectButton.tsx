@@ -27,7 +27,7 @@ const ConnectButton = React.forwardRef<React.ElementRef<typeof Button>, React.Bu
         <Button
             ref={ref}
             onClick={openConnectModal?.bind(this)}
-            className={twMerge("btn-gradient px-4 py-2", className)}
+            className={twMerge("btn-gradient uppercase !px-4 py-2", className)}
             disabled={disabled}
             {...props}
         >

@@ -62,7 +62,7 @@ const NavList = () => {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <Link href="#" className="w-full lg:w-fit flex-1 lg:flex-auto">
+            <Link href="/analytics" className="w-full lg:w-fit flex-1 lg:flex-auto">
                 <div className="px-4 flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <ChartNoAxesCombined className="w-6 h-6 text-[#daff00]" />
                     ANALYTICS

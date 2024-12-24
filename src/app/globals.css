@@ -266,8 +266,8 @@ body {
   border-radius: 36px !important;
   height: 40px !important;
   box-shadow: 0 0 10px #daff00 !important;
-  padding-left: 4px !important;
-  padding-right: 4px !important;
+  /* padding-left: 4px !important;
+  padding-right: 4px !important; */
 }
 
 .ThirdwebWalletBtn .tw-connected-wallet__address
