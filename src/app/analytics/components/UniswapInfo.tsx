@@ -96,20 +96,20 @@ export default function UniswapInfo() {
                             <div className="overflow-x-auto">
                                 <table className="min-w-full">
                                     <thead>
-                                        <tr className="bg-[#3A3935] text-white">
-                                            <th className="px-4 py-2 text-left">Pair</th>
-                                            <th className="px-4 py-2 text-right">Liquidity (USD)</th>
+                                        <tr className="bg-[#3A393580] text-white">
+                                            <th className="px-4 py-4 text-left rounded-l-2xl">Pair</th>
+                                            <th className="px-4 py-4 text-right rounded-r-2xl">Liquidity (USD)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {topPairsTokens.topPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
-                                            <tr key={pair.id} className="border-b text-white">
-                                                <td className="px-4 py-2">
+                                            <tr key={pair.id} className="border-b border-[#ffffff0d] text-white">
+                                                <td className="px-4 py-4">
                                                     <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
                                                         {pair.token0.symbol}/{pair.token1.symbol}
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-2 text-right">${parseFloat(pair.reserveUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right">${parseFloat(pair.reserveUSD).toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -133,20 +133,20 @@ export default function UniswapInfo() {
                             <div className="overflow-x-auto">
                                 <table className="min-w-full">
                                     <thead>
-                                        <tr className="bg-[#3A3935] text-white">
-                                            <th className="px-4 py-2 text-left">Token</th>
-                                            <th className="px-4 py-2 text-right">Volume (USD)</th>
+                                        <tr className="bg-[#3A393580] text-white">
+                                            <th className="px-4 py-4 text-left rounded-l-2xl">Token</th>
+                                            <th className="px-4 py-4 text-right rounded-r-2xl">Volume (USD)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {topPairsTokens.topTokens.slice(tokenStart, tokenStart + ITEMS_PER_PAGE).map((token: any) => (
-                                            <tr key={token.id} className="border-b text-white">
-                                                <td className="px-4 py-2">
+                                            <tr key={token.id} className="border-b border-[#ffffff0d] text-white">
+                                                <td className="px-4 py-4">
                                                     <Link href={`/analytics/token/${token.id}`} className="text-white hover:underline">
                                                         {token.symbol} ({token.name})
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-2 text-right">${parseFloat(token.tradeVolumeUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right">${parseFloat(token.tradeVolumeUSD).toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>

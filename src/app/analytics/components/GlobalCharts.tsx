@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Line, LineChart, Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { Line, LineChart,  XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
 
@@ -37,11 +37,14 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
             <CardContent className="px-2 py-2">
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <LineChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                             <XAxis
                                 dataKey="date"
-                                tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                                tick={{fill: '#fff'}}
+                                tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
+                                tick={{ fill: '#fff' }}
                                 angle={-45}
                                 textAnchor="end"
                                 style={{ fontSize: '11px' }}
@@ -49,7 +52,7 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
                             />
                             <YAxis
                                 style={{ fontSize: '11px' }}
-                                tick={{fill: '#fff'}}
+                                tick={{ fill: '#fff' }}
                                 tickFormatter={(value) => {
                                     const units = ['', 'K', 'M', 'B'];
                                     let unitIndex = 0;
@@ -116,7 +119,7 @@ export default function GlobalCharts({ data }: { data: ChartData[] }) {
                 title="Total Liquidity (WAN)"
                 data={chartData}
                 dataKey="liquidityETH"
-                
+
                 color="#daff00"
             />
         </div>
