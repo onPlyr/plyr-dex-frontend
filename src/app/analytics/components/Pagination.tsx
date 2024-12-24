@@ -17,7 +17,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 variant="outline"
-                className="bg-[#daff00] text-black"
+                className="bg-[#daff00] text-black border-none"
             >
                 Previous
             </Button>
@@ -28,7 +28,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
                 variant="outline"
-                className="bg-[#daff00] text-black"
+                className="bg-[#daff00] text-black border-none"
             >
                 Next
             </Button>
