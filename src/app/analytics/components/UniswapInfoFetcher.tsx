@@ -51,6 +51,9 @@ const LATEST_TRANSACTIONS_QUERY = gql`
       amount0Out
       amount1Out
       amountUSD
+      transaction {
+    	  id
+        }
     }
     mints(first: 20, orderBy: timestamp, orderDirection: desc) {
       id
@@ -64,6 +67,9 @@ const LATEST_TRANSACTIONS_QUERY = gql`
         }
       }
       amountUSD
+      transaction {
+    	  id
+    	}
     }
     burns(first: 20, orderBy: timestamp, orderDirection: desc) {
       id
@@ -77,6 +83,9 @@ const LATEST_TRANSACTIONS_QUERY = gql`
         }
       }
       amountUSD
+      transaction {
+    	  id
+    	}
     }
   }
 `;
@@ -99,6 +108,9 @@ const LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY = gql`
       amount0Out
       amount1Out
       amountUSD
+      transaction {
+    	  id
+    	}
     }
     mints(first: 20, orderBy: timestamp, orderDirection: desc, where: { pair: $pairAddress }) {
       id
@@ -112,6 +124,9 @@ const LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY = gql`
         }
       }
       amountUSD
+      transaction {
+    	  id
+    	}
     }
     burns(first: 20, orderBy: timestamp, orderDirection: desc, where: { pair: $pairAddress }) {
       id
@@ -125,6 +140,9 @@ const LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY = gql`
         }
       }
       amountUSD
+      transaction {
+    	  id
+    	}
     }
   }
 `;
@@ -222,178 +240,178 @@ const GLOBAL_CHART_QUERY = gql`
 
 export async function fetchFactoryData() {
     try {
-      const { data } = await client.query({ query: FACTORY_QUERY });
-      return data.uniswapFactories[0];
+        const { data } = await client.query({ query: FACTORY_QUERY });
+        return data.uniswapFactories[0];
     } catch (error) {
-      console.error("Error fetching factory data:", error);
-      throw new Error("Failed to fetch factory data");
+        console.error("Error fetching factory data:", error);
+        throw new Error("Failed to fetch factory data");
     }
-  }
-  
-  export async function fetchTopPairsTokensData() {
+}
+
+export async function fetchTopPairsTokensData() {
     try {
-      const { data } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
-      return { topPairs: data.pairs, topTokens: data.tokens };
+        const { data } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
+        return { topPairs: data.pairs, topTokens: data.tokens };
     } catch (error) {
-      console.error("Error fetching top pairs and tokens data:", error);
-      throw new Error("Failed to fetch top pairs and tokens data");
+        console.error("Error fetching top pairs and tokens data:", error);
+        throw new Error("Failed to fetch top pairs and tokens data");
     }
-  }
+}
 
 export async function fetchUniswapData() {
-  try {
-    const { data: factoryData } = await client.query({ query: FACTORY_QUERY });
-    const { data: topPairsTokensData } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
-    return {
-      factory: factoryData.uniswapFactories[0],
-      topPairs: topPairsTokensData.pairs,
-      topTokens: topPairsTokensData.tokens,
-    };
-  } catch (error) {
-    console.error("Error fetching Uniswap data:", error);
-    throw new Error("Failed to fetch Uniswap data");
-  }
+    try {
+        const { data: factoryData } = await client.query({ query: FACTORY_QUERY });
+        const { data: topPairsTokensData } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
+        return {
+            factory: factoryData.uniswapFactories[0],
+            topPairs: topPairsTokensData.pairs,
+            topTokens: topPairsTokensData.tokens,
+        };
+    } catch (error) {
+        console.error("Error fetching Uniswap data:", error);
+        throw new Error("Failed to fetch Uniswap data");
+    }
 }
 
 export async function fetchLatestTransactions() {
-  try {
-    const { data } = await client.query({ 
-        query: LATEST_TRANSACTIONS_QUERY,
-      });
-    const allTransactions = [
-      ...data.swaps.map((swap: any) => ({
+    try {
+        const { data } = await client.query({
+            query: LATEST_TRANSACTIONS_QUERY,
+        });
+        const allTransactions = [
+            ...data.swaps.map((swap: any) => ({
+                ...swap,
+                type: 'swap',
+                token0Symbol: swap.pair.token0.symbol,
+                token1Symbol: swap.pair.token1.symbol,
+                isToken0ToToken1: parseFloat(swap.amount0In) > 0,
+            })),
+            ...data.mints.map((mint: any) => ({
+                ...mint,
+                type: 'add',
+                token0Symbol: mint.pair.token0.symbol,
+                token1Symbol: mint.pair.token1.symbol,
+            })),
+            ...data.burns.map((burn: any) => ({
+                ...burn,
+                type: 'remove',
+                token0Symbol: burn.pair.token0.symbol,
+                token1Symbol: burn.pair.token1.symbol,
+            })),
+        ];
+        return allTransactions.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp)).slice(0, 20);
+    } catch (error) {
+        console.error("Error fetching latest transactions:", error);
+        throw new Error("Failed to fetch latest transactions");
+    }
+}
+
+export async function fetchLatestTransactionsByPairAddress(pairAddress: string | undefined) {
+    try {
+        const { data } = await client.query({
+            query: LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY,
+            variables: { pairAddress }
+        });
+
+        console.log(data)
+
+        const allTransactions = [
+            ...data.swaps.map((swap: any) => ({
+                ...swap,
+                type: 'swap',
+                token0Symbol: swap.pair.token0.symbol,
+                token1Symbol: swap.pair.token1.symbol,
+                isToken0ToToken1: parseFloat(swap.amount0In) > 0,
+            })),
+            ...data.mints.map((mint: any) => ({
+                ...mint,
+                type: 'add',
+                token0Symbol: mint.pair.token0.symbol,
+                token1Symbol: mint.pair.token1.symbol,
+            })),
+            ...data.burns.map((burn: any) => ({
+                ...burn,
+                type: 'remove',
+                token0Symbol: burn.pair.token0.symbol,
+                token1Symbol: burn.pair.token1.symbol,
+            })),
+        ];
+        return allTransactions.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp)).slice(0, 20);
+    } catch (error) {
+        console.error("Error fetching latest transactions:", error);
+        throw new Error("Failed to fetch latest transactions");
+    }
+}
+
+export async function fetchPairData(pairAddress: string) {
+    try {
+        const { data } = await client.query({
+            query: PAIR_DATA_QUERY,
+            variables: { pairAddress }
+        })
+        return data.pair
+    } catch (error) {
+        console.error("Error fetching pair data:", error)
+        throw new Error("Failed to fetch pair data")
+    }
+}
+
+export async function fetchPairTransactions(pairAddress: string) {
+    try {
+        const { data } = await client.query({
+            query: PAIR_TRANSACTIONS_QUERY,
+            variables: { pairAddress }
+        })
+        return processPairTransactions(data)
+    } catch (error) {
+        console.error("Error fetching pair transactions:", error)
+        throw new Error("Failed to fetch pair transactions")
+    }
+}
+
+export async function fetchTokenData(tokenAddress: string) {
+    try {
+        const { data } = await client.query({
+            query: TOKEN_DATA_QUERY,
+            variables: { tokenAddress }
+        })
+        return data.token
+    } catch (error) {
+        console.error("Error fetching token data:", error)
+        throw new Error("Failed to fetch token data")
+    }
+}
+
+export async function fetchTokenPairs(tokenAddress: string) {
+    try {
+        const { data } = await client.query({
+            query: TOKEN_PAIRS_QUERY,
+            variables: { tokenAddress }
+        })
+        return data.pairs
+    } catch (error) {
+        console.error("Error fetching token pairs:", error)
+        throw new Error("Failed to fetch token pairs")
+    }
+}
+
+export async function fetchGlobalChartData() {
+    try {
+        const { data } = await client.query({ query: GLOBAL_CHART_QUERY });
+        return data.uniswapDayDatas;
+    } catch (error) {
+        console.error("Error fetching global chart data:", error);
+        throw new Error("Failed to fetch global chart data");
+    }
+}
+
+function processPairTransactions(data: any) {
+    return data.swaps.map((swap: any) => ({
         ...swap,
         type: 'swap',
         token0Symbol: swap.pair.token0.symbol,
         token1Symbol: swap.pair.token1.symbol,
         isToken0ToToken1: parseFloat(swap.amount0In) > 0,
-      })),
-      ...data.mints.map((mint: any) => ({
-        ...mint,
-        type: 'add',
-        token0Symbol: mint.pair.token0.symbol,
-        token1Symbol: mint.pair.token1.symbol,
-      })),
-      ...data.burns.map((burn: any) => ({
-        ...burn,
-        type: 'remove',
-        token0Symbol: burn.pair.token0.symbol,
-        token1Symbol: burn.pair.token1.symbol,
-      })),
-    ];
-    return allTransactions.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp)).slice(0, 20);
-  } catch (error) {
-    console.error("Error fetching latest transactions:", error);
-    throw new Error("Failed to fetch latest transactions");
-  }
-}
-
-export async function fetchLatestTransactionsByPairAddress(pairAddress: string | undefined) {
-    try {
-    const { data } = await client.query({ 
-        query: LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY,
-        variables: { pairAddress }
-      });
-
-      console.log(data)
-
-      const allTransactions = [
-        ...data.swaps.map((swap: any) => ({
-          ...swap,
-          type: 'swap',
-          token0Symbol: swap.pair.token0.symbol,
-          token1Symbol: swap.pair.token1.symbol,
-          isToken0ToToken1: parseFloat(swap.amount0In) > 0,
-        })),
-        ...data.mints.map((mint: any) => ({
-          ...mint,
-          type: 'add',
-          token0Symbol: mint.pair.token0.symbol, 
-          token1Symbol: mint.pair.token1.symbol,
-        })),
-        ...data.burns.map((burn: any) => ({
-          ...burn,
-          type: 'remove',
-          token0Symbol: burn.pair.token0.symbol,
-          token1Symbol: burn.pair.token1.symbol,
-        })),
-      ];
-    return allTransactions.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp)).slice(0, 20);
-  } catch (error) {
-    console.error("Error fetching latest transactions:", error);
-    throw new Error("Failed to fetch latest transactions");
-  }
-}
-
-export async function fetchPairData(pairAddress: string) {
-  try {
-    const { data } = await client.query({ 
-      query: PAIR_DATA_QUERY,
-      variables: { pairAddress }
-    })
-    return data.pair
-  } catch (error) {
-    console.error("Error fetching pair data:", error)
-    throw new Error("Failed to fetch pair data")
-  }
-}
-
-export async function fetchPairTransactions(pairAddress: string) {
-  try {
-    const { data } = await client.query({ 
-      query: PAIR_TRANSACTIONS_QUERY,
-      variables: { pairAddress }
-    })
-    return processPairTransactions(data)
-  } catch (error) {
-    console.error("Error fetching pair transactions:", error)
-    throw new Error("Failed to fetch pair transactions")
-  }
-}
-
-export async function fetchTokenData(tokenAddress: string) {
-  try {
-    const { data } = await client.query({ 
-      query: TOKEN_DATA_QUERY,
-      variables: { tokenAddress }
-    })
-    return data.token
-  } catch (error) {
-    console.error("Error fetching token data:", error)
-    throw new Error("Failed to fetch token data")
-  }
-}
-
-export async function fetchTokenPairs(tokenAddress: string) {
-  try {
-    const { data } = await client.query({ 
-      query: TOKEN_PAIRS_QUERY,
-      variables: { tokenAddress }
-    })
-    return data.pairs
-  } catch (error) {
-    console.error("Error fetching token pairs:", error)
-    throw new Error("Failed to fetch token pairs")
-  }
-}
-
-export async function fetchGlobalChartData() {
-  try {
-    const { data } = await client.query({ query: GLOBAL_CHART_QUERY });
-    return data.uniswapDayDatas;
-  } catch (error) {
-    console.error("Error fetching global chart data:", error);
-    throw new Error("Failed to fetch global chart data");
-  }
-}
-
-function processPairTransactions(data: any) {
-  return data.swaps.map((swap: any) => ({
-    ...swap,
-    type: 'swap',
-    token0Symbol: swap.pair.token0.symbol,
-    token1Symbol: swap.pair.token1.symbol,
-    isToken0ToToken1: parseFloat(swap.amount0In) > 0,
-  }))
+    }))
 }
 

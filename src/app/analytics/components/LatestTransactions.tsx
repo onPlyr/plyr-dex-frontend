@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchLatestTransactions, fetchLatestTransactionsByPairAddress } from './UniswapInfoFetcher'
+import Link from 'next/link'
+import { CircleChevronRight, Loader2 } from 'lucide-react'
 
 interface Transaction {
     id: string
@@ -12,6 +14,9 @@ interface Transaction {
     token1Symbol: string
     amountUSD: string
     isToken0ToToken1?: boolean
+    transaction: {
+        id: string
+    }
 }
 
 export default function LatestTransactions({ pairAddress }: { pairAddress: string | undefined }) {
@@ -24,7 +29,7 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
             if (pairAddress) {
                 try {
                     const result = await fetchLatestTransactionsByPairAddress(pairAddress)
-                    
+
                     //console.log(result)
                     setTransactions(result)
                     setLoading(false)
@@ -51,7 +56,7 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
         return () => clearInterval(interval)
     }, [])
 
-    if (loading) return <div className="text-center">Loading transactions...</div>
+    if (loading) return <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12"><div className="text-center"><Loader2 className="w-24 h-24 animate-spin text-[#daff00]" /></div></div>
     if (error) return <div className="text-center text-red-500">{error}</div>
 
     return (
@@ -71,19 +76,28 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
                                     {new Date(parseInt(tx.timestamp) * 1000).toLocaleString()}
                                 </span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-sm">
-                                    {tx.type === 'swap' ? (
-                                        tx.isToken0ToToken1 ?
-                                            `${tx.token0Symbol} → ${tx.token1Symbol}` :
-                                            `${tx.token1Symbol} → ${tx.token0Symbol}`
-                                    ) : (
-                                        `${tx.token0Symbol} ⇄ ${tx.token1Symbol}`
-                                    )}
-                                </span>
-                            </div>
-                            <div className="mt-1 text-sm font-medium">
-                                ${parseFloat(tx.amountUSD).toLocaleString()}
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <div className="mt-2">
+                                        <span className="text-sm">
+                                            {tx.type === 'swap' ? (
+                                                tx.isToken0ToToken1 ?
+                                                    `${tx.token0Symbol} → ${tx.token1Symbol}` :
+                                                    `${tx.token1Symbol} → ${tx.token0Symbol}`
+                                            ) : (
+                                                `${tx.token0Symbol} ⇄ ${tx.token1Symbol}`
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="mt-1 text-sm font-medium">
+                                        ${parseFloat(tx.amountUSD).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div>
+                                    <Link href={`https://www.wanscan.org/tx/${tx.transaction.id}`} className="text-white">
+                                        <CircleChevronRight className="w-8 h-8" />
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     ))}
