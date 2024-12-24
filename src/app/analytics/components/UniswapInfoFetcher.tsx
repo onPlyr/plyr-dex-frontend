@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import { client } from "@/lib/apollo-client";
 
-const UNISWAP_QUERY = gql`
+const FACTORY_QUERY = gql`
   query {
     uniswapFactories(first: 1) {
       totalVolumeUSD
@@ -9,6 +9,11 @@ const UNISWAP_QUERY = gql`
       pairCount
       txCount
     }
+  }
+`;
+
+const TOP_PAIRS_TOKENS_QUERY = gql`
+  query {
     pairs(first: 100, orderBy: reserveUSD, orderDirection: desc) {
       id
       token0 {
@@ -214,13 +219,35 @@ const GLOBAL_CHART_QUERY = gql`
   }
 `;
 
+
+export async function fetchFactoryData() {
+    try {
+      const { data } = await client.query({ query: FACTORY_QUERY });
+      return data.uniswapFactories[0];
+    } catch (error) {
+      console.error("Error fetching factory data:", error);
+      throw new Error("Failed to fetch factory data");
+    }
+  }
+  
+  export async function fetchTopPairsTokensData() {
+    try {
+      const { data } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
+      return { topPairs: data.pairs, topTokens: data.tokens };
+    } catch (error) {
+      console.error("Error fetching top pairs and tokens data:", error);
+      throw new Error("Failed to fetch top pairs and tokens data");
+    }
+  }
+
 export async function fetchUniswapData() {
   try {
-    const { data } = await client.query({ query: UNISWAP_QUERY });
+    const { data: factoryData } = await client.query({ query: FACTORY_QUERY });
+    const { data: topPairsTokensData } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
     return {
-      factory: data.uniswapFactories[0],
-      topPairs: data.pairs,
-      topTokens: data.tokens,
+      factory: factoryData.uniswapFactories[0],
+      topPairs: topPairsTokensData.pairs,
+      topTokens: topPairsTokensData.tokens,
     };
   } catch (error) {
     console.error("Error fetching Uniswap data:", error);
