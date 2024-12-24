@@ -103,13 +103,13 @@ export default function UniswapInfo() {
                                     </thead>
                                     <tbody>
                                         {topPairsTokens.topPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
-                                            <tr key={pair.id} className="border-b border-[#ffffff0d] text-white">
-                                                <td className="px-4 py-4">
-                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
+                                            <tr key={pair.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
+                                                <td className="px-4 py-4 rounded-l-2xl">
+                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white">
                                                         {pair.token0.symbol}/{pair.token1.symbol}
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-4 text-right">${parseFloat(pair.reserveUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(pair.reserveUSD).toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -140,13 +140,13 @@ export default function UniswapInfo() {
                                     </thead>
                                     <tbody>
                                         {topPairsTokens.topTokens.slice(tokenStart, tokenStart + ITEMS_PER_PAGE).map((token: any) => (
-                                            <tr key={token.id} className="border-b border-[#ffffff0d] text-white">
-                                                <td className="px-4 py-4">
-                                                    <Link href={`/analytics/token/${token.id}`} className="text-white hover:underline">
+                                            <tr key={token.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
+                                                <td className="px-4 py-4 rounded-l-2xl">
+                                                    <Link href={`/analytics/token/${token.id}`} className="text-white">
                                                         {token.symbol} ({token.name})
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-4 text-right">${parseFloat(token.tradeVolumeUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(token.tradeVolumeUSD).toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
