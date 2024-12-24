@@ -127,7 +127,7 @@ export default function UniswapInfo() {
                 {topPairsTokens?.topTokens && (
                     <Card className="bg-[#ffffff0d] rounded-3xl p-4 border-0">
                         <CardHeader>
-                            <CardTitle className="text-white">Top Tokens</CardTitle>
+                            <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Top Tokens</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">

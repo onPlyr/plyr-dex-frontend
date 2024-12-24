@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { Line, LineChart, Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
 
@@ -34,10 +34,10 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
             <CardHeader>
                 <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>{title}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 py-2">
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <LineChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                             <XAxis
                                 dataKey="date"
                                 tickFormatter={(value) => new Date(value).toLocaleDateString()}
@@ -62,11 +62,14 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
                                 }}
                             />
                             <ChartTooltip content={<CustomTooltip />} />
-                            <Bar
+                            <Line
+                                type="monotone"
                                 dataKey={dataKey}
-                                fill={color}
+                                stroke={color}
+                                strokeWidth={2}
+                                dot={false}
                             />
-                        </BarChart>
+                        </LineChart>
                     </ResponsiveContainer>
                 </div>
             </CardContent>
