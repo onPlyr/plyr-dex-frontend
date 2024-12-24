@@ -60,12 +60,12 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
     if (error) return <div className="text-center text-red-500">{error}</div>
 
     return (
-        <Card className="bg-[#ffffff0d] rounded-3xl p-4 border-0">
+        <Card className="bg-[#ffffff0d] rounded-3xl p-2 pr-0 border-0">
             <CardHeader>
                 <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Latest Txs</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                     {transactions.map((tx) => (
                         <div key={tx.id} className="bg-[#3A3935] p-4 rounded-2xl text-white">
                             <div className="flex justify-between items-center">

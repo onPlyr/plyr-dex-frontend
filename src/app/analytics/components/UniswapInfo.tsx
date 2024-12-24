@@ -143,7 +143,8 @@ export default function UniswapInfo() {
                                             <tr key={token.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
                                                 <td className="px-4 py-4 rounded-l-2xl">
                                                     <Link href={`/analytics/token/${token.id}`} className="text-white">
-                                                        {token.symbol} ({token.name})
+                                                        {token.symbol} 
+                                                        {/* ({token.name}) */}
                                                     </Link>
                                                 </td>
                                                 <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(token.tradeVolumeUSD).toLocaleString()}</td>
