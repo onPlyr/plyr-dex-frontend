@@ -66,6 +66,20 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    
+    {
+        id: "tusdc",
+        symbol: "tUSDC",
+        name: "tUSDC",
+        decimals: 18,
+        icon: `usdc.png`,
+        chains: {
+            [plyrTau.id]: {
+                chainSymbol: "tUSDC",
+                address: "0xA69E8C5aFC0A4633d3d84d6C360998354c4C692C",
+            },
+        },
+    },
     {
         id: "plyr",
         symbol: "PLYR",
