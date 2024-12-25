@@ -9,8 +9,10 @@ import { Loader2 } from 'lucide-react'
 
 export default async function Main() {
 
-  // Fetch Token List //
-  const tokenList = await loadTokenList();
+  // Fetch Token List -- showWPLYR //
+  const tokenList = await loadTokenList(true);
+
+  console.log(tokenList)
 
   // Chart Data //
   const chartData = await fetchGlobalChartData()
@@ -26,11 +28,11 @@ export default async function Main() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <UniswapInfo />
+              <UniswapInfo tokenList={tokenList} />
             </div>
             <div>
               <Suspense fallback={<Loader2 className="w-24 h-24 animate-spin text-[#daff00]" />}>
-                <LatestTransactions pairAddress={undefined} />
+                <LatestTransactions pairAddress={undefined} tokenList={tokenList} />
               </Suspense>
             </div>
           </div>

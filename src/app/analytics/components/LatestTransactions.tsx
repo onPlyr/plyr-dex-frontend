@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchLatestTransactions, fetchLatestTransactionsByPairAddress } from './UniswapInfoFetcher'
 import Link from 'next/link'
-import { CircleChevronRight, Loader2 } from 'lucide-react'
+import { ArrowRight, CircleChevronRight, Loader2 } from 'lucide-react'
 
 interface Transaction {
     id: string
     timestamp: string
     type: 'swap' | 'add' | 'remove'
+    token0Id: string
+    token1Id: string
     token0Symbol: string
     token1Symbol: string
     amountUSD: string
@@ -19,7 +21,7 @@ interface Transaction {
     }
 }
 
-export default function LatestTransactions({ pairAddress }: { pairAddress: string | undefined }) {
+export default function LatestTransactions({ pairAddress, tokenList }: { pairAddress: string | undefined, tokenList: any[] }) {
     const [transactions, setTransactions] = useState<Transaction[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -77,7 +79,7 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
             return txTime.toLocaleString();
         }
     }
-    
+
     return (
         <Card className="bg-[#ffffff0d] rounded-3xl p-2 pr-0 border-0">
             <CardHeader>
@@ -88,7 +90,7 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
                     {transactions.map((tx) => (
                         <div key={tx.id} className="bg-[#3A3935] p-4 rounded-2xl text-white">
                             <div className="flex justify-between items-center">
-                                <span className="font-medium">
+                                <span className="font-medium text-[#daff00] uppercase">
                                     {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Add Liquidity' : 'Remove Liquidity'}
                                 </span>
                                 <span className="text-sm text-gray-500">
@@ -100,11 +102,31 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
                                     <div className="mt-2">
                                         <span className="text-sm">
                                             {tx.type === 'swap' ? (
+                                                // Add Token 0 and Token 1 Logo //
                                                 tx.isToken0ToToken1 ?
-                                                    `${tx.token0Symbol} → ${tx.token1Symbol}` :
-                                                    `${tx.token1Symbol} → ${tx.token0Symbol}`
+                                                    <div className="flex items-center gap-2">
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === tx.token0Id.toLowerCase())?.logoURI} alt={tx.token0Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        {tx.token0Symbol}
+                                                        <ArrowRight className="w-4 h-4" />
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === tx.token1Id.toLowerCase())?.logoURI} alt={tx.token1Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        {tx.token1Symbol}
+                                                    </div>
+
+                                                    :
+                                                    <div className="flex items-center gap-2">
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === tx.token1Id.toLowerCase())?.logoURI} alt={tx.token1Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        {tx.token1Symbol}
+                                                        <ArrowRight className="w-4 h-4" />
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === tx.token0Id.toLowerCase())?.logoURI} alt={tx.token0Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        {tx.token0Symbol}
+                                                    </div>
                                             ) : (
-                                                `${tx.token0Symbol} ⇄ ${tx.token1Symbol}`
+                                                <div className="flex items-center gap-2">
+                                                    <img src={tokenList.find(t => t.address.toLowerCase() === tx.token0Id.toLowerCase())?.logoURI} alt={tx.token0Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                    <img src={tokenList.find(t => t.address.toLowerCase() === tx.token1Id.toLowerCase())?.logoURI} alt={tx.token1Symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
+                                                    {tx.token0Symbol}/{tx.token1Symbol}
+                                                </div>
+                                                
                                             )}
                                         </span>
                                     </div>

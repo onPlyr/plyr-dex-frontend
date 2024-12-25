@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react'
 
 const ITEMS_PER_PAGE = 10
 
-export default function UniswapInfo() {
+export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
     const [factory, setFactory] = useState<any>(null);
     const [topPairsTokens, setTopPairsTokens] = useState<any>(null);
     const [factoryLoading, setFactoryLoading] = useState(true);
@@ -105,7 +105,9 @@ export default function UniswapInfo() {
                                         {topPairsTokens.topPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
                                             <tr key={pair.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
                                                 <td className="px-4 py-4 rounded-l-2xl">
-                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white">
+                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white flex flex-row items-center gap-2">
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === pair.token0.id.toLowerCase())?.logoURI} alt={pair.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === pair.token1.id.toLowerCase())?.logoURI} alt={pair.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
                                                         {pair.token0.symbol}/{pair.token1.symbol}
                                                     </Link>
                                                 </td>
@@ -142,7 +144,9 @@ export default function UniswapInfo() {
                                         {topPairsTokens.topTokens.slice(tokenStart, tokenStart + ITEMS_PER_PAGE).map((token: any) => (
                                             <tr key={token.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
                                                 <td className="px-4 py-4 rounded-l-2xl">
-                                                    <Link href={`/analytics/token/${token.id}`} className="text-white">
+                                                    <Link href={`/analytics/token/${token.id}`} className="text-white flex flex-row items-center gap-2">
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === token.id.toLowerCase())?.logoURI} alt={token.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        
                                                         {token.symbol} 
                                                         {/* ({token.name}) */}
                                                     </Link>

@@ -1,4 +1,4 @@
-export async function loadTokenList() {
+export async function loadTokenList(showWPLYR: boolean = false) {
     // Revalidate every 5 minutes //
     const resTokenList = await fetch('https://tokenlist.onplyr.com/plyrswap.tokenlist.json', { next: { revalidate: 300 } })
     const data = await resTokenList.json()
@@ -15,7 +15,7 @@ export async function loadTokenList() {
     })
 
     data.tokens.filter((token: any) => token.chainId === (process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831)).forEach((token: any) => {
-        if (token.symbol === 'WPLYR') {
+        if (token.symbol === 'WPLYR' && !showWPLYR) {
             return;
         }
         tokenList.push({

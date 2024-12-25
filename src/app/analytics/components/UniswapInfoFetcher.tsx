@@ -18,9 +18,11 @@ const TOP_PAIRS_TOKENS_QUERY = gql`
     pairs(first: 100, orderBy: reserveUSD, orderDirection: desc) {
       id
       token0 {
+        id
         symbol
       }
       token1 {
+        id
         symbol
       }
       reserveUSD
@@ -42,9 +44,11 @@ const LATEST_TRANSACTIONS_QUERY = gql`
       timestamp
       pair {
         token0 {
+          id
           symbol
         }
         token1 {
+          id
           symbol
         }
       }
@@ -62,9 +66,11 @@ const LATEST_TRANSACTIONS_QUERY = gql`
       timestamp
       pair {
         token0 {
+          id
           symbol
         }
         token1 {
+          id
           symbol
         }
       }
@@ -78,9 +84,11 @@ const LATEST_TRANSACTIONS_QUERY = gql`
       timestamp
       pair {
         token0 {
+          id
           symbol
         }
         token1 {
+          id
           symbol
         }
       }
@@ -99,9 +107,11 @@ const LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY = gql`
       timestamp
       pair {
         token0 {
+          id
           symbol
         }
         token1 {
+          id
           symbol
         }
       }
@@ -119,9 +129,11 @@ const LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY = gql`
       timestamp
       pair {
         token0 {
+          id
           symbol
         }
         token1 {
+          id
           symbol
         }
       }
@@ -135,9 +147,11 @@ const LATEST_TRANSACTIONS_BY_PAIR_ADDRESS_QUERY = gql`
       timestamp
       pair {
         token0 {
+          id
           symbol
         }
         token1 {
+          id
           symbol
         }
       }
@@ -213,9 +227,11 @@ const TOKEN_PAIRS_QUERY = gql`
     pairs(first: 100, orderBy: reserveUSD, orderDirection: desc, where: { or: [{ token0: $tokenAddress }, { token1: $tokenAddress }] }) {
       id
       token0 {
+        id
         symbol
       }
       token1 {
+        id
         symbol
       }
       reserveUSD
@@ -298,6 +314,8 @@ export async function fetchLatestTransactions() {
             ...data.swaps.map((swap: any) => ({
                 ...swap,
                 type: 'swap',
+                token0Id: swap.pair.token0.id,
+                token1Id: swap.pair.token1.id,
                 token0Symbol: swap.pair.token0.symbol,
                 token1Symbol: swap.pair.token1.symbol,
                 isToken0ToToken1: parseFloat(swap.amount0In) > 0,
@@ -305,12 +323,16 @@ export async function fetchLatestTransactions() {
             ...data.mints.map((mint: any) => ({
                 ...mint,
                 type: 'add',
+                token0Id: mint.pair.token0.id,
+                token1Id: mint.pair.token1.id,
                 token0Symbol: mint.pair.token0.symbol,
                 token1Symbol: mint.pair.token1.symbol,
             })),
             ...data.burns.map((burn: any) => ({
                 ...burn,
                 type: 'remove',
+                token0Id: burn.pair.token0.id,
+                token1Id: burn.pair.token1.id,
                 token0Symbol: burn.pair.token0.symbol,
                 token1Symbol: burn.pair.token1.symbol,
             })),
@@ -335,6 +357,8 @@ export async function fetchLatestTransactionsByPairAddress(pairAddress: string |
             ...data.swaps.map((swap: any) => ({
                 ...swap,
                 type: 'swap',
+                token0Id: swap.pair.token0.id,
+                token1Id: swap.pair.token1.id,
                 token0Symbol: swap.pair.token0.symbol,
                 token1Symbol: swap.pair.token1.symbol,
                 isToken0ToToken1: parseFloat(swap.amount0In) > 0,
@@ -342,12 +366,16 @@ export async function fetchLatestTransactionsByPairAddress(pairAddress: string |
             ...data.mints.map((mint: any) => ({
                 ...mint,
                 type: 'add',
+                token0Id: mint.pair.token0.id,
+                token1Id: mint.pair.token1.id,
                 token0Symbol: mint.pair.token0.symbol,
                 token1Symbol: mint.pair.token1.symbol,
             })),
             ...data.burns.map((burn: any) => ({
                 ...burn,
                 type: 'remove',
+                token0Id: burn.pair.token0.id,
+                token1Id: burn.pair.token1.id,
                 token0Symbol: burn.pair.token0.symbol,
                 token1Symbol: burn.pair.token1.symbol,
             })),

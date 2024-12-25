@@ -8,11 +8,13 @@ import { fetchTokenData, fetchTokenPairs, fetchTokenPriceData } from '@/app/anal
 import Pagination from '@/app/analytics/components/Pagination'
 import { Loader2 } from 'lucide-react'
 import PriceChart from '../../components/PriceChart'
+import { loadTokenList } from '@/app/loadTokenList'
 
 const ITEMS_PER_PAGE = 10
 
 export default function TokenPage() {
     const { address } = useParams()
+    const [tokenList, setTokenList] = useState<any[]>([])
     const [tokenData, setTokenData] = useState<any>(null)
     const [ethPrice, setEthPrice] = useState<any>(null)
     const [relatedPairs, setRelatedPairs] = useState<any[]>([])
@@ -24,6 +26,10 @@ export default function TokenPage() {
     useEffect(() => {
         async function loadTokenData() {
             try {
+                // Load Token List //
+                const tokenList = await loadTokenList(true);
+                setTokenList(tokenList)
+
                 const data = await fetchTokenData(address as string)
                 setTokenData(data.token)
                 setEthPrice(data.ethPrice)
@@ -90,16 +96,18 @@ export default function TokenPage() {
                             <div className="overflow-x-auto">
                                 <table className="min-w-full">
                                     <thead>
-                                        <tr className="bg-[#3A3935] text-white">
-                                            <th className="px-4 py-2 text-left">Pair</th>
-                                            <th className="px-4 py-2 text-right">Liquidity (USD)</th>
+                                        <tr className="bg-[#3A393580] text-white">
+                                            <th className="px-4 py-4 text-left rounded-l-2xl">Pair</th>
+                                            <th className="px-4 py-4 text-right rounded-r-2xl">Liquidity (USD)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {relatedPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
-                                            <tr key={pair.id} className="border-b text-white">
-                                                <td className="px-4 py-2">
-                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
+                                            <tr key={pair.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
+                                                <td className="px-4 py-4 rounded-l-2xl">
+                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white flex flex-row items-center gap-2">
+                                                    <img src={tokenList.find(t => t.address.toLowerCase() === pair.token0.id.toLowerCase())?.logoURI} alt={pair.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                    <img src={tokenList.find(t => t.address.toLowerCase() === pair.token1.id.toLowerCase())?.logoURI} alt={pair.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
                                                         {pair.token0.symbol}/{pair.token1.symbol}
                                                     </Link>
                                                 </td>

@@ -7,9 +7,11 @@ import { fetchPairData, fetchPairLiquidityData, fetchPairTransactions } from '@/
 import LatestTransactions from '@/app/analytics/components/LatestTransactions'
 import { Loader2 } from 'lucide-react'
 import LiquidityChart from '../../components/LiquidityChart'
+import { loadTokenList } from '@/app/loadTokenList'
 
 export default function PairPage() {
     const { address } = useParams()
+    const [tokenList, setTokenList] = useState<any[]>([])
     const [pairData, setPairData] = useState<any>(null)
     const [liquidityData, setLiquidityData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -18,6 +20,10 @@ export default function PairPage() {
     useEffect(() => {
         async function loadPairData() {
             try {
+                // Load Token List //
+                const tokenList = await loadTokenList(true);
+                setTokenList(tokenList)
+
                 const data = await fetchPairData(address as string)
                 setPairData(data)
                 const liquidityHistory = await fetchPairLiquidityData(address as string)
@@ -50,7 +56,12 @@ export default function PairPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-2xl">
                         <CardHeader>
-                            <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>{pairData.token0.symbol}/{pairData.token1.symbol}</CardTitle>
+                            <CardTitle className="text-4xl text-white font-normal leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-road-rage)' }}>
+
+                                {pairData.token0.symbol}/{pairData.token1.symbol}
+                                <img src={tokenList.find(t => t.address.toLowerCase() === pairData.token0.id.toLowerCase())?.logoURI} alt={pairData.token0.symbol} width={28} height={28} className="rounded-full w-10 h-10 ml-4" />
+                                <img src={tokenList.find(t => t.address.toLowerCase() === pairData.token1.id.toLowerCase())?.logoURI} alt={pairData.token1.symbol} width={28} height={28} className="rounded-full w-10 h-10 ml-[-10px]" />
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 gap-4">
@@ -78,7 +89,7 @@ export default function PairPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <LatestTransactions pairAddress={address as string} />
+                    <LatestTransactions pairAddress={address as string} tokenList={tokenList} />
                 </div>
             </div>
         </div>
