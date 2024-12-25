@@ -48,7 +48,15 @@ export default function TokenPage() {
 
     return (
         <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 py-8 space-y-8">
+                <Card className="bg-[#ffffff0d] border-none rounded-2xl">
+                    <CardHeader>
+                        <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Price History</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-8">
+                        <PriceChart data={priceData} tokenSymbol={tokenData.symbol} />
+                    </CardContent>
+                </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-2xl">
                         <CardHeader>
@@ -73,53 +81,45 @@ export default function TokenPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <div className="space-y-8">
-                        <Card className="bg-[#ffffff0d] border-none rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Price History</CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-8">
-                                <PriceChart data={priceData} tokenSymbol={tokenData.symbol} />
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-[#ffffff0d] mt-8 border-none rounded-2xl">
-                            <CardHeader>
-                                <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Related Pairs</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full">
-                                        <thead>
-                                            <tr className="bg-[#3A3935] text-white">
-                                                <th className="px-4 py-2 text-left">Pair</th>
-                                                <th className="px-4 py-2 text-right">Liquidity (USD)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {relatedPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
-                                                <tr key={pair.id} className="border-b text-white">
-                                                    <td className="px-4 py-2">
-                                                        <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
-                                                            {pair.token0.symbol}/{pair.token1.symbol}
-                                                        </Link>
-                                                    </td>
-                                                    <td className="px-4 py-2 text-right">${parseFloat(pair.reserveUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <Pagination
-                                    currentPage={pairPage}
-                                    totalPages={Math.ceil(relatedPairs.length / ITEMS_PER_PAGE)}
-                                    onPageChange={setPairPage}
-                                />
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
 
+                    <Card className="bg-[#ffffff0d] border-none rounded-2xl">
+                        <CardHeader>
+                            <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Related Pairs</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full">
+                                    <thead>
+                                        <tr className="bg-[#3A3935] text-white">
+                                            <th className="px-4 py-2 text-left">Pair</th>
+                                            <th className="px-4 py-2 text-right">Liquidity (USD)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {relatedPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
+                                            <tr key={pair.id} className="border-b text-white">
+                                                <td className="px-4 py-2">
+                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
+                                                        {pair.token0.symbol}/{pair.token1.symbol}
+                                                    </Link>
+                                                </td>
+                                                <td className="px-4 py-2 text-right">${parseFloat(pair.reserveUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <Pagination
+                                currentPage={pairPage}
+                                totalPages={Math.ceil(relatedPairs.length / ITEMS_PER_PAGE)}
+                                onPageChange={setPairPage}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
+
+
         </div>
     )
 }

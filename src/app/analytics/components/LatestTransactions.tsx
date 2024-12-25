@@ -59,6 +59,25 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
     if (loading) return <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12"><div className="text-center"><Loader2 className="w-24 h-24 animate-spin text-[#daff00]" /></div></div>
     if (error) return <div className="text-center text-red-500">{error}</div>
 
+
+    function formatTimestamp(timestamp: string): string {
+        const txTime = new Date(parseInt(timestamp) * 1000);
+        const now = new Date();
+        const diff = Math.floor((now.getTime() - txTime.getTime()) / 1000);
+
+        if (diff < 60) {
+            return `${diff} second${diff !== 1 ? 's' : ''} ago`;
+        } else if (diff < 3600) {
+            const minutes = Math.floor(diff / 60);
+            return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        } else if (diff < 86400) {
+            const hours = Math.floor(diff / 3600);
+            return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        } else {
+            return txTime.toLocaleString();
+        }
+    }
+    
     return (
         <Card className="bg-[#ffffff0d] rounded-3xl p-2 pr-0 border-0">
             <CardHeader>
@@ -73,7 +92,7 @@ export default function LatestTransactions({ pairAddress }: { pairAddress: strin
                                     {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Add Liquidity' : 'Remove Liquidity'}
                                 </span>
                                 <span className="text-sm text-gray-500">
-                                    {new Date(parseInt(tx.timestamp) * 1000).toLocaleString()}
+                                    {formatTimestamp(tx.timestamp)}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
