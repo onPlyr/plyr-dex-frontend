@@ -13,6 +13,7 @@ const ITEMS_PER_PAGE = 10
 export default function TokenPage() {
     const { address } = useParams()
     const [tokenData, setTokenData] = useState<any>(null)
+    const [ethPrice, setEthPrice] = useState<any>(null)
     const [relatedPairs, setRelatedPairs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -22,7 +23,8 @@ export default function TokenPage() {
         async function loadTokenData() {
             try {
                 const data = await fetchTokenData(address as string)
-                setTokenData(data)
+                setTokenData(data.token)
+                setEthPrice(data.ethPrice)
                 const pairs = await fetchTokenPairs(address as string)
                 setRelatedPairs(pairs)
                 setLoading(false)
@@ -51,21 +53,18 @@ export default function TokenPage() {
                         <CardContent>
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
-                                    <h3 className="text-lg font-medium mb-2">Price (WAN)</h3>
-                                    <p className="text-2xl font-bold">{parseFloat(tokenData.derivedETH).toFixed(6)} WAN</p>
-                                    <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.derivedETH)).toFixed(2)} USD</p>
-                                </div>
-                                <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
-                                    <h3 className="text-lg font-medium mb-2">Total Supply</h3>
-                                    <p className="text-2xl font-bold">{parseFloat(tokenData.totalSupply).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                                    <h3 className="text-lg font-medium mb-2">Price (PLYR)</h3>
+                                    <p className="text-2xl font-bold">{parseFloat(tokenData.derivedETH).toFixed(6)} PLYR</p>
+                                    <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.derivedETH) * ethPrice).toFixed(2)} USD</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Trade Volume (USD)</h3>
-                                    <p className="text-2xl font-bold">${parseFloat(tokenData.tradeVolumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                                    <p className="text-2xl font-bold">${parseFloat(tokenData.untrackedVolumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Total Liquidity</h3>
                                     <p className="text-2xl font-bold">{parseFloat(tokenData.totalLiquidity).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                                    <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.totalLiquidity) * tokenData.derivedETH * ethPrice).toFixed(2)} USD</p>
                                 </div>
                             </div>
                         </CardContent>

@@ -4,6 +4,7 @@ import { client } from "@/lib/apollo-client";
 const FACTORY_QUERY = gql`
   query {
     uniswapFactories(first: 1) {
+      untrackedVolumeUSD
       totalVolumeUSD
       totalLiquidityUSD
       pairCount
@@ -155,11 +156,13 @@ const PAIR_DATA_QUERY = gql`
         id
         symbol
         name
+        derivedETH
       }
       token1 {
         id
         symbol
         name
+        derivedETH
       }
       reserve0
       reserve1
@@ -179,9 +182,12 @@ const TOKEN_DATA_QUERY = gql`
       symbol
       name
       derivedETH
+      untrackedVolumeUSD
       tradeVolumeUSD
       totalLiquidity
-      totalSupply
+    }
+    bundle(id: "1") {
+      ethPrice
     }
   }
 `;
@@ -230,9 +236,9 @@ const GLOBAL_CHART_QUERY = gql`
     uniswapDayDatas(first: 30, orderBy: date, orderDirection: desc) {
       date
       dailyVolumeUSD
-      dailyVolumeETH
+      
       totalLiquidityUSD
-      totalLiquidityETH
+     
     }
   }
 `;
@@ -375,7 +381,7 @@ export async function fetchTokenData(tokenAddress: string) {
             query: TOKEN_DATA_QUERY,
             variables: { tokenAddress }
         })
-        return data.token
+        return {token: data.token, ethPrice: data.bundle.ethPrice}
     } catch (error) {
         console.error("Error fetching token data:", error)
         throw new Error("Failed to fetch token data")

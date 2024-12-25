@@ -68,7 +68,7 @@ export default function UniswapInfo() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Total Volume (USD)</h3>
-                                    <p className="text-2xl font-bold">${parseFloat(factory.totalVolumeUSD).toLocaleString()}</p>
+                                    <p className="text-2xl font-bold">${parseFloat(factory.untrackedVolumeUSD).toLocaleString()}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Total Liquidity (USD)</h3>

@@ -10,11 +10,9 @@ interface ChartData {
     dailyVolumeUSD: string
     dailyVolumeETH: string
     totalLiquidityUSD: string
-    totalLiquidityETH: string
+    //totalLiquidityETH: string
 }
 
-
-const PRICE_SCALING_FACTOR = 0.25;
 
 function CustomTooltip({ active, payload, label }: any) {
     if (active && payload && payload.length) {
@@ -44,7 +42,7 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
             <CardContent className="px-2 py-2">
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={data.map(entry => ({...entry, [dataKey]: entry[dataKey] * PRICE_SCALING_FACTOR}))} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <LineChart data={data.map(entry => ({...entry, [dataKey]: entry[dataKey]}))} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                             <XAxis
                                 dataKey="date"
                                 tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
@@ -96,7 +94,7 @@ export default function GlobalCharts({ data }: { data: ChartData[] }) {
             volumeUSD: parseFloat(item.dailyVolumeUSD),
             volumeETH: parseFloat(item.dailyVolumeETH),
             liquidityUSD: parseFloat(item.totalLiquidityUSD),
-            liquidityETH: parseFloat(item.totalLiquidityETH)
+            //liquidityETH: parseFloat(item.totalLiquidityETH)
         })).reverse()
 
         setChartData(formattedData)
@@ -113,7 +111,7 @@ export default function GlobalCharts({ data }: { data: ChartData[] }) {
             <ChartCard
                 title="Daily Volume (USD)"
                 data={chartData}
-                dataKey="volumeETH"
+                dataKey="volumeUSD"
                 color="#daff00"
             />
             {/* <ChartCard 
@@ -125,8 +123,7 @@ export default function GlobalCharts({ data }: { data: ChartData[] }) {
             <ChartCard
                 title="Total Liquidity (USD)"
                 data={chartData}
-                dataKey="liquidityETH"
-
+                dataKey="liquidityUSD"
                 color="#daff00"
             />
         </div>
