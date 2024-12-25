@@ -25,10 +25,11 @@ const TOP_PAIRS_TOKENS_QUERY = gql`
       }
       reserveUSD
     }
-    tokens(first: 100, orderBy: tradeVolumeUSD, orderDirection: desc) {
+    tokens(first: 100, orderBy: untrackedVolumeUSD, orderDirection: desc) {
       id
       symbol
       name
+      untrackedVolumeUSD
       tradeVolumeUSD
     }
   }

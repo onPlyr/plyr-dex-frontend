@@ -147,7 +147,7 @@ export default function UniswapInfo() {
                                                         {/* ({token.name}) */}
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(token.tradeVolumeUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(token.untrackedVolumeUSD).toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
