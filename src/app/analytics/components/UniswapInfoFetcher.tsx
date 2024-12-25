@@ -169,6 +169,7 @@ const PAIR_DATA_QUERY = gql`
       reserve1
       reserveUSD
       trackedReserveETH
+      untrackedVolumeUSD
       totalSupply
       volumeUSD
       txCount
@@ -209,17 +210,7 @@ const PAIR_TRANSACTIONS_QUERY = gql`
 
 const TOKEN_PAIRS_QUERY = gql`
   query getTokenPairs($tokenAddress: ID!) {
-    pairs(first: 100, where: { token0: $tokenAddress }) {
-      id
-      token0 {
-        symbol
-      }
-      token1 {
-        symbol
-      }
-      reserveUSD
-    }
-    pairs(first: 100, where: { token1: $tokenAddress }) {
+    pairs(first: 100, orderBy: reserveUSD, orderDirection: desc, where: { or: [{ token0: $tokenAddress }, { token1: $tokenAddress }] }) {
       id
       token0 {
         symbol
@@ -244,6 +235,24 @@ const GLOBAL_CHART_QUERY = gql`
   }
 `;
 
+
+const PAIR_LIQUIDITY_QUERY = gql`
+  query getPairLiquidity($pairAddress: ID!) {
+    pairDayDatas(first: 30, orderBy: date, orderDirection: desc, where: { pairAddress: $pairAddress }) {
+      date
+      reserveUSD
+    }
+  }
+`;
+
+const TOKEN_PRICE_QUERY = gql`
+  query getTokenPrice($tokenAddress: ID!) {
+    tokenDayDatas(first: 30, orderBy: date, orderDirection: desc, where: { token: $tokenAddress }) {
+      date
+      priceUSD
+    }
+  }
+`;
 
 export async function fetchFactoryData() {
     try {
@@ -411,6 +420,32 @@ export async function fetchGlobalChartData() {
         throw new Error("Failed to fetch global chart data");
     }
 }
+
+export async function fetchPairLiquidityData(pairAddress: string) {
+    try {
+      const { data } = await client.query({ 
+        query: PAIR_LIQUIDITY_QUERY,
+        variables: { pairAddress }
+      });
+      return data.pairDayDatas;
+    } catch (error) {
+      console.error("Error fetching pair liquidity data:", error);
+      throw new Error("Failed to fetch pair liquidity data");
+    }
+  }
+  
+  export async function fetchTokenPriceData(tokenAddress: string) {
+    try {
+      const { data } = await client.query({ 
+        query: TOKEN_PRICE_QUERY,
+        variables: { tokenAddress }
+      });
+      return data.tokenDayDatas;
+    } catch (error) {
+      console.error("Error fetching token price data:", error);
+      throw new Error("Failed to fetch token price data");
+    }
+  }
 
 function processPairTransactions(data: any) {
     return data.swaps.map((swap: any) => ({

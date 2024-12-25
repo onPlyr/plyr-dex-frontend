@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchTokenData, fetchTokenPairs } from '@/app/analytics/components/UniswapInfoFetcher'
+import { fetchTokenData, fetchTokenPairs, fetchTokenPriceData } from '@/app/analytics/components/UniswapInfoFetcher'
 import Pagination from '@/app/analytics/components/Pagination'
 import { Loader2 } from 'lucide-react'
+import PriceChart from '../../components/PriceChart'
 
 const ITEMS_PER_PAGE = 10
 
@@ -18,6 +19,7 @@ export default function TokenPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [pairPage, setPairPage] = useState(1)
+    const [priceData, setPriceData] = useState<any>(null)
 
     useEffect(() => {
         async function loadTokenData() {
@@ -27,6 +29,8 @@ export default function TokenPage() {
                 setEthPrice(data.ethPrice)
                 const pairs = await fetchTokenPairs(address as string)
                 setRelatedPairs(pairs)
+                const priceHistory = await fetchTokenPriceData(address as string)
+                setPriceData(priceHistory)
                 setLoading(false)
             } catch (err) {
                 setError('Failed to fetch token data')
@@ -69,41 +73,52 @@ export default function TokenPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <Card className="bg-[#ffffff0d] border-none rounded-2xl">
-                        <CardHeader>
-                            <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Related Pairs</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full">
-                                    <thead>
-                                        <tr className="bg-[#3A3935] text-white">
-                                            <th className="px-4 py-2 text-left">Pair</th>
-                                            <th className="px-4 py-2 text-right">Liquidity (USD)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {relatedPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
-                                            <tr key={pair.id} className="border-b text-white">
-                                                <td className="px-4 py-2">
-                                                    <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
-                                                        {pair.token0.symbol}/{pair.token1.symbol}
-                                                    </Link>
-                                                </td>
-                                                <td className="px-4 py-2 text-right">${parseFloat(pair.reserveUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <div className="space-y-8">
+                        <Card className="bg-[#ffffff0d] border-none rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Price History</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-8">
+                                <PriceChart data={priceData} tokenSymbol={tokenData.symbol} />
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-[#ffffff0d] mt-8 border-none rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Related Pairs</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full">
+                                        <thead>
+                                            <tr className="bg-[#3A3935] text-white">
+                                                <th className="px-4 py-2 text-left">Pair</th>
+                                                <th className="px-4 py-2 text-right">Liquidity (USD)</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <Pagination
-                                currentPage={pairPage}
-                                totalPages={Math.ceil(relatedPairs.length / ITEMS_PER_PAGE)}
-                                onPageChange={setPairPage}
-                            />
-                        </CardContent>
-                    </Card>
+                                        </thead>
+                                        <tbody>
+                                            {relatedPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
+                                                <tr key={pair.id} className="border-b text-white">
+                                                    <td className="px-4 py-2">
+                                                        <Link href={`/analytics/pair/${pair.id}`} className="text-white hover:underline">
+                                                            {pair.token0.symbol}/{pair.token1.symbol}
+                                                        </Link>
+                                                    </td>
+                                                    <td className="px-4 py-2 text-right">${parseFloat(pair.reserveUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <Pagination
+                                    currentPage={pairPage}
+                                    totalPages={Math.ceil(relatedPairs.length / ITEMS_PER_PAGE)}
+                                    onPageChange={setPairPage}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
+
             </div>
         </div>
     )

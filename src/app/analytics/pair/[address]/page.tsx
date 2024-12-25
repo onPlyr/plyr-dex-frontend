@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchPairData, fetchPairTransactions } from '@/app/analytics/components/UniswapInfoFetcher'
+import { fetchPairData, fetchPairLiquidityData, fetchPairTransactions } from '@/app/analytics/components/UniswapInfoFetcher'
 import LatestTransactions from '@/app/analytics/components/LatestTransactions'
 import { Loader2 } from 'lucide-react'
+import LiquidityChart from '../../components/LiquidityChart'
 
 export default function PairPage() {
     const { address } = useParams()
     const [pairData, setPairData] = useState<any>(null)
+    const [liquidityData, setLiquidityData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -18,6 +20,8 @@ export default function PairPage() {
             try {
                 const data = await fetchPairData(address as string)
                 setPairData(data)
+                const liquidityHistory = await fetchPairLiquidityData(address as string)
+                setLiquidityData(liquidityHistory)
                 setLoading(false)
             } catch (err) {
                 setError('Failed to fetch pair data')
@@ -35,7 +39,7 @@ export default function PairPage() {
     return (
         <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
             <div className="container mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-2xl">
                         <CardHeader>
                             <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>{pairData.token0.symbol}/{pairData.token1.symbol}</CardTitle>
@@ -48,7 +52,7 @@ export default function PairPage() {
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Volume (USD)</h3>
-                                    <p className="text-2xl font-bold">${parseFloat(pairData.volumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                                    <p className="text-2xl font-bold">${parseFloat(pairData.untrackedVolumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">{pairData.token0.symbol} Reserves</h3>
@@ -58,7 +62,7 @@ export default function PairPage() {
                                     <h3 className="text-lg font-medium mb-2">{pairData.token1.symbol} Reserves</h3>
                                     <p className="text-2xl font-bold">{parseFloat(pairData.reserve1).toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
                                 </div>
-                               
+
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Transaction Count</h3>
                                     <p className="text-2xl font-bold">{parseInt(pairData.txCount)}</p>
@@ -66,7 +70,18 @@ export default function PairPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <LatestTransactions pairAddress={address as string} />
+                    <div className="space-y-8">
+                        <Card className="bg-[#ffffff0d] border-none rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Liquidity History</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-8">
+                                <LiquidityChart data={liquidityData} />
+                            </CardContent>
+                        </Card>
+
+                        <LatestTransactions pairAddress={address as string} />
+                    </div>
                 </div>
             </div>
         </div>
