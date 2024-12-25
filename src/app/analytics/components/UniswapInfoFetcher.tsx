@@ -236,7 +236,7 @@ const GLOBAL_CHART_QUERY = gql`
     uniswapDayDatas(first: 30, orderBy: date, orderDirection: desc) {
       date
       dailyVolumeUSD
-      
+      dailyVolumeUntracked
       totalLiquidityUSD
      
     }

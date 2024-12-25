@@ -10,6 +10,7 @@ interface ChartData {
     dailyVolumeUSD: string
     dailyVolumeETH: string
     totalLiquidityUSD: string
+    dailyVolumeUntracked: string
     //totalLiquidityETH: string
 }
 
@@ -94,6 +95,7 @@ export default function GlobalCharts({ data }: { data: ChartData[] }) {
             volumeUSD: parseFloat(item.dailyVolumeUSD),
             volumeETH: parseFloat(item.dailyVolumeETH),
             liquidityUSD: parseFloat(item.totalLiquidityUSD),
+            dailyVolumeUntracked: parseFloat(item.dailyVolumeUntracked),
             //liquidityETH: parseFloat(item.totalLiquidityETH)
         })).reverse()
 
@@ -111,7 +113,7 @@ export default function GlobalCharts({ data }: { data: ChartData[] }) {
             <ChartCard
                 title="Daily Volume (USD)"
                 data={chartData}
-                dataKey="volumeUSD"
+                dataKey="dailyVolumeUntracked"
                 color="#daff00"
             />
             {/* <ChartCard 
