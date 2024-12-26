@@ -31,8 +31,12 @@ const TOP_PAIRS_TOKENS_QUERY = gql`
       id
       symbol
       name
+      derivedETH
       untrackedVolumeUSD
       tradeVolumeUSD
+    }
+    bundle(id: "1") {
+      ethPrice
     }
   }
 `;
@@ -283,25 +287,10 @@ export async function fetchFactoryData() {
 export async function fetchTopPairsTokensData() {
     try {
         const { data } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
-        return { topPairs: data.pairs, topTokens: data.tokens };
+        return { topPairs: data.pairs, topTokens: data.tokens, ethPrice: data.bundle.ethPrice };
     } catch (error) {
         console.error("Error fetching top pairs and tokens data:", error);
         throw new Error("Failed to fetch top pairs and tokens data");
-    }
-}
-
-export async function fetchUniswapData() {
-    try {
-        const { data: factoryData } = await client.query({ query: FACTORY_QUERY });
-        const { data: topPairsTokensData } = await client.query({ query: TOP_PAIRS_TOKENS_QUERY });
-        return {
-            factory: factoryData.uniswapFactories[0],
-            topPairs: topPairsTokensData.pairs,
-            topTokens: topPairsTokensData.tokens,
-        };
-    } catch (error) {
-        console.error("Error fetching Uniswap data:", error);
-        throw new Error("Failed to fetch Uniswap data");
     }
 }
 

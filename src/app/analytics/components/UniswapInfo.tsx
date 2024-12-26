@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { fetchFactoryData, fetchTopPairsTokensData, fetchUniswapData } from './UniswapInfoFetcher'
+import { fetchFactoryData, fetchTopPairsTokensData } from './UniswapInfoFetcher'
 import Pagination from './Pagination'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from 'lucide-react'
@@ -137,7 +137,8 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                                     <thead>
                                         <tr className="bg-[#3A393580] text-white">
                                             <th className="px-4 py-4 text-left rounded-l-2xl">Token</th>
-                                            <th className="px-4 py-4 text-right rounded-r-2xl">Volume (USD)</th>
+                                            <th className="px-4 py-4 text-right">Volume (USD)</th>
+                                            <th className="px-4 py-4 text-right rounded-r-2xl">Price (USD)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -152,6 +153,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                                                     </Link>
                                                 </td>
                                                 <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(token.untrackedVolumeUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right rounded-r-2xl">${(parseFloat(token.derivedETH) * topPairsTokens.ethPrice).toFixed(4)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -38,7 +38,7 @@ export default function PriceChart({ data, tokenSymbol }: PriceChartProps) {
                     })}`}</p>
                     <p className="text-sm font-bold">{`Price: ${payload[0].value.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
+                        maximumFractionDigits: 4
                     })} USD`}</p>
                 </div>
             )
@@ -66,7 +66,7 @@ export default function PriceChart({ data, tokenSymbol }: PriceChartProps) {
                     <YAxis
                         style={{ fontSize: '11px' }}
                         tick={{ fill: '#fff' }}
-                        tickFormatter={(value) => `$${value.toFixed(2)}`}
+                        tickFormatter={(value) => `$${value.toFixed(4)}`}
                     />
                     <ChartTooltip content={<CustomTooltip />} />
                     
