@@ -129,6 +129,7 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
             open={isOpen}
             onOpenChange={setIsOpen}
             disabled={disabled}
+            className="px-6"
             {...props}
         >
             {/* <SwitchItem
@@ -161,7 +162,7 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
                     <div className="flex flex-col shrink absolute end-2 h-full px-2 justify-center items-center">%</div>
                 </div>
             </div>
-            <SwitchItem
+            {/* <SwitchItem
                 label="Direct route only"
                 htmlFor="directRouteOnly"
                 pressed={directRouteOnly}
@@ -172,7 +173,7 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
                 htmlFor="excludeChains"
                 pressed={excludeChains}
                 setPressed={toggleExcludeChains}
-            />
+            /> */}
             <div className={twMerge("flex flex-row flex-1 px-14 pt-4 justify-center items-center relative text-center", isUnsaved ? "text-white" : "text-muted-500")}>
                 Please remember to save your preferences for any changes to take effect.
             </div>
