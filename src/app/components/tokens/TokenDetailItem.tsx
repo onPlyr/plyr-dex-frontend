@@ -23,7 +23,9 @@ export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectIt
 
     // todo: add token balance values once token prices are added
     const chain = getChain(token.chainId)
-
+    {
+        console.log('token',token)
+    }
     return (
         <SelectItem
             ref={ref}
@@ -32,6 +34,7 @@ export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectIt
             <div className="flex flex-col sm:flex-row flex-1 gap-x-4 gap-y-2">
                 <div className="flex flex-row flex-1 gap-4">
                     <div className="flex flex-col flex-none justify-center items-center">
+                       
                         <TokenImage token={token} />
                     </div>
                     <div className="flex flex-col flex-1">

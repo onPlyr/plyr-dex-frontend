@@ -612,7 +612,7 @@ export const getRouteQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?
 
                                 if (dstSwapRequired) {
                                     const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
-                                        srcChain: dstRoute.srcChain,
+                                        srcChain: dstRoute.dstChain,
                                         srcCell: dstCell,
                                         srcToken: dstRoute.dstToken,
                                         srcAmount: interimDstAmount,

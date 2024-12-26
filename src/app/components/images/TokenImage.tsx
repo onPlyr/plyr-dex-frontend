@@ -25,7 +25,7 @@ export const TokenImage = React.forwardRef<HTMLDivElement, TokenImageProps>(({
         {...props}
     >
         <Image
-            src={src || `/tokens/logos/${token.id}.png`}
+            src={src || `/tokens/logos/${token.icon}`}
             alt={token.symbol}
             style={{
                 objectFit: "contain",

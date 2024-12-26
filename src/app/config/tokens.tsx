@@ -266,9 +266,10 @@ export const Tokens: Token[] = Object.values(SupportedChains).map((chain) => {
         return {
             ...chainData,
             id: baseToken.id,
-            symbol: (chainData.chainSymbol ?? baseToken.symbol),
-            name: (chainData.chainName ?? baseToken.name),
+            symbol: chainData.chainSymbol ?? baseToken.symbol,
+            name: chainData.chainName ?? baseToken.name,
             decimals: baseToken.decimals,
+            icon: chainData.chainIcon ?? baseToken.icon,
             chainId: chain.id,
             filters: filterData,
         } as Token

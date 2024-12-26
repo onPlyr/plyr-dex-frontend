@@ -24,6 +24,7 @@ interface TokenChainData {
     readonly address: Address,
     readonly chainSymbol?: string,
     readonly chainName?: string,
+    readonly chainIcon?: `${string}.${IconFormat}`,
     readonly bridges?: {
         readonly [chainId in ChainId]?: TokenBridgeData
     }
