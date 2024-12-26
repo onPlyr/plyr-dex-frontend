@@ -162,7 +162,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
     },
 } as const
 
-export const defaultChain = SupportedChains[avalancheFuji.id]
+export const defaultChain = SupportedChains[plyrTau.id]
 
 const clientTransportsData: ClientTransportsType = {}
 Object.values(SupportedChains).forEach((chain) => {

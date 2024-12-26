@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchLatestTransactions, fetchLatestTransactionsByPairAddress } from './UniswapInfoFetcher'
 import Link from 'next/link'
-import { ArrowRight, CircleChevronRight, Loader2 } from 'lucide-react'
+import { ArrowRight, CircleChevronRight, CirclePlus, CircleX, Loader2 } from 'lucide-react'
+import SwapIcon from '@/app/components/icons/SwapIcon'
 
 interface Transaction {
     id: string
@@ -90,7 +91,8 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
                     {transactions.map((tx) => (
                         <div key={tx.id} className="bg-[#3A3935] p-4 rounded-2xl text-white">
                             <div className="flex justify-between items-center">
-                                <span className="font-medium text-[#daff00] uppercase">
+                                <span className="font-medium text-[#daff00] uppercase flex flex-row items-center gap-2">
+                                    {tx.type === 'swap' ? <SwapIcon /> : tx.type === 'add' ? <CirclePlus style={{strokeWidth: 1.5}} /> : <CircleX style={{strokeWidth: 1.5}}/>}
                                     {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Add Liquidity' : 'Remove Liquidity'}
                                 </span>
                                 <span className="text-sm text-gray-500">
@@ -135,7 +137,7 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
                                     </div>
                                 </div>
                                 <div>
-                                    <Link href={`https://www.wanscan.org/tx/${tx.transaction.id}`} className="text-white">
+                                    <Link href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${tx.transaction.id}`} className="text-white">
                                         <CircleChevronRight className="w-8 h-8" />
                                     </Link>
                                 </div>

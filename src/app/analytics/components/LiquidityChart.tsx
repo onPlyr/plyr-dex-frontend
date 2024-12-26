@@ -35,7 +35,7 @@ export default function LiquidityChart({ data }: LiquidityChartProps) {
                         day: 'numeric',
                         year: 'numeric',
                     })}`}</p>
-                    <p className="text-sm font-bold">{`Price: ${payload[0].value.toLocaleString(undefined, {
+                    <p className="text-sm font-bold">{`Liquidity: ${payload[0].value.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     })} USD`}</p>
