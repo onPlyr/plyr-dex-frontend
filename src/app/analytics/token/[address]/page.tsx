@@ -66,14 +66,17 @@ export default function TokenPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-2xl">
                         <CardHeader>
-                            <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>{tokenData.name} ({tokenData.symbol})</CardTitle>
+                            <CardTitle className="text-4xl text-white font-normal leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-road-rage)' }}>
+                                <img src={tokenList.find(t => t.address.toLowerCase() === tokenData.id.toLowerCase())?.logoURI} alt={tokenData.symbol} width={28} height={28} className="rounded-full w-10 h-10" />
+                                {tokenData.symbol}
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Price (PLYR)</h3>
-                                    <p className="text-2xl font-bold">{parseFloat(tokenData.derivedETH).toFixed(6)} PLYR</p>
-                                    <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.derivedETH) * ethPrice).toFixed(2)} USD</p>
+                                    <p className="text-2xl font-bold">{parseFloat(tokenData.derivedETH).toLocaleString(undefined, { maximumFractionDigits: 4 })} PLYR</p>
+                                    <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.derivedETH) * ethPrice).toLocaleString(undefined, { maximumFractionDigits: 4 })} USD</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium mb-2">Trade Volume (USD)</h3>
@@ -106,8 +109,8 @@ export default function TokenPage() {
                                             <tr key={pair.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
                                                 <td className="px-4 py-4 rounded-l-2xl">
                                                     <Link href={`/analytics/pair/${pair.id}`} className="text-white flex flex-row items-center gap-2">
-                                                    <img src={tokenList.find(t => t.address.toLowerCase() === pair.token0.id.toLowerCase())?.logoURI} alt={pair.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                    <img src={tokenList.find(t => t.address.toLowerCase() === pair.token1.id.toLowerCase())?.logoURI} alt={pair.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === pair.token0.id.toLowerCase())?.logoURI} alt={pair.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                        <img src={tokenList.find(t => t.address.toLowerCase() === pair.token1.id.toLowerCase())?.logoURI} alt={pair.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
                                                         {pair.token0.symbol}/{pair.token1.symbol}
                                                     </Link>
                                                 </td>
