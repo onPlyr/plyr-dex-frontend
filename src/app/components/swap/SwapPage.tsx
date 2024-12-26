@@ -156,9 +156,14 @@ const SwapPage = () => {
     const [srcAmount, setSrcAmount] = useState<bigint>(BigInt(0))
     const [srcAmountFormatted, setSrcAmountFormatted] = useState<string>("")
 
+    let srcAmountTimeoutId: NodeJS.Timeout | undefined = undefined
     const handleSrcAmountInput = useCallback((value: string) => {
+        if (srcAmountTimeoutId) { clearTimeout(srcAmountTimeoutId) }
         setSrcAmountFormatted(value)
-        setSrcAmount(parseUnits(value, srcToken?.decimals || 18))
+        srcAmountTimeoutId = setTimeout(() => {
+            setSrcAmount(parseUnits(value, srcToken?.decimals || 18))
+        }, 300)
+
     }, [srcToken, setSrcAmountFormatted, setSrcAmount])
 
     useEffect(() => {
