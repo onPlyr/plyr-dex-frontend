@@ -37,6 +37,7 @@ const RouteDetailItem = React.forwardRef<React.ElementRef<typeof SummaryDetailIt
                             token={route.dstToken}
                             chain={route.dstChain}
                             amountFormatted={route.dstAmountFormatted}
+                            minAmountFormatted={route.minDstAmountFormatted}
                         />
                     </div>
                     <RouteSummaryBadges

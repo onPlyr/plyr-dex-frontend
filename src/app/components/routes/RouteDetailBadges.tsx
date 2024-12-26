@@ -27,14 +27,14 @@ const RouteDetailBadges = React.forwardRef<HTMLDivElement, RouteDetailBadgesProp
         className={twMerge("flex flex-row flex-1 flex-wrap gap-2 justify-center", className)}
         {...props}
     >
-        <Badge className="flex-1 bg-white/5 hover:bg-white/10 normal-case">
+        {/* <Badge className="flex-1 bg-white/5 hover:bg-white/10 normal-case">
             <CoinsIcon className={iconSizes.sm} />
             <DecimalAmount
                 amountFormatted={route.minDstAmountFormatted}
                 symbol={route.dstToken.symbol}
                 type={NumberFormatType.Precise}
             />
-        </Badge>
+        </Badge> */}
         <Badge className="flex-1 bg-white/5 hover:bg-white/10">
             <GasIcon className={iconSizes.sm} />
             <DecimalAmount

@@ -12,7 +12,8 @@ import { Token } from "@/app/types/tokens"
 interface RouteSummaryTokenItemProps extends React.ComponentPropsWithoutRef<"div"> {
     token: Token,
     chain: Chain,
-    amountFormatted: string
+    amountFormatted: string,
+    minAmountFormatted: string
 }
 
 const RouteSummaryTokenItem = React.forwardRef<HTMLDivElement, RouteSummaryTokenItemProps>(({
@@ -20,6 +21,7 @@ const RouteSummaryTokenItem = React.forwardRef<HTMLDivElement, RouteSummaryToken
     token,
     chain,
     amountFormatted,
+    minAmountFormatted,
     ...props
 }, ref) => (
     <div
@@ -29,20 +31,28 @@ const RouteSummaryTokenItem = React.forwardRef<HTMLDivElement, RouteSummaryToken
     >
         <TokenImage token={token} />
         <div className="flex flex-col flex-1 items-start">
-            <DecimalAmount
-                amountFormatted={amountFormatted}
-                symbol={token.symbol}
-                type={NumberFormatType.Precise}
-                className="font-bold text-base sm:text-lg"
-            />
-            <div className="flex flex-row flex-1 gap-2 items-center">
-                <ChainImageInline
+            <div className="flex flex-row flex-1 gap-2 items-center text-lg">
+                Est. <DecimalAmount
+                    amountFormatted={amountFormatted}
+                    symbol={token.symbol}
+                    type={NumberFormatType.Precise}
+                    className="font-bold"
+                />
+            </div>
+            <div className="flex flex-row flex-1 gap-2 items-center font-thin text-sm">
+                Min. <DecimalAmount
+                    amountFormatted={minAmountFormatted}
+                    symbol={token.symbol}
+                    type={NumberFormatType.Precise}
+                    className="font-thin text-sm"
+                />
+                {/* <ChainImageInline
                     chain={chain}
                     className={imgSizes.xs}
                 />
                 <div className="text-sm text-muted-00">
                     {chain.name}
-                </div>
+                </div> */}
             </div>
         </div>
     </div>
