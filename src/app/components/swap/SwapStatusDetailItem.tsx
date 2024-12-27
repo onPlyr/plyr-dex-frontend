@@ -76,7 +76,7 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
     })
 
     const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {
-        await fetch('/api/addDepositLog', {
+        await fetch('/api/addDepositLog/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
