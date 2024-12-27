@@ -92,7 +92,7 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
     }
 
     useEffect(() => {
-        //console.log('swapProgress', plyrId, isPlyrDestination, swapProgress);
+        console.log('swapProgress', plyrId, isPlyrDestination, finalTx?.hash);
         // if (isPlyrDestination && plyrId && swapProgress >= 100 && finalTx?.hash && swapData?.dstToken?.id && swapData?.dstAmount) {
         //     addDepositLog(plyrId, swapData?.dstToken?.id, toTokens(swapData?.dstAmount, swapData?.dstToken?.decimals), finalTx?.hash)
         // }
@@ -100,7 +100,7 @@ const SwapStatusDetailItem = React.forwardRef<HTMLDivElement, SwapStatusDetailIt
         if (isPlyrDestination && plyrId && finalTx?.hash && swapData?.dstToken?.id && swapData?.dstAmount) {
             addDepositLog(plyrId, swapData?.dstToken?.id, toTokens(swapData?.dstAmount, swapData?.dstToken?.decimals), finalTx?.hash)
         }
-    }, [isPlyrDestination,  finalTx]) //swapProgress,
+    }, [isPlyrDestination, finalTx?.hash]) //swapProgress,
 
     return (
         <div
