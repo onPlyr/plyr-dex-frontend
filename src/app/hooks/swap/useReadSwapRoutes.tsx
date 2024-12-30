@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { QueryStatus } from "@tanstack/react-query"
-import { useReadContracts } from "wagmi"
+import { serialize, useReadContracts } from "wagmi"
 
 import { defaultSlippageBps } from "@/app/config/swaps"
 import useAccountBalances from "@/app/hooks/account/useAccountBalances"
@@ -31,6 +31,7 @@ const useReadSwapRoutes = ({
 }) => {
 
     const { preferences } = usePreferences()
+
     const cellRouteData: CellRouteData = {
         [CellRouteDataParameter.SlippageBips]: BigInt(preferences[PreferenceType.Slippage] || defaultSlippageBps),
     }
@@ -68,6 +69,9 @@ const useReadSwapRoutes = ({
 
         if (enabled) {
             const quoteData = getRouteQuoteData(srcChain, srcToken, srcAmount, dstChain, dstToken)
+
+            console.log(`>>> useReadSwapRoutes quoteData: ${serialize(quoteData)}`)
+
             quoteData?.forEach((data) => {
                 if (data.type === RouteType.Bridge) {
                     bridgeData.push(data)
@@ -421,6 +425,7 @@ const useReadSwapRoutes = ({
                 }
             })
         }
+
         setRoutes(sortRoutes(routeData))
     }, [enabled, routeQuotes])
 

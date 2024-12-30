@@ -30,17 +30,17 @@ const RouteSummaryBadges = React.forwardRef<HTMLDivElement, RouteSummaryBadgesPr
             {...props}
         >
             {diffMaxDstAmount !== undefined ? (
-                <Badge className={parseFloat(diffMaxDstAmount) < 0 ? "text-red-400 text-sm border h-10 border-red-400 bg-transparent flex flex-row items-center gap-0 leading-none" : "text-green-400 text-sm border h-10 border-green-400 bg-transparent flex flex-row items-center gap-0 leading-none"}>
-                    {parseFloat(diffMaxDstAmount) < 0 ? <><TrendingDown className="w-6 h-6 mr-1"/> {diffMaxDstAmount}</>  : <><TrendingDown className="w-6 h-6 mr-0.5"/> {diffMaxDstAmount}</>}
+                <Badge className={parseFloat(diffMaxDstAmount) < 0 ? "text-white text-sm h-8 bg-red-500 flex flex-row items-center gap-0 leading-none pr-4" : "text-white text-sm h-10 bg-green-500 flex flex-row items-center gap-0 leading-none pr-4"}>
+                    {parseFloat(diffMaxDstAmount) < 0 ? <><TrendingDown className="w-5 h-5 mr-1"/> {diffMaxDstAmount}</>  : <><TrendingDown className="w-6 h-6 mr-0.5"/> {diffMaxDstAmount}</>}
                 </Badge>
             ) : (
-                <Badge className="bg-[#daff00] h-10 text-black text-sm flex flex-row items-center gap-0 leading-none">
-                    <BadgeDollarSign className="w-6 h-6 mr-1" /> Best Rate
+                <Badge className="bg-[#daff00] h-8 pr-4 text-black text-xs flex flex-row items-center gap-0 leading-none">
+                    <BadgeDollarSign className="w-5 h-5 mr-1" /> Best Rate
                 </Badge>
             )}
             {route.durationEstimate === minDuration && (
-                <Badge className="bg-[#daff00] h-10 text-black text-sm flex flex-row items-center gap-0 leading-none">
-                    <Zap className="w-6 h-6 mr-1" /> Fastest
+                <Badge className="bg-[#daff00] h-8 pr-4 text-black text-xs flex flex-row items-center gap-0 leading-none">
+                    <Zap className="w-5 h-5 mr-1" /> Fastest
                 </Badge>
             )}
         </div>

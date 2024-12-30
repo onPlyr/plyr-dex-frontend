@@ -8,6 +8,8 @@ import { Chain, ChainId, ClientTransportsType } from "@/app/types/chains"
 
 // note: custom chains must be defined and added to both the wagmiChains array and SupportedChains map to be usable
 
+const rpcUrl = process.env.NEXT_PUBLIC_TESCHAIN_RPC_URL || '';
+
 export const teschain = {
     id: 900090009000,
     name: "Tesseract9000",
@@ -18,7 +20,7 @@ export const teschain = {
     },
     rpcUrls: {
         default: {
-            http: ["http://91.108.122.213:9650/ext/bc/wtiGZXierwenhaf7Fsu7moKrV6sKUgoTZmWCU6rFJBeWLyEPz/rpc"],
+            http: [rpcUrl],
         },
     },
 } as const satisfies RainbowKitChain

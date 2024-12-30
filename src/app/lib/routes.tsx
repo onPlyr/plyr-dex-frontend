@@ -12,7 +12,7 @@ import { Chain } from "@/app/types/chains"
 import { BridgePath, BridgeRoute, BridgeType, EncodedRouteQueryResult, EventHistory, Hop, HopAction, HopData, HopHistory, HopQuote, HopQuoteData, Instructions, Route, RouteAction, RouteEvent, RouteQuery, RouteQueryResult, RouteQuote, RouteQuoteData, RouteSortType, RouteType, StepHistory, StepQuote, StepQuoteData, SwapHistory, SwapQueryData, SwapQueryHopData, SwapQueryType } from "@/app/types/swaps"
 import { Token, TokenBridgeType } from "@/app/types/tokens"
 
-export const getRouteType = (hopData: HopData[]) => {
+export const getRouteType = (hopData: HopData[] | HopHistory[]) => {
     return hopData.some((data) => getIsTradeHop(data.action)) ? RouteType.Swap : RouteType.Bridge
 }
 
@@ -754,7 +754,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
 
             if (adapterAddresses && tradePath) {
                 adapterAddresses.forEach((adapterAddress, i) => {
-                    const swapSrcToken = getTokenByAddress(tradePath[i], hop.srcChain)
+                    const swapSrcToken = hopIdx === 0 && i === 0 ? hop.srcToken : getTokenByAddress(tradePath[i], hop.srcChain)
                     const swapDstToken = getTokenByAddress(tradePath[i + 1], hop.srcChain)
                     const adapter = hop.srcChain.adapters?.[adapterAddress]
                     if (swapSrcToken && swapDstToken) {
@@ -776,7 +776,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
             }
             else if (tradePath && tradePath.length !== 0) {
                 for (let i = 0; i < tradePath.length - 1; i++) {
-                    const swapSrcToken = getTokenByAddress(tradePath[i], hop.srcChain)
+                    const swapSrcToken = hopIdx === 0 && i === 0 ? hop.srcToken : getTokenByAddress(tradePath[i], hop.srcChain)
                     const swapDstToken = getTokenByAddress(tradePath[i + 1], hop.srcChain)
                     const adapterAddress = hop.srcCell.address
                     const adapter = hop.srcChain.adapters?.[adapterAddress]
@@ -1165,14 +1165,18 @@ export const getRouteData = (quote: RouteQuote) => {
 
     let actionOrder = 1
 
+    // todo: remove this once we have a way to handle same chain swaps
+    if (quote.srcChain.id === quote.dstChain.id && quote.hops.length > 1) {
+        return undefined
+    }
+
     quote.hops.forEach((data) => {
+
+       
 
         const isSwap = getIsTradeHop(data.action)
         const isBridge = getIsBridgeHop(data.action)
         // const bridgeStep = data.steps.find((step) => step.type === RouteType.Bridge) ?? data.steps[data.steps.length - 1]
-
-
-
         const gasEstimate = getHopGasEstimate(data.action, data.result?.estimatedGasFee || tmpHopGasEstimate)
         const recipientGasLimit = gasEstimate + tmpGasBuffer
         const totalGasLimit = recipientGasLimit + (data.action === HopAction.SwapAndTransfer ? BigInt(0) : tmpHopGasEstimate)
@@ -1180,6 +1184,8 @@ export const getRouteData = (quote: RouteQuote) => {
         if (data.srcAmount === undefined || data.srcAmount === BigInt(0) || data.dstAmount === undefined || data.dstAmount === BigInt(0) || (isBridge && (data.srcBridge === undefined || data.dstBridge === undefined)) || (isSwap && data.minAmountResult === undefined)) {
             return
         }
+
+        
 
         const bridgePath: BridgePath = {
             bridgeSourceChain: data.srcBridge?.address ?? zeroAddress,
@@ -1212,6 +1218,8 @@ export const getRouteData = (quote: RouteQuote) => {
             gasEstimate: gasEstimate,
         }
         routeHopData.push(hopData)
+
+        
 
         if (isSwap && data.result) {
 
@@ -1288,11 +1296,11 @@ export const getRouteData = (quote: RouteQuote) => {
 
     const routeDstAmount = routeHopData[routeHopData.length - 1].dstAmount
     const totalGasEstimate = routeHopData.reduce((sum, hop) => sum + hop.gasEstimate, BigInt(0))
-
-
     const totalGasCostFormatted = formatUnits(totalGasEstimate * quote.srcChain.minGasPrice, quote.srcChain.gasPriceExponent)
     const gasToken = getNativeToken(quote.srcChain)
-    const durationEstimate = routeHopData.reduce((sum, hop) => sum + (hop.srcChain.avgBlockTimeMs * durationEstimateNumConfirmations), 0) + (quote.dstChain.avgBlockTimeMs * durationEstimateNumConfirmations)
+    const isSameChainSwapOnly = quote.srcChain.id === quote.dstChain.id && routeHopData.length === 1 && routeHopData[0].action === HopAction.SwapAndTransfer
+    
+    const durationEstimate = isSameChainSwapOnly ? 0 : routeHopData.reduce((sum, hop) => sum + (hop.srcChain.avgBlockTimeMs * durationEstimateNumConfirmations), 0) + (quote.dstChain.avgBlockTimeMs * durationEstimateNumConfirmations)
     const routeType = getRouteType(routeHopData)
 
     const route: Route = {

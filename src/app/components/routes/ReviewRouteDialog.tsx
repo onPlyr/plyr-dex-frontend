@@ -335,8 +335,8 @@ export const ReviewRouteDialog = React.forwardRef<React.ElementRef<typeof Dialog
     }, [showProgress])
 
 
-    console.log('showProgress', showProgress);
-    console.log('activeTab', activeTab);
+    //console.log('showProgress', showProgress);
+    //console.log('activeTab', activeTab);
 
     return (
         <Dialog

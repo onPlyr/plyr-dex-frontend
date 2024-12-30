@@ -162,13 +162,13 @@ export const PreferencesDialog = React.forwardRef<React.ElementRef<typeof Dialog
                     <div className="flex flex-col shrink absolute end-2 h-full px-2 justify-center items-center">%</div>
                 </div>
             </div>
-            {/* <SwitchItem
+            <SwitchItem
                 label="Direct route only"
                 htmlFor="directRouteOnly"
                 pressed={directRouteOnly}
                 setPressed={toggleDirectRouteOnly}
             />
-            <SwitchItem
+            {/* <SwitchItem
                 label="Exclude chains"
                 htmlFor="excludeChains"
                 pressed={excludeChains}

@@ -112,7 +112,7 @@ export default function Header() {
             }
         };
         setActive();
-    }, [wagmiWalletClient, disconnectAsync, switchChainAsync, setActiveWallet]);
+    }, [wagmiWalletClient, disconnectAsync, switchChainAsync]);
 
 
     useEffect(() => {
