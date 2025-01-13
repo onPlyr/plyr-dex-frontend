@@ -32,14 +32,14 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
 }, ref) => {
     const { openConnectModal } = useConnectModal()
     
-    const isDisabled = isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error")
+    const isDisabled = isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error" || queryStatus === "pending")
     
     return (
         <Button
             ref={ref}
             // className={twMerge("btn-gradient btn-full", className)}
             className={twMerge("btn gradient-btn rounded-3xl w-full", className)}
-            onClick={isDisabled ? undefined : isConnectWalletErr ? openConnectModal?.bind(this) : onClick?.bind(this)}
+            onClick={isConnectWalletErr ? openConnectModal?.bind(this) : isDisabled ? undefined : onClick?.bind(this)}
             disabled={isDisabled}
             {...props}
         >
