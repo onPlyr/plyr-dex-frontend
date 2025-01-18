@@ -29,6 +29,8 @@ export const AccountDataProvider = ({
 
     const { data: accountBalanceData, refetch: refetchAccountBalanceData } = useReadTokensAndBalances()
 
+    console.log('test:', accountBalanceData)
+
     const getTokenBalance = useCallback((token?: Token) => {
         const result = token ? accountBalanceData.find((data) => data.id === token.id && data.chainId === token.chainId) : undefined
         return {
