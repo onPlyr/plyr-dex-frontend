@@ -10,20 +10,20 @@ import { Chain, ChainId, ClientTransportsType } from "@/app/types/chains"
 
 const rpcUrl = process.env.NEXT_PUBLIC_TESCHAIN_RPC_URL || '';
 
-export const teschain = {
-    id: 900090009000,
-    name: "Tesseract9000",
-    nativeCurrency: {
-        name: "Tes",
-        symbol: "TES",
-        decimals: 18,
-    },
-    rpcUrls: {
-        default: {
-            http: [rpcUrl],
-        },
-    },
-} as const satisfies RainbowKitChain
+// export const teschain = {
+//     id: 900090009000,
+//     name: "Tesseract9000",
+//     nativeCurrency: {
+//         name: "Tes",
+//         symbol: "TES",
+//         decimals: 18,
+//     },
+//     rpcUrls: {
+//         default: {
+//             http: [rpcUrl],
+//         },
+//     },
+// } as const satisfies RainbowKitChain
 
 export const plyrTau = {
     id: 62831,
@@ -50,7 +50,7 @@ export const plyrTau = {
 export const wagmiChains = [
     avalanche,
     avalancheFuji,
-    teschain,
+    //teschain,
     plyrTau,
 ] as const
 
@@ -102,41 +102,41 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryNumBatches: 10,
         },
     },
-    [teschain.id]: {
-        ...teschain,
-        icon: `${teschain.id}.png`,
-        cells: [
-            // {
-            //     ...cellTypeDefinitions[CellType.UniV2],
-            //     address: "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f",
-            // },
-            {
-                ...cellTypeDefinitions[CellType.UniV2],
-                address: "0x4C5b32F836017d4686FDB3A7eB129c8642A97495",
-            },
-        ],
-        blockchainId: "0x7ca356c6720a432ffb58563d59b3424eb441239e373a93a6de9da358b81366f0",
-        minGasPrice: BigInt(25),
-        gasPriceExponent: 9,
-        avgBlockTimeMs: 2000,
-        // adapters: {
-        //     "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f": {
-        //         name: "Uniswap V2",
-        //         platform: "uniswap",
-        //     },
-        // },
-        adapters: {
-            "0x4C5b32F836017d4686FDB3A7eB129c8642A97495": {
-                name: "Uniswap V2",
-                platform: "uniswap",
-            },
-        },
-        clientData: {
-            maxQueryChunkSize: 100,
-            maxQueryBatchSize: 10,
-            maxQueryNumBatches: 10,
-        },
-    },
+    // [teschain.id]: {
+    //     ...teschain,
+    //     icon: `${teschain.id}.png`,
+    //     cells: [
+    //         // {
+    //         //     ...cellTypeDefinitions[CellType.UniV2],
+    //         //     address: "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f",
+    //         // },
+    //         {
+    //             ...cellTypeDefinitions[CellType.UniV2],
+    //             address: "0x4C5b32F836017d4686FDB3A7eB129c8642A97495",
+    //         },
+    //     ],
+    //     blockchainId: "0x7ca356c6720a432ffb58563d59b3424eb441239e373a93a6de9da358b81366f0",
+    //     minGasPrice: BigInt(25),
+    //     gasPriceExponent: 9,
+    //     avgBlockTimeMs: 2000,
+    //     // adapters: {
+    //     //     "0x61f697853D7Cb5c4ffc96f895aE56ed6CEf8a14f": {
+    //     //         name: "Uniswap V2",
+    //     //         platform: "uniswap",
+    //     //     },
+    //     // },
+    //     adapters: {
+    //         "0x4C5b32F836017d4686FDB3A7eB129c8642A97495": {
+    //             name: "Uniswap V2",
+    //             platform: "uniswap",
+    //         },
+    //     },
+    //     clientData: {
+    //         maxQueryChunkSize: 100,
+    //         maxQueryBatchSize: 10,
+    //         maxQueryNumBatches: 10,
+    //     },
+    // },
     [plyrTau.id]: {
         ...plyrTau,
         icon: `${plyrTau.id}.png`,
