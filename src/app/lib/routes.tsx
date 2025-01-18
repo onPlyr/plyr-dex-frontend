@@ -1159,9 +1159,9 @@ export const getRouteData = (quote: RouteQuote) => {
     let actionOrder = 1
 
     //todo: remove this once we have a way to handle same chain swaps
-    // if (quote.srcChain.id === quote.dstChain.id && quote.hops.length > 1) {
-    //     return undefined
-    // }
+    if (quote.srcChain.id === quote.dstChain.id && quote.hops.length > 1) {
+        return undefined
+    }
 
     quote.hops.forEach((data) => {
 
