@@ -1,4 +1,5 @@
 import { QueryStatus } from "@tanstack/react-query"
+import { BaseError, ContractFunctionRevertedError } from "viem"
 
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import { iconSizes } from "@/app/config/styling"
@@ -32,4 +33,22 @@ export const getErrorToastData = ({
         </div>,
         description: description,
     }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getParsedError = (error: any): string => {
+    const parsed = error?.walk ? error.walk() : error
+    if (parsed instanceof BaseError) {
+        if (parsed.details) {
+            return parsed.details
+        }
+        else if (parsed.shortMessage) {
+            if (parsed instanceof ContractFunctionRevertedError && parsed.data && parsed.data.errorName !== "Error") {
+                return `${parsed.shortMessage.replace(/reverted\.$/, "reverted with the following reason:")}\n${parsed.data.errorName}(${parsed.data.args?.toString() ?? ""})`
+            }
+            return parsed.shortMessage
+        }
+        return parsed.message ?? parsed.name ?? "An unknown error occurred"
+    }
+    return parsed?.message ?? "An unknown error occurred"
 }

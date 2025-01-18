@@ -1,6 +1,6 @@
 import { createContext } from "react"
 import { getBalance, getBlock, getBlockNumber, getClient, getTransactionReceipt } from "@wagmi/core"
-import { AbiEvent, Address, Client, formatUnits, getAbiItem, Hash, Log, parseEventLogs, TransactionReceipt } from "viem"
+import { AbiEvent, Address, Client, erc20Abi, getAbiItem, Hash, Log, parseEventLogs, TransactionReceipt } from "viem"
 import { getLogs } from "viem/actions"
 
 import AccountHistoryDetailDialog from "@/app/components/account/AccountHistoryDetailDialog"
@@ -10,7 +10,7 @@ import Button from "@/app/components/ui/Button"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { ToastAction } from "@/app/components/ui/Toast"
-import { teleporterExecutedMessageAbiEvent, teleporterFailedMessageExecutionAbiEvent, teleporterMessengerAbi, teleporterSendMessageAbiEvent } from "@/app/config/abis"
+import { nativeTokenWithdrawalAbiEvent, teleporterExecutedMessageAbiEvent, teleporterFailedMessageExecutionAbiEvent, teleporterMessengerAbi, teleporterSendMessageAbiEvent } from "@/app/config/abis"
 import { SupportedChains } from "@/app/config/chains"
 import { NumberFormatType } from "@/app/config/numbers"
 import { iconSizes } from "@/app/config/styling"
@@ -20,7 +20,7 @@ import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { setStorageItem } from "@/app/lib/storage"
 import { toShort } from "@/app/lib/strings"
 import { getIsBridgeHop, getRouteTypeLabel, getSwapHistoryQuoteData, getTeleporterMessengerAddress } from "@/app/lib/swaps"
-import { getTokens, sortTokens } from "@/app/lib/tokens"
+import { getToken, getTokens, sortTokens } from "@/app/lib/tokens"
 import { AccountDataContextType } from "@/app/types/account"
 import { Chain, ChainId } from "@/app/types/chains"
 import { StorageDataKey, StorageType } from "@/app/types/storage"
@@ -28,69 +28,70 @@ import { EventHistory, HopAction, HopHistory, RouteQuote, StepHistory, SwapHisto
 import { Token } from "@/app/types/tokens"
 
 import { serialize } from "wagmi"
+import { getIsSourceBridgeNative } from "./routes"
 
 export const AccountDataContext = createContext({} as AccountDataContextType)
 
 // todo: check balances are cleared/updated when disconnecting or switching accounts
-export const getAccountBalances = async ({
-    accountAddress,
-    setData,
-    _enabled = true,
-}: {
-    connectedChain?: Chain,
-    accountAddress?: Address,
-    setData?: (data?: Token[]) => void,
-    _enabled?: boolean,
-}) => {
+// export const getAccountBalances = async ({
+//     accountAddress,
+//     setData,
+//     _enabled = true,
+// }: {
+//     connectedChain?: Chain,
+//     accountAddress?: Address,
+//     setData?: (data?: Token[]) => void,
+//     _enabled?: boolean,
+// }) => {
 
-    const enabled = _enabled !== false && accountAddress !== undefined && setData !== undefined
+//     const enabled = _enabled !== false && accountAddress !== undefined && setData !== undefined
 
-    if (enabled) {
+//     if (enabled) {
 
-        let tokenData: Token[] = []
-        const tokens = getTokens(undefined, true)
+//         let tokenData: Token[] = []
+//         const tokens = getTokens(undefined, true)
 
-        for (const chain of Object.values(SupportedChains)) {
+//         for (const chain of Object.values(SupportedChains)) {
 
-            const chainTokenData: Token[] = []
-            const chainTokens = tokens.filter((token) => token.chainId === chain.id)
+//             const chainTokenData: Token[] = []
+//             const chainTokens = tokens.filter((token) => token.chainId === chain.id)
 
-            const getBalanceQueries = chainTokens.map((token) => getBalance(wagmiConfig, {
-                chainId: chain.id,
-                address: accountAddress,
-                token: token.isNative !== true ? token.address : undefined,
-            }))
+//             const getBalanceQueries = chainTokens.map((token) => getBalance(wagmiConfig, {
+//                 chainId: chain.id,
+//                 address: accountAddress,
+//                 token: token.isNative !== true ? token.address : undefined,
+//             }))
 
-            await Promise.all(getBalanceQueries).then((results) => {
+//             await Promise.all(getBalanceQueries).then((results) => {
 
-                results.forEach((resultData) => {
+//                 results.forEach((resultData) => {
 
-                    // note: try case sensitive first, then case insensitive
-                    const token = chainTokens.find((chainToken) => chainToken.symbol === resultData.symbol || chainToken.filters.symbol === resultData.symbol.toLowerCase())
+//                     // note: try case sensitive first, then case insensitive
+//                     const token = chainTokens.find((chainToken) => chainToken.symbol === resultData.symbol || chainToken.filters.symbol === resultData.symbol.toLowerCase())
 
-                    if (token) {
-                        chainTokenData.push({
-                            ...token,
-                            balance: resultData.value,
-                            balanceFormatted: formatUnits(resultData.value, token.decimals),
-                        })
-                    }
-                })
+//                     if (token) {
+//                         chainTokenData.push({
+//                             ...token,
+//                             balance: resultData.value,
+//                             balanceFormatted: formatUnits(resultData.value, token.decimals),
+//                         })
+//                     }
+//                 })
 
-                if (chainTokenData.length !== 0) {
-                    tokenData = [...tokenData, ...chainTokenData]
-                    setData(sortTokens(tokenData))
-                }
-            })
-            .catch((err) => {
-                console.error(`getAccountBalances error: ${err}`)
-            })
-        }
-    }
-    else {
-        setData?.(getTokens())
-    }
-}
+//                 if (chainTokenData.length !== 0) {
+//                     tokenData = [...tokenData, ...chainTokenData]
+//                     setData(sortTokens(tokenData))
+//                 }
+//             })
+//             .catch((err) => {
+//                 console.error(`getAccountBalances error: ${err}`)
+//             })
+//         }
+//     }
+//     else {
+//         setData?.(getTokens())
+//     }
+// }
 
 export const sortAccountSwapHistory = (accountHistory: SwapHistory[]) => {
     return accountHistory.length > 1 ? accountHistory.sort((a, b) => b.timestamp - a.timestamp) : accountHistory
@@ -270,6 +271,19 @@ export const addSwapHistoryItem = async ({
                 dstTx: dstTx,
             } as SwapHistory
 
+            if (isSameChainSwapOnly && dstTx) {
+                const dstAmount = getSwapHistoryDstAmount({
+                    swapHistory: history,
+                    hopHistory: hopData[hopData.length - 1],
+                    chain: quote.dstChain,
+                    accountAddress: accountAddress,
+                    txReceipt: txReceipt,
+                })
+                if (dstAmount !== undefined) {
+                    history.dstAmount = dstAmount.toString()
+                }
+            }
+
             const accountData = storageData?.[accountAddress] ?? []
             const newAccountData = [...accountData, history]
             const newData: SwapHistoryData = {
@@ -330,6 +344,11 @@ export const updateSwapHistoryItemStatus = async ({
             const txChainIds: ChainId[] = isFinalHop ? (history.hops.length > 1 && getIsBridgeHop(hop.action) ? [hop.srcChainId, hop.dstChainId] : [hop.dstChainId]) : [hop.srcChainId]
             const txChains: Chain[] = txChainIds.map((id) => getChain(id)).filter((chain) => chain !== undefined)
 
+            const receiveMsgEvent: AbiEvent = getAbiItem({
+                abi: teleporterMessengerAbi,
+                name: TeleporterMessengerEvent.Receive,
+            })
+
             for (let chainIdx = 0; chainIdx < txChains.length; chainIdx++) {
 
                 const txChain = txChains[chainIdx]
@@ -355,10 +374,6 @@ export const updateSwapHistoryItemStatus = async ({
                         if (receiveMsgLog === undefined) {
 
                             const receiveMsgQueries = []
-                            const receiveMsgEvent: AbiEvent = getAbiItem({
-                                abi: teleporterMessengerAbi,
-                                name: TeleporterMessengerEvent.Receive,
-                            })
 
                             for (let queryIdx = 0; queryIdx < txChain.clientData.maxQueryBatchSize; queryIdx++) {
 
@@ -433,6 +448,19 @@ export const updateSwapHistoryItemStatus = async ({
                         const failedMsgLog = executedMsgLog === undefined ? txReceiptLogs.find((logs) => logs.eventName === TeleporterMessengerEvent.Failed) : undefined
                         const sendMsgLog = failedMsgLog === undefined ? txReceiptLogs.find((logs) => logs.eventName === TeleporterMessengerEvent.Send) : undefined
 
+                        if (isFinalHop && isDst) {
+                            const dstAmount = getSwapHistoryDstAmount({
+                                swapHistory: history,
+                                hopHistory: hop,
+                                chain: txChain,
+                                accountAddress: accountAddress,
+                                txReceipt: txReceipt,
+                            })
+                            if (dstAmount !== undefined) {
+                                hop.dstAmount = dstAmount.toString()
+                            }
+                        }
+
                         hop.receiveMsgId = prevSendMsgId
                         hop.status = failedMsgLog || hop.tx.reverted ? "error" : executedMsgLog && (isFinalHop || sendMsgLog) ? "success" : "pending"
                         if (sendMsgLog) {
@@ -454,6 +482,7 @@ export const updateSwapHistoryItemStatus = async ({
                     events: eventData,
                     status: hopData.some((hop) => hop.status === "error") || dstTx?.reverted ? "error" : hopData.every((hop) => hop.status === "success") ? "success" : "pending",
                     dstTx: dstTx,
+                    dstAmount: hopData[hopData.length - 1].dstAmount,
                 } as SwapHistory
 
                 const accountData = storageData?.[accountAddress].filter((h) => h.id !== history.id) ?? []
@@ -470,6 +499,48 @@ export const updateSwapHistoryItemStatus = async ({
         }
     }
     return newHistory
+}
+
+export const getSwapHistoryDstAmount = ({
+    swapHistory,
+    hopHistory,
+    chain,
+    accountAddress,
+    txReceipt,
+}: {
+    swapHistory: SwapHistory,
+    hopHistory: HopHistory,
+    chain: Chain,
+    accountAddress: Address,
+    txReceipt: TransactionReceipt,
+}) => {
+
+    let dstAmount: bigint | undefined = undefined
+
+    const hopSrcChain = getChain(hopHistory.srcChainId)
+    const bridgeOnlyData = hopSrcChain && hopHistory.action === HopAction.Hop ? getToken(hopHistory.srcTokenId, hopSrcChain)?.bridges?.[hopHistory.dstChainId] : undefined
+    const isWithdrawalEvent = getToken(swapHistory.dstTokenId, chain)?.isNative || bridgeOnlyData && getIsSourceBridgeNative(bridgeOnlyData.type)
+
+    if (isWithdrawalEvent) {
+        const withdrawalLogs = parseEventLogs({
+            abi: [nativeTokenWithdrawalAbiEvent],
+            logs: txReceipt.logs,
+            eventName: nativeTokenWithdrawalAbiEvent.name,
+        })
+        if (withdrawalLogs.length > 0) {
+            dstAmount = withdrawalLogs[withdrawalLogs.length - 1].args.wad
+        }
+    }
+    else {
+        const transferLogs = parseEventLogs({
+            abi: erc20Abi,
+            logs: txReceipt.logs,
+            eventName: "Transfer",
+        })
+        dstAmount = transferLogs.findLast((log) => log.args.to.toLowerCase() === accountAddress.toLowerCase())?.args.value
+    }
+
+    return dstAmount
 }
 
 export const getSwapStatusToastData = (swapHistory: SwapHistory, duration?: number) => {

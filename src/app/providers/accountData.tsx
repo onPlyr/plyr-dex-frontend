@@ -3,19 +3,16 @@ import { Hash, TransactionReceipt } from "viem"
 import { useAccount } from "wagmi"
 
 import { useToast } from "@/app/hooks/toast/useToast"
+import useReadTokensAndBalances from "@/app/hooks/tokens/useReadTokensAndBalances"
 import { Token, TokenBalance } from "@/app/types/tokens"
-import { AccountDataContext, addSwapHistoryItem, getAccountBalances, getSwapStatusToastData, sortAccountSwapHistory, updateSwapHistoryItemStatus } from "@/app/lib/account"
+import { AccountDataContext, addSwapHistoryItem, getSwapStatusToastData, sortAccountSwapHistory, updateSwapHistoryItemStatus } from "@/app/lib/account"
 import { AccountBalancesContextType, AccountDataContextType, AccountHistoryContextType } from "@/app/types/account"
 import { RouteQuote, SwapHistory, SwapHistoryData } from "@/app/types/swaps"
 import { getStorageItem, isStorageAvailable } from "@/app/lib/storage"
 import { StorageDataKey, StorageType } from "@/app/types/storage"
 
-// todo: add try/catch and error handling
-//  - add status returns as with wagmi hooks
-// todo: edge case issue when multiple tokens on the same chain have the same symbol
-//  - symbol/decimals are the only identifiers returned by getBalance
-//  - add check for duplicate symbol tokens on the same chain and query those separately to avoid overwriting
-//  - also try case sensitive vs. insensitive, as long app data is accurate then can avoid some cases, eg. aUSD / AUSD on c-chain
+// todo: split into separate providers, one for tokens and one for one for swap history (potentially a more general account data one)
+
 
 export const AccountDataProvider = ({
     children,
@@ -30,24 +27,7 @@ export const AccountDataProvider = ({
     const { address: accountAddress } = useAccount()
     const enabled = storageAvailable === true
 
-    const [accountBalanceData, setAccountBalanceData] = useState<Token[]>([])
-    const setBalanceData = useCallback((data?: Token[]) => {
-        setAccountBalanceData(data ? data : [])
-    }, [enabled, accountAddress, setAccountBalanceData])
-
-    const fetchAccountBalanceData = useCallback(() => {
-        if (enabled) {
-            getAccountBalances({
-                accountAddress: accountAddress,
-                setData: setBalanceData,
-                _enabled: enabled,
-            })
-        }
-    }, [enabled, accountAddress, setBalanceData])
-
-    useEffect(() => {
-        fetchAccountBalanceData()
-    }, [enabled, accountAddress, fetchAccountBalanceData])
+    const { data: accountBalanceData, refetch: refetchAccountBalanceData } = useReadTokensAndBalances()
 
     const getTokenBalance = useCallback((token?: Token) => {
         const result = token ? accountBalanceData.find((data) => data.id === token.id && data.chainId === token.chainId) : undefined
@@ -65,7 +45,8 @@ export const AccountDataProvider = ({
         data: accountBalanceData,
         getTokenBalance: getTokenBalance,
         getTokenBalanceData: getTokenBalanceData,
-        refetch: fetchAccountBalanceData,
+        // refetch: fetchAccountBalanceData,
+        refetch: refetchAccountBalanceData,
     }
 
     const [latestSwapHistory, setLatestSwapHistory] = useState<SwapHistory>()
@@ -152,9 +133,9 @@ export const AccountDataProvider = ({
     }
 
     const refetchAccountData = useCallback(() => {
-        fetchAccountBalanceData()
+        refetchAccountBalanceData()
         fetchAccountHistoryData()
-    }, [fetchAccountBalanceData, fetchAccountHistoryData])
+    }, [refetchAccountBalanceData, fetchAccountHistoryData])
 
     const context: AccountDataContextType = {
         balances: balancesContext,

@@ -3032,3 +3032,108 @@ export const teleporterFailedMessageExecutionAbiEvent = {
     "name": "MessageExecutionFailed",
     "type": "event"
 } as const
+
+export const nativeTokenWithdrawalAbiEvent = {
+    "anonymous": false,
+    "inputs": [
+        {
+            "indexed": true,
+            "internalType": "address",
+            "name": "src",
+            "type": "address",
+        },
+        {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "wad",
+            "type": "uint256",
+        },
+    ],
+    "name": "Withdrawal",
+    "type": "event",
+} as const
+
+export const nativeTokenDepositAbiEvent = {
+    "anonymous": false,
+    "inputs": [
+        {
+            "indexed": true,
+            "internalType": "address",
+            "name": "dst",
+            "type": "address",
+        },
+        {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "wad",
+            "type": "uint256",
+        },
+    ],
+    "name": "Deposit",
+    "type": "event",
+} as const
+
+export const depositWithdrawNativeAbi = [
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "dst",
+                "type": "address",
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "wad",
+                "type": "uint256"
+            },
+        ],
+        "name": "Deposit",
+        "type": "event",
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "deposit",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function",
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "src",
+                "type": "address",
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "wad",
+                "type": "uint256",
+            }
+        ],
+        "name": "Withdrawal",
+        "type": "event",
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "wad",
+                "type": "uint256",
+            }
+        ],
+        "name": "withdraw",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+] as const

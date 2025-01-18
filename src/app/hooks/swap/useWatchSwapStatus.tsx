@@ -29,6 +29,9 @@ const useWatchSwapStatus = ({
 
     const enabled = _enabled !== false && isConfirmed !== true && refetchNum <= swapStatusPollNumRefetches && accountAddress !== undefined && swapHistory !== undefined && swapHistory.status === "pending"
 
+
+    console.log("test: ", swapStatusPollIntervalMs)
+
     console.log(">>> useWatchSwapStatus enabled: " + enabled)
     console.log(">>> useWatchSwapStatus isConfirmed: " + isConfirmed)
 

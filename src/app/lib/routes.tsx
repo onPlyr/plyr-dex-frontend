@@ -92,7 +92,7 @@ export const getQuoteBridgeRoutes = (srcChain?: Chain, srcToken?: Token, dstChai
     const srcBridgeRoutes: BridgeRoute[] = []
     const dstBridgeRoutes: BridgeRoute[] = []
 
-    if (srcChain === undefined || srcToken === undefined || dstChain === undefined || dstToken === undefined) {
+    if (!srcChain || !srcToken || !dstChain || !dstToken) {
         return {
             srcBridgeRoutes,
             dstBridgeRoutes,
@@ -1158,6 +1158,11 @@ export const getRouteData = (quote: RouteQuote) => {
 
     let actionOrder = 1
 
+    //todo: remove this once we have a way to handle same chain swaps
+    // if (quote.srcChain.id === quote.dstChain.id && quote.hops.length > 1) {
+    //     return undefined
+    // }
+
     quote.hops.forEach((data) => {
 
         const isSwap = getIsTradeHop(data.action)
@@ -1312,7 +1317,7 @@ export const getRouteData = (quote: RouteQuote) => {
 
 export const getPendingSwapHistory = (quote?: RouteQuote, txid?: Hash) => {
 
-    if (quote === undefined || txid === undefined) {
+    if (!quote || !txid) {
         return undefined
     }
 
