@@ -360,7 +360,7 @@ export const getRouteQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?
 
     const routeQuotes: RouteQuoteData[] = []
     const { srcBridgeRoutes, dstBridgeRoutes } = getQuoteBridgeRoutes(srcChain, srcToken, dstChain, dstToken)
-    if (srcChain === undefined || srcToken === undefined || srcAmount === undefined || srcAmount === BigInt(0) || dstChain === undefined || dstToken === undefined || srcBridgeRoutes.length === 0 || dstBridgeRoutes.length === 0) {
+    if (!srcChain || !srcToken || !dstChain || !dstToken || !srcAmount || dstChain === undefined || dstToken === undefined || srcBridgeRoutes.length === 0 || dstBridgeRoutes.length === 0) {
         return routeQuotes
     }
 
@@ -666,7 +666,7 @@ export const getBaseQuoteData = (data: RouteQuoteData | HopQuoteData | StepQuote
 export const getStepQuote = (data: StepQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
 
     const { srcChain, srcToken, dstChain, dstToken } = getBaseQuoteData(data, getTokenBalanceData)
-    if (srcChain === undefined || srcToken === undefined || data.srcAmount === undefined || data.srcAmount === BigInt(0) || dstChain === undefined || dstToken === undefined || data.dstAmount === undefined || data.dstAmount === BigInt(0) || data.minDstAmount === undefined || data.minDstAmount === BigInt(0)) {
+    if (!srcChain || !srcToken || !data.srcAmount || !dstChain || !dstToken || !data.dstAmount || !data.minDstAmount) {
         return undefined
     }
 
@@ -696,23 +696,17 @@ export const getStepQuote = (data: StepQuoteData, getTokenBalanceData: (token?: 
 export const getHopQuote = (data: HopQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
 
     const { srcChain, srcCell, srcToken, dstChain, dstCell, dstToken } = getBaseQuoteData(data, getTokenBalanceData)
-    if (srcChain === undefined || srcCell === undefined || srcToken === undefined || data.srcAmount === undefined || data.srcAmount === BigInt(0) || dstChain === undefined || dstCell === undefined || dstToken === undefined || data.steps.length === 0) {
-        return undefined
-    }
-    else if (data.dstAmount === undefined || data.dstAmount === BigInt(0) || data.minDstAmount === undefined || data.minDstAmount === BigInt(0)) {
-        return undefined
-    }
-    else if (getIsBridgeHop(data.action) && (data.srcBridgeData === undefined || data.dstBridgeData === undefined)) {
+    if (!srcChain || !srcCell || !srcToken || !data.srcAmount || !dstChain || !dstCell || !dstToken || data.steps.length === 0 || !data.dstAmount || !data.minDstAmount || (getIsBridgeHop(data.action) && (!data.srcBridgeData || !data.dstBridgeData))) {
         return undefined
     }
 
     const stepQuotes: StepQuote[] = []
-    data.steps.forEach((step) => {
+    for (const step of data.steps) {
         const quote = getStepQuote(step, getTokenBalanceData)
         if (quote) {
             stepQuotes.push(quote)
         }
-    })
+    }
     if (stepQuotes.length !== data.steps.length) {
         return undefined
     }
@@ -745,7 +739,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
         const isSwap = getIsTradeHop(hop.action)
         const isBridge = getIsBridgeHop(hop.action)
 
-        if (isSwap && hop.result !== undefined) {
+        if (isSwap && hop.result) {
 
             const adapterAddresses = hop.result.tradeData.trade[CellTradeParameter.Adapters]
             const tradePath = hop.result.tradeData.trade[CellTradeParameter.Path]
@@ -774,7 +768,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
                     }
                 })
             }
-            else if (tradePath && tradePath.length !== 0) {
+            else if (tradePath && tradePath.length > 0) {
                 for (let i = 0; i < tradePath.length - 1; i++) {
                     const swapSrcToken = hopIdx === 0 && i === 0 ? hop.srcToken : getTokenByAddress(tradePath[i], hop.srcChain)
                     const swapDstToken = getTokenByAddress(tradePath[i + 1], hop.srcChain)
@@ -817,7 +811,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
             }
         }
 
-        if (isBridge && hop.srcBridge !== undefined && hop.dstBridge !== undefined) {
+        if (isBridge && hop.srcBridge && hop.dstBridge) {
             const bridgeStep = hop.steps.find((step) => step.type === RouteType.Bridge)
             if (bridgeStep) {
                 const bridgeSrcAmount = events.length > 0 ? events[events.length - 1].dstAmount : hop.srcAmount
@@ -842,13 +836,13 @@ export const getRouteEvents = (hops: HopQuote[]) => {
 
 export const getBridgeQuote = (data: RouteQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
 
-    if (data.type !== RouteType.Bridge || data.hops.length !== 1 || data.hops.some((hop) => hop.action !== HopAction.Hop || hop.steps.length !== 1 || hop.steps.some((step) => step.type !== RouteType.Bridge)) || data.srcAmount === undefined || data.srcAmount === BigInt(0) || data.dstAmount === undefined || data.dstAmount === BigInt(0) || data.minDstAmount === undefined || data.minDstAmount === BigInt(0)) {
+    if (data.type !== RouteType.Bridge || data.hops.length !== 1 || data.hops.some((hop) => hop.action !== HopAction.Hop || hop.steps.length !== 1 || hop.steps.some((step) => step.type !== RouteType.Bridge)) || !data.srcAmount || !data.dstAmount || !data.minDstAmount) {
         return undefined
     }
 
     const hopQuote = getHopQuote(data.hops[0], getTokenBalanceData)
     const { srcChain, srcCell, srcToken, dstChain, dstCell, dstToken } = getBaseQuoteData(data, getTokenBalanceData)
-    if (srcChain === undefined || srcCell === undefined || srcToken === undefined || dstChain === undefined || dstCell === undefined || dstToken === undefined || hopQuote === undefined) {
+    if (!srcChain || !srcCell || !srcToken || !dstChain || !dstCell || !dstToken || !hopQuote) {
         return undefined
     }
 
@@ -880,7 +874,7 @@ export const getSwapQuote = (swapData: SwapQueryData, getTokenBalanceData: (toke
 
     const quoteData = swapData.data
     const { srcChain, srcCell, srcToken, dstChain, dstCell, dstToken } = getBaseQuoteData(quoteData, getTokenBalanceData)
-    if (srcChain === undefined || srcCell === undefined || srcToken === undefined || quoteData.srcAmount === undefined || quoteData.srcAmount === BigInt(0) || dstChain === undefined || dstCell === undefined || dstToken === undefined) {
+    if (!srcChain || !srcCell || !srcToken || !quoteData.srcAmount || !dstChain || !dstCell || !dstToken) {
         return undefined
     }
 
@@ -894,7 +888,7 @@ export const getSwapQuote = (swapData: SwapQueryData, getTokenBalanceData: (toke
     const primaryHopQuote = getHopQuote(primaryHop.data, getTokenBalanceData)
     const secondaryHopQuote = secondaryHop ? getHopQuote(secondaryHop.data, getTokenBalanceData) : undefined
     const finalHopQuote = finalHop ? getHopQuote(finalHop.data, getTokenBalanceData) : undefined
-    if (primaryHopQuote === undefined || (secondaryHop && secondaryHopQuote === undefined) || (finalHop && finalHopQuote === undefined)) {
+    if (!primaryHopQuote || (secondaryHop && !secondaryHopQuote) || (finalHop && !finalHopQuote)) {
         return undefined
     }
 
@@ -930,7 +924,7 @@ export const getSwapQuote = (swapData: SwapQueryData, getTokenBalanceData: (toke
 
     const dstAmount = quoteData.hops[quoteData.hops.length - 1].dstAmount
     const minDstAmount = quoteData.hops[quoteData.hops.length - 1].minDstAmount
-    if (dstAmount === undefined || dstAmount === BigInt(0) || minDstAmount === undefined || minDstAmount === BigInt(0)) {
+    if (!dstAmount || !minDstAmount) {
         return undefined
     }
 
@@ -1009,14 +1003,14 @@ export const getSwapQueryData = (quoteData: RouteQuoteData[]) => {
 export const getSwapQuery = (data: HopQuoteData, cellRouteData?: CellRouteData, useSlippage?: boolean) => {
 
     const swapData = data.steps.find((step) => step.type === RouteType.Swap)
-    if (getIsTradeHop(data.action) !== true || swapData === undefined || swapData.swapSrcTokenAddress === undefined || swapData.swapDstTokenAddress === undefined || swapData.srcAmount === undefined || swapData.srcAmount === BigInt(0)) {
+    if (!getIsTradeHop(data.action) || !swapData || !swapData.swapSrcTokenAddress || !swapData.swapDstTokenAddress || !swapData.srcAmount) {
         return undefined
     }
 
     const swapChain = getChain(swapData.srcChainId)
     const swapCell = swapChain?.cells.find((cell) => cell.address === data.srcCellAddress && cell.canSwap)
     const encodedRouteData = swapChain && swapCell ? getEncodedCellRouteData(swapChain, swapCell, cellRouteData, useSlippage) : undefined
-    if (swapChain === undefined || swapCell === undefined || encodedRouteData === undefined) {
+    if (!swapChain || !swapCell || !encodedRouteData) {
         return undefined
     }
 
@@ -1083,19 +1077,18 @@ export const getSwapQueryResultData = ({
         hopData = queryData.finalHop
     }
 
-    if (hopData === undefined || queryCell === undefined || encodedResult === undefined || encodedMinAmountResult === undefined) {
+    if (!hopData || !queryCell || !encodedResult || !encodedMinAmountResult) {
         isError = true
     }
     else {
 
         const [encodedTradeData, estimatedGasFee] = encodedResult
-
         const tradeData = getDecodedCellTradeData(queryCell, encodedTradeData)
 
         const [encodedMinAmountTradeData, estimatedMinAmountGasFee] = encodedMinAmountResult
         const minAmountTradeData = getDecodedCellTradeData(queryCell, encodedMinAmountTradeData)
 
-        if (tradeData === undefined || minAmountTradeData === undefined) {
+        if (!tradeData || !minAmountTradeData) {
             isError = true
         }
         else {
@@ -1165,14 +1158,7 @@ export const getRouteData = (quote: RouteQuote) => {
 
     let actionOrder = 1
 
-    // todo: remove this once we have a way to handle same chain swaps
-    if (quote.srcChain.id === quote.dstChain.id && quote.hops.length > 1) {
-        return undefined
-    }
-
     quote.hops.forEach((data) => {
-
-       
 
         const isSwap = getIsTradeHop(data.action)
         const isBridge = getIsBridgeHop(data.action)
@@ -1181,11 +1167,9 @@ export const getRouteData = (quote: RouteQuote) => {
         const recipientGasLimit = gasEstimate + tmpGasBuffer
         const totalGasLimit = recipientGasLimit + (data.action === HopAction.SwapAndTransfer ? BigInt(0) : tmpHopGasEstimate)
 
-        if (data.srcAmount === undefined || data.srcAmount === BigInt(0) || data.dstAmount === undefined || data.dstAmount === BigInt(0) || (isBridge && (data.srcBridge === undefined || data.dstBridge === undefined)) || (isSwap && data.minAmountResult === undefined)) {
+        if (!data.srcAmount || !data.dstAmount || (isBridge && (!data.srcBridge || !data.dstBridge)) || (isSwap && !data.minAmountResult)) {
             return
         }
-
-        
 
         const bridgePath: BridgePath = {
             bridgeSourceChain: data.srcBridge?.address ?? zeroAddress,
@@ -1218,8 +1202,6 @@ export const getRouteData = (quote: RouteQuote) => {
             gasEstimate: gasEstimate,
         }
         routeHopData.push(hopData)
-
-        
 
         if (isSwap && data.result) {
 
@@ -1299,7 +1281,6 @@ export const getRouteData = (quote: RouteQuote) => {
     const totalGasCostFormatted = formatUnits(totalGasEstimate * quote.srcChain.minGasPrice, quote.srcChain.gasPriceExponent)
     const gasToken = getNativeToken(quote.srcChain)
     const isSameChainSwapOnly = quote.srcChain.id === quote.dstChain.id && routeHopData.length === 1 && routeHopData[0].action === HopAction.SwapAndTransfer
-    
     const durationEstimate = isSameChainSwapOnly ? 0 : routeHopData.reduce((sum, hop) => sum + (hop.srcChain.avgBlockTimeMs * durationEstimateNumConfirmations), 0) + (quote.dstChain.avgBlockTimeMs * durationEstimateNumConfirmations)
     const routeType = getRouteType(routeHopData)
 
