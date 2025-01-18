@@ -88,9 +88,9 @@ export default function Header() {
     useEffect(() => {
 
         const setActive = async () => {
-            if (wagmiWalletClient) {
+            if (wagmiWalletClient && typeof wagmiWalletClient.getChainId === "function") {
                 // Store the current active wallet before setting the new one
-                //console.log("walletClient", wagmiWalletClient)
+                console.log("walletClient", wagmiWalletClient)
 
                 const adaptedAccount = viemAdapter.walletClient.fromViem({
                     walletClient: wagmiWalletClient as any, // accounts for wagmi/viem version mismatches
