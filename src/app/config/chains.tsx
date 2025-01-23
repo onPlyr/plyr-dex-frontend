@@ -41,8 +41,8 @@ export const plyrTau = {
     },
     blockExplorers: {
         default: {
-            name: "Avalanche L1 Explorer",
-            url: "https://subnets-test.avax.network/plyr",
+            name: "PLYR TAU Explorer",
+            url: "https://explorer-testnet.plyr.network",
         },
     },
 } as const satisfies RainbowKitChain
