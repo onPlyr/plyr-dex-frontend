@@ -5,6 +5,8 @@ import { useCallback } from "react"
 import { TransactionReceipt } from "viem"
 import { useAccount, useSwitchChain } from "wagmi"
 
+import "@/app/styles/globals.css"
+
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import RouteSummaryBadges from "@/app/components/routes/RouteSummaryBadges"

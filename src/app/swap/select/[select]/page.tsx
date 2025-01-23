@@ -4,6 +4,8 @@ import { AnimatePresence, Variants } from "motion/react"
 import { useRouter } from "next/navigation"
 import { use, useCallback, useEffect, useState } from "react"
 
+import "@/app/styles/globals.css"
+
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import { defaultAnimations as slideInOutAnimations } from "@/app/components/animations/SlideInOut"

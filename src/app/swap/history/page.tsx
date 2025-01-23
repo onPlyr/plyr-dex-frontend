@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation"
 
+import "@/app/styles/globals.css"
+
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
 import RouteEventTokenDetail from "@/app/components/routes/RouteEventTokenDetail"

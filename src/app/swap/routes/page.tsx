@@ -2,6 +2,8 @@
 
 import { Variants } from "motion/react"
 
+import "@/app/styles/globals.css"
+
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import { defaultAnimations as slideInOutAnimations } from "@/app/components/animations/SlideInOut"

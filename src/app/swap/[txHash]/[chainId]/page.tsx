@@ -6,6 +6,8 @@ import { use } from "react"
 import { twMerge } from "tailwind-merge"
 import { isHex } from "viem"
 
+import "@/app/styles/globals.css"
+
 import { AnimatedBridgeIcon } from "@/app/components/animations/AnimatedBridgeIcon"
 import { AnimatedSwapIcon } from "@/app/components/animations/AnimatedSwapIcon"
 import SlideInOut from "@/app/components/animations/SlideInOut"
