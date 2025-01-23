@@ -1,4 +1,4 @@
-import { Bridge } from "@phosphor-icons/react"
+import { Path } from "@phosphor-icons/react"
 import * as React from "react"
 
 import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
@@ -12,7 +12,7 @@ const BridgeIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconP
             ref={ref}
             {...props}
         >
-            {children ?? <Bridge />}
+            {children ?? <Path />}
         </BaseIcon>
     )
 

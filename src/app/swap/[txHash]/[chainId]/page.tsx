@@ -8,8 +8,8 @@ import { isHex } from "viem"
 
 import "@/app/styles/globals.css"
 
-import { AnimatedBridgeIcon } from "@/app/components/animations/AnimatedBridgeIcon"
-import { AnimatedSwapIcon } from "@/app/components/animations/AnimatedSwapIcon"
+// import { AnimatedBridgeIcon } from "@/app/components/animations/AnimatedBridgeIcon"
+// import { AnimatedSwapIcon } from "@/app/components/animations/AnimatedSwapIcon"
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import CoinsIcon from "@/app/components/icons/CoinsIcon"
 import DifferenceIcon from "@/app/components/icons/DifferenceIcon"
@@ -39,6 +39,8 @@ import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
 import { getStatusLabel } from "@/app/lib/utils"
 import { BaseSwapData, RouteType, SwapEvent } from "@/app/types/swaps"
+import Link from "next/link"
+
 import { useSearchParams } from 'next/navigation'
 import { toTokens } from "thirdweb/utils"
 import { useRouter } from "next/navigation"
@@ -130,14 +132,14 @@ const SwapDetailPage = ({
 
     // Logic to add to Depositlog //
     useEffect(() => {
-        console.log('swap',swap)
+        //console.log('swap', swap)
         if (swap && swap.status === SwapStatus.Success && plyrId && swap.events.length > 0) {
 
             // get last event dst token //
             const lastEventDstToken = swap.events[swap.events.length - 1]
 
             if (lastEventDstToken && lastEventDstToken.dstData && lastEventDstToken.dstData.amount) {
-               
+
                 addDepositLog(plyrId, lastEventDstToken.dstData.token.id, toTokens(lastEventDstToken.dstData.amount, lastEventDstToken.dstData.token.decimals), txHash)
 
                 // remove plyrId from search params
@@ -157,6 +159,14 @@ const SwapDetailPage = ({
             key={SwapTab.Transactions}
             header={`${swapType}: ${txString}`}
             backUrl="/swap/history"
+            footer={swap.status === SwapStatus.Success && (
+                <Link
+                    href="/swap"
+                    className="btn gradient-btn rounded w-full"
+                >
+                    New Swap
+                </Link>
+            )}
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
                 <div className="container p-4 overflow-x-hidden">
@@ -185,8 +195,9 @@ const SwapDetailPage = ({
                                                 token={srcData.token}
                                                 chain={srcData.chain}
                                             />
-                                            <div className="flex flex-row flex-1 max-w-16 max-h-16 justify-center items-center text-success-500">
-                                                {swapType === RouteType.Bridge ? <AnimatedBridgeIcon /> : <AnimatedSwapIcon />}
+                                            <div className={twMerge("flex flex-row flex-1 max-w-16 max-h-16 justify-center items-center", swap.status === SwapStatus.Success ? "text-success-500" : "text-white")}>
+                                                {/*{swapType === RouteType.Bridge ? <AnimatedBridgeIcon /> : <AnimatedSwapIcon />}*/}
+                                                <RouteTypeIcon type={swap.type} className="w-full h-full" />
                                             </div>
                                             <SwapTokenDetail
                                                 label="To"
@@ -354,9 +365,15 @@ const SwapDetailPage = ({
                                             <div className="flex flex-row flex-1 gap-4 justify-between">
                                                 <div className="group flex flex-row flex-none justify-start items-center gap-4 font-bold">
                                                     {platform ? (
-                                                        <PlatformImage platform={platform} size="xs" />
-                                                    ) : event.type && (
-                                                        <RouteTypeIcon type={event.type} className={twMerge(iconSizes.sm, "me-1")} />
+                                                        <PlatformImage
+                                                            platform={platform}
+                                                            size="xs"
+                                                        />
+                                                    ) : (
+                                                        <RouteTypeIcon
+                                                            type={event.type}
+                                                            className={twMerge(iconSizes.sm, "me-1")}
+                                                        />
                                                     )}
                                                     {`${event.type ? getRouteTypeLabel(event.type) : "Transaction"}${platformName && ` via ${platformName}`}`}
                                                     <SwapStatusIcon status={event.status} className={iconSizes.sm} />

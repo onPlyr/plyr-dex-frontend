@@ -887,9 +887,6 @@ const useSwapDetails = ({
             swap.hops.forEach((hop, i) => {
                 console.log(`   >>> useSwapHistory hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
             })
-            getSwap(swap.srcData.chain, swap.id)?.hops.forEach((hop, i) => {
-                console.log(`   >>> useSwapHistory REFETCHED hop ${i}: ${hop.status}`)
-            })
             swap.events.forEach((event, i) => {
                 console.log(`      >>> useSwapHistory event ${i}: ${event.srcData.amount ? formatUnits(event.srcData.amount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData?.amount ? formatUnits(event.dstData.amount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol} (${event.dstData?.chain.name}) / status: ${event.status} / tx hash: ${event.txHash ?? "n/a"}`)
             })

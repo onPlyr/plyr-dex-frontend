@@ -79,13 +79,13 @@ const SwapSummaryLabels = React.forwardRef<HTMLDivElement, SwapSummaryLabelsProp
                 >
                     {eventTypeData.map(([type, count], i) => (
                         <div key={type}>
-                            {i === eventTypeData.length - 1 && (<>&nbsp;</>)}<span className="font-bold">{count} x {getRouteTypeLabel(type).toLowerCase()}</span>&nbsp;{i < eventTypeData.length - 1 ? "and" : "steps."}
+                            {i === eventTypeData.length - 1 && (<>&nbsp;</>)}<span className="font-bold">{count} x {getRouteTypeLabel(type).toLowerCase()}</span>&nbsp;{i < eventTypeData.length - 1 ? "and" : `step${route.quote.events.length > 1 ? "s" : ""}.`}
                         </div>
                     ))}
                 </Tooltip>
             </div>
             {hideEvents !== true && (
-                <div className="label flex-1 flex-1 flex-wrap p-2 gap-2">
+                <div className="label flex-1 flex-wrap p-2 gap-2">
                     {route.quote.events.map((event, i) => {
                         const platform = getPlatform(event.adapter?.platform)
                         const platformName = platform?.name ?? event.bridge ?? event.adapter?.name

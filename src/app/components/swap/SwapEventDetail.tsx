@@ -39,18 +39,19 @@ const SwapEventDetail = React.forwardRef<HTMLDivElement, SwapEventDetailProps>((
         {...props}
     >
         <div className="flex flex-row flex-1 gap-4">
-            <div className="flex flex-col shrink justify-center items-center font-bold">
-                <RouteTypeIcon
-                    type={event.type}
-                    className={iconSizes.sm}
-                />
-            </div>
-            <div className="flex flex-row flex-1 justify-start items-center">
-                <div className="font-bold">{getRouteTypeLabel(event.type)}</div>
-            </div>
-            <div className="flex flex-row flex-1 gap-4 justify-end items-center text-muted-500">
-                via {platformName}
-                {platform && <PlatformImage platform={platform} size="xs" />}
+            <div className="group flex flex-row flex-none justify-start items-center gap-4 font-bold">
+                {platform ? (
+                    <PlatformImage
+                        platform={platform}
+                        size="xs"
+                    />
+                ) : (
+                    <RouteTypeIcon
+                        type={event.type}
+                        className={twMerge(iconSizes.sm, "me-1")}
+                    />
+                )}
+                {`${event.type ? getRouteTypeLabel(event.type) : "Transaction"}${platformName && ` via ${platformName}`}`}
             </div>
         </div>
         <div className="flex flex-col flex-1 gap-1">
