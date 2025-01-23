@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Token, Fetcher, Pair, TokenAmount } from '@plyrnetwork/plyrswap-sdk'
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card } from "@/components/ui/card"
+import { Button } from "@/src/components/ui/button"
+import { Input } from "@/src/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
+import { Card } from "@/src/components/ui/card"
 import { useActiveAccount, useActiveWallet, useActiveWalletChain,  useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 
-import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
+import { client, tauChain, phiChain } from '@/src/lib/thirdweb_client';
 
 import { Info, PiggyBank, SquarePlus } from 'lucide-react'
 
@@ -30,7 +30,7 @@ const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 
 import { FastAverageColor } from 'fast-average-color';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/src/components/ui/use-toast';
 
 
 export default function addLiqSection({ tokenList }: { tokenList: any[] }) {

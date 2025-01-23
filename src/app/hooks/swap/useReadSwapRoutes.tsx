@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from "react"
 import { QueryStatus } from "@tanstack/react-query"
-import { serialize, useReadContracts } from "wagmi"
+import { useReadContracts } from "wagmi"
 
-import { defaultSlippageBps } from "@/app/config/swaps"
-import useAccountBalances from "@/app/hooks/account/useAccountBalances"
-import { useToast } from "@/app/hooks/toast/useToast"
+import { defaultSlippageBps, RouteValidMs } from "@/app/config/swaps"
+import useToast from "@/app/hooks/toast/useToast"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
-import { getBaseQuoteData, getBridgeQuote, getRouteData, getRouteQuoteData, getSwapQuery, getSwapQueryData, getSwapQueryResultData, getSwapQuote, sortRoutes } from "@/app/lib/routes"
+import { getBaseQuoteData, getBridgeQuote, getQuoteData, getRouteData, getSwapQuery, getSwapQueryData, getSwapQueryResultData, getSwapQuote, sortRoutes } from "@/app/lib/routes"
 import { getErrorToastData } from "@/app/lib/utils"
 import { CellRouteData, CellRouteDataParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
 import { PreferenceType } from "@/app/types/preferences"
 import { EncodedRouteQueryResult, Route, RouteQuery, RouteQuote, RouteQuoteData, RouteType, SwapQueryData, SwapQueryType } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
+import useTokens from "../tokens/useTokens"
 
 const useReadSwapRoutes = ({
     srcChain,
@@ -31,11 +31,10 @@ const useReadSwapRoutes = ({
 }) => {
 
     const { preferences } = usePreferences()
-
+    const { getTokenData } = useTokens()
     const cellRouteData: CellRouteData = {
         [CellRouteDataParameter.SlippageBips]: BigInt(preferences[PreferenceType.Slippage] || defaultSlippageBps),
     }
-    const { getTokenBalanceData } = useAccountBalances()
 
     // todo: update ui to deal with quotes returned and routes when proceeding to swap instead
     // todo: consider waiting until all queries are completed before returning routes as it causes multiple rerenders currently
@@ -68,10 +67,7 @@ const useReadSwapRoutes = ({
         const swapData: RouteQuoteData[] = []
 
         if (enabled) {
-            const quoteData = getRouteQuoteData(srcChain, srcToken, srcAmount, dstChain, dstToken)
-
-            console.log(`>>> useReadSwapRoutes quoteData: ${serialize(quoteData)}`)
-
+            const quoteData = getQuoteData(srcChain, srcToken, srcAmount, dstChain, dstToken)
             quoteData?.forEach((data) => {
                 if (data.type === RouteType.Bridge) {
                     bridgeData.push(data)
@@ -91,7 +87,7 @@ const useReadSwapRoutes = ({
         const bridgeRouteQuotes: RouteQuote[] = []
         if (enabled && bridgeQuoteData.length > 0) {
             bridgeQuoteData.forEach((data) => {
-                const quote = getBridgeQuote(data, getTokenBalanceData)
+                const quote = getBridgeQuote(data, getTokenData)
                 if (quote) {
                     bridgeRouteQuotes.push(quote)
                 }
@@ -153,6 +149,8 @@ const useReadSwapRoutes = ({
         contracts: primaryQueries,
         query: {
             enabled: enabled && primaryQueries.length > 0,
+            gcTime: 0,
+            refetchInterval: RouteValidMs,
         },
     })
 
@@ -170,7 +168,7 @@ const useReadSwapRoutes = ({
             primaryQueryData.forEach((data) => {
                 if (data.primaryHop.isPrimaryQuery && data.primaryHop.index !== undefined && primaryQueryResults[data.primaryHop.index]?.result !== undefined) {
 
-                    const { srcCell: queryCell } = getBaseQuoteData(data.primaryHop.data, getTokenBalanceData)
+                    const { srcCell: queryCell } = getBaseQuoteData(data.primaryHop.data, getTokenData)
                     const encodedResult = queryCell ? primaryQueryResults[data.primaryHop.index].result as EncodedRouteQueryResult : undefined
                     const encodedMinAmountResult = queryCell && data.primaryHop.minAmountIndex !== undefined ? primaryQueryResults[data.primaryHop.minAmountIndex].result as EncodedRouteQueryResult : undefined
                     const { hopData, nextHopData, isNextQuery, nextQuery, nextMinAmountQuery, isError } = getSwapQueryResultData({
@@ -199,7 +197,7 @@ const useReadSwapRoutes = ({
                             }
                         }
                         else if (isNextQuery !== true) {
-                            const quote = getSwapQuote(data, getTokenBalanceData)
+                            const quote = getSwapQuote(data, getTokenData)
                             if (quote) {
                                 quotes.push(quote)
                             }
@@ -209,7 +207,7 @@ const useReadSwapRoutes = ({
 
                 else if (data.secondaryHop?.isPrimaryQuery && data.secondaryHop.index !== undefined && primaryQueryResults[data.secondaryHop.index]?.result !== undefined) {
 
-                    const { srcCell: queryCell } = getBaseQuoteData(data.secondaryHop.data, getTokenBalanceData)
+                    const { srcCell: queryCell } = getBaseQuoteData(data.secondaryHop.data, getTokenData)
                     const encodedResult = queryCell ? primaryQueryResults[data.secondaryHop.index].result as EncodedRouteQueryResult : undefined
                     const encodedMinAmountResult = queryCell && data.secondaryHop.minAmountIndex !== undefined ? primaryQueryResults[data.secondaryHop.minAmountIndex].result as EncodedRouteQueryResult : undefined
                     const { hopData, nextHopData, isNextQuery, nextQuery, nextMinAmountQuery, isError } = getSwapQueryResultData({
@@ -234,7 +232,7 @@ const useReadSwapRoutes = ({
                             }
                         }
                         else if (isNextQuery !== true) {
-                            const quote = getSwapQuote(data, getTokenBalanceData)
+                            const quote = getSwapQuote(data, getTokenData)
                             if (quote) {
                                 quotes.push(quote)
                             }
@@ -244,7 +242,7 @@ const useReadSwapRoutes = ({
 
                 else if (data.finalHop?.isPrimaryQuery && data.finalHop.index !== undefined && primaryQueryResults[data.finalHop.index]?.result !== undefined) {
 
-                    const { srcCell: queryCell } = getBaseQuoteData(data.finalHop.data, getTokenBalanceData)
+                    const { srcCell: queryCell } = getBaseQuoteData(data.finalHop.data, getTokenData)
                     const encodedResult = queryCell ? primaryQueryResults[data.finalHop.index].result as EncodedRouteQueryResult : undefined
                     const encodedMinAmountResult = queryCell && data.finalHop.minAmountIndex !== undefined ? primaryQueryResults[data.finalHop.minAmountIndex].result as EncodedRouteQueryResult : undefined
                     const { hopData, isError } = getSwapQueryResultData({
@@ -258,7 +256,7 @@ const useReadSwapRoutes = ({
 
                     if (hopData && isError !== true) {
                         data.finalHop = hopData
-                        const quote = getSwapQuote(data, getTokenBalanceData)
+                        const quote = getSwapQuote(data, getTokenData)
                         if (quote) {
                             quotes.push(quote)
                         }
@@ -277,6 +275,8 @@ const useReadSwapRoutes = ({
         contracts: secondaryQueries,
         query: {
             enabled: enabled && secondaryQueries.length > 0,
+            gcTime: 0,
+            refetchInterval: RouteValidMs,
         },
     })
 
@@ -294,7 +294,7 @@ const useReadSwapRoutes = ({
             secondaryQueryData.forEach((data) => {
                 if (data.secondaryHop?.isSecondaryQuery && data.secondaryHop.index !== undefined && secondaryQueryResults[data.secondaryHop.index]?.result !== undefined) {
 
-                    const { srcCell: queryCell } = getBaseQuoteData(data.secondaryHop.data, getTokenBalanceData)
+                    const { srcCell: queryCell } = getBaseQuoteData(data.secondaryHop.data, getTokenData)
                     const encodedResult = queryCell ? secondaryQueryResults[data.secondaryHop.index].result as EncodedRouteQueryResult : undefined
                     const encodedMinAmountResult = queryCell && data.secondaryHop.minAmountIndex !== undefined ? secondaryQueryResults[data.secondaryHop.minAmountIndex].result as EncodedRouteQueryResult : undefined
                     const { hopData, nextHopData, isNextQuery, nextQuery, nextMinAmountQuery, isError } = getSwapQueryResultData({
@@ -319,7 +319,7 @@ const useReadSwapRoutes = ({
                             }
                         }
                         else if (isNextQuery !== true) {
-                            const quote = getSwapQuote(data, getTokenBalanceData)
+                            const quote = getSwapQuote(data, getTokenData)
                             if (quote) {
                                 quotes.push(quote)
                             }
@@ -329,7 +329,7 @@ const useReadSwapRoutes = ({
 
                 else if (data.finalHop?.isSecondaryQuery && data.finalHop.index !== undefined && secondaryQueryResults[data.finalHop.index]?.result !== undefined) {
 
-                    const { srcCell: queryCell } = getBaseQuoteData(data.finalHop.data, getTokenBalanceData)
+                    const { srcCell: queryCell } = getBaseQuoteData(data.finalHop.data, getTokenData)
                     const encodedResult = queryCell ? secondaryQueryResults[data.finalHop.index].result as EncodedRouteQueryResult : undefined
                     const encodedMinAmountResult = queryCell && data.finalHop.minAmountIndex !== undefined ? secondaryQueryResults[data.finalHop.minAmountIndex].result as EncodedRouteQueryResult : undefined
                     const { hopData, isError } = getSwapQueryResultData({
@@ -343,7 +343,7 @@ const useReadSwapRoutes = ({
 
                     if (hopData && isError !== true) {
                         data.finalHop = hopData
-                        const quote = getSwapQuote(data, getTokenBalanceData)
+                        const quote = getSwapQuote(data, getTokenData)
                         if (quote) {
                             quotes.push(quote)
                         }
@@ -362,6 +362,8 @@ const useReadSwapRoutes = ({
         contracts: finalQueries,
         query: {
             enabled: enabled && finalQueries.length > 0,
+            gcTime: 0,
+            refetchInterval: RouteValidMs,
         },
     })
 
@@ -376,7 +378,7 @@ const useReadSwapRoutes = ({
             finalQueryData.forEach((data) => {
                 if (data.finalHop?.isSecondaryQuery && data.finalHop.index !== undefined && finalQueryResults[data.finalHop.index]?.result !== undefined) {
 
-                    const { srcCell: queryCell } = getBaseQuoteData(data.finalHop.data, getTokenBalanceData)
+                    const { srcCell: queryCell } = getBaseQuoteData(data.finalHop.data, getTokenData)
                     const encodedResult = queryCell ? finalQueryResults[data.finalHop.index].result as EncodedRouteQueryResult : undefined
                     const encodedMinAmountResult = queryCell && data.finalHop.minAmountIndex !== undefined ? finalQueryResults[data.finalHop.minAmountIndex].result as EncodedRouteQueryResult : undefined
                     const { hopData, isError } = getSwapQueryResultData({
@@ -390,7 +392,7 @@ const useReadSwapRoutes = ({
 
                     if (hopData && isError !== true) {
                         data.finalHop = hopData
-                        const quote = getSwapQuote(data, getTokenBalanceData)
+                        const quote = getSwapQuote(data, getTokenData)
                         if (quote) {
                             quotes.push(quote)
                         }
@@ -425,7 +427,6 @@ const useReadSwapRoutes = ({
                 }
             })
         }
-
         setRoutes(sortRoutes(routeData))
     }, [enabled, routeQuotes])
 
@@ -450,22 +451,22 @@ const useReadSwapRoutes = ({
         }
     }, [enabled, primaryQueryData, primaryQueryStatus, secondaryQueryData, secondaryQueryStatus, finalQueryData, finalQueryStatus])
 
-    const { toast } = useToast()
+    const { addToast } = useToast()
     useEffect(() => {
         if (primaryQueryError) {
-            toast(getErrorToastData({
+            addToast(getErrorToastData({
                 description: "Error querying routes. Please check the browser console for more details."
             }))
             console.error(`useReadSwapRoutes - primary query error - name: ${primaryQueryError.name}, message: ${primaryQueryError.message}`)
         }
         if (secondaryQueryError) {
-            toast(getErrorToastData({
+            addToast(getErrorToastData({
                 description: "Error querying routes. Please check the browser console for more details."
             }))
             console.error(`useReadSwapRoutes - secondary query error - name: ${secondaryQueryError.name}, message: ${secondaryQueryError.message}`)
         }
         if (finalQueryError) {
-            toast(getErrorToastData({
+            addToast(getErrorToastData({
                 description: "Error querying routes. Please check the browser console for more details."
             }))
             console.error(`useReadSwapRoutes - final query error - name: ${finalQueryError.name}, message: ${finalQueryError.message}`)

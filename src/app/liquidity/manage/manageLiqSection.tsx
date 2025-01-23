@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link';
 
 import Image from 'next/image';
-import { Button } from "@/components/ui/button"
+import { Button } from "@/src/components/ui/button"
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
+import { Card } from "@/src/components/ui/card"
 import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { balanceOf, totalSupply } from "thirdweb/extensions/erc20";
 
-import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
+import { client, tauChain, phiChain } from '@/src/lib/thirdweb_client';
 
 import { NumericFormat } from "react-number-format";
 
@@ -19,7 +19,7 @@ import { getContract, readContract, toTokens } from 'thirdweb';
 
 
 import RemoveLiq from './components/removeLiq';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/src/components/ui/skeleton';
 
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;

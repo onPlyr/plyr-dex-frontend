@@ -9,7 +9,7 @@ export const TabsContainer = React.forwardRef<React.ElementRef<typeof TabsPrimit
 }, ref) => (
     <TabsPrimitive.Root
         ref={ref}
-        className={twMerge("flex flex-col h-fit gap-y-6 overflow-hidden", className)}
+        className={twMerge("flex flex-col flex-none overflow-hidden", className)}
         orientation={orientation}
         {...props}
     />
@@ -22,7 +22,7 @@ export const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.L
 }, ref) => (
     <TabsPrimitive.List
         ref={ref}
-        className={twMerge("flex flex-row flex-1 h-fit p-1 gap-[3px] rounded-lg bg-brand-gradient animate-bg-wave running", className)}
+        className={twMerge("flex flex-row flex-1 h-fit p-1 gap-[3px] rounded gradient-brand-bg animate-bg-wave running", className)}
         {...props}
     />
 ))
@@ -42,11 +42,13 @@ TabTrigger.displayName = TabsPrimitive.Trigger.displayName
 
 export const TabContent = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Content>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>>(({
     className,
+    asChild = true,
     ...props
 }, ref) => (
     <TabsPrimitive.Content
         ref={ref}
-        className={twMerge("flex flex-col h-fit rounded-lg overflow-auto data-[state=active]:flex data-[state=inactive]:hidden", className)}
+        className={twMerge("flex flex-col flex-none gap-4 w-full h-fit", className)}
+        asChild={asChild}
         {...props}
     />
 ))

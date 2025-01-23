@@ -3,6 +3,7 @@ import * as React from "react"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
 import FavouriteTokenDetail from "@/app/components/tokens/FavouriteTokenDetail"
+import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import { NumberFormatType } from "@/app/config/numbers"
@@ -23,9 +24,7 @@ export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectIt
 
     // todo: add token balance values once token prices are added
     const chain = getChain(token.chainId)
-    {
-        console.log('token',token)
-    }
+
     return (
         <SelectItem
             ref={ref}
@@ -34,7 +33,6 @@ export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectIt
             <div className="flex flex-col sm:flex-row flex-1 gap-x-4 gap-y-2">
                 <div className="flex flex-row flex-1 gap-4">
                     <div className="flex flex-col flex-none justify-center items-center">
-                       
                         <TokenImage token={token} />
                     </div>
                     <div className="flex flex-col flex-1">
@@ -42,21 +40,19 @@ export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectIt
                             <div className="font-bold">
                                 {token.symbol}
                             </div>
-                            <div className="hidden md:flex text-sm text-muted-500">
+                            <div className="hidden md:flex text-muted-500">
                                 {token.name}
                             </div>
                         </div>
-                        <div className="flex flex-row flex-1 gap-2 items-center">
-                            {chain && (
+                        {chain && (
+                            <div className="flex flex-row flex-1 gap-2 items-center text-muted-400">
                                 <ChainImageInline
                                     chain={chain}
                                     className={imgSizes.xs}
                                 />
-                            )}
-                            <div className="text-sm text-muted-400">
-                                {chain?.name}
+                                {chain.name}
                             </div>
-                        </div>
+                        )}
                     </div>
                     {showFavourites && (
                         <FavouriteTokenDetail
@@ -73,8 +69,8 @@ export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectIt
                             type={NumberFormatType.Precise}
                             className="font-bold text-end"
                         />
-                        <div className="flex flex-row flex-1 justify-end sm:justify-start items-center text-sm text-muted-500 text-end">
-                            $0.00
+                        <div className="flex flex-row flex-1 h-full justify-end sm:justify-start items-center sm:items-end text-muted-500 text-end">
+                            <CurrencyAmount amountFormatted="0" />
                         </div>
                     </div>
                 )}

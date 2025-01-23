@@ -1,7 +1,7 @@
 "use client";
 import { ConnectButton, darkTheme, useActiveAccount } from "thirdweb/react";
-import { client, phiChain, tauChain } from "@/lib/thirdweb_client";
-import { wallets } from "@/config/wallet";
+import { client, phiChain, tauChain } from "@/src/lib/thirdweb_client";
+import { wallets } from "@/src/config/wallet";
 import { useEffect, useState } from "react";
 
 export default function WalletButton() {

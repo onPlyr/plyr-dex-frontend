@@ -4,19 +4,22 @@ import { QueryStatus } from "@tanstack/react-query"
 export const txActionMessages: Record<TxActionType, string> = {
     [TxActionType.Approve]: "Approve",
     [TxActionType.Swap]: "Swap",
-    [TxActionType.Bridge]: "Bridge",
+    [TxActionType.Bridge]: "Transfer",
+    [TxActionType.Unwrap]: "Unwrap",
 }
 
 export const txActionInProgressMessages: Record<TxActionType, string> = {
     [TxActionType.Approve]: "Approving",
     [TxActionType.Swap]: "Swapping",
-    [TxActionType.Bridge]: "Bridging",
+    [TxActionType.Bridge]: "Transferring",
+    [TxActionType.Unwrap]: "Unwrapping",
 }
 
 export const txActionSuccessMessages: Record<TxActionType, string> = {
     [TxActionType.Approve]: "Approved",
     [TxActionType.Swap]: "Swap Complete",
-    [TxActionType.Bridge]: "Bridge Complete",
+    [TxActionType.Bridge]: "Transfer Complete",
+    [TxActionType.Unwrap]: "Unwrapped",
 }
 
 export const statusLabels: Record<QueryStatus, string> = {

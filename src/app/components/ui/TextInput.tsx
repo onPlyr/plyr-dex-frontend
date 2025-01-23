@@ -3,14 +3,16 @@ import { twMerge } from "tailwind-merge"
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     handleInput?: (event: React.ChangeEvent<HTMLInputElement>) => void,
+    replaceClass?: boolean,
 }
 
 const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
+    className,
     value = "",
     handleInput,
     type = "text",
     autoComplete = "off",
-    className,
+    replaceClass,
     disabled,
     ...props
 }, ref) => (
@@ -20,7 +22,7 @@ const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
         onChange={disabled !== true ? handleInput?.bind(this) : undefined}
         type={type}
         autoComplete={autoComplete}
-        className={twMerge("input", className)}
+        className={replaceClass ? className : twMerge("input", className)}
         disabled={disabled}
         {...props}
     />

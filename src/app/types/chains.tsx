@@ -18,6 +18,7 @@ export interface Chain extends RainbowKitChain {
     minGasPrice: bigint,
     gasPriceExponent: number,
     avgBlockTimeMs: number,
+    avgBlockTimeSampleRange: bigint,
     adapters?: {
         [key: Address]: Adapter,
     },

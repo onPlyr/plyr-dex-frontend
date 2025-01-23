@@ -551,600 +551,6 @@ export const cellAbi = [
     }
 ] as const
 
-// export const uniV2CellAbi = [
-//     {
-//         "type": "constructor",
-//         "inputs": [
-//             {
-//                 "name": "owner",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "wrappedNativeToken",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "uniV2Factory",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "fee",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             },
-//             {
-//                 "name": "estimatedSwapGas",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "stateMutability": "nonpayable"
-//     },
-//     {
-//         "type": "receive",
-//         "stateMutability": "payable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "BIPS_DIVISOR",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "blockchainID",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "bytes32",
-//                 "internalType": "bytes32"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "factory",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "address",
-//                 "internalType": "address"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "feeCompliment",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "initiate",
-//         "inputs": [
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             },
-//             {
-//                 "name": "instructions",
-//                 "type": "tuple",
-//                 "internalType": "struct Instructions",
-//                 "components": [
-//                     {
-//                         "name": "receiver",
-//                         "type": "address",
-//                         "internalType": "address"
-//                     },
-//                     {
-//                         "name": "payableReceiver",
-//                         "type": "bool",
-//                         "internalType": "bool"
-//                     },
-//                     {
-//                         "name": "rollbackTeleporterFee",
-//                         "type": "uint256",
-//                         "internalType": "uint256"
-//                     },
-//                     {
-//                         "name": "rollbackGasLimit",
-//                         "type": "uint256",
-//                         "internalType": "uint256"
-//                     },
-//                     {
-//                         "name": "hops",
-//                         "type": "tuple[]",
-//                         "internalType": "struct Hop[]",
-//                         "components": [
-//                             {
-//                                 "name": "action",
-//                                 "type": "uint8",
-//                                 "internalType": "enum Action"
-//                             },
-//                             {
-//                                 "name": "requiredGasLimit",
-//                                 "type": "uint256",
-//                                 "internalType": "uint256"
-//                             },
-//                             {
-//                                 "name": "recipientGasLimit",
-//                                 "type": "uint256",
-//                                 "internalType": "uint256"
-//                             },
-//                             {
-//                                 "name": "trade",
-//                                 "type": "bytes",
-//                                 "internalType": "bytes"
-//                             },
-//                             {
-//                                 "name": "bridgePath",
-//                                 "type": "tuple",
-//                                 "internalType": "struct BridgePath",
-//                                 "components": [
-//                                     {
-//                                         "name": "bridgeSourceChain",
-//                                         "type": "address",
-//                                         "internalType": "address"
-//                                     },
-//                                     {
-//                                         "name": "sourceBridgeIsNative",
-//                                         "type": "bool",
-//                                         "internalType": "bool"
-//                                     },
-//                                     {
-//                                         "name": "bridgeDestinationChain",
-//                                         "type": "address",
-//                                         "internalType": "address"
-//                                     },
-//                                     {
-//                                         "name": "cellDestinationChain",
-//                                         "type": "address",
-//                                         "internalType": "address"
-//                                     },
-//                                     {
-//                                         "name": "destinationBlockchainID",
-//                                         "type": "bytes32",
-//                                         "internalType": "bytes32"
-//                                     },
-//                                     {
-//                                         "name": "teleporterFee",
-//                                         "type": "uint256",
-//                                         "internalType": "uint256"
-//                                     },
-//                                     {
-//                                         "name": "secondaryTeleporterFee",
-//                                         "type": "uint256",
-//                                         "internalType": "uint256"
-//                                     }
-//                                 ]
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ],
-//         "outputs": [],
-//         "stateMutability": "payable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "owner",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "address",
-//                 "internalType": "address"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "receiveTokens",
-//         "inputs": [
-//             {
-//                 "name": "sourceBlockchainID",
-//                 "type": "bytes32",
-//                 "internalType": "bytes32"
-//             },
-//             {
-//                 "name": "originTokenTransferrerAddress",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "originSenderAddress",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "payload",
-//                 "type": "bytes",
-//                 "internalType": "bytes"
-//             }
-//         ],
-//         "outputs": [],
-//         "stateMutability": "payable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "receiveTokens",
-//         "inputs": [
-//             {
-//                 "name": "sourceBlockchainID",
-//                 "type": "bytes32",
-//                 "internalType": "bytes32"
-//             },
-//             {
-//                 "name": "originTokenTransferrerAddress",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "originSenderAddress",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             },
-//             {
-//                 "name": "payload",
-//                 "type": "bytes",
-//                 "internalType": "bytes"
-//             }
-//         ],
-//         "outputs": [],
-//         "stateMutability": "nonpayable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "recoverERC20",
-//         "inputs": [
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "outputs": [],
-//         "stateMutability": "nonpayable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "recoverNative",
-//         "inputs": [
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "outputs": [],
-//         "stateMutability": "nonpayable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "renounceOwnership",
-//         "inputs": [],
-//         "outputs": [],
-//         "stateMutability": "nonpayable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "route",
-//         "inputs": [
-//             {
-//                 "name": "amountIn",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             },
-//             {
-//                 "name": "tokenIn",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "tokenOut",
-//                 "type": "address",
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "data",
-//                 "type": "bytes",
-//                 "internalType": "bytes"
-//             }
-//         ],
-//         "outputs": [
-//             {
-//                 "name": "trade",
-//                 "type": "bytes",
-//                 "internalType": "bytes"
-//             },
-//             {
-//                 "name": "gasEstimate",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "swapGasEstimate",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "uint256",
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "function",
-//         "name": "transferOwnership",
-//         "inputs": [
-//             {
-//                 "name": "newOwner",
-//                 "type": "address",
-//                 "internalType": "address"
-//             }
-//         ],
-//         "outputs": [],
-//         "stateMutability": "nonpayable"
-//     },
-//     {
-//         "type": "function",
-//         "name": "wrappedNativeToken",
-//         "inputs": [],
-//         "outputs": [
-//             {
-//                 "name": "",
-//                 "type": "address",
-//                 "internalType": "contract IWrappedNativeToken"
-//             }
-//         ],
-//         "stateMutability": "view"
-//     },
-//     {
-//         "type": "event",
-//         "name": "CellReceivedNativeTokens",
-//         "inputs": [
-//             {
-//                 "name": "sourceBlockchainID",
-//                 "type": "bytes32",
-//                 "indexed": true,
-//                 "internalType": "bytes32"
-//             },
-//             {
-//                 "name": "sourceBridge",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "originSender",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             }
-//         ],
-//         "anonymous": false
-//     },
-//     {
-//         "type": "event",
-//         "name": "CellReceivedTokens",
-//         "inputs": [
-//             {
-//                 "name": "sourceBlockchainID",
-//                 "type": "bytes32",
-//                 "indexed": true,
-//                 "internalType": "bytes32"
-//             },
-//             {
-//                 "name": "sourceBridge",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "originSender",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "indexed": false,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "indexed": false,
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "anonymous": false
-//     },
-//     {
-//         "type": "event",
-//         "name": "Initiated",
-//         "inputs": [
-//             {
-//                 "name": "sender",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "indexed": false,
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "anonymous": false
-//     },
-//     {
-//         "type": "event",
-//         "name": "OwnershipTransferred",
-//         "inputs": [
-//             {
-//                 "name": "previousOwner",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "newOwner",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             }
-//         ],
-//         "anonymous": false
-//     },
-//     {
-//         "type": "event",
-//         "name": "Recovered",
-//         "inputs": [
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "indexed": false,
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "anonymous": false
-//     },
-//     {
-//         "type": "event",
-//         "name": "Rollback",
-//         "inputs": [
-//             {
-//                 "name": "receiver",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "token",
-//                 "type": "address",
-//                 "indexed": true,
-//                 "internalType": "address"
-//             },
-//             {
-//                 "name": "amount",
-//                 "type": "uint256",
-//                 "indexed": false,
-//                 "internalType": "uint256"
-//             }
-//         ],
-//         "anonymous": false
-//     },
-//     {
-//         "type": "error",
-//         "name": "InvalidAmount",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "InvalidArgument",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "InvalidInstructions",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "InvalidParameters",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "InvalidSender",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "NoRouteFound",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "RollbackFailedInvalidFee",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "SlippageExceeded",
-//         "inputs": []
-//     },
-//     {
-//         "type": "error",
-//         "name": "SwapAndRollbackFailed",
-//         "inputs": []
-//     }
-// ] as const
-
 export const uniV2CellAbi = [
     {
         "type": "constructor",
@@ -1858,6 +1264,572 @@ export const uniV2CellAbi = [
         "type": "error",
         "name": "TooManyHops",
         "inputs": []
+    }
+] as const
+
+export const dexalotCellAbi = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "mainnetRFQAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "estimatedSwapGas",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "wrappedNativeToken",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidAmount",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidArgument",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidInstructions",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidSender",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "RollbackFailedInvalidFee",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "SlippageExceeded",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "SwapAndRollbackFailed",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "sourceBlockchainID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sourceBridge",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "originSender",
+                "type": "address"
+            }
+        ],
+        "name": "CellReceivedNativeTokens",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "sourceBlockchainID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sourceBridge",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "originSender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "CellReceivedTokens",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "Initiated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "Recovered",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "receiver",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "Rollback",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "string",
+                "name": "reason",
+                "type": "string"
+            }
+        ],
+        "name": "ValidationFailed",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "blockchainID",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "receiver",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "payableReceiver",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "rollbackTeleporterFee",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "rollbackGasLimit",
+                        "type": "uint256"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum Action",
+                                "name": "action",
+                                "type": "uint8"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "requiredGasLimit",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "recipientGasLimit",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "trade",
+                                "type": "bytes"
+                            },
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "address",
+                                        "name": "bridgeSourceChain",
+                                        "type": "address"
+                                    },
+                                    {
+                                        "internalType": "bool",
+                                        "name": "sourceBridgeIsNative",
+                                        "type": "bool"
+                                    },
+                                    {
+                                        "internalType": "address",
+                                        "name": "bridgeDestinationChain",
+                                        "type": "address"
+                                    },
+                                    {
+                                        "internalType": "address",
+                                        "name": "cellDestinationChain",
+                                        "type": "address"
+                                    },
+                                    {
+                                        "internalType": "bytes32",
+                                        "name": "destinationBlockchainID",
+                                        "type": "bytes32"
+                                    },
+                                    {
+                                        "internalType": "uint256",
+                                        "name": "teleporterFee",
+                                        "type": "uint256"
+                                    },
+                                    {
+                                        "internalType": "uint256",
+                                        "name": "secondaryTeleporterFee",
+                                        "type": "uint256"
+                                    }
+                                ],
+                                "internalType": "struct BridgePath",
+                                "name": "bridgePath",
+                                "type": "tuple"
+                            }
+                        ],
+                        "internalType": "struct Hop[]",
+                        "name": "hops",
+                        "type": "tuple[]"
+                    }
+                ],
+                "internalType": "struct Instructions",
+                "name": "instructions",
+                "type": "tuple"
+            }
+        ],
+        "name": "initiate",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "mainnetRFQ",
+        "outputs": [
+            {
+                "internalType": "contract IDexalotMainnetRFQ",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "sourceBlockchainID",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "originTokenTransferrerAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "originSenderAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes",
+                "name": "payload",
+                "type": "bytes"
+            }
+        ],
+        "name": "receiveTokens",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "sourceBlockchainID",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "originTokenTransferrerAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "originSenderAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "payload",
+                "type": "bytes"
+            }
+        ],
+        "name": "receiveTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "recoverERC20",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "recoverNative",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "name": "route",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "trade",
+                "type": "bytes"
+            },
+            {
+                "internalType": "uint256",
+                "name": "gasEstimate",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "swapGasEstimate",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "wrappedNativeToken",
+        "outputs": [
+            {
+                "internalType": "contract IWrappedNativeToken",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ] as const
 

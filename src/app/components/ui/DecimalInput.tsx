@@ -3,12 +3,14 @@
 import * as React from "react"
 
 import TextInput from "@/app/components/ui/TextInput"
-import { formatDecimalInput } from "@/app/lib/numbers"
+import { NumberFormatType } from "@/app/config/numbers"
+import { formatDecimalInput, formattedAmountToLocale } from "@/app/lib/numbers"
 
 export interface DecimalInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     setValue?: (value: string) => void,
     formatInput?: () => string,
     decimals?: number,
+    replaceClass?: boolean,
 }
 
 export const DecimalInput = React.forwardRef<HTMLInputElement, DecimalInputProps>(({
@@ -17,25 +19,27 @@ export const DecimalInput = React.forwardRef<HTMLInputElement, DecimalInputProps
     setValue,
     formatInput = formatDecimalInput,
     decimals,
-    placeholder = "0.0",
+    replaceClass,
+    placeholder,
     type = "text",
     autoComplete = "off",
     inputMode = "decimal",
     ...props
 }, ref) => {
 
-    const handleInput = setValue ? (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         const formatted = formatInput(event.target.value, decimals)
-        setValue(formatted)
-    } : undefined
+        setValue?.(formatted)
+    }
 
     return (
         <TextInput
             ref={ref}
             className={className}
+            replaceClass={replaceClass}
             value={value}
             handleInput={handleInput}
-            placeholder={placeholder}
+            placeholder={placeholder ?? formattedAmountToLocale("0.0" as Intl.StringNumericLiteral, NumberFormatType.ZeroDecimal)}
             type={type}
             autoComplete={autoComplete}
             inputMode={inputMode}

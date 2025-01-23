@@ -1,5 +1,5 @@
 import { QueryStatus } from "@tanstack/react-query"
-import { RouteSortType, RouteType, TeleporterMessengerContractData, TeleporterMessengerVersion } from "@/app/types/swaps"
+import { HopAction, RouteSortType, RouteType, SwapStatusType, TeleporterMessengerContractData, TeleporterMessengerVersion } from "@/app/types/swaps"
 
 // defaults
 export const defaultMinGasPrice = BigInt(25)
@@ -50,7 +50,25 @@ export const swapStatusPollNumRefetches = 3
 
 export const routeTypeLabels: Record<RouteType, string> = {
     [RouteType.Swap]: "Swap",
-    [RouteType.Bridge]: "Bridge",
+    [RouteType.Bridge]: "Transfer",
+}
+export const hopActionLabels: Record<HopAction, string> = {
+    [HopAction.Hop]: "Transfer",
+    [HopAction.HopAndCall]: "Transfer",
+    [HopAction.SwapAndHop]: "Swap and Transfer",
+    [HopAction.SwapAndTransfer]: "Swap",
+}
+export const hopActionInProgressLabels: Record<HopAction, string> = {
+    [HopAction.Hop]: "Transferring",
+    [HopAction.HopAndCall]: "Transferring",
+    [HopAction.SwapAndHop]: "Swapping and Transferring",
+    [HopAction.SwapAndTransfer]: "Swapping",
+}
+export const hopActionCompletedLabels: Record<HopAction, string> = {
+    [HopAction.Hop]: "Transferred",
+    [HopAction.HopAndCall]: "Transferred",
+    [HopAction.SwapAndHop]: "Swapped and Transferred",
+    [HopAction.SwapAndTransfer]: "Swapped",
 }
 export const swapStatusMessages: Record<QueryStatus, string> = {
     pending: "Pending",
@@ -65,3 +83,12 @@ export const defaultRouteSortType = RouteSortType.Amount
 export const swapHistoryLocalStorageMsg = "Transaction history is saved locally and will be erased when you clear your browser cache."
 
 export const defaultDstTokenId = "usdc"
+
+export const SwapStatus: Record<SwapStatusType, QueryStatus> = {
+    Pending: "pending",
+    Error: "error",
+    Success: "success",
+} as const
+
+// 60 seconds
+export const RouteValidMs = 60 * 1000

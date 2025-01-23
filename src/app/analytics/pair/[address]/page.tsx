@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { fetchPairData, fetchPairLiquidityData, fetchPairTransactions } from '@/app/analytics/components/UniswapInfoFetcher'
 import LatestTransactions from '@/app/analytics/components/LatestTransactions'
 import { Loader2 } from 'lucide-react'

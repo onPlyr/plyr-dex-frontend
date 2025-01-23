@@ -3,8 +3,8 @@ import Link from 'next/link';
 import styles from './header.module.scss';
 import Image from 'next/image';
 import { Box, ChartCandlestick, ChartNoAxesCombined, ChevronDown, CircleDollarSign, History, PaintBucket } from 'lucide-react';
-import WalletButton from '@/components/walletButton';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import WalletButton from '@/src/components/walletButton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/src/components/ui/dropdown-menu';
 
 import {
     useAccount,
@@ -22,7 +22,7 @@ import {
     useActiveWallet,
 } from "thirdweb/react";
 import { createWalletAdapter } from "thirdweb/wallets";
-import { client } from "@/lib/thirdweb_client";
+import { client } from "@/src/lib/thirdweb_client";
 import { useEffect } from 'react';
 
 const NavList = () => {
@@ -35,13 +35,13 @@ const NavList = () => {
                     <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
             </Link>
-            <Link href="/history" className="w-full lg:w-fit flex-1 lg:flex-auto">
+            {/* <Link href="/history" className="w-full lg:w-fit flex-1 lg:flex-auto">
                 <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <History className="w-6 h-6 text-[#daff00]" />
                     HISTORY
                     <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
-            </Link>
+            </Link> */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="w-full lg:w-fit flex-1 lg:flex-auto outline-none">
@@ -128,7 +128,7 @@ export default function Header() {
 
     return (
         <>
-            <section className="absolute top-0 flex flex-col items-center justify-center w-full">
+            <section className="absolute top-0 flex z-50 flex-col items-center justify-center w-full">
                 <div className={`${styles.header} aboslute text-white w-full top-0 h-24 flex flex-row px-6 items-center justify-between`}>
 
                     <div className="flex flex-1 flex-row items-center justify-start gap-2">
@@ -158,7 +158,7 @@ export default function Header() {
             </section>
 
 
-            <section className={`${process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' ? 'bottom-5' : ''} flex lg:hidden fixed z-10 bottom-0 flex-col items-center justify-center w-full`}>
+            <section className={`${process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' ? 'bottom-5' : ''} flex lg:hidden fixed z-50 bottom-0 flex-col items-center justify-center w-full`}>
                 <div className={`${styles.footerHeader} text-white w-full flex flex-row items-center justify-center`}>
                     <NavList />
                 </div>

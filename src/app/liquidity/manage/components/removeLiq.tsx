@@ -3,14 +3,14 @@
 import { useState } from 'react'
 
 import Image from 'next/image'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/src/components/ui/button"
 
 import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/react';
 
-import { client, tauChain, phiChain } from '@/lib/thirdweb_client';
+import { client, tauChain, phiChain } from '@/src/lib/thirdweb_client';
 
 import { AlertCircle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/src/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
 
@@ -20,9 +20,9 @@ import { allowance, approve } from "thirdweb/extensions/erc20";
 
 import { BigNumber } from 'bignumber.js';
 
-import { Slider } from "@/components/ui/slider"
+import { Slider } from "@/src/components/ui/slider"
 import { toast } from 'sonner';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/src/components/ui/use-toast';
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/src/components/ui/chart"
 
 interface ChartData {
   date: number

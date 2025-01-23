@@ -40,8 +40,8 @@ export const ProgressCheckpoint = React.forwardRef<HTMLDivElement, ProgressCheck
     <div
         ref={ref}
         className={twMerge(
-            "absolute -translate-x-1/2 p-2 rounded-full transition text-black",
-            value && value >= position ? `bg-[#daff00] hover:bg-[#daff00] ${value >= 100 && "group-hover/indicator:bg-[#daff00]"}` : "bg-[#daff00] hover:bg-[#daff00]",
+            "absolute -translate-x-1/2 p-2 rounded-full transition",
+            value && value >= position ? `bg-brand-600 hover:bg-brand-500 ${value >= 100 && "group-hover/indicator:bg-brand-500"}` : "bg-brand-700 hover:bg-brand-600",
             className,
         )}
         style={{
@@ -72,8 +72,9 @@ export const ProgressCheckpointLabel = React.forwardRef<HTMLDivElement, Progress
         <div
             ref={ref}
             className={twMerge(
-                "flex flex-row absolute -translate-x-1/2 rounded-lg transition text-sm text-muted-400 hover:text-white bg-select-950/50 hover:bg-select-950/100",
-                url ? undefined : "px-3 py-2",
+                // "flex flex-row absolute -translate-x-1/2 rounded transition text-sm text-muted-400 hover:text-white bg-select-950/50 hover:bg-select-950/100",
+                "label flex flex-row flex-none px-3 py-2 absolute -translate-x-1/2 border-0 normal-case text-muted-400 hover:text-white",
+                // url ? "py-0" : undefined,
                 labelClass,
             )}
             style={{
@@ -84,7 +85,8 @@ export const ProgressCheckpointLabel = React.forwardRef<HTMLDivElement, Progress
             {url ? (
                 <ExternalLink
                     href={url}
-                    className="px-3 py-2 text-sm text-muted-400 hover:text-white"
+                    // className="px-3 py-2 text-sm text-muted-400 hover:text-white"
+                    className="text-muted-400 hover:text-white"
                     hideIcon={true}
                 >
                     {content}
@@ -109,7 +111,7 @@ export const ProgressIndicator = React.forwardRef<React.ElementRef<typeof Progre
         ref={ref}
         className={twMerge(
             "flex flex-row w-full h-full rounded-full transition",
-            value && value >= 100 ? "bg-[#daff00] group-hover/indicator:bg-[#daff00] paused" : "bg-[#daff00] animate-bg-wave running",
+            value && value >= 100 ? "bg-brand-500 group-hover/indicator:bg-brand-400 paused" : "gradient-brand-bg animate-bg-wave running",
             className,
         )}
         style={{
@@ -149,7 +151,7 @@ export const Progress = React.forwardRef<React.ElementRef<typeof ProgressPrimiti
         {...props}
     >
         <div className="group/indicator flex flex-row flex-1 w-full relative items-center">
-            <div className={twMerge("flex flex-row flex-1 w-full h-2 relative rounded-full overflow-hidden transition bg-select-950/50 border border-transparent", indicatorContainerClass)}>
+            <div className={twMerge("flex flex-row flex-1 w-full h-4 relative rounded-full overflow-hidden transition bg-select-950/50 border border-transparent", indicatorContainerClass)}>
                 {indicator ?? <ProgressIndicator value={value ?? undefined} />}
             </div>
             {checkpoints?.map((checkpoint, i) => (

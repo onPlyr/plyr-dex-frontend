@@ -13,17 +13,14 @@ const CheckIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconPr
     children,
     shape,
     ...props
-}, ref) => {
-    return (
-        <BaseIcon
-            ref={ref}
-            {...props}
-        >
-            {children ?? (shape ? shapeIcons[shape] : <Check />)}
-        </BaseIcon>
-    )
-
-})
+}, ref) => (
+    <BaseIcon
+        ref={ref}
+        {...props}
+    >
+        {children ?? (shape ? shapeIcons[shape] : <Check />)}
+    </BaseIcon>
+))
 CheckIcon.displayName = "CheckIcon"
 
 export default CheckIcon

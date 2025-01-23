@@ -7,6 +7,8 @@ import { iconSizes } from "@/app/config/styling"
 export interface SelectItemToggleProps extends React.ComponentPropsWithoutRef<"div"> {
     isSelected?: boolean,
     disabled?: boolean,
+    showIcon?: boolean,
+    replaceClass?: boolean,
 }
 
 export const SelectItemToggle = React.forwardRef<HTMLDivElement, SelectItemToggleProps>(({
@@ -15,18 +17,20 @@ export const SelectItemToggle = React.forwardRef<HTMLDivElement, SelectItemToggl
     onClick,
     isSelected,
     disabled = false,
+    showIcon,
+    replaceClass,
     ...props
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge("group select-item-toggle", className)}
-        onClick={disabled !== true ? onClick?.bind(this) : undefined}
-        data-selected={isSelected}
-        data-disabled={disabled}
+        className={replaceClass ? className : twMerge("group select-item-toggle", className)}
+        onClick={disabled ? undefined : onClick?.bind(this)}
+        data-selected={isSelected ? true : false}
+        data-disabled={disabled ? true : false}
         {...props}
     >
         {children}
-        <CloseIcon className={twMerge("hidden group-data-[selected=true]:inline-flex", iconSizes.xs)} />
+        {showIcon && <CloseIcon className={twMerge("hidden group-data-[selected=true]:inline-flex", iconSizes.xs)} />}
     </div>
 ))
 SelectItemToggle.displayName = "SelectItemToggle"

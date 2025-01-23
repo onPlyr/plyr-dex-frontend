@@ -1,5 +1,6 @@
 import { createContext } from "react"
 
+import { Currency } from "@/app/config/numbers"
 import { defaultPreferences } from "@/app/config/preferences"
 import { maxSlippageBps, minSlippageBps } from "@/app/config/swaps"
 import { PreferenceType, UserPreferencesContextType } from "@/app/types/preferences"
@@ -18,4 +19,8 @@ export const validateSlippage = (value?: number) => {
 
 export const validateBoolean = (value?: boolean) => {
     return value === undefined || typeof(value) === "boolean"
+}
+
+export const validateCurrency = (value?: string) => {
+    return value === undefined || (Object.values(Currency) as string[]).includes(value)
 }

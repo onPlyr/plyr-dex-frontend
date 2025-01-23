@@ -1,30 +1,78 @@
+import { zeroAddress } from "viem"
 import { avalancheFuji } from "wagmi/chains"
 
-import { plyrTau, SupportedChains } from "@/app/config/chains" //testchain
+import { plyrTau, SupportedChains, teschain } from "@/app/config/chains"
 import { BaseToken, Token, TokenBridgeType, TokenFilterData, TokenSortType } from "@/app/types/tokens"
 
 const baseTokens: BaseToken[] = [
+    // {
+    //     id: "alot",
+    //     symbol: "ALOT",
+    //     name: "Dexalot ",
+    //     decimals: 18,
+    //     icon: "alot.png",
+    //     iconBackground: "#f6006b",
+    //     chains: {
+    //         [avalancheFuji.id]: {
+    //             address: "0x9983F755Bbd60d1886CbfE103c98C272AA0F03d6",
+    //         },
+    //     },
+    // },
+    // {
+    //     id: "apex",
+    //     symbol: "APEX",
+    //     name: "APEX ",
+    //     decimals: 18,
+    //     icon: "apex.png",
+    //     iconBackground: "#2979ff",
+    //     chains: {
+    //         [avalancheFuji.id]: {
+    //             address: "0x2468a9B0fD297CA7411aF891b5C86A212fD2a519",
+    //         },
+    //     },
+    // },
     {
         id: "avax",
         symbol: "AVAX",
-        name: "AVAX",
+        name: "Native AVAX",
         decimals: 18,
-        icon: `avax.png`,
+        icon: "avax.png",
+        iconBackground: "#ff394a",
         chains: {
             [avalancheFuji.id]: {
-                address: "0x0000000000000000000000000000000000000000",
+                address: zeroAddress,
                 bridges: {
-                    // [teschain.id]: {
-                    //     address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
-                    //     type: TokenBridgeType.NativeHome,
-                    // },
-                    [plyrTau.id]: {
+                    [teschain.id]: {
                         address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
                         type: TokenBridgeType.NativeHome,
                     },
                 },
                 isNative: true,
-                wrappedToken: "wavax",
+                wrappedAddress: "0xd00ae08403B9bbb9124bB305C09058E32C39A48c",
+                wrappedToken: "WAVAX",
+            },
+            // [teschain.id]: {
+            //     address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
+            //     bridges: {
+            //         [avalancheFuji.id]: {
+            //             address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
+            //             type: TokenBridgeType.Erc20Remote,
+            //         },
+            //     },
+            // },
+        },
+    },
+    {
+        id: "coq",
+        symbol: "COQ",
+        name: "COQ",
+        decimals: 18,
+        icon: "coq.png",
+        iconBackground: "#fdcd5e",
+        chains: {
+            [plyrTau.id]: {
+                chainSymbol: "MCOQ",
+                address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
             },
         },
     },
@@ -33,23 +81,11 @@ const baseTokens: BaseToken[] = [
         symbol: "GAMR",
         name: "GAMR",
         decimals: 18,
-        icon: `gamr.png`,
+        icon: "gamr.png",
+        iconBackground: "#00cccc",
         chains: {
             [plyrTau.id]: {
                 address: "0xa875625fe8A955406523E52E485f351b92908ce1",
-            },
-        },
-    },
-    {
-        id: "coq",
-        symbol: "COQ",
-        name: "COQ",
-        decimals: 18,
-        icon: `coq.png`,
-        chains: {
-            [plyrTau.id]: {
-                chainSymbol: "MCOQ",
-                address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
             },
         },
     },
@@ -59,6 +95,7 @@ const baseTokens: BaseToken[] = [
         name: "SUPER",
         decimals: 18,
         icon: `super.png`,
+        iconBackground: "#00cccc",
         chains: {
             [plyrTau.id]: {
                 chainSymbol: "MSUPER",
@@ -73,6 +110,7 @@ const baseTokens: BaseToken[] = [
         name: "tUSDC",
         decimals: 18,
         icon: `usdc.png`,
+        iconBackground: "#2775ca",
         chains: {
             [plyrTau.id]: {
                 chainSymbol: "tUSDC",
@@ -80,15 +118,29 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // {
+    //     id: "gmtes",
+    //     symbol: "gmTES",
+    //     name: "gmTES",
+    //     decimals: 18,
+    //     icon: "tes.png",
+    //     iconBackground: "#8258A2",
+    //     chains: {
+    //         [teschain.id]: {
+    //             address: "0x54CE76b0839BF362aA04073321932d06c2Bf91dA",
+    //         },
+    //     },
+    // },
     {
         id: "plyr",
         symbol: "PLYR",
         name: "Native PLYR",
         decimals: 18,
-        icon: `plyr.png`,
+        icon: "plyr.png",
+        iconBackground: "#ff6600",
         chains: {
             [plyrTau.id]: {
-                address: "0x0000000000000000000000000000000000000000",
+                address: zeroAddress,
                 bridges: {
                     [avalancheFuji.id]: {
                         address: "0xeD92B6AAb57743479c94B16855E187dBB5c66AC9",
@@ -96,7 +148,17 @@ const baseTokens: BaseToken[] = [
                     },
                 },
                 isNative: true,
-                wrappedToken: "wplyr",
+                wrappedAddress: "0xAAAaBe49A72EcF0804292CE8e889016d9D05767c",
+                wrappedToken: "wPLYR",
+            },
+            [avalancheFuji.id]: {
+                address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
+                bridges: {
+                    [plyrTau.id]: {
+                        address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
+                        type: TokenBridgeType.Erc20Remote,
+                    },
+                },
             },
         },
     },
@@ -105,10 +167,21 @@ const baseTokens: BaseToken[] = [
     //     symbol: "TES",
     //     name: "Native TES",
     //     decimals: 18,
-    //     icon: `tes.png`,
+    //     icon: "tes.png",
+    //     iconBackground: "#8258A2",
     //     chains: {
+    //         [avalancheFuji.id]: {
+    //             chainName: "Wrapped TES",
+    //             address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",
+    //             bridges: {
+    //                 [teschain.id]: {
+    //                     address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",
+    //                     type: TokenBridgeType.Erc20Remote,
+    //                 },
+    //             },
+    //         },
     //         [teschain.id]: {
-    //             address: "0x0000000000000000000000000000000000000000",
+    //             address: zeroAddress,
     //             bridges: {
     //                 [avalancheFuji.id]: {
     //                     address: "0x65af4a715712d7ca14ebf1082c27d16b33e1e171",
@@ -116,7 +189,8 @@ const baseTokens: BaseToken[] = [
     //                 },
     //             },
     //             isNative: true,
-    //             wrappedToken: "wtes",
+    //             wrappedAddress: "0x00af5f49a934dd2f0e2fe5fa1f9d23d200da7f82",
+    //             wrappedToken: "wTES",
     //         },
     //     },
     // },
@@ -125,20 +199,19 @@ const baseTokens: BaseToken[] = [
         symbol: "USDC",
         name: "Native USDC",
         decimals: 6,
-        icon: `usdc.png`,
+        icon: "usdc.png",
+        iconBackground: "#2775ca",
         chains: {
             [avalancheFuji.id]: {
                 address: "0x5425890298aed601595a70AB815c96711a31Bc65",
-                // bridges: {
-                //     [teschain.id]: {
-                //         address: "0x00ba05e110e333243bb0e68b64f28166059ff7ce",
-                //         type: TokenBridgeType.Erc20Home,
-                //     },
-                // },
+                bridges: {
+                    [teschain.id]: {
+                        address: "0x00ba05e110e333243bb0e68b64f28166059ff7ce",
+                        type: TokenBridgeType.Erc20Home,
+                    },
+                },
             },
             // [teschain.id]: {
-            //     chainSymbol: "wUSDC",
-            //     chainName: "USDC",
             //     address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
             //     bridges: {
             //         [avalancheFuji.id]: {
@@ -150,39 +223,22 @@ const baseTokens: BaseToken[] = [
         },
     },
     {
-        id: "avax",
-        symbol: "AVAX",
-        name: "AVAX",
-        decimals: 18,
-        icon: `wavax.png`,
-        chains: {
-            [plyrTau.id]: {
-                chainSymbol: "wAVAX",
-                address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
-                bridges: {
-                    [avalancheFuji.id]: {
-                        address: "0x008058f98b3351C72ea0C5f471E1bAe268f31c41",
-                        type: TokenBridgeType.Erc20Remote,
-                    },
-                },
-            },
-        },
-    },
-    {
         id: "wavax",
         symbol: "WAVAX",
         name: "Wrapped AVAX",
         decimals: 18,
-        icon: `wavax.png`,
+        icon: "wavax.png",
+        iconBackground: "#ffffff",
         chains: {
             [avalancheFuji.id]: {
                 address: "0xd00ae08403B9bbb9124bB305C09058E32C39A48c",
-                // bridges: {
-                //     [teschain.id]: {
-                //         address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
-                //         type: TokenBridgeType.NativeHome,
-                //     },
-                // },
+                bridges: {
+                    [teschain.id]: {
+                        address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
+                        type: TokenBridgeType.NativeHome,
+                    },
+                },
+                isHidden: true,
             },
             // [teschain.id]: {
             //     address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
@@ -195,49 +251,52 @@ const baseTokens: BaseToken[] = [
             // },
         },
     },
-    {
-        id: "wplyr",
-        symbol: "wPLYR",
-        name: "Wrapped PLYR",
-        decimals: 18,
-        icon: `wplyr.png`,
-        chains: {
-            [avalancheFuji.id]: {
-                address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
-                bridges: {
-                    [plyrTau.id]: {
-                        address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
-                        type: TokenBridgeType.Erc20Remote,
-                    },
-                },
-            },
-            [plyrTau.id]: {
-                address: "0xAAAaBe49A72EcF0804292CE8e889016d9D05767c",
-                bridges: {
-                    [avalancheFuji.id]: {
-                        address: "0xeD92B6AAb57743479c94B16855E187dBB5c66AC9",
-                        type: TokenBridgeType.NativeHome,
-                    },
-                },
-            },
-        },
-    },
+    // {
+    //     id: "wplyr",
+    //     symbol: "wPLYR",
+    //     name: "Wrapped PLYR",
+    //     decimals: 18,
+    //     icon: "wplyr.png",
+    //     iconBackground: "#ff6600",
+    //     chains: {
+    //         // [avalancheFuji.id]: {
+    //         //     address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
+    //         //     bridges: {
+    //         //         [plyrTau.id]: {
+    //         //             address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
+    //         //             type: TokenBridgeType.Erc20Remote,
+    //         //         },
+    //         //     },
+    //         // },
+    //         [plyrTau.id]: {
+    //             address: "0xAAAaBe49A72EcF0804292CE8e889016d9D05767c",
+    //             bridges: {
+    //                 [avalancheFuji.id]: {
+    //                     address: "0xeD92B6AAb57743479c94B16855E187dBB5c66AC9",
+    //                     type: TokenBridgeType.NativeHome,
+    //                 },
+    //             },
+    //             isHidden: true,
+    //         },
+    //     },
+    // },
     // {
     //     id: "wtes",
     //     symbol: "wTES",
     //     name: "Wrapped TES",
     //     decimals: 18,
-    //     icon: `wtes.png`,
+    //     icon: "wtes.png",
+    //     iconBackground: "#ffffff",
     //     chains: {
-    //         [avalancheFuji.id]: {
-    //             address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",
-    //             bridges: {
-    //                 [teschain.id]: {
-    //                     address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",
-    //                     type: TokenBridgeType.Erc20Home,
-    //                 },
-    //             },
-    //         },
+    //         // [avalancheFuji.id]: {
+    //         //     address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",
+    //         //     bridges: {
+    //         //         [teschain.id]: {
+    //         //             address: "0x43419000a94a21d1d0214ed2a6bfc3f05058f9ce",
+    //         //             type: TokenBridgeType.Erc20Remote,
+    //         //         },
+    //         //     },
+    //         // },
     //         [teschain.id]: {
     //             address: "0x00af5f49a934dd2f0e2fe5fa1f9d23d200da7f82",
     //             bridges: {
@@ -246,6 +305,7 @@ const baseTokens: BaseToken[] = [
     //                     type: TokenBridgeType.NativeHome,
     //                 },
     //             },
+    //             isHidden: true,
     //         },
     //     },
     // },
@@ -272,12 +332,10 @@ export const Tokens: Token[] = Object.values(SupportedChains).map((chain) => {
             icon: chainData.chainIcon ?? baseToken.icon,
             chainId: chain.id,
             filters: filterData,
+            iconBackground: chainData.chainIconBackground ?? baseToken.iconBackground,
         } as Token
 
     })
 }).flat()
-
-
-//console.log(Tokens)
 
 export const DefaultTokenSortType = TokenSortType.BalanceValue

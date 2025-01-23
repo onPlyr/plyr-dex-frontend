@@ -5,7 +5,7 @@ import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
 
 const SuccessIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconProps>(({
     children,
-    highlightStyle = "text-green-500",
+    highlightStyle = "text-success-500",
     ...props
 }, ref) => {
     return (

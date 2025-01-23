@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Line, LineChart,  XAxis, YAxis, ResponsiveContainer } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { ChartContainer, ChartTooltip } from "@/src/components/ui/chart"
 
 interface ChartData {
     date: number

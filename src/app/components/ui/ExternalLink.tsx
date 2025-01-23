@@ -10,6 +10,7 @@ interface ExternalLinkProps extends React.ComponentPropsWithoutRef<typeof Link> 
     iconSize?: StyleSize,
     hideIcon?: boolean,
     stopPropagation?: boolean,
+    replaceClass?: boolean,
 }
 
 const ExternalLink = React.forwardRef<React.ElementRef<typeof Link>, ExternalLinkProps>(({
@@ -18,12 +19,13 @@ const ExternalLink = React.forwardRef<React.ElementRef<typeof Link>, ExternalLin
     iconSize,
     hideIcon,
     stopPropagation,
+    replaceClass,
     target,
     ...props
 }, ref) => (
     <Link
         ref={ref}
-        className={twMerge("inline-flex flex-row items-center gap-2 transition text-muted-500 hover:text-link-500", className)}
+        className={replaceClass ? className : twMerge("inline-flex flex-row items-center gap-2 transition text-muted-500 hover:text-link-500", className)}
         onClick={stopPropagation ? (e) => e.stopPropagation() : undefined}
         target={target || "_blank"}
         {...props}

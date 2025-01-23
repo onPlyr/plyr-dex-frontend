@@ -2,6 +2,8 @@ import { CurrencyBtc, CurrencyCircleDollar, CurrencyCny, CurrencyDollar, Currenc
 import * as React from "react"
 
 import { BaseIcon } from "@/app/components/icons/BaseIcon"
+import CoinsIcon from "@/app/components/icons/CoinsIcon"
+import { Currency } from "@/app/config/numbers"
 
 export enum CurrencyIconVariant {
     Btc = "btc",
@@ -38,20 +40,23 @@ const currencyVariants: Record<CurrencyIconVariant, React.ReactNode> = {
 }
 
 export interface CurrencyIconProps extends React.ComponentPropsWithoutRef<typeof BaseIcon> {
-    variant: CurrencyIconVariant,
+    variant?: CurrencyIconVariant,
+    currency?: Currency,
 }
 
 export const CurrencyIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, CurrencyIconProps>(({
     children,
     variant,
+    currency,
     ...props
 }, ref) => {
+    const currencyHasIcon = currency !== undefined && (Object.values(CurrencyIconVariant) as string[]).includes(currency)
     return (
         <BaseIcon
             ref={ref}
             {...props}
         >
-            {children ?? currencyVariants[variant]}
+            {children ?? (variant ? currencyVariants[variant] : currencyHasIcon ? currencyVariants[currency as string as CurrencyIconVariant] : <CoinsIcon />)}
         </BaseIcon>
     )
 

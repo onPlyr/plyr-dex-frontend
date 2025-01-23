@@ -5,6 +5,10 @@ import { defaultGasPriceExponent, defaultMinGasPrice, defaultSlippageBps, tmpMax
 import { Cell, CellRouteData, CellRouteDataParameter, CellTrade, CellTradeData } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
 
+export const getChainCanSwap = (chain?: Chain) => {
+    return chain ? chain.cells.some((cell) => cell.canSwap) : false
+}
+
 export const getSwapCells = (chain?: Chain) => {
     return chain && chain.cells.length > 0 ? chain.cells.filter((cell) => cell.canSwap === true) : []
 }

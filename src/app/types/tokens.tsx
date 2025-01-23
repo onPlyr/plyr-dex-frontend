@@ -3,6 +3,9 @@ import { Address } from "viem"
 import { ChainId } from "@/app/types/chains"
 import { IconFormat } from "@/app/types/styling"
 
+type TokenIcon = `${string}.${IconFormat}`
+type TokenIconBackground = `#${string}`
+
 // note: must be unique
 // use slugify function in lib/strings for formatting
 export type TokenId = Lowercase<string>
@@ -12,7 +15,8 @@ interface BaseTokenData {
     readonly symbol: string,
     readonly name: string,
     readonly decimals: number,
-    readonly icon: `${string}.${IconFormat}`,
+    readonly icon: TokenIcon,
+    readonly iconBackground: TokenIconBackground,
 }
 
 export interface TokenBridgeData {
@@ -24,12 +28,15 @@ interface TokenChainData {
     readonly address: Address,
     readonly chainSymbol?: string,
     readonly chainName?: string,
-    readonly chainIcon?: `${string}.${IconFormat}`,
+    readonly chainIcon?: TokenIcon,
+    readonly chainIconBackground?: TokenIconBackground,
     readonly bridges?: {
         readonly [chainId in ChainId]?: TokenBridgeData
     }
     readonly isNative?: boolean,
-    readonly wrappedToken?: TokenId,
+    readonly wrappedAddress?: Address,
+    readonly wrappedToken?: string,
+    readonly isHidden?: boolean,
 }
 
 export interface TokenFilterData {

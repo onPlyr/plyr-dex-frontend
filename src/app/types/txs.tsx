@@ -9,6 +9,7 @@ export enum TxActionType {
     Approve = "approve",
     Swap = "swap",
     Bridge = "bridge",
+    Unwrap = "unwrap",
 }
 
 export interface TxHistory {

@@ -75,11 +75,10 @@ export const timestampToISO = (timestamp: number, precision?: DatePrecision, utc
 }
 
 export const formatDuration = (duration: number) => {
-    if (duration <= 1) {
+    if (duration === 0) {
         return "< 1s"
     }
     const minutes = Math.floor(duration / 60000)
-    const seconds = Math.round((duration % 60000) / 1000)
-    
+    const seconds = parseFloat(((duration % 60000) / 1000).toFixed(1))
     return minutes === 0 ? `${seconds}s` : seconds === 60 ? `${minutes + 1}m` : seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`
 }

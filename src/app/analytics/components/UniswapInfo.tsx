@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { fetchFactoryData, fetchTopPairsTokensData } from './UniswapInfoFetcher'
 import Pagination from './Pagination'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { Loader2 } from 'lucide-react'
 
 const ITEMS_PER_PAGE = 10

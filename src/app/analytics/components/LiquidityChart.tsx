@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartTooltip } from '@/components/ui/chart'
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { ChartTooltip } from '@/src/components/ui/chart'
 
 interface LiquidityData {
     date: number

@@ -19,7 +19,9 @@ const formatTokenData = (token: Token, balance?: bigint) => {
 const useReadTokensAndBalances = () => {
 
     const { address: accountAddress } = useAccount()
-    const tokens = getTokens()
+    const tokens = getTokens({
+        ignoreSort: true,
+    })
     const nativeTokens = tokens.filter((token) => token.isNative)
     const erc20Tokens = tokens.filter((token) => token.isNative !== true)
     const enabled = accountAddress !== undefined
@@ -28,7 +30,9 @@ const useReadTokensAndBalances = () => {
     const [nativeBalanceData, setNativeBalanceData] = useState<(bigint | undefined)[]>()
 
     const getNativeBalances = useCallback(async () => {
+
         const results: (bigint | undefined)[] = []
+
         if (enabled) {
             for (const token of nativeTokens) {
                 try {
@@ -39,19 +43,21 @@ const useReadTokensAndBalances = () => {
                     results.push(value)
                 }
                 catch (err) {
-                    console.error(`useReadBalances error: ${getParsedError(err)}`)
+                    console.error(`useReadTokensAndBalances error: ${getParsedError(err)}`)
                     results.push(undefined)
                 }
             }
         }
+
         setNativeBalanceData(enabled ? results : undefined)
+
     }, [enabled, accountAddress])
 
     useEffect(() => {
         getNativeBalances()
     }, [enabled, accountAddress])
 
-    const erc20BalanceContracts = erc20Tokens.map((token) => {
+    const erc20BalanceContracts = enabled ? erc20Tokens.map((token) => {
         return {
             chainId: token.chainId,
             address: token.address,
@@ -62,7 +68,7 @@ const useReadTokensAndBalances = () => {
                 enabled: enabled,
             },
         } as const
-    })
+    }) : []
 
     const { data: erc20BalanceData, refetch: refetchErc20Balances } = useReadContracts({
         contracts: erc20BalanceContracts,
@@ -72,10 +78,14 @@ const useReadTokensAndBalances = () => {
     })
 
     useEffect(() => {
-        const balanceCheck = enabled && nativeBalanceData !== undefined && erc20BalanceData !== undefined
+
+        const balanceCheck = enabled && nativeBalanceData !== undefined && nativeBalanceData.length > 0 && erc20BalanceData !== undefined && erc20BalanceData.length > 0
         const nativeData = balanceCheck ? nativeBalanceData.map((balance, i) => formatTokenData(nativeTokens[i], balance)) : undefined
         const erc20Data = balanceCheck ? erc20BalanceData.map((data, i) => formatTokenData(erc20Tokens[i], data.result)) : undefined
-        setTokenData(sortTokens(nativeData && erc20Data ? [nativeData, erc20Data].flat() : tokens))
+
+        const tokenData = nativeData && nativeData.length > 0 && erc20Data && erc20Data.length > 0 ? [nativeData, erc20Data].flat() : tokens
+        setTokenData(sortTokens(tokenData))
+
     }, [enabled, accountAddress, nativeBalanceData, erc20BalanceData])
 
     const refetch = useCallback(() => {

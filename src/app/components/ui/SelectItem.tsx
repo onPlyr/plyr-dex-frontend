@@ -8,7 +8,6 @@ export interface SelectItemProps extends React.ComponentPropsWithoutRef<"div"> {
 }
 
 export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(({
-    children,
     className,
     replaceClass,
     onClick,
@@ -18,13 +17,15 @@ export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(({
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge(replaceClass !== true ? "group select-item" : undefined, disabled || onClick === undefined ? "cursor-auto" : undefined, className)}
+        className={replaceClass ? className : twMerge(
+            "group select-item",
+            disabled || onClick === undefined ? "cursor-auto" : undefined,
+            className,
+        )}
         onClick={disabled !== true ? onClick?.bind(this) : undefined}
         data-selected={isSelected}
         data-disabled={disabled}
         {...props}
-    >
-        {children}
-    </div>
+    />
 ))
 SelectItem.displayName = "SelectItem"

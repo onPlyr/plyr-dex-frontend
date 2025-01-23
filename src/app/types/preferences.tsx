@@ -1,3 +1,4 @@
+import { Currency } from "@/app/config/numbers"
 import { ChainId } from "@/app/types/chains"
 
 // note: slippage is bps
@@ -7,6 +8,7 @@ export enum PreferenceType {
     ExcludeChains = "excludeChains",
     ExcludeChainIds = "excludeChainIds",
     Slippage = "slippage",
+    Currency = "currency",
 }
 
 export interface UserPreferences {
@@ -15,6 +17,7 @@ export interface UserPreferences {
     [PreferenceType.ExcludeChains]?: boolean,
     [PreferenceType.ExcludeChainIds]?: ChainId[],
     [PreferenceType.Slippage]?: number,
+    [PreferenceType.Currency]?: Currency,
 }
 
 export type UserPreferencesContextType = {

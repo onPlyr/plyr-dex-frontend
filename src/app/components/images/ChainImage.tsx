@@ -26,12 +26,13 @@ export const ChainImage = React.forwardRef<HTMLDivElement, ChainImageProps>(({
         {...props}
     >
         <Image
-            src={src || `/chains/logos/${chain.id}.png`}
+            src={src || `/chains/logos/${chain.icon}`}
             alt={chain.name}
             style={{
                 objectFit: "contain",
                 objectPosition: "center",
             }}
+            sizes="128px, 256px"
             fill={true}
             priority={true}
         />
@@ -54,12 +55,13 @@ export const ChainImageInline = React.forwardRef<HTMLDivElement, ChainImageProps
     >
         <div className={twMerge("relative block m-1 aspect-square", innerClass)}>
             <Image
-                src={src || `/chains/logos/${chain.id}.png`}
+                src={src || `/chains/logos/${chain.icon}`}
                 alt={chain.name}
                 style={{
                     objectFit: "contain",
                     objectPosition: "center",
                 }}
+                sizes="128px, 256px"
                 fill={true}
                 priority={true}
             />

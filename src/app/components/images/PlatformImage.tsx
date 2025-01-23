@@ -25,12 +25,14 @@ export const PlatformImage = React.forwardRef<HTMLDivElement, PlatformImageProps
         {...props}
     >
         <Image
-            src={src || `/platforms/${platform.id}/${(platform.img && (platform.img.square || platform.img.squareDark || platform.img.squareLight)) || "square.png"}`}
+            // src={src || `/platforms/${platform.id}/${(platform.img && (platform.img.square || platform.img.squareDark || platform.img.squareLight)) || "square.png"}`}
+            src={src || `/platforms/${platform.id}/${platform.icon}`}
             alt={platform.name}
             style={{
                 objectFit: "contain",
                 objectPosition: "center",
             }}
+            sizes="128px, 256px"
             fill={true}
             priority={true}
         />

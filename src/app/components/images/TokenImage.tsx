@@ -31,6 +31,7 @@ export const TokenImage = React.forwardRef<HTMLDivElement, TokenImageProps>(({
                 objectFit: "contain",
                 objectPosition: "center",
             }}
+            sizes="128px, 256px"
             fill={true}
             priority={true}
         />

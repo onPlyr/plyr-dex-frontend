@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { fetchTokenData, fetchTokenPairs, fetchTokenPriceData } from '@/app/analytics/components/UniswapInfoFetcher'
 import Pagination from '@/app/analytics/components/Pagination'
 import { Loader2 } from 'lucide-react'

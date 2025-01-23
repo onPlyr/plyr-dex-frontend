@@ -2,7 +2,6 @@ import { Address, erc20Abi, formatUnits } from "viem"
 import { useReadContract } from "wagmi"
 
 import { Chain } from "@/app/types/chains"
-import { AmountResultType } from "@/app/types/hooks"
 import { Token } from "@/app/types/tokens"
 
 // todo: replace return type, add useeffect to update return value on data change
@@ -33,15 +32,12 @@ const useReadAllowance = ({
         },
     })
 
-    const result: AmountResultType = {
+    return {
         data: data,
         formatted: data !== undefined ? formatUnits(data, token?.decimals || 18) : undefined,
         status: status,
         refetch: refetch,
     }
-
-    return result
-
 }
 
 export default useReadAllowance

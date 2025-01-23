@@ -4,6 +4,7 @@ export enum CellType {
     HopOnly = "hopOnly",
     YakSwap = "yakSwap",
     UniV2 = "uniV2",
+    Dexalot = "dexalot",
 }
 
 export interface CellTypeData {
@@ -13,6 +14,7 @@ export interface CellTypeData {
     tradeParams?: CellTradeParameter[],
     tradeDataParams?: CellTradeDataParameter[],
     canSwap: boolean,
+    isApiRoute: boolean,
 }
 
 export interface Cell extends CellTypeData {

@@ -1,13 +1,31 @@
 import { createContext } from "react"
-import { Address, parseUnits } from "viem"
+import { Address, isAddressEqual, parseUnits } from "viem"
 
-import { SupportedChains } from "@/app/config/chains"
 import { DefaultTokenSortType, Tokens } from "@/app/config/tokens"
 import { getChain } from "@/app/lib/chains"
 import { Chain } from "@/app/types/chains"
 import { FavouriteTokenData, FavouriteTokensContextType, Token, TokenId, TokenSortType } from "@/app/types/tokens"
 
 export const FavouriteTokensContext = createContext({} as FavouriteTokensContextType)
+
+export const getIsFavouriteToken = (token: Token, favouriteTokens?: FavouriteTokenData) => {
+    return favouriteTokens?.data?.[token.chainId]?.find((tokenId) => token.id === tokenId) !== undefined
+}
+
+export const sortIsFavouriteToken = (a: Token, b: Token, favouriteTokens?: FavouriteTokenData) => {
+    if (favouriteTokens && favouriteTokens.data) {
+        const aIsFavourite = getIsFavouriteToken(a, favouriteTokens)
+        const bIsFavourite = getIsFavouriteToken(b, favouriteTokens)
+        if (aIsFavourite && !bIsFavourite) {
+            return -1
+        }
+        else if (!aIsFavourite && bIsFavourite) {
+            return 1
+        }
+        return 0
+    }
+    return 0
+}
 
 export const sortTokens = (tokens: Token[], sortType?: TokenSortType, favouriteTokens?: FavouriteTokenData) => {
 
@@ -51,45 +69,53 @@ export const sortTokens = (tokens: Token[], sortType?: TokenSortType, favouriteT
     return sortedTokens
 }
 
-export const getTokens = (sortType?: TokenSortType, ignoreSort?: boolean) => {
-    return ignoreSort ? Tokens.slice(0) : sortTokens(Tokens, sortType)
+export const getTokens = ({
+    sortType,
+    ignoreSort = false,
+    includeHidden = false,
+}: {
+    sortType?: TokenSortType,
+    ignoreSort?: boolean,
+    includeHidden?: boolean,
+}) => {
+    const tokens = ignoreSort ? Tokens.slice(0) : sortTokens(Tokens, sortType)
+    return includeHidden ? tokens : tokens.filter((token) => token.isHidden !== true)
 }
 
 export const getToken = (tokenId: TokenId, chain: Chain) => {
-    return Tokens.slice(0).find((token) => token.id === tokenId && token.chainId === chain.id)
+    return getTokens({
+        ignoreSort: true,
+    }).find((token) => token.id === tokenId && token.chainId === chain.id)
 }
 
 export const getTokenByAddress = (address: Address, chain: Chain) => {
-    return Tokens.slice(0).find((token) => token.filters.address === address.toLowerCase() && token.chainId === chain.id)
+    return getTokens({
+        ignoreSort: true,
+    }).find((token) => token.chainId === chain.id && (token.isNative && token.wrappedAddress ? isAddressEqual(address, token.wrappedAddress) : isAddressEqual(address, token.address)))
 }
 
 export const getNativeToken = (chain: Chain) => {
-    return Tokens.slice(0).find((token) => token.chainId === chain.id && token.isNative)
+    return getTokens({
+        ignoreSort: true,
+    }).find((token) => token.chainId === chain.id && token.isNative)
 }
 
-export const getChainTokens = (chain: Chain, ignoreSort?: boolean) => {
-    return getTokens(undefined, ignoreSort).filter((token) => token.chainId === chain.id)
+export const getChainTokens = ({
+    chain,
+    ignoreSort = false,
+}: {
+    chain: Chain,
+    ignoreSort?: boolean,
+}) => {
+    return getTokens({
+        ignoreSort: ignoreSort,
+    }).filter((token) => token.chainId === chain.id)
 }
 
-export const getIsTokenOrVariant = (srcToken: Token, dstToken: Token) => {
-    return srcToken.id === dstToken.id || getIsVariant(srcToken, dstToken) ? true : false
-}
-
-export const getIsVariant = (srcToken: Token, dstToken: Token) => {
-    return (srcToken.isNative && srcToken.wrappedToken && dstToken.id === srcToken.wrappedToken) || (dstToken.isNative && dstToken.wrappedToken && srcToken.id === dstToken.wrappedToken) ? true : false
-}
-
-export const getWrappedTokenVariant = (token: Token, chain: Chain) => {
-    return token.isNative && token.wrappedToken ? getToken(token.wrappedToken, chain) : undefined
-}
-
-export const getNativeTokenVariant = (token: Token, chain: Chain) => {
-    return token.isNative !== true ? Tokens.slice(0).find((nativeToken) => nativeToken.chainId === chain.id && nativeToken.isNative && nativeToken.wrappedToken === token.id) : undefined
-}
-
-export const getChainsForToken = (srcToken: Token, excludeVariants?: boolean) => {
-    const chainIds = Tokens.slice(0).filter((token) => excludeVariants ? token.id === srcToken.id : getIsTokenOrVariant(token, srcToken)).map((token) => token.chainId)
-    return Object.values(SupportedChains).filter((chain) => chainIds.includes(chain.id))
+export const getTokenByBridgeAddress = (bridgeAddress: Address, srcChain: Chain, dstChain: Chain) => {
+    return getTokens({
+        ignoreSort: true,
+    }).find((token) => token.chainId === dstChain.id && token.bridges?.[srcChain.id]?.address && isAddressEqual(bridgeAddress, token.bridges[srcChain.id]!.address))
 }
 
 export const filterTokens = (tokens: Token[], queryString?: string, selectedChain?: Chain, favouriteTokens?: FavouriteTokenData) => {
@@ -116,23 +142,4 @@ export const filterTokens = (tokens: Token[], queryString?: string, selectedChai
         tokenResults,
         chainResults,
     }
-}
-
-export const getIsFavouriteToken = (token: Token, favouriteTokens?: FavouriteTokenData) => {
-    return favouriteTokens?.data?.[token.chainId]?.find((tokenId) => token.id === tokenId) !== undefined
-}
-
-export const sortIsFavouriteToken = (a: Token, b: Token, favouriteTokens?: FavouriteTokenData) => {
-    if (favouriteTokens && favouriteTokens.data) {
-        const aIsFavourite = getIsFavouriteToken(a, favouriteTokens)
-        const bIsFavourite = getIsFavouriteToken(b, favouriteTokens)
-        if (aIsFavourite && !bIsFavourite) {
-            return -1
-        }
-        else if (!aIsFavourite && bIsFavourite) {
-            return 1
-        }
-        return 0
-    }
-    return 0
 }

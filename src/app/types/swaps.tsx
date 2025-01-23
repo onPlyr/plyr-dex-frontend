@@ -1,5 +1,5 @@
 import { QueryStatus } from "@tanstack/react-query"
-import { Abi, Address, Hash, Hex } from "viem"
+import { Abi, Address, Hash, Hex, TransactionReceipt } from "viem"
 
 import { PlatformId } from "@/app/config/platforms"
 import { Cell, CellTradeData } from "@/app/types/cells"
@@ -26,7 +26,6 @@ export enum BridgeType {
 export enum RouteType {
     Swap = "swap",
     Bridge = "bridge",
-    // Wrap = "wrap",
 }
 
 export enum RouteSortType {
@@ -36,71 +35,120 @@ export enum RouteSortType {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// todo: tbc
+// todo: tbc - should be renamed to replace the similar types below
 
-export interface BaseHistoryData {
-    srcChainId: ChainId,
-    srcTokenId: TokenId,
-    srcAmount?: string,
-    dstChainId: ChainId,
-    dstTokenId: TokenId,
-    dstAmountEstimated?: string,
-    dstAmount?: string,
+export type SwapStatusType = "Pending" | "Error" | "Success"
+
+export interface SwapQuery {
+    swapData: Swap,
+    hopData: SwapHop,
+    hopIndex: number,
+    originBlockchainId: Hash,
+    originTimestamp: number,
 }
 
-// note: id is the hash of the initiate tx
-export interface SwapHistory extends BaseHistoryData {
+export interface SwapQueryResult {
+    swapData?: Swap,
+    hopData?: SwapHop,
+    hopEvents?: SwapEvent[],
+    nextHopQuery?: SwapQuery,
+    error?: React.ReactNode,
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// todo: tbc - should be renamed to replace the similar types below
+
+export interface BaseSwapData {
+    chain: Chain,
+    token: Token,
+    amount?: bigint,
+}
+
+export interface BaseSwap {
+    srcData: BaseSwapData,
+    dstData?: BaseSwapData,
+    status: QueryStatus,
+}
+
+export interface SwapTxData {
+    txHash?: Hash,
+    txReceipt?: TransactionReceipt,
+    timestamp?: number,
+}
+
+export interface Swap extends BaseSwap {
     id: Hash,
-    messenger: TeleporterMessengerVersion,
-    type: RouteType,
-    hops: HopHistory[],
-    events?: EventHistory[],
-    status: QueryStatus,
-    timestamp: number,
-    dstTx?: TxHistory,
+    hops: SwapHop[],
+    events: SwapEvent[],
+    account?: Address,
+    estAmount?: bigint,
+    estDuration?: number,
+    duration?: number,
+    type?: RouteType,
+    timestamp?: number,
 }
 
-export interface EventHistory extends BaseHistoryData {
-    hop: number,
-    type: RouteType,
-    status: QueryStatus,
-    adapterAddress?: Address,
+export interface SwapHop extends BaseSwap, SwapTxData {
+    index: number,
+    receivedMsgId?: Hash,
+    sentMsgId?: Hash,
+    action?: HopAction,
+}
+
+export interface SwapEvent extends BaseSwap, SwapTxData {
+    hopIndex: number,
+    type?: RouteType,
     adapter?: Adapter,
+    adapterAddress?: Address,
     bridge?: BridgeType,
 }
 
-export interface HopHistory extends BaseHistoryData {
-    srcBlockStart: string,
-    dstBlockStart: string,
-    action: HopAction,
-    steps: StepHistory[],
-    tx?: TxHistory,
+////////////////////////////////////////////////////////////////////////////////
+// todo: tbc - locally stored versions of the above - should replace those below
+
+export interface BaseSwapDataJson {
+    chain: ChainId,
+    token: TokenId,
+    amount?: string,
+}
+
+export interface BaseSwapJson {
+    srcData: BaseSwapDataJson,
+    dstData?: BaseSwapDataJson,
     status: QueryStatus,
-    sendMsgId?: Hash,
-    receiveMsgId?: Hash,
 }
 
-export interface StepHistory extends BaseHistoryData {
-    type: RouteType,
+export interface SwapTxDataJson {
+    txHash?: Hash,
+    timestamp?: number,
+    status: QueryStatus,
 }
 
-export interface TxHistory {
-    chainId: ChainId,
-    hash: Hash,
-    block: string,
-    timestamp: number,
-    reverted: boolean,
+export interface SwapJson extends BaseSwapJson {
+    id: Hash,
+    hops: HopJson[],
+    events: EventJson[],
+    account?: Address,
+    estAmount?: string,
+    duration?: number,
+    estDuration?: number,
+    type?: RouteType,
+    timestamp?: number,
 }
 
-export interface SwapHistoryData {
-    [key: Address]: SwapHistory[]
+export interface HopJson extends BaseSwapJson, SwapTxDataJson {
+    index: number,
+    receivedMsgId?: Hash,
+    sentMsgId?: Hash,
+    action?: HopAction,
 }
 
-export interface SelectedSwapData {
-    srcChainId?: ChainId,
-    srcTokenId?: TokenId,
-    dstChainId?: ChainId,
-    dstTokenId?: TokenId,
+export interface EventJson extends BaseSwapJson, SwapTxDataJson {
+    hopIndex: number,
+    type?: RouteType,
+    adapter?: Adapter,
+    adapterAddress?: Address,
+    bridge?: BridgeType,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +164,11 @@ export interface BridgeRoute {
     dstChain: Chain,
     dstToken: Token,
     dstBridge: TokenBridgeData,
+}
+
+export interface BridgeRouteData {
+    srcRoute: BridgeRoute,
+    dstRoute?: BridgeRoute,
 }
 
 // quotedata types use minimal data, quote types use full objects
@@ -248,6 +301,13 @@ export interface RouteQueryResult {
 
 export type EncodedRouteQueryResult = [Hex, bigint]
 
+export interface SelectedSwapData {
+    srcChainId?: ChainId,
+    srcTokenId?: TokenId,
+    dstChainId?: ChainId,
+    dstTokenId?: TokenId,
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 export interface BaseRouteData {
@@ -301,17 +361,6 @@ export interface HopData extends BaseHopData {
     hop: Hop,
     tradeData?: CellTradeData,
     gasEstimate: bigint,
-}
-
-export enum SwapStatus {
-    Pending = "pending",
-    Success = "success",
-    Error = "error",
-}
-
-export interface RouteTxData {
-    approveTx?: Hash,
-    initiateTx?: Hash,
 }
 
 // todo: tbc

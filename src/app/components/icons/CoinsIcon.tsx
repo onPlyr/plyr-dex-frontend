@@ -6,17 +6,14 @@ import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
 const CoinsIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconProps>(({
     children,
     ...props
-}, ref) => {
-    return (
-        <BaseIcon
-            ref={ref}
-            {...props}
-        >
-            {children ?? <Coins />}
-        </BaseIcon>
-    )
-
-})
+}, ref) => (
+    <BaseIcon
+        ref={ref}
+        {...props}
+    >
+        {children ?? <Coins />}
+    </BaseIcon>
+))
 CoinsIcon.displayName = "CoinsIcon"
 
 export default CoinsIcon

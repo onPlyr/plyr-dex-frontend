@@ -21,9 +21,7 @@ const useInterval = (callback: () => void, intervalMs?: number) => {
         return () => {
             clearInterval(intervalId)
         }
-
     }, [intervalMs])
-
 }
 
 export default useInterval

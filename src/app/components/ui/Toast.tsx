@@ -4,17 +4,22 @@ import * as ToastPrimitive from "@radix-ui/react-toast"
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
 
+import SlideInOut from "@/app/components/animations/SlideInOut"
 import CloseIcon from "@/app/components/icons/CloseIcon"
 import { iconSizes } from "@/app/config/styling"
+import { AnimationDelays, AnimationTransitions, AnimationVariants } from "@/app/types/animations"
 
-export interface ToastProps extends React.ComponentPropsWithoutRef<typeof ToastPrimitive.Root> {
+export interface ToastData extends React.ComponentPropsWithoutRef<typeof ToastPrimitive.Root> {
+    id?: string,
     header: React.ReactNode,
     description: React.ReactNode,
     action?: React.ReactElement<typeof ToastAction>,
-    hideBorder?: boolean,
+    animations?: AnimationVariants,
+    transitions?: AnimationTransitions,
+    delays?: AnimationDelays,
 }
 
-export const ToastProvider = ToastPrimitive.Provider
+export const RadixToastProvider = ToastPrimitive.Provider
 
 export const ToastViewport = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Viewport>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Viewport>>(({
     className,
@@ -22,7 +27,7 @@ export const ToastViewport = React.forwardRef<React.ElementRef<typeof ToastPrimi
 }, ref) => (
     <ToastPrimitive.Viewport
         ref={ref}
-        className={twMerge("z-[250] flex flex-col-reverse flex-1 fixed bottom-0 end-0 max-w-screen w-full max-h-screen h-fit p-6 gap-4 justify-end items-end transition", className)}
+        className={twMerge("z-[250] flex flex-col-reverse flex-1 fixed bottom-0 end-0 max-w-screen sm:max-w-96 w-full max-h-screen h-fit p-4 gap-4 justify-end items-end", className)}
         {...props}
     />
 ))
@@ -35,7 +40,7 @@ export const ToastClose = React.forwardRef<React.ElementRef<typeof ToastPrimitiv
 }, ref) => (
     <ToastPrimitive.Close
         ref={ref}
-        className={twMerge("transition text-muted-400 hover:text-white hover:rotate-90", className)}
+        className={twMerge("transition text-muted-500 hover:text-white hover:rotate-90", className)}
         {...props}
     >
         {children ?? <CloseIcon className={iconSizes.sm} />}
@@ -50,13 +55,13 @@ export const ToastHeader = React.forwardRef<React.ElementRef<typeof ToastPrimiti
 }, ref) => (
     <ToastPrimitive.Title
         ref={ref}
-        className={twMerge("flex flex-row flex-1 gap-4 font-bold text-sm text-white", className)}
+        className={twMerge("flex flex-row flex-1 gap-4 justify-between font-bold text-white", className)}
         {...props}
     >
-        <div className="flex flex-row flex-1 justify-start items-start">
+        <div className="flex flex-row flex-1 gap-4 justify-start items-center">
             {children}
         </div>
-        <div className="flex flex-row shrink justify-center items-start">
+        <div className="flex flex-row flex-none justify-end items-start">
             <ToastClose />
         </div>
     </ToastPrimitive.Title>
@@ -69,7 +74,7 @@ export const ToastDescription = React.forwardRef<React.ElementRef<typeof ToastPr
 }, ref) => (
     <ToastPrimitive.Description
         ref={ref}
-        className={twMerge("flex flex-row flex-1 justify-start items-start text-sm text-muted-400", className)}
+        className={twMerge("flex flex-col flex-1 justify-start items-start", className)}
         {...props}
     />
 ))
@@ -89,47 +94,51 @@ export const ToastAction = React.forwardRef<React.ElementRef<typeof ToastPrimiti
 ))
 ToastAction.displayName = ToastPrimitive.Action.displayName
 
-export const Toast = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Root>, ToastProps>(({
+export const Toast = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Root>, ToastData>(({
     className,
+    forceMount = true,
+    asChild = true,
     header,
     description,
     action,
-    hideBorder,
+    animations,
+    transitions,
+    delays,
     ...props
-}, ref) => (
-    <ToastPrimitive.Root
-        ref={ref}
-        className={twMerge(
-            "transition overflow-hidden",
-            "data-[state=open]:animate-in data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full",
-            "data-[swipe=end]:animate-out data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",
-            "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none",
-            "data-[swipe=cancel]:translate-x-0",
-        )}
-        {...props}
-    >
-        <div className={twMerge(hideBorder ? "contents" : "gradient-border")}>
-            <div className={twMerge(
-                "flex flex-col flex-1 relative p-4 gap-4 w-96 max-h-fit h-fit rounded-lg transition",
-                hideBorder ? "bg-container-900" : "bg-container-900/90",
+}, ref) => {
+    return (
+        <ToastPrimitive.Root
+            ref={ref}
+            className={twMerge(
+                "container-select flex flex-col flex-1 relative p-4 gap-4 w-full max-h-fit h-fit rounded overflow-hidden",
+                // "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-full",
+                // "data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full",
+                // "data-[swipe=end]:animate-out data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",
+                // "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none",
+                // "data-[swipe=cancel]:translate-x-0",
                 className,
-            )}>
+            )}
+            forceMount={forceMount}
+            asChild={asChild}
+            data-selected={true}
+            {...props}
+        >
+            <SlideInOut
+                from="right"
+                to="right"
+                animations={animations}
+                transitions={transitions}
+                delays={delays}
+            >
                 <ToastHeader>
                     {header}
+                    {action && action}
                 </ToastHeader>
-                <div className="flex flex-row flex-1 gap-4">
-                    <ToastDescription>
-                        {description}
-                    </ToastDescription>
-                    {action && (
-                        <div className="flex flex-row shrink justify-center items-center">
-                            {action}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    </ToastPrimitive.Root>
-))
+                <ToastDescription>
+                    {description}
+                </ToastDescription>
+            </SlideInOut>
+        </ToastPrimitive.Root>
+    )
+})
 Toast.displayName = ToastPrimitive.Root.displayName

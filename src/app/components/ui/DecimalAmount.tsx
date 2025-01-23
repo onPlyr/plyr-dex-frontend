@@ -1,9 +1,9 @@
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
 
+import { NumberFormatType } from "@/app/config/numbers"
 import { amountToLocale, formattedAmountToLocale } from "@/app/lib/numbers"
 import { Token } from "@/app/types/tokens"
-import { NumberFormatType } from "@/app/config/numbers"
 
 interface DecimalAmountProps extends React.ComponentPropsWithoutRef<"div"> {
     amount?: bigint,
@@ -23,19 +23,24 @@ const DecimalAmount = React.forwardRef<HTMLDivElement, DecimalAmountProps>(({
     decimals,
     type,
     ...props
-}, ref) => (
-    <div
-        ref={ref}
-        className={twMerge("inline-flex", className)}
-        {...props}
-    >
-        {amountFormatted !== undefined ? (
-            `${formattedAmountToLocale(amountFormatted as Intl.StringNumericLiteral, type)}${symbol ? ` ${symbol}` : ""}`
-        ) : amount !== undefined && (token !== undefined || decimals !== undefined) ? (
-            `${amountToLocale(amount, token?.decimals || decimals!, type)}${symbol ? ` ${symbol}` : ""}`
-        ) : ""}
-    </div>
-))
+}, ref) => {
+    let localeAmount = ""
+    if (amountFormatted !== undefined) {
+        localeAmount = formattedAmountToLocale(amountFormatted as Intl.StringNumericLiteral, type)
+    }
+    else if (amount !== undefined && (token !== undefined || decimals !== undefined)) {
+        localeAmount = amountToLocale(amount, token?.decimals || decimals!, type)
+    }
+    return (
+        <div
+            ref={ref}
+            className={twMerge("inline-flex", className)}
+            {...props}
+        >
+            {localeAmount}&nbsp;{symbol && symbol}
+        </div>
+    )
+})
 DecimalAmount.displayName = "DecimalAmount"
 
 export default DecimalAmount

@@ -1,6 +1,6 @@
 import { UserPreferences } from "@/app/types/preferences"
-import { SelectedSwapData, SwapHistoryData } from "@/app/types/swaps"
-import { FavouriteTokenData } from "./tokens"
+import { SelectedSwapData, SwapJson } from "@/app/types/swaps"
+import { FavouriteTokenData } from "@/app/types/tokens"
 
 export enum StorageType {
     Local = "localStorage",
@@ -9,14 +9,14 @@ export enum StorageType {
 
 export enum StorageDataKey {
     Preferences = "preferences",
-    History = "account-history",
     SwapSelection = "swap-selection",
     FavouriteTokens = "favourite-tokens",
+    SwapData = "swap-data",
 }
 
 export interface StorageDataType {
     [StorageDataKey.Preferences]: UserPreferences,
-    [StorageDataKey.History]: SwapHistoryData,
     [StorageDataKey.SwapSelection]: SelectedSwapData,
     [StorageDataKey.FavouriteTokens]: FavouriteTokenData,
+    [StorageDataKey.SwapData]: SwapJson[],
 }

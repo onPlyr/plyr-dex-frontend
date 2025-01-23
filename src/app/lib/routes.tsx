@@ -1,25 +1,27 @@
-import { Address, formatUnits, Hash, parseUnits, toHex, zeroAddress } from "viem"
+import { Address, formatUnits, isAddressEqual, parseUnits, toHex, zeroAddress } from "viem"
 
-import { defaultRouteSortType, durationEstimateNumConfirmations, supportedTeleporterMessengerVersion, tmpGasBuffer, tmpHopGasEstimate, tmpRollbackTeleporterFee, tmpSecondaryTeleporterFee, tmpTeleporterFee } from "@/app/config/swaps"
-import { ChainBridgeRoutes, DstChainBridgeRoutes, DstTokenBridgeRoutes, TokenBridgeRoutes } from "@/app/config/routes"
-import { getDecodedCellTradeData, getEncodedCellRouteData, getSwapCells } from "@/app/lib/cells"
+import { defaultRouteSortType, durationEstimateNumConfirmations, tmpGasBuffer, tmpHopGasEstimate, tmpRollbackTeleporterFee, tmpSecondaryTeleporterFee, tmpTeleporterFee } from "@/app/config/swaps"
+import { getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getSwapCells } from "@/app/lib/cells"
 import { getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { getHopGasEstimate, getIsBridgeHop, getIsTradeHop } from "@/app/lib/swaps"
-import { getIsTokenOrVariant, getNativeToken, getNativeTokenVariant, getToken, getTokenByAddress, getWrappedTokenVariant } from "@/app/lib/tokens"
+import { getChainTokens, getNativeToken, getToken, getTokenByAddress, getTokens } from "@/app/lib/tokens"
 import { Cell, CellRouteData, CellTradeParameter } from "@/app/types/cells"
-import { Chain } from "@/app/types/chains"
-import { BridgePath, BridgeRoute, BridgeType, EncodedRouteQueryResult, EventHistory, Hop, HopAction, HopData, HopHistory, HopQuote, HopQuoteData, Instructions, Route, RouteAction, RouteEvent, RouteQuery, RouteQueryResult, RouteQuote, RouteQuoteData, RouteSortType, RouteType, StepHistory, StepQuote, StepQuoteData, SwapHistory, SwapQueryData, SwapQueryHopData, SwapQueryType } from "@/app/types/swaps"
-import { Token, TokenBridgeType } from "@/app/types/tokens"
+import { Chain, ChainId } from "@/app/types/chains"
+import {
+    BridgePath, BridgeRoute, BridgeRouteData, BridgeType, EncodedRouteQueryResult, Hop, HopAction, HopData, HopQuote, HopQuoteData, Instructions,
+    Route, RouteAction, RouteEvent, RouteQuery, RouteQueryResult, RouteQuote, RouteQuoteData, RouteSortType, RouteType, StepQuote, StepQuoteData, SwapQueryData, SwapQueryHopData, SwapQueryType,
+} from "@/app/types/swaps"
+import { Token, TokenBridgeType, TokenId } from "@/app/types/tokens"
 
-export const getRouteType = (hopData: HopData[] | HopHistory[]) => {
+export const getRouteType = (hopData: HopData[]) => {
     return hopData.some((data) => getIsTradeHop(data.action)) ? RouteType.Swap : RouteType.Bridge
 }
 
 export const sortRoutes = (routes?: Route[], sortType?: RouteSortType) => {
 
     // todo: add value fields to route and uncomment/update the relevant line below as needed
-    if (routes === undefined || routes.length <= 1) {
+    if (!routes || routes.length === 0) {
         return routes
     }
 
@@ -41,18 +43,18 @@ export const sortRoutes = (routes?: Route[], sortType?: RouteSortType) => {
 
 // todo: sort functionality added, now need to allow selecting sort type
 export const getSuggestedRoute = (routes?: Route[], sortType?: RouteSortType) => {
-    if (routes === undefined || routes.length === 0) {
+    if (!routes || routes.length === 0) {
         return undefined
     }
     return sortRoutes(routes, sortType)?.[0]
 }
 
-export const getRouteInstructions = (destinationAddress?: Address, route?: Route) => {
-    if (destinationAddress === undefined || route === undefined) {
+export const getRouteInstructions = (accountAddress?: Address, route?: Route) => {
+    if (!accountAddress || !route) {
         return undefined
     }
     return {
-        receiver: destinationAddress,
+        receiver: accountAddress,
         payableReceiver: route.dstToken.isNative ? true : false,
         rollbackTeleporterFee: tmpRollbackTeleporterFee,
         rollbackGasLimit: tmpHopGasEstimate,
@@ -61,7 +63,9 @@ export const getRouteInstructions = (destinationAddress?: Address, route?: Route
 }
 
 export const getSwapQuoteTokenAddress = (chain: Chain, token: Token) => {
-    return token.isNative && token.wrappedToken ? getWrappedTokenVariant(token, chain)?.address : token.chainId === chain.id ? token.address : getToken(token.id, chain)?.address
+    // return token.isNative && token.wrappedToken ? getWrappedTokenVariant(token, chain)?.address : token.chainId === chain.id ? token.address : getToken(token.id, chain)?.address
+    const swapQuoteToken = chain.id === token.chainId ? token : getToken(token.id, chain)
+    return swapQuoteToken?.isNative ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
 }
 
 export const getSwapQuoteTokenAddresses = (srcChain: Chain, srcToken: Token, dstChain: Chain, dstToken: Token) => {
@@ -72,84 +76,12 @@ export const getSwapQuoteTokenAddresses = (srcChain: Chain, srcToken: Token, dst
 }
 
 export const getIsHopOnlyRoute = (srcToken: Token, dstToken: Token, bridgeRoute: BridgeRoute) => {
-    return getIsTokenOrVariant(srcToken, bridgeRoute.srcToken) && getIsTokenOrVariant(dstToken, bridgeRoute.dstToken) ? true : false
+    // return getIsTokenOrVariant(srcToken, bridgeRoute.srcToken) && getIsTokenOrVariant(dstToken, bridgeRoute.dstToken) ? true : false
+    return srcToken.id === bridgeRoute.srcToken.id && dstToken.id === bridgeRoute.dstToken.id
 }
 
 export const getIsSourceBridgeNative = (bridgeType: TokenBridgeType) => {
     return bridgeType === TokenBridgeType.NativeHome || bridgeType === TokenBridgeType.NativeRemote
-}
-
-export const getChainBridgeRoutes = (chain: Chain, isDstChain?: boolean) => {
-    return isDstChain ? DstChainBridgeRoutes[chain.id] : ChainBridgeRoutes[chain.id]
-}
-
-export const getTokenBridgeRoutes = (token: Token, isDstToken?: boolean) => {
-    return isDstToken ? DstTokenBridgeRoutes[token.id] : TokenBridgeRoutes[token.id]
-}
-
-export const getQuoteBridgeRoutes = (srcChain?: Chain, srcToken?: Token, dstChain?: Chain, dstToken?: Token) => {
-
-    const srcBridgeRoutes: BridgeRoute[] = []
-    const dstBridgeRoutes: BridgeRoute[] = []
-
-    if (!srcChain || !srcToken || !dstChain || !dstToken) {
-        return {
-            srcBridgeRoutes,
-            dstBridgeRoutes,
-        }
-    }
-
-    let initialSrcBridgeRoutes = getChainBridgeRoutes(srcChain)
-    let initialDstBridgeRoutes = getChainBridgeRoutes(dstChain, true)
-
-    const srcTokenWrapped = srcToken.isNative ? getWrappedTokenVariant(srcToken, srcChain) : undefined
-    if (srcToken.isNative && srcTokenWrapped && initialSrcBridgeRoutes.some((route) => route.srcToken.id === srcToken.id)) {
-        initialSrcBridgeRoutes = initialSrcBridgeRoutes.filter((route) => route.srcToken.id !== srcTokenWrapped.id)
-    }
-
-    const srcTokenNative = srcToken.isNative !== true ? getNativeTokenVariant(srcToken, srcChain) : undefined
-    if (srcToken.isNative !== true && srcTokenNative && initialSrcBridgeRoutes.some((route) => route.srcToken.id === srcToken.id)) {
-        initialSrcBridgeRoutes = initialSrcBridgeRoutes.filter((route) => route.srcToken.id !== srcTokenNative.id)
-    }
-
-    initialSrcBridgeRoutes.forEach((route) => {
-        const routeSrcTokenNative = route.srcToken.isNative !== true ? getNativeTokenVariant(route.srcToken, route.srcChain) : undefined
-        if (route.srcToken.isNative !== true && routeSrcTokenNative) {
-            if (initialSrcBridgeRoutes.some((r) => r.srcToken.id === routeSrcTokenNative.id) !== true) {
-                srcBridgeRoutes.push(route)
-            }
-        }
-        else {
-            srcBridgeRoutes.push(route)
-        }
-    })
-
-    const dstTokenWrapped = dstToken.isNative ? getWrappedTokenVariant(dstToken, dstChain) : undefined
-    if (dstToken.isNative && dstTokenWrapped && initialDstBridgeRoutes.some((route) => route.dstToken.id === dstToken.id)) {
-        initialDstBridgeRoutes = initialDstBridgeRoutes.filter((route) => route.dstToken.id !== dstTokenWrapped.id)
-    }
-
-    const dstTokenNative = dstToken.isNative !== true ? getNativeTokenVariant(dstToken, dstChain) : undefined
-    if (dstToken.isNative !== true && dstTokenNative && initialDstBridgeRoutes.some((route) => route.dstToken.id === dstToken.id)) {
-        initialDstBridgeRoutes = initialDstBridgeRoutes.filter((route) => route.dstToken.id !== dstTokenNative.id)
-    }
-
-    initialDstBridgeRoutes.forEach((route) => {
-        const routeSrcTokenNative = route.srcToken.isNative !== true ? getNativeTokenVariant(route.srcToken, route.srcChain) : undefined
-        if (route.srcToken.isNative !== true && routeSrcTokenNative) {
-            if (initialDstBridgeRoutes.some((r) => r.srcToken.id === routeSrcTokenNative.id) !== true) {
-                dstBridgeRoutes.push(route)
-            }
-        }
-        else {
-            dstBridgeRoutes.push(route)
-        }
-    })
-
-    return {
-        srcBridgeRoutes,
-        dstBridgeRoutes,
-    }
 }
 
 export const getHopOnlyQuoteData = ({
@@ -356,16 +288,129 @@ export const getSwapAndHopQuoteData = ({
     return swapAndHopQuote
 }
 
-export const getRouteQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?: bigint, dstChain?: Chain, dstToken?: Token) => {
+////////////////////////////////////////////////////////////////////////////////
+// todo: test the below to ensure working and remove previous bridge route functionality, types, config, etc.
 
-    const routeQuotes: RouteQuoteData[] = []
-    const { srcBridgeRoutes, dstBridgeRoutes } = getQuoteBridgeRoutes(srcChain, srcToken, dstChain, dstToken)
-    if (!srcChain || !srcToken || !dstChain || !dstToken || !srcAmount || dstChain === undefined || dstToken === undefined || srcBridgeRoutes.length === 0 || dstBridgeRoutes.length === 0) {
-        return routeQuotes
+export const getBridgeRoutes = (srcChain?: Chain, srcToken?: Token, dstChain?: Chain, dstToken?: Token) => {
+
+    // const bridgeRoutes: BridgeRoute[][] = []
+    const bridgeRoutes: BridgeRouteData[] = []
+    if (!srcChain || !srcToken || !dstChain || !dstToken) {
+        return bridgeRoutes
     }
 
-    const routeDstSwapCells = getSwapCells(dstChain)
-    const routeCanSwapDst = routeDstSwapCells.length > 0
+    const srcChainCanSwap = getChainCanSwap(srcChain)
+    const dstChainCanSwap = getChainCanSwap(dstChain)
+
+    const srcChainBridgeTokens = getChainTokens({
+        chain: srcChain,
+        ignoreSort: true,
+    }).filter((token) => token.bridges && (srcChainCanSwap || token.id === srcToken.id))
+
+    const interimChainBridgeTokens = getTokens({
+        ignoreSort: true,
+    }).filter((token) => token.bridges && token.chainId !== srcChain.id && token.chainId !== dstChain.id)
+
+    const dstChainBridgeTokens = getChainTokens({
+        chain: dstChain,
+        ignoreSort: true,
+    }).filter((token) => token.bridges && (dstChainCanSwap || token.id === dstToken.id))
+
+    for (const srcBridgeToken of srcChainBridgeTokens) {
+
+        for (const [bridgeDstChainId, srcBridgeData] of Object.entries(srcBridgeToken.bridges!)) {
+
+            const bridgeDstChain = getChain(parseInt(bridgeDstChainId))
+            if (!bridgeDstChain) {
+                continue
+            }
+
+            if (bridgeDstChain.id === dstChain.id) {
+
+                const dstBridgeToken = dstChainBridgeTokens.find((token) => token.id === srcBridgeToken.id && srcBridgeToken.bridges?.[token.chainId])
+                const dstBridgeData = dstBridgeToken?.bridges?.[srcChain.id]
+                if (!dstBridgeToken || !dstBridgeData) {
+                    continue
+                }
+
+                const srcRoute: BridgeRoute = {
+                    srcChain: srcChain,
+                    srcToken: srcBridgeToken,
+                    srcBridge: srcBridgeData,
+                    dstChain: dstChain,
+                    dstToken: dstBridgeToken,
+                    dstBridge: dstBridgeData,
+                }
+
+                bridgeRoutes.push({
+                    srcRoute: srcRoute,
+                })
+            }
+
+            else {
+
+                const srcToInterimBridgeToken = interimChainBridgeTokens.find((token) => token.id === srcBridgeToken.id && token.chainId === bridgeDstChain.id && srcBridgeToken.bridges?.[token.chainId])
+                const srcToInterimBridgeData = srcToInterimBridgeToken?.bridges?.[srcChain.id]
+                const interimToDstChainBridgeTokens = interimChainBridgeTokens.filter((token) => token.chainId === bridgeDstChain.id && token.bridges?.[dstChain.id])
+                if (!srcToInterimBridgeToken || !srcToInterimBridgeData || interimToDstChainBridgeTokens.length === 0) {
+                    continue
+                }
+
+                for (const interimToDstBridgeToken of interimToDstChainBridgeTokens) {
+
+                    const interimToDstBridgeData = interimToDstBridgeToken.bridges?.[dstChain.id]
+                    const dstBridgeToken = dstChainBridgeTokens.find((token) => token.id === interimToDstBridgeToken.id && token.bridges?.[interimToDstBridgeToken.chainId])
+                    const dstBridgeData = dstBridgeToken?.bridges?.[interimToDstBridgeToken.chainId]
+                    if (!interimToDstBridgeData || !dstBridgeToken || !dstBridgeData || (dstBridgeToken.chainId === srcChain.id && srcToInterimBridgeToken.id === interimToDstBridgeToken.id)) {
+                        continue
+                    }
+
+                    const srcRoute: BridgeRoute = {
+                        srcChain: srcChain,
+                        srcToken: srcBridgeToken,
+                        srcBridge: srcBridgeData,
+                        dstChain: bridgeDstChain,
+                        dstToken: srcToInterimBridgeToken,
+                        dstBridge: srcToInterimBridgeData,
+                    }
+
+                    const dstRoute: BridgeRoute = {
+                        srcChain: bridgeDstChain,
+                        srcToken: interimToDstBridgeToken,
+                        srcBridge: interimToDstBridgeData,
+                        dstChain: dstChain,
+                        dstToken: dstBridgeToken,
+                        dstBridge: dstBridgeData,
+                    }
+
+                    bridgeRoutes.push({
+                        srcRoute: srcRoute,
+                        dstRoute: dstRoute,
+                    })
+                }
+            }
+        }
+    }
+
+    return bridgeRoutes
+}
+
+export const getQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?: bigint, dstChain?: Chain, dstToken?: Token) => {
+
+    const quotes: RouteQuoteData[] = []
+    const bridgeRoutes = getBridgeRoutes(srcChain, srcToken, dstChain, dstToken)
+    if (!srcChain || !srcToken || !dstChain || !dstToken || !srcAmount || bridgeRoutes.length === 0) {
+        return quotes
+    }
+
+    const srcChainCanSwap = getChainCanSwap(srcChain)
+    const srcChainSwapCells = srcChainCanSwap ? getSwapCells(srcChain) : []
+    const srcCellDefault = srcChain.cells[0]
+
+    const dstChainCanSwap = getChainCanSwap(dstChain)
+    const dstChainSwapCells = dstChainCanSwap ? getSwapCells(dstChain) : []
+    const dstCellDefault = dstChain.cells[0]
+
     const baseQuoteData = {
         srcChainId: srcChain.id,
         srcTokenId: srcToken.id,
@@ -374,53 +419,115 @@ export const getRouteQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?
         dstTokenId: dstToken.id,
     }
 
-    // same chain swap only, no bridge
-    if (routeCanSwapDst && srcChain.id === dstChain.id) {
-        routeDstSwapCells.forEach((dstCell) => {
+    if (srcChain.id === dstChain.id && srcChainCanSwap) {
+        for (const srcCell of srcChainSwapCells) {
             const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
                 srcChain: srcChain,
-                srcCell: dstCell,
+                srcCell: srcCell,
                 srcToken: srcToken,
                 srcAmount: srcAmount,
                 dstChain: dstChain,
-                dstCell: dstCell,
+                dstCell: srcCell,
                 dstToken: dstToken,
             })
-            const routeQuote: RouteQuoteData = {
+            const quoteData: RouteQuoteData = {
                 ...baseQuoteData,
-                srcCellAddress: dstCell.address,
-                dstCellAddress: dstCell.address,
+                srcCellAddress: srcCell.address,
+                dstCellAddress: srcCell.address,
                 dstAmount: swapAndTransferQuote.dstAmount,
                 type: RouteType.Swap,
                 hops: [
                     swapAndTransferQuote,
                 ],
             }
-            routeQuotes.push(routeQuote)
-        })
+            quotes.push(quoteData)
+        }
     }
 
-    srcBridgeRoutes.forEach((bridgeRoute) => {
+    for (const { srcRoute, dstRoute } of bridgeRoutes) {
 
-        if (dstChain.id === bridgeRoute.dstChain.id) {
+        if (!dstRoute) {
 
-            // bridge only, no swap
-            if (getIsHopOnlyRoute(srcToken, dstToken, bridgeRoute)) {
+            const isSrcSwap = srcToken.id !== srcRoute.srcToken.id
+            const isDstSwap = dstToken.id !== srcRoute.dstToken.id
+            if ((isSrcSwap && !srcChainCanSwap) || (isDstSwap && !dstChainCanSwap)) {
+                continue
+            }
 
-                const srcCell = bridgeRoute.srcChain.cells[0]
-                const dstCell = bridgeRoute.dstChain.cells[0]
+            const srcCells = isSrcSwap ? srcChainSwapCells : [srcCellDefault]
+            const dstCells = isDstSwap ? dstChainSwapCells : [dstCellDefault]
+
+            if (isSrcSwap || isDstSwap) {
+
+                for (const srcCell of srcCells) {
+                    for (const dstCell of dstCells) {
+
+                        const hopQuotes: HopQuoteData[] = []
+
+                        if (isSrcSwap) {
+                            const swapAndHopQuote = getSwapAndHopQuoteData({
+                                srcCell: srcCell,
+                                srcToken: srcToken,
+                                srcAmount: srcAmount,
+                                dstCell: dstCell,
+                                bridgeRoute: srcRoute,
+                            })
+                            hopQuotes.push(swapAndHopQuote)
+                        }
+                        else {
+                            const hopAndCallQuote = getHopAndCallHopQuoteData({
+                                srcChain: srcChain,
+                                srcCell: srcCell,
+                                srcToken: srcToken,
+                                srcAmount: srcAmount,
+                                dstChain: dstChain,
+                                dstCell: dstCell,
+                                dstToken: srcRoute.dstToken,
+                                dstAmount: srcAmount,
+                                bridgeRoute: srcRoute,
+                            })
+                            hopQuotes.push(hopAndCallQuote)
+                        }
+
+                        if (isDstSwap) {
+                            const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
+                                srcChain: dstChain,
+                                srcCell: dstCell,
+                                srcToken: srcRoute.dstToken,
+                                srcAmount: hopQuotes[0].dstAmount,
+                                dstChain: dstChain,
+                                dstCell: dstCell,
+                                dstToken: dstToken,
+                            })
+                            hopQuotes.push(swapAndTransferQuote)
+                        }
+
+                        const quoteData: RouteQuoteData = {
+                            ...baseQuoteData,
+                            srcCellAddress: srcCell.address,
+                            dstCellAddress: dstCell.address,
+                            dstAmount: hopQuotes[hopQuotes.length - 1].dstAmount,
+                            type: RouteType.Swap,
+                            hops: hopQuotes,
+                        }
+                        quotes.push(quoteData)
+                    }
+                }
+            }
+
+            else {
 
                 const hopOnlyQuote = getHopOnlyQuoteData({
-                    srcCell: srcCell,
-                    dstCell: dstCell,
+                    srcCell: srcCellDefault,
+                    dstCell: dstCellDefault,
                     srcAmount: srcAmount,
-                    bridgeRoute: bridgeRoute,
+                    bridgeRoute: srcRoute,
                 })
 
-                const routeQuote: RouteQuoteData = {
+                const quoteData: RouteQuoteData = {
                     ...baseQuoteData,
-                    srcCellAddress: srcCell.address,
-                    dstCellAddress: dstCell.address,
+                    srcCellAddress: srcCellDefault.address,
+                    dstCellAddress: dstCellDefault.address,
                     dstAmount: hopOnlyQuote.dstAmount,
                     minDstAmount: hopOnlyQuote.minDstAmount,
                     type: RouteType.Bridge,
@@ -428,231 +535,124 @@ export const getRouteQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?
                         hopOnlyQuote,
                     ],
                 }
-                routeQuotes.push(routeQuote)
-            }
-
-            else {
-
-                const srcSwapCells = getSwapCells(bridgeRoute.srcChain)
-                const dstSwapCells = getSwapCells(bridgeRoute.dstChain)
-                const canSwapSrc = srcSwapCells.length > 0
-                const canSwapDst = dstSwapCells.length > 0
-
-                // bridge -> swap
-                if (canSwapDst && getIsTokenOrVariant(bridgeRoute.srcToken, srcToken)) {
-                    dstSwapCells.forEach((dstCell) => {
-
-                        const hopAndCallQuote = getHopAndCallHopQuoteData({
-                            srcChain: srcChain,
-                            srcCell: bridgeRoute.srcChain.cells[0],
-                            srcToken: srcToken,
-                            srcAmount: srcAmount,
-                            dstChain: dstChain,
-                            dstCell: dstCell,
-                            dstToken: bridgeRoute.dstToken,
-                            dstAmount: srcAmount,
-                            bridgeRoute: bridgeRoute,
-                        })
-
-                        const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
-                            srcChain: dstChain,
-                            srcCell: dstCell,
-                            srcToken: bridgeRoute.dstToken,
-                            srcAmount: hopAndCallQuote.dstAmount,
-                            dstChain: dstChain,
-                            dstCell: dstCell,
-                            dstToken: dstToken,
-                        })
-
-                        const routeQuote: RouteQuoteData = {
-                            ...baseQuoteData,
-                            srcCellAddress: hopAndCallQuote.srcCellAddress,
-                            dstCellAddress: swapAndTransferQuote.dstCellAddress,
-                            dstAmount: swapAndTransferQuote.dstAmount,
-                            type: RouteType.Swap,
-                            hops: [
-                                hopAndCallQuote,
-                                swapAndTransferQuote,
-                            ],
-                        }
-                        routeQuotes.push(routeQuote)
-                    })
-                }
-
-                // swap -> bridge -> swap again if needed
-                else if (canSwapSrc) {
-
-                    const dstSwapRequired = getIsTokenOrVariant(bridgeRoute.dstToken, dstToken) !== true
-                    const dstCells = dstSwapRequired ? routeDstSwapCells : [bridgeRoute.dstChain.cells[0]]
-
-                    srcSwapCells.forEach((srcCell) => {
-                        dstCells.forEach((dstCell) => {
-
-                            const hopQuotes: HopQuoteData[] = []
-                            const swapAndHopQuote = getSwapAndHopQuoteData({
-                                srcCell: srcCell,
-                                srcToken: srcToken,
-                                srcAmount: srcAmount,
-                                dstCell: dstCell,
-                                bridgeRoute: bridgeRoute,
-                            })
-                            hopQuotes.push(swapAndHopQuote)
-
-                            if (dstSwapRequired) {
-                                const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
-                                    srcChain: bridgeRoute.dstChain,
-                                    srcCell: dstCell,
-                                    srcToken: bridgeRoute.dstToken,
-                                    srcAmount: swapAndHopQuote.dstAmount,
-                                    dstChain: dstChain,
-                                    dstCell: dstCell,
-                                    dstToken: dstToken,
-                                })
-                                hopQuotes.push(swapAndTransferQuote)
-                            }
-
-                            const finalHop = hopQuotes[hopQuotes.length - 1]
-                            const routeQuote: RouteQuoteData = {
-                                ...baseQuoteData,
-                                srcCellAddress: srcCell.address,
-                                dstCellAddress: dstCell.address,
-                                dstAmount: finalHop.dstAmount,
-                                type: RouteType.Swap,
-                                hops: hopQuotes,
-                            }
-                            routeQuotes.push(routeQuote)
-                        })
-                    })
-                }
+                quotes.push(quoteData)
             }
         }
 
         else {
 
-            const dstRoutes = dstBridgeRoutes.filter((dstRoute) => bridgeRoute.dstChain.id === dstRoute.srcChain.id)
-            dstRoutes.forEach((dstRoute) => {
+            const interimChain = srcRoute.dstChain
+            const interimChainCanSwap = getChainCanSwap(interimChain)
+            const interimChainSwapCells = interimChainCanSwap ? getSwapCells(interimChain) : []
+            const interimCellDefault = interimChain.cells[0]
 
-                const srcSwapRequired = getIsTokenOrVariant(srcToken, bridgeRoute.srcToken) !== true
-                const srcSwapCells = getSwapCells(bridgeRoute.srcChain)
-                const srcCells = srcSwapRequired ? srcSwapCells : [srcChain.cells[0]]
-                const canSwapSrc = srcSwapCells.length > 0
+            const isSrcSwap = srcToken.id !== srcRoute.srcToken.id
+            const isInterimSwap = srcRoute.dstToken.id !== dstRoute.srcToken.id
+            const isDstSwap = dstToken.id !== dstRoute.dstToken.id
+            if ((isSrcSwap && !srcChainCanSwap) || (isInterimSwap && !interimChainCanSwap) || (isDstSwap && !dstChainCanSwap)) {
+                continue
+            }
 
-                const interimSwapRequired = getIsTokenOrVariant(bridgeRoute.dstToken, dstRoute.srcToken) !== true
-                const interimSwapCells = getSwapCells(bridgeRoute.dstChain)
-                const interimCells = interimSwapRequired ? interimSwapCells : [bridgeRoute.dstChain.cells[0]]
-                const canSwapInterim = interimSwapCells.length > 0
+            const srcCells = isSrcSwap ? srcChainSwapCells : [srcCellDefault]
+            const interimCells = isInterimSwap ? interimChainSwapCells : [interimCellDefault]
+            const dstCells = isDstSwap ? dstChainSwapCells : [dstCellDefault]
 
-                const dstSwapRequired = getIsTokenOrVariant(dstRoute.dstToken, dstToken) !== true
-                const dstSwapCells = getSwapCells(dstRoute.dstChain)
-                const dstCells = dstSwapRequired ? dstSwapCells : [dstRoute.dstChain.cells[0]]
-                const canSwapDst = dstSwapCells.length > 0
+            for (const srcCell of srcCells) {
+                for (const interimCell of interimCells) {
+                    for (const dstCell of dstCells) {
 
-                // swap if needed -> bridge -> swap if needed -> bridge -> swap and transfer if needed
-                if ((canSwapSrc || srcSwapRequired !== true) && (canSwapInterim || interimSwapRequired !== true) && (canSwapDst || dstSwapRequired !== true)) {
-                    srcCells.forEach((srcCell) => {
-                        interimCells.forEach((interimCell) => {
-                            dstCells.forEach((dstCell) => {
+                        const hopQuotes: HopQuoteData[] = []
 
-                                const hopQuotes: HopQuoteData[] = []
-
-                                let srcDstAmount: bigint | undefined = undefined
-                                let interimDstAmount: bigint | undefined = undefined
-
-                                if (srcSwapRequired) {
-                                    const srcSwapAndHopQuote = getSwapAndHopQuoteData({
-                                        srcCell: srcCell,
-                                        srcToken: srcToken,
-                                        srcAmount: srcAmount,
-                                        dstCell: interimCell,
-                                        bridgeRoute: bridgeRoute,
-                                    })
-                                    hopQuotes.push(srcSwapAndHopQuote)
-                                }
-                                else {
-                                    const srcHopAndCallQuote = getHopAndCallHopQuoteData({
-                                        srcChain: srcChain,
-                                        srcCell: srcCell,
-                                        srcToken: srcToken,
-                                        srcAmount: srcAmount,
-                                        dstChain: bridgeRoute.dstChain,
-                                        dstCell: interimCell,
-                                        dstToken: bridgeRoute.dstToken,
-                                        dstAmount: srcAmount,
-                                        bridgeRoute: bridgeRoute,
-                                    })
-                                    hopQuotes.push(srcHopAndCallQuote)
-                                    srcDstAmount = srcAmount
-                                }
-
-                                if (interimSwapRequired) {
-                                    const interimSwapAndHopQuote = getSwapAndHopQuoteData({
-                                        srcCell: interimCell,
-                                        srcToken: bridgeRoute.dstToken,
-                                        srcAmount: srcDstAmount,
-                                        dstCell: dstCell,
-                                        bridgeRoute: dstRoute,
-                                    })
-                                    hopQuotes.push(interimSwapAndHopQuote)
-                                }
-                                else {
-                                    const interimHopAndCallQuote = getHopAndCallHopQuoteData({
-                                        srcChain: dstRoute.srcChain,
-                                        srcCell: interimCell,
-                                        srcToken: dstRoute.srcToken,
-                                        srcAmount: srcDstAmount,
-                                        dstChain: dstRoute.dstChain,
-                                        dstCell: dstCell,
-                                        dstToken: dstRoute.dstToken,
-                                        dstAmount: srcDstAmount,
-                                        bridgeRoute: bridgeRoute,
-                                    })
-                                    hopQuotes.push(interimHopAndCallQuote)
-                                    interimDstAmount = srcDstAmount
-                                }
-
-                                if (dstSwapRequired) {
-                                    const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
-                                        srcChain: dstRoute.dstChain,
-                                        srcCell: dstCell,
-                                        srcToken: dstRoute.dstToken,
-                                        srcAmount: interimDstAmount,
-                                        dstChain: dstChain,
-                                        dstCell: dstCell,
-                                        dstToken: dstToken,
-                                    })
-                                    hopQuotes.push(swapAndTransferQuote)
-                                }
-
-                                const finalHop = hopQuotes[hopQuotes.length - 1]
-                                const routeQuote: RouteQuoteData = {
-                                    ...baseQuoteData,
-                                    srcCellAddress: srcCell.address,
-                                    dstCellAddress: dstCell.address,
-                                    dstAmount: finalHop.dstAmount,
-                                    type: RouteType.Swap,
-                                    hops: hopQuotes,
-                                }
-                                routeQuotes.push(routeQuote)
+                        if (isSrcSwap) {
+                            const swapAndHopQuote = getSwapAndHopQuoteData({
+                                srcCell: srcCell,
+                                srcToken: srcToken,
+                                srcAmount: srcAmount,
+                                dstCell: interimCell,
+                                bridgeRoute: srcRoute,
                             })
-                        })
-                    })
-                }
-            })
-        }
-    })
+                            hopQuotes.push(swapAndHopQuote)
+                        }
+                        else {
+                            const hopAndCallQuote = getHopAndCallHopQuoteData({
+                                srcChain: srcChain,
+                                srcCell: srcCell,
+                                srcToken: srcToken,
+                                srcAmount: srcAmount,
+                                dstChain: interimChain,
+                                dstCell: interimCell,
+                                dstToken: srcRoute.dstToken,
+                                dstAmount: srcAmount,
+                                bridgeRoute: srcRoute,
+                            })
+                            hopQuotes.push(hopAndCallQuote)
+                        }
 
-    return routeQuotes
+                        if (isInterimSwap) {
+                            const swapAndHopQuote = getSwapAndHopQuoteData({
+                                srcCell: interimCell,
+                                srcToken: srcRoute.dstToken,
+                                srcAmount: hopQuotes[0].dstAmount,
+                                dstCell: dstCell,
+                                bridgeRoute: dstRoute,
+                            })
+                            hopQuotes.push(swapAndHopQuote)
+                        }
+                        else {
+                            const hopAndCallQuote = getHopAndCallHopQuoteData({
+                                srcChain: interimChain,
+                                srcCell: interimCell,
+                                srcToken: dstRoute.srcToken,
+                                srcAmount: hopQuotes[0].dstAmount,
+                                dstChain: dstChain,
+                                dstCell: dstCell,
+                                dstToken: dstRoute.dstToken,
+                                dstAmount: hopQuotes[0].dstAmount,
+                                bridgeRoute: dstRoute,
+                            })
+                            hopQuotes.push(hopAndCallQuote)
+                        }
+
+                        if (isDstSwap) {
+                            const swapAndTransferQuote = getSwapAndTransferHopQuoteData({
+                                srcChain: dstChain,
+                                srcCell: dstCell,
+                                srcToken: dstRoute.dstToken,
+                                srcAmount: hopQuotes[1].dstAmount,
+                                dstChain: dstChain,
+                                dstCell: dstCell,
+                                dstToken: dstToken,
+                            })
+                            hopQuotes.push(swapAndTransferQuote)
+                        }
+
+                        const quoteData: RouteQuoteData = {
+                            ...baseQuoteData,
+                            srcCellAddress: srcCell.address,
+                            dstCellAddress: dstCell.address,
+                            dstAmount: hopQuotes[hopQuotes.length - 1].dstAmount,
+                            type: RouteType.Swap,
+                            hops: hopQuotes,
+                        }
+                        quotes.push(quoteData)
+                    }
+                }
+            }
+        }
+    }
+
+    return quotes
 }
 
-export const getBaseQuoteData = (data: RouteQuoteData | HopQuoteData | StepQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
+export const getBaseQuoteData = (data: RouteQuoteData | HopQuoteData | StepQuoteData, getTokenBalanceData: (tokenId?: TokenId, chainId?: ChainId) => Token | undefined) => {
     const srcChain = getChain(data.srcChainId)
-    const srcCell = srcChain && "srcCellAddress" in data && data.srcCellAddress ? srcChain.cells.find((cell) => cell.address === data.srcCellAddress) : undefined
+    const srcCell = srcChain && "srcCellAddress" in data && data.srcCellAddress ? srcChain.cells.find((cell) => isAddressEqual(cell.address, data.srcCellAddress)) : undefined
     const srcToken = srcChain ? getToken(data.srcTokenId, srcChain) : undefined
-    const srcTokenWithBalance = srcToken ? getTokenBalanceData(srcToken) : undefined
+    const srcTokenWithBalance = srcToken ? getTokenBalanceData(srcToken.id, srcToken.chainId) : undefined
     const dstChain = getChain(data.dstChainId)
-    const dstCell = dstChain && "dstCellAddress" in data && data.dstCellAddress ? dstChain.cells.find((cell) => cell.address === data.dstCellAddress) : undefined
+    const dstCell = dstChain && "dstCellAddress" in data && data.dstCellAddress ? dstChain.cells.find((cell) => isAddressEqual(cell.address, data.dstCellAddress)) : undefined
     const dstToken = dstChain ? getToken(data.dstTokenId, dstChain) : undefined
-    const dstTokenWithBalance = dstToken ? getTokenBalanceData(dstToken) : undefined
+    const dstTokenWithBalance = dstToken ? getTokenBalanceData(dstToken.id, dstToken.chainId) : undefined
     return {
         srcChain,
         srcCell,
@@ -663,7 +663,7 @@ export const getBaseQuoteData = (data: RouteQuoteData | HopQuoteData | StepQuote
     }
 }
 
-export const getStepQuote = (data: StepQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
+export const getStepQuote = (data: StepQuoteData, getTokenBalanceData: (tokenId?: TokenId, chainId?: ChainId) => Token | undefined) => {
 
     const { srcChain, srcToken, dstChain, dstToken } = getBaseQuoteData(data, getTokenBalanceData)
     if (!srcChain || !srcToken || !data.srcAmount || !dstChain || !dstToken || !data.dstAmount || !data.minDstAmount) {
@@ -693,7 +693,7 @@ export const getStepQuote = (data: StepQuoteData, getTokenBalanceData: (token?: 
     return stepQuote
 }
 
-export const getHopQuote = (data: HopQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
+export const getHopQuote = (data: HopQuoteData, getTokenBalanceData: (tokenId?: TokenId, chainId?: ChainId) => Token | undefined) => {
 
     const { srcChain, srcCell, srcToken, dstChain, dstCell, dstToken } = getBaseQuoteData(data, getTokenBalanceData)
     if (!srcChain || !srcCell || !srcToken || !data.srcAmount || !dstChain || !dstCell || !dstToken || data.steps.length === 0 || !data.dstAmount || !data.minDstAmount || (getIsBridgeHop(data.action) && (!data.srcBridgeData || !data.dstBridgeData))) {
@@ -834,7 +834,7 @@ export const getRouteEvents = (hops: HopQuote[]) => {
     return events
 }
 
-export const getBridgeQuote = (data: RouteQuoteData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
+export const getBridgeQuote = (data: RouteQuoteData, getTokenBalanceData: (tokenId?: TokenId, chainId?: ChainId) => Token | undefined) => {
 
     if (data.type !== RouteType.Bridge || data.hops.length !== 1 || data.hops.some((hop) => hop.action !== HopAction.Hop || hop.steps.length !== 1 || hop.steps.some((step) => step.type !== RouteType.Bridge)) || !data.srcAmount || !data.dstAmount || !data.minDstAmount) {
         return undefined
@@ -870,7 +870,7 @@ export const getBridgeQuote = (data: RouteQuoteData, getTokenBalanceData: (token
     return routeQuote
 }
 
-export const getSwapQuote = (swapData: SwapQueryData, getTokenBalanceData: (token?: Token) => Token | undefined) => {
+export const getSwapQuote = (swapData: SwapQueryData, getTokenBalanceData: (tokenId?: TokenId, chainId?: ChainId) => Token | undefined) => {
 
     const quoteData = swapData.data
     const { srcChain, srcCell, srcToken, dstChain, dstCell, dstToken } = getBaseQuoteData(quoteData, getTokenBalanceData)
@@ -1106,7 +1106,7 @@ export const getSwapQueryResultData = ({
             const minTradeDstAmount = minAmountTradeData.trade[CellTradeParameter.AmountOut]
             const minAmountResult: RouteQueryResult = {
                 tradeData: minAmountTradeData,
-                estimatedGasFee: estimatedMinAmountGasFee,
+                estimatedGasFee: BigInt(estimatedMinAmountGasFee),
                 encodedTradeData: encodedMinAmountTradeData,
             }
             hopData.minAmountResult = minAmountResult
@@ -1157,11 +1157,6 @@ export const getRouteData = (quote: RouteQuote) => {
     const routeActions: RouteAction[] = []
 
     let actionOrder = 1
-
-    //todo: remove this once we have a way to handle same chain swaps
-    if (quote.srcChain.id === quote.dstChain.id && quote.hops.length > 1) {
-        return undefined
-    }
 
     quote.hops.forEach((data) => {
 
@@ -1313,79 +1308,4 @@ export const getRouteData = (quote: RouteQuote) => {
     }
 
     return route
-}
-
-export const getPendingSwapHistory = (quote?: RouteQuote, txid?: Hash) => {
-
-    if (!quote || !txid) {
-        return undefined
-    }
-
-    const hopData: HopHistory[] = []
-
-    for (const hop of quote.hops) {
-
-        const stepHistory = hop.steps.map((step) => {
-            return {
-                srcChainId: step.srcChain.id,
-                srcTokenId: step.srcToken.id,
-                srcAmount: step.srcAmount.toString(),
-                dstChainId: step.dstChain.id,
-                dstTokenId: step.dstToken.id,
-                dstAmountEstimated: step.dstAmount.toString(),
-                type: step.type,
-            } as StepHistory
-        })
-
-        const hopHistory: HopHistory = {
-            srcChainId: hop.srcChain.id,
-            srcBlockStart: "",
-            srcTokenId: hop.srcToken.id,
-            srcAmount: hop.srcAmount.toString(),
-            dstChainId: hop.dstChain.id,
-            dstBlockStart: "",
-            dstTokenId: hop.dstToken.id,
-            dstAmountEstimated: hop.dstAmount.toString(),
-            action: hop.action,
-            steps: stepHistory,
-            status: "pending",
-        }
-        hopData.push(hopHistory)
-    }
-
-    const events = quote.events.map((event) => {
-        return {
-            srcChainId: event.srcChain.id,
-            srcTokenId: event.srcToken.id,
-            srcAmount: event.srcAmount?.toString(),
-            dstChainId: event.dstChain.id,
-            dstTokenId: event.dstToken.id,
-            dstAmountEstimated: event.dstAmount?.toString(),
-            // dstAmount?: string,
-            hop: event.hop,
-            type: event.type,
-            status: hopData[event.hop].status,
-            adapterAddress: event.adapterAddress,
-            adapter: event.adapter,
-            bridge: event.bridge,
-        } as EventHistory
-    })
-
-    const history: SwapHistory = {
-        id: txid,
-        srcChainId: quote.srcChain.id,
-        srcTokenId: quote.srcToken.id,
-        srcAmount: quote.srcAmount.toString(),
-        dstChainId: quote.dstChain.id,
-        dstTokenId: quote.dstToken.id,
-        dstAmountEstimated: quote.dstAmount.toString(),
-        messenger: supportedTeleporterMessengerVersion,
-        type: quote.type,
-        hops: hopData,
-        events: events,
-        status: "pending",
-        timestamp: Date.now(),
-    }
-
-    return history
 }

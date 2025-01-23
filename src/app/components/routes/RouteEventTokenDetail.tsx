@@ -14,7 +14,8 @@ interface RouteEventTokenDetailProps extends React.ComponentPropsWithoutRef<"div
     token: Token,
     amount?: bigint,
     amountFormatted?: string,
-    lighterMuted?: boolean,
+    hideAmount?: boolean,
+    isToast?: boolean,
 }
 
 const RouteEventTokenDetail = React.forwardRef<HTMLDivElement, RouteEventTokenDetailProps>(({
@@ -24,37 +25,69 @@ const RouteEventTokenDetail = React.forwardRef<HTMLDivElement, RouteEventTokenDe
     token,
     amount,
     amountFormatted,
-    lighterMuted,
+    hideAmount = false,
+    isToast,
     ...props
 }, ref) =>  (
     <div
         ref={ref}
-        className={twMerge("flex flex-col sm:flex-row flex-1 gap-x-4 gap-y-2", className)}
+        className={twMerge("flex flex-col flex-1 w-full", className)}
         {...props}
     >
-        <div className={twMerge("flex flex-row flex-initial w-12 items-center", lighterMuted ? "text-muted-400" : "text-muted-500")}>
-            {label}
+        <div className={twMerge(isToast ? "hidden" : "hidden sm:flex", "flex-row flex-1 gap-x-4 gap-y-2")}>
+            <div className="flex flex-row flex-none w-12 items-center text-muted-500">
+                {label}
+            </div>
+            <div className="flex flex-row flex-1 gap-x-4 gap-y-1">
+                <div className="flex flex-row flex-1 gap-4 justify-start items-center text-muted-500">
+                    <ChainImageInline
+                        chain={chain}
+                        size="xs"
+                    />
+                    {chain.name}
+                </div>
+                <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
+                    {hideAmount !== true && (amount || amountFormatted) ? (
+                        <DecimalAmount
+                            amount={amount}
+                            amountFormatted={amountFormatted}
+                            symbol={token.symbol}
+                            token={token}
+                            type={NumberFormatType.Precise}
+                        />
+                    ) : token.symbol}
+                    <TokenImage
+                        token={token}
+                        size="xs"
+                    />
+                </div>
+            </div>
         </div>
-        <div className="flex flex-col-reverse items-start sm:flex-row flex-1 gap-x-4 gap-y-1">
-            <div className={twMerge("flex flex-row-reverse sm:flex-row flex-1 gap-4 justify-start items-center", lighterMuted ? "text-muted-300" : "text-muted-500")}>
+        <div className={twMerge(isToast ? "flex" : "flex sm:hidden", "flex-col flex-1 gap-y-1")}>
+            <div className="flex flex-row flex-row 1 gap-x-4 justify-between">
+                <div className="flex flex-row flex-none justify-start items-center text-muted-500">
+                    {label}
+                </div>
+                <div className="flex flex-row flex-1 gap-4 justify-end items-center font-bold text-end">
+                    {hideAmount !== true && (amount || amountFormatted) ? (
+                        <DecimalAmount
+                            amount={amount}
+                            amountFormatted={amountFormatted}
+                            symbol={token.symbol}
+                            token={token}
+                            type={NumberFormatType.Precise}
+                        />
+                    ) : token.symbol}
+                    <TokenImage
+                        token={token}
+                        size="xs"
+                    />
+                </div>
+            </div>
+            <div className="flex flex-row flex-1 gap-4 justify-end items-center text-end text-muted-500">
+                {chain.name}
                 <ChainImageInline
                     chain={chain}
-                    size="xs"
-                />
-                {chain.name}
-            </div>
-            <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
-                {amount || amountFormatted ? (
-                    <DecimalAmount
-                        amount={amount}
-                        amountFormatted={amountFormatted}
-                        symbol={token.symbol}
-                        token={token}
-                        type={NumberFormatType.Precise}
-                    />
-                ) : token.symbol}
-                <TokenImage
-                    token={token}
                     size="xs"
                 />
             </div>

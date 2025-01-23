@@ -1,26 +1,17 @@
-// import { createConfig } from "wagmi";
-// import { clientTransports, wagmiChains } from "@/app/config/chains"
-// import { walletConnect, injected } from "@wagmi/connectors"
-
-
-// const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || ""
-
-// export const wagmiConfig = createConfig({
-//     chains: wagmiChains,
-//     transports: clientTransports,
-//     connectors: [
-//         injected(),
-//         walletConnect({ projectId})
-//     ],
-//     ssr: true,
-// })
-
-import { metaMaskWallet, walletConnectWallet, rabbyWallet, coreWallet } from "@rainbow-me/rainbowkit/wallets"
-import { clientTransports, wagmiChains } from "@/app/config/chains"
 import { getDefaultConfig } from "@rainbow-me/rainbowkit"
+import { metaMaskWallet, walletConnectWallet, rabbyWallet, coreWallet } from "@rainbow-me/rainbowkit/wallets"
 
-const appName = "PLYR[SWAP]"
-const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || ""
+import { clientTransports, wagmiChains } from "@/app/config/chains"
+import { config } from "process"
+
+declare module 'wagmi' {
+    interface Register {
+        config: typeof config
+    }
+}
+
+const appName = "Tesseract"
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || ""
 
 export const wagmiConfig = getDefaultConfig({
     appName: appName,
@@ -33,5 +24,5 @@ export const wagmiConfig = getDefaultConfig({
             wallets: [coreWallet, rabbyWallet, metaMaskWallet, walletConnectWallet],
         },
     ],
-    //ssr: true,
+    ssr: true,
 })

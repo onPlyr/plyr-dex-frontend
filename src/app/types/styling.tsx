@@ -17,3 +17,19 @@ export enum StyleShape {
     Square = "square",
 }
 export type IconFormat = "png" | "svg"
+
+export type ColourHex = `#${string}`
+export interface ColourDefinition {
+    DEFAULT?: ColourHex,
+    50?: ColourHex,
+    100?: ColourHex,
+    200?: ColourHex,
+    300?: ColourHex,
+    400?: ColourHex,
+    500?: ColourHex,
+    600?: ColourHex,
+    700?: ColourHex,
+    800?: ColourHex,
+    900?: ColourHex,
+    950?: ColourHex,
+}

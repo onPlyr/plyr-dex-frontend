@@ -1,6 +1,6 @@
 import { AbiParameter } from "viem"
 
-import { cellAbi, uniV2CellAbi } from "@/app/config/abis"
+import { cellAbi, dexalotCellAbi, uniV2CellAbi } from "@/app/config/abis"
 import { CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
 
 export const cellRouteDataParameters: Record<CellRouteDataParameter, AbiParameter> = {
@@ -72,6 +72,7 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
         type: CellType.HopOnly,
         abi: cellAbi,
         canSwap: false,
+        isApiRoute: false,
     },
     [CellType.YakSwap]: {
         type: CellType.YakSwap,
@@ -92,6 +93,7 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
             CellTradeDataParameter.YakSwapFeeBips,
         ],
         canSwap: true,
+        isApiRoute: false,
     },
     [CellType.UniV2]: {
         type: CellType.UniV2,
@@ -105,5 +107,12 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
             CellTradeParameter.MinAmountOut,
         ],
         canSwap: true,
+        isApiRoute: false,
+    },
+    [CellType.Dexalot]: {
+        type: CellType.Dexalot,
+        abi: dexalotCellAbi,
+        canSwap: true,
+        isApiRoute: true,
     },
 } as const
