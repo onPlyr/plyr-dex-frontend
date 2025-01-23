@@ -16,6 +16,7 @@ interface RouteEventTokenDetailProps extends React.ComponentPropsWithoutRef<"div
     amountFormatted?: string,
     hideAmount?: boolean,
     isToast?: boolean,
+    plyrId?: string,
 }
 
 const RouteEventTokenDetail = React.forwardRef<HTMLDivElement, RouteEventTokenDetailProps>(({
@@ -27,8 +28,9 @@ const RouteEventTokenDetail = React.forwardRef<HTMLDivElement, RouteEventTokenDe
     amountFormatted,
     hideAmount = false,
     isToast,
+    plyrId,
     ...props
-}, ref) =>  (
+}, ref) => (
     <div
         ref={ref}
         className={twMerge("flex flex-col flex-1 w-full", className)}
@@ -44,7 +46,14 @@ const RouteEventTokenDetail = React.forwardRef<HTMLDivElement, RouteEventTokenDe
                         chain={chain}
                         size="xs"
                     />
-                    {chain.name}
+                    <div className="flex flex-col flex-none items-start text-muted-500 font-bold">
+                        {chain.name}
+                        {plyrId && (
+                            <span className="text-white font-bold leading-none text-xs">
+                                @{plyrId.toUpperCase()}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div className="flex flex-row shrink gap-4 justify-end items-center font-bold text-end">
                     {hideAmount !== true && (amount || amountFormatted) ? (

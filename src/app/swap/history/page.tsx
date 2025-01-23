@@ -92,6 +92,7 @@ const HistoryPage = () => {
                                             chain={swap.dstData.chain}
                                             token={swap.dstData.token}
                                             amount={swap.dstData.amount}
+                                            plyrId={swap.plyrId}
                                         />
                                     )}
                                 </div>

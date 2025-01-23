@@ -226,10 +226,12 @@ export const getSwapFromQuote = ({
     route,
     txHash,
     accountAddress,
+    plyrId,
 }: {
     route?: Route,
     txHash?: Hash,
     accountAddress?: Address,
+    plyrId?: string,
 }) => {
 
     // todo: update to use quote only, route only needed for est duration
@@ -254,6 +256,7 @@ export const getSwapFromQuote = ({
             token: quote.dstToken,
             // amount: quote.dstAmount.toString(),
         },
+        plyrId: plyrId,
         hops: quote.hops.map((hop, i) => ({
             srcData: {
                 chain: hop.srcChain,
@@ -402,6 +405,7 @@ export const getSwapJsonFromSwap = (swap?: Swap) => {
             token: swap.dstData.token.id,
             amount: swap.dstData.amount?.toString(),
         },
+        plyrId: swap.plyrId,
         hops: swap.hops.map((hop) => ({
             srcData: {
                 chain: hop.srcData.chain.id,
@@ -583,6 +587,7 @@ export const getSwapFromJson = (json?: SwapJson) => {
         id: json.id,
         srcData: swapSrcData,
         dstData: swapDstData,
+        plyrId: json.plyrId,
         hops: getSwapHopsFromJson({
             json: json,
             swapSrcData: swapSrcData,

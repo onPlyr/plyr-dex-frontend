@@ -192,7 +192,11 @@ const ReviewSwapPage = () => {
                 route: route,
                 txHash: receipt.transactionHash,
                 accountAddress: accountAddress,
+                plyrId: plyrId && destinationAddress && destinationAddress !== accountAddress ? plyrId : undefined,
             })
+
+
+            console.log('swap', swap)
             if (swap) {
                 addSwap(swap)
                 let plyrToCheck = '';
