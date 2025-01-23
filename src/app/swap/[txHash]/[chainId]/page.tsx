@@ -109,7 +109,7 @@ const SwapDetailPage = ({
         const pendingEvent = !completeEvent ? swap?.events.findLast((event) => event.status !== SwapStatus.Success) : undefined
 
         if (completeEvent) {
-            
+
             srcData = completeEvent.srcData
             dstData = completeEvent.dstData
             latestEvent = completeEvent
@@ -126,20 +126,26 @@ const SwapDetailPage = ({
         }
     }
 
-    
+
 
     // Logic to add to Depositlog //
     useEffect(() => {
-        if (swap && swap.status === SwapStatus.Success && plyrId && swap.dstData && swap.dstData.amount) {
-            // TX hash of the last hop
-            const lastHopTxHash = swap.hops[swap.hops.length - 1].txHash
-            addDepositLog(plyrId, swap.dstData.token.symbol, toTokens(swap.dstData.amount, swap.dstData.token.decimals), txHash)
+        console.log('swap',swap)
+        if (swap && swap.status === SwapStatus.Success && plyrId && swap.events.length > 0) {
 
-            // remove plyrId from search params
-            router.replace(`/swap/${swap.id}/${swap.srcData.chain.id}`)
+            // get last event dst token //
+            const lastEventDstToken = swap.events[swap.events.length - 1]
+
+            if (lastEventDstToken && lastEventDstToken.dstData && lastEventDstToken.dstData.amount) {
+               
+                addDepositLog(plyrId, lastEventDstToken.dstData.token.id, toTokens(lastEventDstToken.dstData.amount, lastEventDstToken.dstData.token.decimals), txHash)
+
+                // remove plyrId from search params
+                router.replace(`/swap/${swap.id}/${swap.srcData.chain.id}`)
+            }
         }
     }, [swap?.status, plyrId])
-    
+
 
     // todo: add suspense / loading state
 
