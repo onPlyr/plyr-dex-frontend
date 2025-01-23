@@ -109,7 +109,7 @@ const QuoteDataProvider = ({
 
     useEffect(() => {
         setSrcAmount(srcAmountInput)
-    }, [srcAmountInput])
+    }, [srcToken, srcAmountInput])
 
     const switchTokens = useCallback((srcToken?: Token, dstToken?: Token, dstAmountFormatted?: string) => {
         if (srcChain || srcToken || dstChain || dstToken || dstAmountFormatted) {

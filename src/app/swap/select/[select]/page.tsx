@@ -140,20 +140,20 @@ const SwapSelectPage = ({
                     placeholder="Search by name, symbol or address"
                 />
                 <div className="flex flex-col flex-1">
-                    <AnimatePresence>
+                    {/* <AnimatePresence> */}
                         {tokens && tokens.length > 0 ? tokens.map((token, i) => {
                             const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
                             return (
-                                <SlideInOut
-                                    key={`${token.chainId}-${token.id}`}
-                                    from="left"
-                                    to="right"
-                                    animations={tokenAnimations}
-                                    delays={{
-                                        animate: i * 0.025,
-                                        exit: (tokens.length - 1 - i) * 0.025,
-                                    }}
-                                >
+                                // <SlideInOut
+                                //     key={`${token.chainId}-${token.id}`}
+                                //     from="left"
+                                //     to="right"
+                                //     animations={tokenAnimations}
+                                //     delays={{
+                                //         animate: i * 0.025,
+                                //         exit: (tokens.length - 1 - i) * 0.025,
+                                //     }}
+                                // >
                                     <TokenDetailItem
                                         token={token}
                                         onClick={isSelected ? selectOnClick.bind(this) : setSelectedToken.bind(this, token)}
@@ -161,7 +161,7 @@ const SwapSelectPage = ({
                                         className="container-select-transparent flex flex-row flex-1 p-4 gap-4"
                                         replaceClass={true}
                                     />
-                                </SlideInOut>
+                                // </SlideInOut>
                             )
                         }) : (
                             <SlideInOut
@@ -176,7 +176,7 @@ const SwapSelectPage = ({
                                 />
                             </SlideInOut>
                         )}
-                    </AnimatePresence>
+                    {/* </AnimatePresence> */}
                 </div>
             </ScaleInOut>
         </Page>
