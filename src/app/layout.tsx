@@ -11,16 +11,16 @@ import { Toaster } from "@/src/components/ui/toaster";
 import NProgress from "./nprogress";
 
 import Header from "@/src/components/layout/header";
-import AccountDetailButton from "@/app/components/account/AccountDetailButton"
-import BackgroundParticles from "@/app/components/ui/BackgroundParticles"
-import { montserrat, sourceCodePro } from "@/app/config/fonts"
+//import AccountDetailButton from "@/app/components/account/AccountDetailButton"
+//import BackgroundParticles from "@/app/components/ui/BackgroundParticles"
+//import { montserrat, sourceCodePro } from "@/app/config/fonts"
 import { Providers } from "@/app/providers/providers"
-import logoBrand from "@/public/logos/logo-white.png"
+//import logoBrand from "@/public/logos/logo-white.png"
 
 const chivo = Chivo({ subsets: ["latin"] });
 const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
 
-const disableBgParticles = true;
+//const disableBgParticles = true;
 
 const metaName = "PLYR[SWAP]"
 const metaDescription = "Explore the future of gaming with PLYR Chain. Empowering developers and gamers alike, our blockchain platform revolutionizes the gaming experience."
