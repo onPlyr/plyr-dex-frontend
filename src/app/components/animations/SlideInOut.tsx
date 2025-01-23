@@ -23,9 +23,11 @@ export const defaultAnimations: Record<StyleSide, AnimationVariants> = {
         },
         animate: {
             x: 0,
+
         },
         exit: {
             x: "-100%",
+            opacity: 0,
         },
     },
     right: {

@@ -28,20 +28,20 @@ import { useEffect } from 'react';
 const NavList = () => {
     return (
         <>
-            <Link href="/swap" className="w-full lg:w-fit flex-1 lg:flex-auto">
+            <Link href="/swap/" className="w-full lg:w-fit flex-1 lg:flex-auto">
                 <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <ChartCandlestick className="w-6 h-6 text-[#daff00]" />
                     SWAP
                     <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
             </Link>
-            {/* <Link href="/history" className="w-full lg:w-fit flex-1 lg:flex-auto">
+            <Link href="/swap/history/" className="w-full lg:w-fit flex-1 lg:flex-auto">
                 <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <History className="w-6 h-6 text-[#daff00]" />
                     HISTORY
                     <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
-            </Link> */}
+            </Link>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="w-full lg:w-fit flex-1 lg:flex-auto outline-none">
@@ -128,7 +128,7 @@ export default function Header() {
 
     return (
         <>
-            <section className="absolute top-0 flex z-50 flex-col items-center justify-center w-full">
+            <section className="absolute top-0 flex z-50 flex-col items-center justify-center w-full backdrop-blur-lg">
                 <div className={`${styles.header} aboslute text-white w-full top-0 h-24 flex flex-row px-6 items-center justify-between`}>
 
                     <div className="flex flex-1 flex-row items-center justify-start gap-2">

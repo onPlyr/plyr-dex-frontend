@@ -9,7 +9,7 @@ export default async function Main() {
 
   return (
     <>
-      <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
+      <div className="flex w-full px-6 flex-col items-center justify-center pt-16 pb-24 lg:pb-12">
         <ManageLiqSection tokenList={tokenList} />
       </div>
     </>

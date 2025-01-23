@@ -49,12 +49,12 @@ export const getSuggestedRoute = (routes?: Route[], sortType?: RouteSortType) =>
     return sortRoutes(routes, sortType)?.[0]
 }
 
-export const getRouteInstructions = (accountAddress?: Address, route?: Route) => {
-    if (!accountAddress || !route) {
+export const getRouteInstructions = (destinationAddress?: Address, route?: Route) => {
+    if (!destinationAddress || !route) {
         return undefined
     }
     return {
-        receiver: accountAddress,
+        receiver: destinationAddress,
         payableReceiver: route.dstToken.isNative ? true : false,
         rollbackTeleporterFee: tmpRollbackTeleporterFee,
         rollbackGasLimit: tmpHopGasEstimate,
@@ -65,7 +65,7 @@ export const getRouteInstructions = (accountAddress?: Address, route?: Route) =>
 export const getSwapQuoteTokenAddress = (chain: Chain, token: Token) => {
     // return token.isNative && token.wrappedToken ? getWrappedTokenVariant(token, chain)?.address : token.chainId === chain.id ? token.address : getToken(token.id, chain)?.address
     const swapQuoteToken = chain.id === token.chainId ? token : getToken(token.id, chain)
-    return swapQuoteToken?.isNative ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
+    return swapQuoteToken?.isNative && swapQuoteToken.wrappedAddress ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
 }
 
 export const getSwapQuoteTokenAddresses = (srcChain: Chain, srcToken: Token, dstChain: Chain, dstToken: Token) => {
@@ -399,7 +399,7 @@ export const getQuoteData = (srcChain?: Chain, srcToken?: Token, srcAmount?: big
 
     const quotes: RouteQuoteData[] = []
     const bridgeRoutes = getBridgeRoutes(srcChain, srcToken, dstChain, dstToken)
-    if (!srcChain || !srcToken || !dstChain || !dstToken || !srcAmount || bridgeRoutes.length === 0) {
+    if (!srcChain || !srcToken || !dstChain || !dstToken || !srcAmount || (srcChain.id !== dstChain.id && bridgeRoutes.length === 0)) {
         return quotes
     }
 

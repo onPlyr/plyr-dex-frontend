@@ -628,9 +628,17 @@ const useSwapDetails = ({
             timestamp: Number(txBlock.timestamp) * 1000,
         }
 
+        const nextHopQuery = getNextHopQuery(swapData, hopData, 1)
+        if (!nextHopQuery) {
+            swapData.dstData = hopData.dstData
+            swapData.type = swapData.events.some((event) => event.type && event.type === RouteType.Swap) ? RouteType.Swap : swapData.events.every((event) => event.type && event.type === RouteType.Bridge) ? RouteType.Bridge : undefined
+            swapData.duration = swapData.hops.length === 1 ? 0 : swapData.hops.length > 1 && hopData.timestamp && swapData.hops[0].timestamp ? hopData.timestamp - swapData.hops[0].timestamp : undefined
+            swapData.status = swapData.hops.some((hop) => hop.status === SwapStatus.Error) ? SwapStatus.Error : swapData.hops.every((hop) => hop.status === SwapStatus.Success) ? SwapStatus.Success : SwapStatus.Pending
+        }
+
         result.swapData = swapData
         result.hopData = hopData
-        result.nextHopQuery = getNextHopQuery(swapData, hopData, 1)
+        result.nextHopQuery = nextHopQuery
 
         return result
 

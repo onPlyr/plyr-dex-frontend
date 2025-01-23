@@ -110,7 +110,7 @@ export const Toast = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Roo
         <ToastPrimitive.Root
             ref={ref}
             className={twMerge(
-                "container-select flex flex-col flex-1 relative p-4 gap-4 w-full max-h-fit h-fit rounded overflow-hidden",
+                "bg-black flex flex-col flex-1 relative p-4 gap-4 w-full max-h-fit h-fit rounded overflow-hidden",
                 // "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-full",
                 // "data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full",
                 // "data-[swipe=end]:animate-out data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",

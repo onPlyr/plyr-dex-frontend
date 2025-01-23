@@ -99,16 +99,15 @@ const RootLayout = ({
 }>) => {
     return (
         <html lang="en" className={`${chivo.className} ${roadRage.variable}`}>
-            <body className="bg-layout-900 text-sm">
+            <body className="text-sm">
+                <Toaster />
                 <Providers>
                     <NProgress />
                     <Header />
-                    <div className="flex flex-col pt-8 pb-24 lg:pb-8 flex-none w-screen min-w-full max-w-full items-center">
+                    <div className="flex flex-col pt-8 pb-24 lg:pb-8  items-center overflow-x-hidden">
                         {children}
                     </div>
                 </Providers>
-
-                <Toaster />
 
                 {
                     process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' && <div className="text-black fixed z-50 bottom-0 left-0 bg-[#daff00] w-full h-6 text-xs flex items-center justify-center">

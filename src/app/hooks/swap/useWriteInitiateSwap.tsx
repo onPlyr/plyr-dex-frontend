@@ -9,18 +9,20 @@ import { Route } from "@/app/types/swaps"
 const useWriteInitiateSwap = ({
     connectedChain,
     accountAddress,
+    destinationAddress,
     route,
     onConfirmation,
     _enabled = true,
 }: {
     connectedChain?: Chain,
     accountAddress?: Address,
+    destinationAddress?: Address,
     route?: Route,
     onConfirmation?: (receipt?: TransactionReceipt) => void,
     _enabled?: boolean,
 }) => {
 
-    const instructions = getRouteInstructions(accountAddress, route)
+    const instructions = getRouteInstructions((destinationAddress ? destinationAddress : accountAddress), route)
     const enabled = _enabled !== false && connectedChain !== undefined && accountAddress !== undefined && route !== undefined && route.initiateTx === undefined && instructions !== undefined && connectedChain.id === route.srcChain.id
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({

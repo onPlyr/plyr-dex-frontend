@@ -2,7 +2,7 @@
 
 import { AnimatePresence, Transition } from "motion/react"
 import { notFound } from "next/navigation"
-import { use } from "react"
+import { use, useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"
 import { isHex } from "viem"
 
@@ -39,6 +39,9 @@ import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
 import { getStatusLabel } from "@/app/lib/utils"
 import { BaseSwapData, RouteType, SwapEvent } from "@/app/types/swaps"
+import { useSearchParams } from 'next/navigation'
+import { toTokens } from "thirdweb/utils"
+import { useRouter } from "next/navigation"
 
 interface Params {
     txHash: string,
@@ -60,6 +63,24 @@ const SwapDetailPage = ({
     const chainId = parseInt(pageParams.chainId)
     const chain = getChain(chainId)
     const txHash = isHex(pageParams.txHash) ? pageParams.txHash : undefined
+    const router = useRouter()
+
+    // Add to Depositlog //
+    const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {
+        await fetch('/api/addDepositLog/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plyrId: plyrId,
+                gameId: null,
+                token: token,
+                amount: amount,
+                hash: hash,
+            })
+        });
+    }
 
     if (!chain || !txHash) {
         notFound()
@@ -78,12 +99,17 @@ const SwapDetailPage = ({
     let dstData: BaseSwapData | undefined = swap?.dstData
     let latestEvent: SwapEvent | undefined = undefined
 
+    const searchParams = useSearchParams()
+    let plyrId = searchParams.get('plyrId');
+
     if (!swap || swap.status !== SwapStatus.Success) {
+
 
         const completeEvent = swap?.events.findLast((event) => event.status === SwapStatus.Success)
         const pendingEvent = !completeEvent ? swap?.events.findLast((event) => event.status !== SwapStatus.Success) : undefined
 
         if (completeEvent) {
+            
             srcData = completeEvent.srcData
             dstData = completeEvent.dstData
             latestEvent = completeEvent
@@ -99,6 +125,21 @@ const SwapDetailPage = ({
             latestEvent = undefined
         }
     }
+
+    
+
+    // Logic to add to Depositlog //
+    useEffect(() => {
+        if (swap && swap.status === SwapStatus.Success && plyrId && swap.dstData && swap.dstData.amount) {
+            // TX hash of the last hop
+            const lastHopTxHash = swap.hops[swap.hops.length - 1].txHash
+            addDepositLog(plyrId, swap.dstData.token.symbol, toTokens(swap.dstData.amount, swap.dstData.token.decimals), txHash)
+
+            // remove plyrId from search params
+            router.replace(`/swap/${swap.id}/${swap.srcData.chain.id}`)
+        }
+    }, [swap?.status, plyrId])
+    
 
     // todo: add suspense / loading state
 
