@@ -103,7 +103,7 @@ const RootLayout = ({
                 <Providers>
                     <NProgress />
                     <Header />
-                    <div className="flex flex-col pt-8 pb-8 flex-none w-screen min-w-full max-w-full items-center">
+                    <div className="flex flex-col pt-8 pb-24 lg:pb-8 flex-none w-screen min-w-full max-w-full items-center">
                         {children}
                     </div>
                 </Providers>
