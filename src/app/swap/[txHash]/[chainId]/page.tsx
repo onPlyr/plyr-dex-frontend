@@ -153,7 +153,7 @@ const SwapDetailPage = ({
             backUrl="/swap/history"
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
-                <div className="container p-4">
+                <div className="container p-4 overflow-x-hidden">
                     <div className="flex flex-col flex-1 gap-4">
                         <div className="flex flex-row flex-1 gap-4 justify-center items-center font-bold text-base">
                             {swapType} {getStatusLabel(swap.status)}
