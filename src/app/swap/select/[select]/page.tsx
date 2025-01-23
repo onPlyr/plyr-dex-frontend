@@ -141,41 +141,42 @@ const SwapSelectPage = ({
                 />
                 <div className="flex flex-col flex-1">
                     {/* <AnimatePresence> */}
-                        {tokens && tokens.length > 0 ? tokens.map((token, i) => {
-                            const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
-                            return (
-                                // <SlideInOut
-                                //     key={`${token.chainId}-${token.id}`}
-                                //     from="left"
-                                //     to="right"
-                                //     animations={tokenAnimations}
-                                //     delays={{
-                                //         animate: i * 0.025,
-                                //         exit: (tokens.length - 1 - i) * 0.025,
-                                //     }}
-                                // >
-                                    <TokenDetailItem
-                                        token={token}
-                                        onClick={isSelected ? selectOnClick.bind(this) : setSelectedToken.bind(this, token)}
-                                        isSelected={isSelected}
-                                        className="container-select-transparent flex flex-row flex-1 p-4 gap-4"
-                                        replaceClass={true}
-                                    />
-                                // </SlideInOut>
-                            )
-                        }) : (
-                            <SlideInOut
-                                key="error"
-                                from="left"
-                                to="right"
-                                animations={tokenAnimations}
-                            >
-                                <ErrorDetail
-                                    header="Error: No Results Found"
-                                    msg="No tokens were found matching your query. Please check or clear any selected filters and try again."
-                                />
-                            </SlideInOut>
-                        )}
+                    {tokens && tokens.length > 0 ? tokens.map((token, i) => {
+                        const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
+                        return (
+                            // <SlideInOut
+                            //     key={`${token.chainId}-${token.id}`}
+                            //     from="left"
+                            //     to="right"
+                            //     animations={tokenAnimations}
+                            //     delays={{
+                            //         animate: i * 0.025,
+                            //         exit: (tokens.length - 1 - i) * 0.025,
+                            //     }}
+                            // >
+                            <TokenDetailItem
+                                key={`${token.chainId}-${token.id}`}
+                                token={token}
+                                onClick={isSelected ? selectOnClick.bind(this) : setSelectedToken.bind(this, token)}
+                                isSelected={isSelected}
+                                className="container-select-transparent flex flex-row flex-1 p-4 gap-4"
+                                replaceClass={true}
+                            />
+                            // </SlideInOut>
+                        )
+                    }) : (
+                        <SlideInOut
+                            key="error"
+                            from="left"
+                            to="right"
+                            animations={tokenAnimations}
+                        >
+                            <ErrorDetail
+                                header="Error: No Results Found"
+                                msg="No tokens were found matching your query. Please check or clear any selected filters and try again."
+                            />
+                        </SlideInOut>
+                    )}
                     {/* </AnimatePresence> */}
                 </div>
             </ScaleInOut>
