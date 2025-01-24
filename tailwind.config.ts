@@ -113,6 +113,14 @@ const config: Config = {
             fontFamily: {
                 mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
             },
+            borderRadius: {
+                lg: 'var(--radius)',
+                md: 'calc(var(--radius) - 2px)',
+                sm: 'calc(var(--radius) - 4px)',
+                '2.5xl': '28px',
+                '3xl': '36px',
+                '4xl': '48px'
+            },
             backgroundColor: {
                 "brand-gradient": "var(--color-brand-green)",
                 "brand-gradient-oklch": "var(--color-brand-green)",
@@ -142,9 +150,6 @@ const config: Config = {
                 DEFAULT: "3px",
                 1: "1px",
                 3: "3px",
-            },
-            borderRadius: {
-                DEFAULT: "16px",
             },
             keyframes: {
                 // "gradient-btn": {
@@ -209,6 +214,11 @@ const config: Config = {
             colors: {
                 background: "var(--background)",
                 foreground: "var(--foreground)",
+
+                destructive: {
+                    DEFAULT: 'hsl(var(--destructive))',
+                    foreground: 'hsl(var(--destructive-foreground))'
+                },
 
                 // todo: review/remove, used for testing
                 "layout": tailwindCustomColours.darkZinc,
