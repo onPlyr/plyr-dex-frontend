@@ -617,7 +617,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                             <SelectTrigger className="w-48 bg-[#3A3935] text-white border-none h-12 rounded-xl" id="token1">
                                                 <SelectValue placeholder="SELECT TOKEN" />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent className="bg-[#3A3935] text-white border-none">
                                                 {tokenList?.map((token: any) => (
                                                     <SelectItem key={token.address} value={token.symbol}>
                                                         <div className="flex flex-row gap-2 items-center">

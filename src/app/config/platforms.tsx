@@ -24,7 +24,7 @@ const basePlatforms: Platform[] = [
     },
     {
         id: "uniswap",
-        name: "Uniswap",
+        name: "PLYR[SWAP]",
         icon: "square.svg",
         img: {
             square: "square.svg",
