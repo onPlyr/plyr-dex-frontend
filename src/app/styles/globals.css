@@ -213,11 +213,18 @@
     .tab {
         @apply flex flex-row flex-1 justify-center items-center px-4 py-3 rounded font-bold transition;
         @apply bg-white/10 hover:bg-white/15 active:bg-white/15 focus:bg-white/15 focus-within:bg-white/15;
-        @apply data-[state=active]:bg-white/25 data-[state=active]:hover:bg-white/30;
+        @apply relative flex flex-row flex-1 p-2 gap-1 justify-center items-center;
+    }
+    .tab-indicator {
+        @apply gradient-btn w-full h-full absolute start-0 top-0 -z-[1] border-2 border-transparent overflow-hidden bg-clip-content group-hover:bg-[position:100%_50%];
     }
 
     .badge-label {
         @apply badge px-2 py-1 rounded-lg text-black;
+    }
+
+    .progress {
+        @apply rounded bg-gradient-btn bg-[position:0%_50%] transition-[background-position] supports-[color:oklch(0_0_0)]:bg-gradient-btn-oklch animate-bg-wave;
     }
 
     .label {
@@ -243,7 +250,7 @@
         @apply clear-bg clear-border-outline;
         @apply flex flex-row flex-initial p-4 gap-4 justify-center items-center rounded transition font-bold text-nowrap cursor-pointer bg-brand-500;
         @apply hover:bg-brand-500 active:bg-brand-500 active:hover:bg-brand-500 focus:bg-brand-500 focus:hover:bg-brand-500 focus-within:bg-brand-500 focus-within:hover:bg-brand-500;
-        @apply disabled:cursor-not-allowed;
+        @apply disabled:cursor-not-allowed disabled:opacity-50;
         @apply text-black;
     }
 

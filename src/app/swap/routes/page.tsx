@@ -1,6 +1,8 @@
 "use client"
 
 import { Variants } from "motion/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 import "@/app/styles/globals.css"
 
@@ -30,6 +32,12 @@ const routeAnimations: Variants = {
 const RoutesPage = () => {
 
     const { routes } = useQuoteData()
+    const router = useRouter()
+    useEffect(() => {
+        if (!routes || routes.length === 0) {
+            router.push("/swap")
+        }
+    }, [routes])
 
     return (
         <Page
@@ -51,6 +59,7 @@ const RoutesPage = () => {
                     >
                         <SwapSummary
                             route={route}
+                            index={i}
                             hideEventSummary={true}
                             showFullEvents={true}
                             backUrl="/swap"

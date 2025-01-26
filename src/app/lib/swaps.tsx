@@ -1,5 +1,5 @@
 import { QueryStatus } from "@tanstack/react-query"
-import { Address, formatUnits, Hash } from "viem"
+import { Address, formatUnits, Hash, zeroAddress } from "viem"
 
 import { hopActionCompletedLabels, hopActionInProgressLabels, hopActionLabels, routeTypeLabels, supportedTeleporterMessengerVersion, SwapStatus, teleporterMessengerContracts, tmpGasBuffer, tmpHopGasEstimate } from "@/app/config/swaps"
 import { getChain, getChainByBlockchainId } from "@/app/lib/chains"
@@ -10,6 +10,8 @@ import { Chain, ChainId } from "@/app/types/chains"
 import { StorageDataKey, StorageType } from "@/app/types/storage"
 import { BaseSwapData, BaseSwapDataJson, HopAction, Route, RouteType, SelectedSwapData, Swap, SwapEvent, SwapHop, SwapJson, TeleporterMessengerVersion } from "@/app/types/swaps"
 import { Token, TokenId } from "@/app/types/tokens"
+import { getPlatform } from "./platforms"
+import { toShort } from "./strings"
 
 export const getPercentBalance = ({
     token,
@@ -227,11 +229,13 @@ export const getSwapFromQuote = ({
     txHash,
     accountAddress,
     plyrId,
+    isReviewSwap = false,
 }: {
     route?: Route,
     txHash?: Hash,
     accountAddress?: Address,
     plyrId?: string,
+    isReviewSwap?: boolean,
 }) => {
 
     // todo: update to use quote only, route only needed for est duration
@@ -240,12 +244,12 @@ export const getSwapFromQuote = ({
     let swap: Swap | undefined = undefined
 
     const quote = route?.quote
-    if (!route || !quote || !txHash || !(quote.hops.length > 0) || !(quote.events.length > 0)) {
+    if (!route || !quote || (!txHash && !isReviewSwap) || !(quote.hops.length > 0) || !(quote.events.length > 0)) {
         return swap
     }
 
     swap = {
-        id: txHash,
+        id: isReviewSwap && !txHash ? zeroAddress : txHash!,
         srcData: {
             chain: quote.srcChain,
             token: quote.srcToken,
@@ -254,20 +258,20 @@ export const getSwapFromQuote = ({
         dstData: {
             chain: quote.dstChain,
             token: quote.dstToken,
-            // amount: quote.dstAmount.toString(),
+            amount: isReviewSwap ? quote.dstAmount : undefined,
         },
         plyrId: plyrId,
         hops: quote.hops.map((hop, i) => ({
             srcData: {
                 chain: hop.srcChain,
                 token: hop.srcToken,
-                // amount: hop.srcAmount.toString(),
+                amount: isReviewSwap ? hop.srcAmount : undefined,
                 // msgId: Hash,
             },
             dstData: {
                 chain: hop.dstChain,
                 token: hop.dstToken,
-                // amount: hop.dstAmount.toString(),
+                amount: isReviewSwap ? hop.dstAmount : undefined,
                 // msgId: Hash,
             },
             index: i,
@@ -278,12 +282,12 @@ export const getSwapFromQuote = ({
             srcData: {
                 chain: event.srcChain,
                 token: event.srcToken,
-                // amount: event.srcAmount?.toString(),
+                amount: isReviewSwap ? event.srcAmount : undefined,
             },
             dstData: {
                 chain: event.dstChain,
                 token: event.dstToken,
-                // amount: event.dstAmount?.toString(),
+                amount: isReviewSwap ? event.dstAmount : undefined,
             },
             hopIndex: event.hop,
             type: event.type,
@@ -662,4 +666,15 @@ export const getBaseSwapData = ({
     }
 
     return data
+}
+
+export const getSwapEventPlatformData = (event: SwapEvent) => {
+
+    const platform = getPlatform(event.adapter?.platform)
+    const platformName = (event.type === RouteType.Bridge ? event.bridge : platform?.name) || event.adapter?.name || (event.adapterAddress && toShort(event.adapterAddress))
+
+    return {
+        platform: platform,
+        platformName: platformName,
+    }
 }

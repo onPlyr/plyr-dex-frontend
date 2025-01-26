@@ -523,7 +523,7 @@ const useSwapDetails = ({
         }
     })
 
-    console.log(`>>> useSwap chain: ${chain?.name ?? "n/a"} / tx hash: ${txHash ?? "n/a"} / enabled: ${serialize(enabled)} / swap id: ${swap?.id ?? "n/a"} / fetch initiate: ${serialize(isFetchInitiate)} / isRefetch: ${serialize(isRefetch)}`)
+    console.log(`>>> useSwapDetails chain: ${chain?.name ?? "n/a"} / tx hash: ${txHash ?? "n/a"} / enabled: ${serialize(enabled)} / swap id: ${swap?.id ?? "n/a"} / fetch initiate: ${serialize(isFetchInitiate)} / isRefetch: ${serialize(isRefetch)}`)
 
     const getNextHopQuery = useCallback((swapData: Swap, currentHopData: SwapHop, nextHopIndex: number) => {
 
@@ -661,7 +661,6 @@ const useSwapDetails = ({
             result.hopData = hopQuery.hopData
             result.hopEvents = hopQuery.swapData.events.filter((event) => event.hopIndex === hopQuery.hopIndex)
             result.nextHopQuery = getNextHopQuery(hopQuery.swapData, hopQuery.hopData, hopQuery.hopIndex + 1)
-            console.log(`>>> useSwap getHopQueryResult SKIPPING FETCH - DATA ALREADY FOUND`)
             return result
         }
 
@@ -739,7 +738,7 @@ const useSwapDetails = ({
                     const results = await Promise.all(queries)
                     const msgReceivedLog = results.find((result) => result.length > 0)?.[0]
 
-                    console.log(`>>> useSwapHistory batch ${serialize(batch)} / msgReceivedLog: ${serialize(msgReceivedLog)} / target timestamp: ${serialize(new Date(Number(targetTimestampSeconds) * 1000))} / est block timestamp: ${serialize(new Date(Number(estimatedBlock.timestamp) * 1000))}`)
+                    console.log(`>>> useSwapDetails batch ${serialize(batch)} / msgReceivedLog: ${serialize(msgReceivedLog)} / target timestamp: ${serialize(new Date(Number(targetTimestampSeconds) * 1000))} / est block timestamp: ${serialize(new Date(Number(estimatedBlock.timestamp) * 1000))}`)
 
                     if (msgReceivedLog) {
                         txReceipt = await getTransactionReceipt(wagmiConfig, {
@@ -820,8 +819,6 @@ const useSwapDetails = ({
         result.hopEvents = hopEvents
         result.nextHopQuery = nextHopQuery
 
-        console.log(`>>>>>>>>>>>>>>>>>> useSwap getHopQueryResult hops: ${swapData.hops.length} / hopIndex: ${hopQuery.hopIndex} / next query: ${nextHopQuery ? "YES" : "FINAL HOP (RECEIPT)"}`)
-
         return result
 
     }, [enabled, isRefetch, messengerAddress])
@@ -833,7 +830,7 @@ const useSwapDetails = ({
             const { swapData, nextHopQuery, error } = getInitialSwapData(chain, initiateTxReceipt, initiateTxBlock)
 
             if (error) {
-                console.log(`>>>>>>>>>>>>>>>>>> useSwap INITIAL ERROR: ${error}`)
+                console.log(`>>>>>>>>>>>>>>>>>> useSwapDetails INITIAL ERROR: ${error}`)
             }
 
             setSwap(swapData)
@@ -854,7 +851,7 @@ const useSwapDetails = ({
                 const { swapData, nextHopQuery, error } = result
 
                 if (error) {
-                    console.log(`>>>>>>>>>>>>>>>>>> useSwap ERROR: ${error}`)
+                    console.log(`>>>>>>>>>>>>>>>>>> useSwapDetails ERROR: ${error}`)
                 }
 
                 setSwap(swapData)
@@ -870,7 +867,7 @@ const useSwapDetails = ({
     }, [enabled, chain, txHash, nextSwapQuery])
 
     useEffect(() => {
-        console.log(`>>> useSwapHistory >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
+        console.log(`>>> useSwapDetails >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
 
         if (swap) {
             const isNewSwap = !getSwap(swap.srcData.chain, swap.id)
@@ -883,18 +880,18 @@ const useSwapDetails = ({
         }
 
         if (swap) {
-            console.log(`>>> useSwapHistory swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${queryStatus}`)
+            console.log(`>>> useSwapDetails swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${queryStatus}`)
             swap.hops.forEach((hop, i) => {
-                console.log(`   >>> useSwapHistory hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
+                console.log(`   >>> useSwapDetails hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
             })
             swap.events.forEach((event, i) => {
-                console.log(`      >>> useSwapHistory event ${i}: ${event.srcData.amount ? formatUnits(event.srcData.amount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData?.amount ? formatUnits(event.dstData.amount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol} (${event.dstData?.chain.name}) / status: ${event.status} / tx hash: ${event.txHash ?? "n/a"}`)
+                console.log(`      >>> useSwapDetails event ${i}: ${event.srcData.amount ? formatUnits(event.srcData.amount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData?.amount ? formatUnits(event.dstData.amount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol} (${event.dstData?.chain.name}) / status: ${event.status} / tx hash: ${event.txHash ?? "n/a"}`)
             })
         }
         else {
-            console.log(`>>> useSwapHistory NO SWAP`)
+            console.log(`>>> useSwapDetails NO SWAP`)
         }
-        console.log(`>>> useSwapHistory >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
+        console.log(`>>> useSwapDetails >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
     }, [swap])
 
     const refetch = useCallback(() => {

@@ -5,16 +5,18 @@ import React, { useCallback } from "react"
 import { twMerge } from "tailwind-merge"
 
 import RouteSummaryBadges from "@/app/components/routes/RouteSummaryBadges"
-import SwapEventDetail from "@/app/components/swap/SwapEventDetail"
+import SwapEventSummary from "@/app/components/swap/SwapEventSummary"
 import SwapSummaryLabels from "@/app/components/swap/SwapSummaryLabels"
 import SwapSummaryTokenDetail from "@/app/components/swap/SwapSummaryTokenDetail"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import { isEqualObj } from "@/app/lib/utils"
 import { Route } from "@/app/types/swaps"
+import { getSwapFromQuote } from "@/app/lib/swaps"
 
 interface SwapSummaryProps extends React.ComponentPropsWithoutRef<typeof SelectItem> {
     route: Route,
+    index?: number,
     isSelectedRoute?: boolean,
     hideEventSummary?: boolean,
     showFullEvents?: boolean,
@@ -24,6 +26,7 @@ interface SwapSummaryProps extends React.ComponentPropsWithoutRef<typeof SelectI
 const SwapSummary = React.forwardRef<React.ElementRef<typeof SelectItem>, SwapSummaryProps>(({
     className,
     route,
+    index,
     isSelectedRoute,
     hideEventSummary = false,
     showFullEvents = false,
@@ -47,6 +50,11 @@ const SwapSummary = React.forwardRef<React.ElementRef<typeof SelectItem>, SwapSu
         }
     }, [route, isSelected, setSelectedRoute, backUrl, router])
 
+    const reviewSwap = getSwapFromQuote({
+        route: route,
+        isReviewSwap: true,
+    })
+
     return (
         <SelectItem
             ref={ref}
@@ -69,12 +77,13 @@ const SwapSummary = React.forwardRef<React.ElementRef<typeof SelectItem>, SwapSu
                 route={route}
                 hideEvents={hideEventSummary}
             />
-            {showFullEvents && route.quote.events.map((event, i) => (
-                <SwapEventDetail
-                    key={i}
-                    event={event}
+            {reviewSwap && showFullEvents && (
+                <SwapEventSummary
+                    swap={reviewSwap}
+                    index={index}
+                    isReviewSwap={true}
                 />
-            ))}
+            )}
         </SelectItem>
     )
 })

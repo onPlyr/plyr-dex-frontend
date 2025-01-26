@@ -1,24 +1,20 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { TransactionReceipt } from "viem"
 import { useAccount, useSwitchChain } from "wagmi"
 
-import "@/app/styles/globals.css"
-
-import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import RouteSummaryBadges from "@/app/components/routes/RouteSummaryBadges"
-import SwapEventDetail from "@/app/components/swap/SwapEventDetail"
-import SwapOverview from "@/app/components/swap/SwapOverview"
-import SwapTokenDetail from "@/app/components/swap/SwapTokenDetail"
+import SwapEventSummary from "@/app/components/swap/SwapEventSummary"
+import SwapSummaryLabels from "@/app/components/swap/SwapSummaryLabels"
+import SwapSummaryTokenDetail from "@/app/components/swap/SwapSummaryTokenDetail"
 import Button from "@/app/components/ui/Button"
-import Collapsible from "@/app/components/ui/Collapsible"
-import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Page } from "@/app/components/ui/Page"
 import { SwapTab } from "@/app/config/pages"
-import { NumberFormatType } from "@/app/config/numbers"
 import { txActionInProgressMessages, txActionMessages } from "@/app/config/txs"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useSwapData from "@/app/hooks/swap/useSwapData"
@@ -30,7 +26,6 @@ import { getChain } from "@/app/lib/chains"
 import { getInitiateSwapErrMsg, getRouteTypeLabel, getSwapFromQuote } from "@/app/lib/swaps"
 import { RouteType } from "@/app/types/swaps"
 import { TxActionType } from "@/app/types/txs"
-import RouteTypeIcon from "@/app/components/icons/RouteTypeIcon"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
@@ -44,13 +39,6 @@ const ReviewSwapPage = () => {
     const { handleSrcAmountInput, selectedRoute: route } = useQuoteData()
     const { addSwap } = useSwapData()
     const router = useRouter()
-
-    // todo: proper handling if no route selected
-    // if (!route) {
-    //     setTimeout(() => {
-    //         router.replace("/swap")
-    //     }, 1000)
-    // }
 
     // Mirror Address //
     const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
@@ -182,7 +170,6 @@ const ReviewSwapPage = () => {
         _enabled: enabled && isApprovalRequired,
     })
 
-
     const initiateOnConfirmation = useCallback((receipt?: TransactionReceipt) => {
 
         let redirectUrl: `/${string}` | undefined = undefined
@@ -194,9 +181,6 @@ const ReviewSwapPage = () => {
                 accountAddress: accountAddress,
                 plyrId: plyrId && destinationAddress && destinationAddress !== accountAddress ? plyrId : undefined,
             })
-
-
-            console.log('swap', swap)
             if (swap) {
                 addSwap(swap)
                 let plyrToCheck = '';
@@ -217,7 +201,7 @@ const ReviewSwapPage = () => {
 
     }, [refetchTokens, refetchAllowance, handleSrcAmountInput, plyrId, destinationAddress])
 
-    const { write: writeInitiate, isInProgress: initiateIsInProgress } = useWriteInitiateSwap({
+    const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus } = useWriteInitiateSwap({
         connectedChain: connectedChain,
         accountAddress: accountAddress,
         destinationAddress: destinationAddress,
@@ -254,7 +238,7 @@ const ReviewSwapPage = () => {
     const pageFooter = <Button
         className="gradient-btn"
         onClick={!errInitiateSwap ? swapOnClick?.bind(this) : undefined}
-        disabled={errInitiateSwap !== undefined}
+        disabled={errInitiateSwap !== undefined || (!destinationAddress)}
     >
         {!errInitiateSwap && isSwitchChainRequired && `Switch to ${route!.srcChain.name} and `}{swapActionMsg}
         {(approveIsInProgress || initiateIsInProgress) && (
@@ -262,15 +246,106 @@ const ReviewSwapPage = () => {
         )}
     </Button>
 
+    const reviewSwap = getSwapFromQuote({
+        route: route,
+        isReviewSwap: true,
+    })
+
+    useEffect(() => {
+        console.log('route', route)
+        console.log('initiateStatus', initiateStatus)
+        if (!route && initiateStatus !== "success") {
+            router.push("/swap")
+        }
+    }, [route])
+
     // todo: display message / redirect if no route, handle properly
-    return route && (
+    return route && reviewSwap && (
         <Page
             key={SwapTab.Review}
             header={`Review ${getRouteTypeLabel(route.type)}`}
             footer={pageFooter}
             backUrl="/swap"
         >
-            <ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
+            <div className="flex flex-col flex-none gap-4 w-full h-fit">
+                <div
+                    className="container-select p-4"
+                    data-selected={true}
+                >
+                    <div className="flex flex-col flex-1 gap-4">
+                        <div className="flex flex-col sm:flex-row flex-1 gap-4">
+                            <SwapSummaryTokenDetail
+                                token={route.dstToken}
+                                chain={route.dstChain}
+                                amountFormatted={route.dstAmountFormatted}
+                                minAmountFormatted={route.minDstAmountFormatted}
+                            />
+                            <RouteSummaryBadges route={route} />
+                        </div>
+                        <SwapSummaryLabels
+                            route={route}
+                            hideEvents={true}
+                        />
+                    </div>
+                </div>
+                <SwapEventSummary swap={reviewSwap} isReviewSwap={true} />
+
+                <div className="container flex flex-col flex-1 p-4 gap-4">
+                    <div className="flex flex-row flex-1 gap-4">
+                        <div>Destination Address</div>
+                        <div className="font-bold text-right">{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
+                    </div>
+                    {/* Destination Address */}
+                    <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
+                        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                            <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
+                            <div className="flex flex-col flex-1 justify-center items-start gap-0">
+                                <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
+                                <div className="text-sm md:text-base">{accountAddress && shortenAddress(accountAddress)}</div>
+                            </div>
+                        </div>
+                        {
+                            (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); getUserInfo(accountAddress || '', true) }} className="absolute top-2 right-3">
+                                    <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                                </button>
+                                {
+                                    !isEditingPlyrId && <button onClick={() => setIsEditingPlyrId(true)} className="absolute top-2 right-10">
+                                        <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                                    </button>
+                                }
+                                {
+                                    plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
+                                }
+                                {
+                                    !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
+                                }
+                                <div className=" flex flex-col flex-1 justify-center items-start gap-0">
+
+                                    {
+
+                                        isEditingPlyrId ? <>
+                                            <form onSubmit={(e) => { e.preventDefault(); setIsEditingPlyrId(false); getUserInfo(plyrId?.trim()?.toUpperCase() || '', true); }}>
+                                                <input autoFocus={true} className="bg-transparent uppercase text-lg border-b border-white text-white focus:outline-none" type="text" value={plyrId} onChange={(e) => setPlyrId(e.target.value)} onBlur={(e) => { setIsEditingPlyrId(false); getUserInfo(e.target.value.trim().toUpperCase(), true); }} />
+                                            </form>
+                                        </> :
+                                            <>
+                                                <div className="font-bold text-[10px] md:text-xs">PLYR[ID]</div>
+                                                <div className="text-sm md:text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
+
+                                                    {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
+                                                </div>
+                                            </>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            {/*<ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
                 <div className="container flex flex-col flex-1 p-4 gap-4">
                     <div className="flex flex-col flex-1 gap-4">
                         <div className="flex flex-row flex-1 gap-4 justify-center items-center font-bold text-base">
@@ -347,59 +422,7 @@ const ReviewSwapPage = () => {
                         />
                     ))}
                 </Collapsible>
-                <div className="container flex flex-col flex-1 p-4 gap-4">
-                    <div className="flex flex-row flex-1 gap-4">
-                        <div>Destination Address</div>
-                        <div className="font-bold text-right">{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
-                    </div>
-                    {/* Destination Address */}
-                    <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
-                        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                            <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
-                            <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                                <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
-                                <div className="text-sm md:text-base">{accountAddress && shortenAddress(accountAddress)}</div>
-                            </div>
-                        </div>
-                        {
-                            (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); getUserInfo(accountAddress || '', true) }} className="absolute top-2 right-3">
-                                    <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
-                                </button>
-                                {
-                                    !isEditingPlyrId && <button onClick={() => setIsEditingPlyrId(true)} className="absolute top-2 right-10">
-                                        <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
-                                    </button>
-                                }
-                                {
-                                    plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
-                                }
-                                {
-                                    !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
-                                }
-                                <div className=" flex flex-col flex-1 justify-center items-start gap-0">
-
-                                    {
-
-                                        isEditingPlyrId ? <>
-                                            <form onSubmit={(e) => { e.preventDefault(); setIsEditingPlyrId(false); getUserInfo(plyrId?.trim()?.toUpperCase() || '', true); }}>
-                                                <input autoFocus={true} className="bg-transparent uppercase text-lg border-b border-white text-white focus:outline-none" type="text" value={plyrId} onChange={(e) => setPlyrId(e.target.value)} onBlur={(e) => { setIsEditingPlyrId(false); getUserInfo(e.target.value.trim().toUpperCase(), true); }} />
-                                            </form>
-                                        </> :
-                                            <>
-                                                <div className="font-bold text-[10px] md:text-xs">PLYR[ID]</div>
-                                                <div className="text-sm md:text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
-
-                                                    {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
-                                                </div>
-                                            </>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </ScaleInOut>
+            </ScaleInOut>*/}
         </Page>
     )
 }

@@ -1,4 +1,5 @@
 import * as TabsPrimitive from "@radix-ui/react-tabs"
+import { motion } from "motion/react"
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
 
@@ -22,11 +23,25 @@ export const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.L
 }, ref) => (
     <TabsPrimitive.List
         ref={ref}
-        className={twMerge("flex flex-row flex-1 h-fit p-1 gap-[3px] rounded gradient-brand-bg animate-bg-wave running", className)}
+        className={twMerge("flex flex-row flex-1 h-fit", className)}
         {...props}
     />
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
+
+export const TabIndicator = React.forwardRef<React.ElementRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+    className,
+    layoutId,
+    ...props
+}, ref) => (
+    <motion.div
+        ref={ref}
+        className={twMerge("tab-indicator", className)}
+        layoutId={layoutId ?? "tabIndicator"}
+        {...props}
+    />
+))
+TabIndicator.displayName = "TabIndicator"
 
 export const TabTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>>(({
     className,
@@ -34,7 +49,7 @@ export const TabTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive
 }, ref) => (
     <TabsPrimitive.Trigger
         ref={ref}
-        className={twMerge("tab", className)}
+        className={twMerge("group tab", className)}
         {...props}
     />
 ))

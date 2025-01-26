@@ -16,25 +16,31 @@ interface CollapsibleProps extends React.ComponentPropsWithoutRef<typeof Collaps
     animations?: AnimationVariants,
     transitions?: AnimationTransitions,
     delays?: AnimationDelays,
+    triggerProps?: CollapsibleTriggerProps,
+    contentProps?: React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.CollapsibleContent>,
 }
 
 interface CollapsibleTriggerProps extends React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.CollapsibleTrigger> {
     isOpen?: boolean,
+    iconClass?: string,
+    replaceClass?: boolean,
 }
  
 const CollapsibleTrigger = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitive.CollapsibleTrigger>, CollapsibleTriggerProps>(({
     children,
     className,
     isOpen,
+    iconClass,
+    replaceClass,
     ...props
 }, ref) => (
     <CollapsiblePrimitive.CollapsibleTrigger
         ref={ref}
-        className={twMerge("container-select flex flex-row flex-1 p-4 gap-4 font-bold justify-between items-center", className)}
+        className={replaceClass ? className : twMerge("container-select flex flex-row flex-1 p-4 gap-4 font-bold justify-between items-center", className)}
         {...props}
     >
         {children}
-        <ChevronIcon direction={isOpen ? StyleDirection.Up : StyleDirection.Down} />
+        <ChevronIcon direction={isOpen ? StyleDirection.Up : StyleDirection.Down} className={iconClass} />
     </CollapsiblePrimitive.CollapsibleTrigger>
 ))
 CollapsibleTrigger.displayName = CollapsiblePrimitive.CollapsibleTrigger.displayName
@@ -61,6 +67,8 @@ const Collapsible = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitiv
     animations,
     transitions,
     delays,
+    triggerProps,
+    contentProps,
     ...props
 }, ref) => {
 
@@ -77,7 +85,7 @@ const Collapsible = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitiv
             onOpenChange={setIsOpen.bind(this, isOpen ? false : true)}
             {...props}
         >
-            <CollapsibleTrigger isOpen={isOpen}>
+            <CollapsibleTrigger isOpen={isOpen} {...triggerProps}>
                 {trigger}
             </CollapsibleTrigger>
             <AnimatePresence mode="wait">
@@ -89,7 +97,7 @@ const Collapsible = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitiv
                             exit: 0.2,
                         }}
                     >
-                        <CollapsibleContent>
+                        <CollapsibleContent {...contentProps}>
                             {children}
                         </CollapsibleContent>
                     </Collapse>
