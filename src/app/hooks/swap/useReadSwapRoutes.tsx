@@ -4,6 +4,7 @@ import { useReadContracts } from "wagmi"
 
 import { defaultSlippageBps, RouteValidMs } from "@/app/config/swaps"
 import useToast from "@/app/hooks/toast/useToast"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { getBaseQuoteData, getBridgeQuote, getQuoteData, getRouteData, getSwapQuery, getSwapQueryData, getSwapQueryResultData, getSwapQuote, sortRoutes } from "@/app/lib/routes"
 import { getErrorToastData } from "@/app/lib/utils"
@@ -12,7 +13,6 @@ import { Chain } from "@/app/types/chains"
 import { PreferenceType } from "@/app/types/preferences"
 import { EncodedRouteQueryResult, Route, RouteQuery, RouteQuote, RouteQuoteData, RouteType, SwapQueryData, SwapQueryType } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
-import useTokens from "../tokens/useTokens"
 
 const useReadSwapRoutes = ({
     srcChain,
@@ -446,10 +446,13 @@ const useReadSwapRoutes = ({
                 setQueryStatus("pending")
             }
         }
+        else if (enabled && bridgeQuoteData.length === bridgeQuotes.length) {
+            setQueryStatus("success")
+        }
         else {
             setQueryStatus("pending")
         }
-    }, [enabled, primaryQueryData, primaryQueryStatus, secondaryQueryData, secondaryQueryStatus, finalQueryData, finalQueryStatus])
+    }, [enabled, primaryQueryData, primaryQueryStatus, secondaryQueryData, secondaryQueryStatus, finalQueryData, finalQueryStatus, swapQuoteData, bridgeQuoteData, bridgeQuotes])
 
     const { addToast } = useToast()
     useEffect(() => {
