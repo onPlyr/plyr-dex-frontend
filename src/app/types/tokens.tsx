@@ -26,10 +26,10 @@ export interface TokenBridgeData {
 
 interface TokenChainData {
     readonly address: Address,
-    readonly chainSymbol?: string,
-    readonly chainName?: string,
-    readonly chainIcon?: TokenIcon,
-    readonly chainIconBackground?: TokenIconBackground,
+    readonly displaySymbol?: string,
+    readonly displayName?: string,
+    readonly displayIcon?: TokenIcon,
+    readonly displayIconBackground?: TokenIconBackground,
     readonly bridges?: {
         readonly [chainId in ChainId]?: TokenBridgeData
     }

@@ -71,7 +71,7 @@ const baseTokens: BaseToken[] = [
         iconBackground: "#fdcd5e",
         chains: {
             [plyrTau.id]: {
-                chainSymbol: "MCOQ",
+                displaySymbol: "MCOQ",
                 address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
             },
         },
@@ -98,7 +98,7 @@ const baseTokens: BaseToken[] = [
         iconBackground: "#00cccc",
         chains: {
             [plyrTau.id]: {
-                chainSymbol: "MSUPER",
+                displaySymbol: "MSUPER",
                 address: "0xa79F25CBfe32f5f29F4Ca96aAe67acD49D65655f",
             },
         },
@@ -113,7 +113,7 @@ const baseTokens: BaseToken[] = [
         iconBackground: "#2775ca",
         chains: {
             [plyrTau.id]: {
-                chainSymbol: "tUSDC",
+                displaySymbol: "tUSDC",
                 address: "0xA69E8C5aFC0A4633d3d84d6C360998354c4C692C",
             },
         },
@@ -152,6 +152,7 @@ const baseTokens: BaseToken[] = [
                 wrappedToken: "wPLYR",
             },
             [avalancheFuji.id]: {
+                displayName: "PLYR",
                 address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
                 bridges: {
                     [plyrTau.id]: {
@@ -316,8 +317,8 @@ export const Tokens: Token[] = Object.values(SupportedChains).map((chain) => {
 
         const chainData = baseToken.chains[chain.id]!
         const filterData = {
-            symbol: (chainData.chainSymbol ?? baseToken.symbol).toLowerCase(),
-            name: (chainData.chainName ?? baseToken.name).toLowerCase(),
+            symbol: (chainData.displaySymbol ?? baseToken.symbol).toLowerCase(),
+            name: (chainData.displayName ?? baseToken.name).toLowerCase(),
             address: chainData.address.toLowerCase(),
             chain: chain.name.toLowerCase(),
             chainId: chain.id.toString(),
@@ -326,13 +327,13 @@ export const Tokens: Token[] = Object.values(SupportedChains).map((chain) => {
         return {
             ...chainData,
             id: baseToken.id,
-            symbol: chainData.chainSymbol ?? baseToken.symbol,
-            name: chainData.chainName ?? baseToken.name,
+            symbol: chainData.displaySymbol ?? baseToken.symbol,
+            name: chainData.displayName ?? baseToken.name,
             decimals: baseToken.decimals,
-            icon: chainData.chainIcon ?? baseToken.icon,
+            icon: chainData.displayIcon ?? baseToken.icon,
             chainId: chain.id,
             filters: filterData,
-            iconBackground: chainData.chainIconBackground ?? baseToken.iconBackground,
+            iconBackground: chainData.displayIconBackground ?? baseToken.iconBackground,
         } as Token
 
     })
