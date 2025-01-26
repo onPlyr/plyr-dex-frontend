@@ -238,7 +238,7 @@ const ReviewSwapPage = () => {
     const pageFooter = <Button
         className="gradient-btn"
         onClick={!errInitiateSwap ? swapOnClick?.bind(this) : undefined}
-        disabled={errInitiateSwap !== undefined || (!destinationAddress)}
+        disabled={errInitiateSwap !== undefined || (approveIsInProgress || initiateIsInProgress) || (!destinationAddress)}
     >
         {!errInitiateSwap && isSwitchChainRequired && `Switch to ${route!.srcChain.name} and `}{swapActionMsg}
         {(approveIsInProgress || initiateIsInProgress) && (
@@ -297,7 +297,12 @@ const ReviewSwapPage = () => {
                     </div>
                     {/* Destination Address */}
                     <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
-                        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(accountAddress || undefined) }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <div onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (approveIsInProgress || initiateIsInProgress) return;
+                            setDestinationAddress(accountAddress || undefined)
+                        }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                             <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
                             <div className="flex flex-col flex-1 justify-center items-start gap-0">
                                 <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
@@ -305,12 +310,26 @@ const ReviewSwapPage = () => {
                             </div>
                         </div>
                         {
-                            (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') && <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDestinationAddress(mirrorAddress || undefined) }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); getUserInfo(accountAddress || '', true) }} className="absolute top-2 right-3">
+                            (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') &&
+                            <div onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (approveIsInProgress || initiateIsInProgress) return;
+                                setDestinationAddress(mirrorAddress || undefined)
+                            }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                                <button onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (approveIsInProgress || initiateIsInProgress) return;
+                                    getUserInfo(accountAddress || '', true)
+                                }} className="absolute top-2 right-3">
                                     <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
                                 </button>
                                 {
-                                    !isEditingPlyrId && <button onClick={() => setIsEditingPlyrId(true)} className="absolute top-2 right-10">
+                                    !isEditingPlyrId && <button onClick={() => {
+                                        if (approveIsInProgress || initiateIsInProgress) return;
+                                        setIsEditingPlyrId(true)
+                                    }} className="absolute top-2 right-10">
                                         <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
                                     </button>
                                 }
