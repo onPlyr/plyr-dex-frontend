@@ -58,7 +58,7 @@ const SwapSummary = React.forwardRef<React.ElementRef<typeof SelectItem>, SwapSu
     return (
         <SelectItem
             ref={ref}
-            className={twMerge("container-select flex flex-col flex-1 p-4 gap-4", className)}
+            className={twMerge("container-select flex flex-col flex-1 p-6 gap-4", className)}
             isSelected={isSelected ? true : false}
             onClick={handleOnClick.bind(this)}
             replaceClass={true}

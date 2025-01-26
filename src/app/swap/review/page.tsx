@@ -269,7 +269,7 @@ const ReviewSwapPage = () => {
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
                 <div
-                    className="container-select p-4"
+                    className="container-select p-6"
                     data-selected={true}
                 >
                     <div className="flex flex-col flex-1 gap-4">
