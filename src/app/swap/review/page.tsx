@@ -153,8 +153,9 @@ const ReviewSwapPage = () => {
         _enabled: route !== undefined,
     })
 
-    const enabled = !(!accountAddress || !connectedChain || !route || !route.srcChain || !route.srcToken || !route.srcAmount || route.srcAmount === BigInt(0) || !route.dstChain || !route.dstToken)
-    const isSwitchChainRequired = enabled && connectedChain.id !== route.srcChain.id
+    const enabled = !(!accountAddress || !connectedChainId || !route || !route.srcChain || !route.srcToken || !route.srcAmount || route.srcAmount === BigInt(0) || !route.dstChain || !route.dstToken)
+    const isSwitchChainRequired = (enabled && connectedChainId !== route.srcChain.id) || !connectedChain
+    //console.log('isSwitchChainRequired', isSwitchChainRequired, connectedChain?.id, route?.srcChain.id)
     const isApprovalRequired = enabled && (route.srcToken.isNative !== true && !(allowance !== undefined && allowance >= route.srcAmount))
 
     const approveOnConfirmation = useCallback(() => {
@@ -234,9 +235,9 @@ const ReviewSwapPage = () => {
     }, [route, writeInitiate, switchChainAsync])
 
     const swapOnClick = isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : writeInitiate)
+    const swapBtnEnabled = enabled && !errInitiateSwap && !approveIsInProgress && !initiateIsInProgress && (destinationAddress && connectedChainId) || !connectedChainId
 
 
-    const swapBtnEnabled = enabled && !errInitiateSwap && !approveIsInProgress && !initiateIsInProgress && destinationAddress
 
     const pageFooter = <Button
         className="gradient-btn"
