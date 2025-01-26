@@ -7,7 +7,7 @@ import { useAccount } from "wagmi"
 
 import "@/app/styles/globals.css"
 
-import ScaleInOut from "@/app/components/animations/ScaleInOut"
+import SlideInOut from "@/app/components/animations/SlideInOut"
 import AccountIcon from "@/app/components/icons/AccountIcon"
 import ArrowIcon from "@/app/components/icons/ArrowIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
@@ -126,50 +126,56 @@ const SwapPage = () => {
                 onClick={onClickReview.bind(this)}
             />
         >
-            <ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
-                <TokenInput
-                    selectedChain={srcChain}
-                    selectedToken={srcToken}
-                    amountValue={srcAmountFormatted}
-                    handleAmountInput={handleSrcAmountInput}
-                />
-                <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
-                    <Button
-                        label="Switch Tokens"
-                        className="p-3 rounded-full transition bg-layout-950/50 hover:bg-layout-950/75 hover:rotate-180"
-                        replaceClass={true}
-                        onClick={switchTokens.bind(this, srcToken, dstToken, selectedRoute?.dstAmountFormatted)}
-                    >
-                        <ArrowIcon toggleDirection={StyleToggleDirection.UpDown} />
-                    </Button>
-                </div>
-                <TokenInput
-                    selectedChain={dstChain}
-                    selectedToken={dstToken}
-                    amountValue={selectedRoute?.dstAmountFormatted}
-                    isDst={true}
-                />
-                <UnwrapNativeToken />
-                {routes && selectedRoute && (
-                    <div className="flex flex-col flex-1 gap-4 w-full">
-                        <SwapSummary
-                            route={selectedRoute}
-                            isSelectedRoute={true}
-                        />
-                        {routes.length > 1 && (
-                            <div className="flex flex-row flex-1 justify-end text-end">
-                                <Link
-                                    className="inline-flex gap-2 w-fit justify-end items-center transition font-bold text-muted-500 hover:text-white"
-                                    href="/swap/routes"
-                                >
-                                    View all {routes.length} routes
-                                    <ChevronIcon direction={StyleDirection.Right} />
-                                </Link>
-                            </div>
-                        )}
+            <SlideInOut
+                key={SwapTab.Swap}
+                from="left"
+                to="left"
+            >
+                <div className="flex flex-col flex-none gap-4 w-full h-fit">
+                    <TokenInput
+                        selectedChain={srcChain}
+                        selectedToken={srcToken}
+                        amountValue={srcAmountFormatted}
+                        handleAmountInput={handleSrcAmountInput}
+                    />
+                    <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
+                        <Button
+                            label="Switch Tokens"
+                            className="p-3 rounded-full transition bg-layout-950/50 hover:bg-layout-950/75 hover:rotate-180"
+                            replaceClass={true}
+                            onClick={switchTokens.bind(this, srcToken, dstToken, selectedRoute?.dstAmountFormatted)}
+                        >
+                            <ArrowIcon toggleDirection={StyleToggleDirection.UpDown} />
+                        </Button>
                     </div>
-                )}
-            </ScaleInOut>
+                    <TokenInput
+                        selectedChain={dstChain}
+                        selectedToken={dstToken}
+                        amountValue={selectedRoute?.dstAmountFormatted}
+                        isDst={true}
+                    />
+                    <UnwrapNativeToken />
+                    {routes && selectedRoute && (
+                        <div className="flex flex-col flex-1 gap-4 w-full">
+                            <SwapSummary
+                                route={selectedRoute}
+                                isSelectedRoute={true}
+                            />
+                            {routes.length > 1 && (
+                                <div className="flex flex-row flex-1 justify-end text-end">
+                                    <Link
+                                        className="inline-flex gap-2 w-fit justify-end items-center transition font-bold text-muted-500 hover:text-white"
+                                        href="/swap/routes"
+                                    >
+                                        View all {routes.length} routes
+                                        <ChevronIcon direction={StyleDirection.Right} />
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </SlideInOut>
         </Page>
     )
 }

@@ -83,7 +83,7 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                             ) : (
                                 <CurrencyIcon variant={CurrencyIconVariant.UsdCircle} className={iconSizes.xl} />
                             )}
-                            <ChevronIcon direction={StyleDirection.Down} />
+                            <ChevronIcon direction={StyleDirection.Right} />
                         </Link>
                     </div>
                 </div>

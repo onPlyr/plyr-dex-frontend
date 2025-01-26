@@ -235,10 +235,13 @@ const ReviewSwapPage = () => {
 
     const swapOnClick = isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : writeInitiate)
 
+
+    const swapBtnEnabled = enabled && !errInitiateSwap && !approveIsInProgress && !initiateIsInProgress && destinationAddress
+
     const pageFooter = <Button
         className="gradient-btn"
-        onClick={!errInitiateSwap ? swapOnClick?.bind(this) : undefined}
-        disabled={errInitiateSwap !== undefined || (approveIsInProgress || initiateIsInProgress) || (!destinationAddress)}
+        onClick={swapBtnEnabled ? swapOnClick?.bind(this) : undefined}
+        disabled={!swapBtnEnabled}
     >
         {!errInitiateSwap && isSwitchChainRequired && `Switch to ${route!.srcChain.name} and `}{swapActionMsg}
         {(approveIsInProgress || initiateIsInProgress) && (
@@ -363,85 +366,6 @@ const ReviewSwapPage = () => {
                 </div>
 
             </div>
-
-            {/*<ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
-                <div className="container flex flex-col flex-1 p-4 gap-4">
-                    <div className="flex flex-col flex-1 gap-4">
-                        <div className="flex flex-row flex-1 gap-4 justify-center items-center font-bold text-base">
-                            {getRouteTypeLabel(route.type)}
-                        </div>
-                        <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-                            <SwapTokenDetail
-                                label="From"
-                                token={route.srcToken}
-                                chain={route.srcChain}
-                            />
-                            <div className="flex flex-row flex-1 max-w-16 max-h-16 justify-center items-center text-white">
-                                <RouteTypeIcon type={route.type} className="w-full h-full" />
-                            </div>
-                            <SwapTokenDetail
-                                label="To"
-                                token={route.dstToken}
-                                chain={route.dstChain}
-                            />
-                        </div>
-                        <div className="flex flex-row flex-1 flex-wrap gap-x-1 gap-y-2 justify-center items-center font-bold">
-                            {route.type === RouteType.Bridge ? "Transferring" : "Swapping"} from &nbsp;
-                            <div
-                                className="swap-label border-1"
-                                style={{
-                                    borderColor: route.srcToken.iconBackground,
-                                }}
-                            >
-                                <DecimalAmount
-                                    amountFormatted={route.srcAmountFormatted}
-                                    symbol={route.srcToken.symbol}
-                                    token={route.srcToken}
-                                    type={NumberFormatType.Precise}
-                                />
-                                &nbsp;on {route.srcChain.name}
-                            </div>
-                            &nbsp;to&nbsp;
-                            <div
-                                className="swap-label border-1"
-                                style={{
-                                    borderColor: route.dstToken.iconBackground,
-                                }}
-                            >
-                                <DecimalAmount
-                                    amountFormatted={route.dstAmountFormatted}
-                                    symbol={route.dstToken.symbol}
-                                    token={route.dstToken}
-                                    type={NumberFormatType.Precise}
-                                />
-                                &nbsp;on {route.dstChain.name}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="container flex flex-col flex-1 p-4 gap-4">
-                    <div className="flex flex-row flex-1 justify-end">
-                        <RouteSummaryBadges route={route} />
-                    </div>
-                    <SwapOverview
-                        route={route}
-                        className="p-0"
-                    />
-                </div>
-                <Collapsible trigger={`${getRouteTypeLabel(route.type)} Steps`}>
-                    {route.quote.events.map((event, i) => (
-                        <SwapEventDetail
-                            key={i}
-                            event={event}
-                            animate={true}
-                            delays={{
-                                animate: i * 0.1,
-                                exit: (route.quote.events.length - 1 - i) * 0.05,
-                            }}
-                        />
-                    ))}
-                </Collapsible>
-            </ScaleInOut>*/}
         </Page>
     )
 }

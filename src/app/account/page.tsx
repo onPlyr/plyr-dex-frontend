@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import { useAccount } from "wagmi"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
@@ -8,7 +10,7 @@ import { ChartIcon, ChartIconVariant } from "@/app/components/icons/ChartIcon"
 import { CurrencyIcon } from "@/app/components/icons/CurrencyIcon"
 import SwapParameter from "@/app/components/swap/SwapParameter"
 import { TokenDetailItem } from "@/app/components/tokens/TokenDetailItem"
-import AccountNotFoundError from "@/app/components/ui/AccountNotFoundError"
+import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { Page } from "@/app/components/ui/Page"
@@ -140,7 +142,13 @@ const AccountPage = () => {
                             </SlideInOut>
                         ))}
                     </div>
-                </>) : <AccountNotFoundError />}
+                </>) : (
+                    <AlertDetail
+                        type={AlertType.Info}
+                        header="No Account Found"
+                        msg="Please connect your wallet to view your account details."
+                    />
+                )}
             </ScaleInOut>
         </Page>
     )

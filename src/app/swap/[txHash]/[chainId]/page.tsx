@@ -10,6 +10,8 @@ import { twMerge } from "tailwind-merge"
 import { isHex } from "viem"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
+import { CurrencyIcon, CurrencyIconVariant } from "@/app/components/icons/CurrencyIcon"
+import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
 import SuccessIcon from "@/app/components/icons/SuccessIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
@@ -25,8 +27,7 @@ import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
 import { getStatusLabel } from "@/app/lib/utils"
-import { CurrencyIcon, CurrencyIconVariant } from "@/app/components/icons/CurrencyIcon"
-import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
+
 
 import { useSearchParams } from 'next/navigation'
 import { toTokens } from "thirdweb/utils"
@@ -95,7 +96,10 @@ const SwapDetailPage = ({
         }
     }, [swap?.status, plyrId])
 
-    const numPendingIndicators = 5
+    const indicatorDuration = 1
+    const indicatorDurationSm = 0.75
+    const numPendingIndicatorsSm = 5
+    const numPendingIndicators = 7
     const txString = toShort(txHash)
     const txUrl = getBlockExplorerLink({
         chain: chain,
@@ -103,7 +107,6 @@ const SwapDetailPage = ({
     })
 
     // todo: add suspense / loading state
-    // todo: add proper loading details below
 
 
     return swap && (
@@ -157,22 +160,40 @@ const SwapDetailPage = ({
                                             fadeInOut={true}
                                             className="flex flex-row flex-1 gap-2 justify-center items-center"
                                         >
-                                            {[...Array(numPendingIndicators)].map((_, i) => (
-                                                <div key={i} className="flex flex-row flex-1 max-w-4 max-h-4 aspect-square items-center justify-center">
+                                            {[...Array(numPendingIndicatorsSm)].map((_, i) => (
+                                                <div key={`${i}-sm`} className="flex sm:hidden flex-row flex-1 max-w-4 max-h-4 aspect-square items-center justify-center">
                                                     <motion.div
                                                         key={i}
                                                         className={twMerge("rounded-full aspect-square bg-gradient-btn")}
                                                         animate={{
-                                                            height: "100%",
-                                                            width: "100%",
+                                                            height: [0, "100%", 0],
+                                                            width: [0, "100%", 0],
                                                         }}
                                                         transition={{
                                                             type: "tween",
                                                             repeat: Infinity,
-                                                            repeatType: "mirror",
-                                                            repeatDelay: 0.15,
-                                                            duration: 0.3,
-                                                            delay: 0.15 * i,
+                                                            repeatDelay: (indicatorDurationSm / numPendingIndicatorsSm) * 2,
+                                                            duration: indicatorDurationSm,
+                                                            delay: (indicatorDurationSm / numPendingIndicatorsSm) * i,
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
+                                            {[...Array(numPendingIndicators)].map((_, i) => (
+                                                <div key={i} className="hidden sm:flex flex-row flex-1 max-w-4 max-h-4 aspect-square items-center justify-center">
+                                                    <motion.div
+                                                        key={i}
+                                                        className={twMerge("rounded-full aspect-square bg-gradient-btn")}
+                                                        animate={{
+                                                            height: [0, "100%", 0],
+                                                            width: [0, "100%", 0],
+                                                        }}
+                                                        transition={{
+                                                            type: "tween",
+                                                            repeat: Infinity,
+                                                            repeatDelay: (indicatorDuration / numPendingIndicators) * 2,
+                                                            duration: indicatorDuration,
+                                                            delay: (indicatorDuration / numPendingIndicators) * i,
                                                         }}
                                                     />
                                                 </div>
