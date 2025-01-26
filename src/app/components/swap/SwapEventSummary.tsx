@@ -82,6 +82,15 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
 
     const diffEstAmount = swap.estAmount && swap.dstData?.amount ? swap.dstData.amount - swap.estAmount : undefined
 
+    const swapSrcTxUrl = !isReviewSwap && getBlockExplorerLink({
+        chain: swap.srcData.chain,
+        tx: swap.id,
+    })
+    const swapDstTxUrl = !isReviewSwap && swap.dstData && swap.status === SwapStatus.Success && getBlockExplorerLink({
+        chain: swap.dstData.chain,
+        tx: swap.hops[swap.hops.length - 1].txHash,
+    })
+
     return swap.events.length > 0 && (
         <div
             ref={ref}
@@ -255,7 +264,16 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                                     <div className="flex flex-col flex-1 gap-1">
                                         <SwapParameter
                                             icon=<SendIcon className={iconSizes.sm} />
-                                            label={isReviewSwap ? "To send" : "Sent"}
+                                            label={isReviewSwap ? "To send" : (<>
+                                                Sent
+                                                {swapSrcTxUrl && (
+                                                    <ExternalLink
+                                                        href={swapSrcTxUrl}
+                                                        iconSize="xs"
+                                                    />
+                                                )}
+                                            </>)}
+                                            labelClass="gap-2"
                                             value=<DecimalAmount
                                                 amount={swap.srcData.amount}
                                                 symbol={swap.srcData.token.symbol}
@@ -266,7 +284,16 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                                         />
                                         <SwapParameter
                                             icon=<ReceiveIcon className={iconSizes.sm} />
-                                            label={isReviewSwap ? "To receive" : "Received"}
+                                            label={isReviewSwap ? "To receive" : (<>
+                                                Received
+                                                {swapDstTxUrl && (
+                                                    <ExternalLink
+                                                        href={swapDstTxUrl}
+                                                        iconSize="xs"
+                                                    />
+                                                )}
+                                            </>)}
+                                            labelClass="gap-2"
                                             value={swap.dstData ? (
                                                 <DecimalAmount
                                                     amount={swap.dstData.amount}

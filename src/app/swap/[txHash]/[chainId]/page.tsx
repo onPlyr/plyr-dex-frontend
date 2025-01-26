@@ -25,6 +25,8 @@ import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
 import { getStatusLabel } from "@/app/lib/utils"
+import { CurrencyIcon, CurrencyIconVariant } from "@/app/components/icons/CurrencyIcon"
+import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
 
 import { useSearchParams } from 'next/navigation'
 import { toTokens } from "thirdweb/utils"
@@ -58,8 +60,8 @@ const SwapDetailPage = ({
         txHash: txHash,
     })
 
-      // Add to Depositlog //
-      const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {
+    // Add to Depositlog //
+    const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {
         await fetch('/api/addDepositLog/', {
             method: 'POST',
             headers: {
@@ -180,19 +182,32 @@ const SwapDetailPage = ({
                                 </AnimatePresence>
                             </div>
                             <div className="flex flex-col flex-1 justify-center items-center">
-                                {swap.dstData && <TokenImage token={swap.dstData.token} size="lg" />}
+                                {swap.dstData ? (
+                                    <TokenImage
+                                        token={swap.dstData.token}
+                                        size="lg"
+                                    />
+                                ) : (
+                                    <CurrencyIcon
+                                        variant={CurrencyIconVariant.UsdCircle}
+                                        className={twMerge(imgSizes.lg, "text-muted-500")}
+                                    />
+                                )}
                             </div>
                             <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
                                 <ChainImageInline chain={swap.srcData.chain} size="xs" />
                                 {swap.srcData.token.symbol}
                             </div>
                             <div className="flex flex-row flex-1 gap-4 justify-center items-center font-bold text-center">
-                                {`${swap.type && (getRouteTypeLabel(swap.type))} `}{getStatusLabel(swap.status)}
+                                {swap.type ? `${getRouteTypeLabel(swap.type)} ` : ""}{getStatusLabel(swap.status)}
                             </div>
                             <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
-                                {swap.dstData && (<>
+                                {swap.dstData ? (<>
                                     <ChainImageInline chain={swap.dstData.chain} size="xs" />
                                     {swap.dstData.token.symbol}
+                                </>) : (<>
+                                    <SwapStatusIcon status={SwapStatus.Pending} className={imgSizes.xs} />
+                                    Loading
                                 </>)}
                             </div>
                         </div>
