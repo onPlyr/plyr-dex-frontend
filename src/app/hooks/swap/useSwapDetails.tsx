@@ -415,20 +415,29 @@ const getHopAndEventData = ({
 
         else {
 
+            let transferLog = parseEventLogs({
+                abi: erc20Abi,
+                logs: txReceipt.logs,
+                eventName: "Transfer",
+                args: {
+                    to: accountAddress,
+                },
+            }).findLast((log) => isAddressEqual(log.args.to, accountAddress))
+
+            // Try without args
+            if (!transferLog) {
+                transferLog = parseEventLogs({
+                    abi: erc20Abi,
+                    logs: txReceipt.logs,
+                    eventName: "Transfer",
+                }).findLast((log) => log)
+            }
+
             // const transferLog = parseEventLogs({
             //     abi: erc20Abi,
             //     logs: txReceipt.logs,
             //     eventName: "Transfer",
-            //     args: {
-            //         to: accountAddress,
-            //     },
-            // }).findLast((log) => isAddressEqual(log.args.to, accountAddress))
-
-            const transferLog = parseEventLogs({
-                abi: erc20Abi,
-                logs: txReceipt.logs,
-                eventName: "Transfer",
-            }).findLast((log) => log)
+            // }).findLast((log) => log)
 
 
             let dstData = getBaseSwapData({
@@ -616,7 +625,7 @@ const useSwapDetails = ({
             hopIndex: 0,
             txReceipt: txReceipt,
             txTimestamp: Number(txBlock.timestamp) * 1000,
-            accountAddress: accountAddress,
+            accountAddress: swap?.destinationAddress ?? accountAddress,
         })
 
         const swapData: Swap = {
@@ -790,7 +799,7 @@ const useSwapDetails = ({
             storedHopData: hopQuery.hopData,
             txReceipt: txReceipt,
             txTimestamp: txTimestamp,
-            accountAddress: hopQuery.swapData.account,
+            accountAddress: hopQuery.swapData.destinationAddress ?? hopQuery.swapData.account,
         })
 
         const prevHops = hopQuery.swapData.hops.filter((hop) => hop.index < hopQuery.hopIndex)

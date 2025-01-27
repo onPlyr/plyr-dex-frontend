@@ -234,12 +234,14 @@ export const getSwapFromQuote = ({
     txHash,
     accountAddress,
     plyrId,
+    destinationAddress,
     isReviewSwap = false,
 }: {
     route?: Route,
     txHash?: Hash,
     accountAddress?: Address,
     plyrId?: string,
+    destinationAddress?: Address,
     isReviewSwap?: boolean,
 }) => {
 
@@ -266,6 +268,7 @@ export const getSwapFromQuote = ({
             amount: isReviewSwap ? quote.dstAmount : undefined,
         },
         plyrId: plyrId,
+        destinationAddress: destinationAddress,
         hops: quote.hops.map((hop, i) => ({
             srcData: {
                 chain: hop.srcChain,
@@ -415,6 +418,7 @@ export const getSwapJsonFromSwap = (swap?: Swap) => {
             amount: swap.dstData.amount?.toString(),
         },
         plyrId: swap.plyrId,
+        destinationAddress: swap.destinationAddress,
         hops: swap.hops.map((hop) => ({
             srcData: {
                 chain: hop.srcData.chain.id,
@@ -427,6 +431,7 @@ export const getSwapJsonFromSwap = (swap?: Swap) => {
                 amount: hop.dstData.amount?.toString(),
             },
             plyrId: swap.plyrId,
+            destinationAddress: swap.destinationAddress,
             index: hop.index,
             receivedMsgId: hop.receivedMsgId,
             sentMsgId: hop.sentMsgId,
@@ -447,6 +452,7 @@ export const getSwapJsonFromSwap = (swap?: Swap) => {
                 amount: event.dstData.amount?.toString(),
             },
             plyrId: swap.plyrId,
+            destinationAddress: swap.destinationAddress,
             hopIndex: event.hopIndex,
             type: event.type,
             adapter: event.adapter,
@@ -599,6 +605,7 @@ export const getSwapFromJson = (json?: SwapJson) => {
         srcData: swapSrcData,
         dstData: swapDstData,
         plyrId: json.plyrId,
+        destinationAddress: json.destinationAddress,
         hops: getSwapHopsFromJson({
             json: json,
             swapSrcData: swapSrcData,
