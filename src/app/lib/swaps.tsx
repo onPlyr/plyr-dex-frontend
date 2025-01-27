@@ -149,11 +149,13 @@ export const getInitiateSwapErrMsg = ({
 }) => {
 
     let err = undefined
+    let isConnectWalletErr = false
 
-    if (accountAddress === undefined) {
+    if (!accountAddress) {
         err = "Connect Wallet"
+        isConnectWalletErr = true
     }
-    else if (route === undefined) {
+    else if (!route) {
         err = "Select Route"
     }
     else if (route.srcAmount === BigInt(0)) {
@@ -166,7 +168,10 @@ export const getInitiateSwapErrMsg = ({
         err = "Disabled"
     }
 
-    return err
+    return {
+        err,
+        isConnectWalletErr,
+    }
 }
 
 export const getSelectedSwapData = () => {

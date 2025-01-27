@@ -23,7 +23,7 @@ export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button
     ...props
 }, ref) => {
     const { openConnectModal } = useConnectModal()
-    const isDisabled = isConnectWalletErr !== true && (disabled || err !== undefined || queryStatus === "error" || queryStatus === "pending")
+    const isDisabled = !isConnectWalletErr && (disabled || err !== undefined || queryStatus === "error" || queryStatus === "pending")
     return (
         <Button
             ref={ref}

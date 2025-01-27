@@ -3,6 +3,7 @@
 import "@/app/styles/globals.css"
 
 import { useRouter } from "next/navigation"
+import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { useCallback, useEffect, useState } from "react"
 import { TransactionReceipt } from "viem"
 import { useAccount, useSwitchChain } from "wagmi"
@@ -15,6 +16,7 @@ import SwapSummaryTokenDetail from "@/app/components/swap/SwapSummaryTokenDetail
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { SwapTab } from "@/app/config/pages"
+import { iconSizes } from "@/app/config/styling"
 import { txActionInProgressMessages, txActionMessages } from "@/app/config/txs"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useSwapData from "@/app/hooks/swap/useSwapData"
@@ -35,6 +37,7 @@ const ReviewSwapPage = () => {
     const { address: accountAddress, chainId: connectedChainId } = useAccount()
     const connectedChain = connectedChainId ? getChain(connectedChainId) : undefined
     const { switchChainAsync } = useSwitchChain()
+    const { openConnectModal } = useConnectModal()
     const { refetch: refetchTokens } = useTokens()
     const { handleSrcAmountInput, selectedRoute: route } = useQuoteData()
     const { addSwap } = useSwapData()
@@ -52,7 +55,7 @@ const ReviewSwapPage = () => {
         if (accountAddress) {
             setDestinationAddress(accountAddress)
         }
-    }, []);
+    }, [accountAddress]);
 
     // get user info //
     const getUserInfo = async (address: string, isEdited: boolean = false) => {
@@ -135,12 +138,17 @@ const ReviewSwapPage = () => {
 
     useEffect(() => {
         if (accountAddress) {
-
             getUserInfo(accountAddress)
+        }
+        else {
+            setPlyrId(undefined)
+            setMirrorAddress(undefined)
+            setPlyrAvatar(undefined)
+            setDestinationAddress(undefined)
         }
     }, [accountAddress])
 
-    const errInitiateSwap = getInitiateSwapErrMsg({
+    const { err: errInitiateSwap, isConnectWalletErr} = getInitiateSwapErrMsg({
         accountAddress: accountAddress,
         route: route,
     })
@@ -153,9 +161,11 @@ const ReviewSwapPage = () => {
         _enabled: route !== undefined,
     })
 
-    const enabled = !(!accountAddress || !connectedChainId || !route || !route.srcChain || !route.srcToken || !route.srcAmount || route.srcAmount === BigInt(0) || !route.dstChain || !route.dstToken)
-    const isSwitchChainRequired = (enabled && connectedChainId !== route.srcChain.id) || !connectedChain
-    //console.log('isSwitchChainRequired', isSwitchChainRequired, connectedChain?.id, route?.srcChain.id)
+
+    const enabled = !(!accountAddress || !route || !route.srcChain || !route.srcToken || !route.srcAmount || route.srcAmount === BigInt(0) || !route.dstChain || !route.dstToken)
+    const isSwitchChainRequired = !connectedChain || (route && connectedChain.id !== route.srcChain.id)
+
+
     const isApprovalRequired = enabled && (route.srcToken.isNative !== true && !(allowance !== undefined && allowance >= route.srcAmount))
 
     const approveOnConfirmation = useCallback(() => {
@@ -234,9 +244,8 @@ const ReviewSwapPage = () => {
         }
     }, [route, writeInitiate, switchChainAsync])
 
-    const swapOnClick = isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : writeInitiate)
-    const swapBtnEnabled = enabled && !errInitiateSwap && !approveIsInProgress && !initiateIsInProgress && (destinationAddress && connectedChainId) || !connectedChainId
-
+    const swapOnClick = isConnectWalletErr ? openConnectModal : isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : writeInitiate)
+    const swapBtnEnabled = isConnectWalletErr || isSwitchChainRequired || (enabled && !errInitiateSwap && !approveIsInProgress && !initiateIsInProgress && destinationAddress)
 
 
     const pageFooter = <Button
@@ -244,9 +253,9 @@ const ReviewSwapPage = () => {
         onClick={swapBtnEnabled ? swapOnClick?.bind(this) : undefined}
         disabled={!swapBtnEnabled}
     >
-        {!errInitiateSwap && isSwitchChainRequired && `Switch to ${route!.srcChain.name} and `}{swapActionMsg}
+         {errInitiateSwap ?? `${isSwitchChainRequired ? `Switch to ${route!.srcChain.name} and ${swapActionMsg}` : swapActionMsg}`}
         {(approveIsInProgress || initiateIsInProgress) && (
-            <LoadingIcon />
+            <LoadingIcon className={iconSizes.sm} />
         )}
     </Button>
 
