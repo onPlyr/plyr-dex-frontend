@@ -139,14 +139,18 @@ const SwapPage = () => {
                         handleAmountInput={handleSrcAmountInput}
                     />
                     <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
-                        <Button
-                            label="Switch Tokens"
-                            className="p-3 rounded-full transition bg-layout-950/50 hover:bg-layout-950/75 hover:rotate-180"
-                            replaceClass={true}
-                            onClick={switchTokens.bind(this, srcToken, dstToken, selectedRoute?.dstAmountFormatted)}
+                        <Tooltip
+                            trigger=<Button
+                                label="Switch Tokens"
+                                className="p-3 rounded-full transition bg-layout-950/50 hover:bg-layout-950/75 hover:rotate-180"
+                                replaceClass={true}
+                                onClick={switchTokens.bind(this, srcToken, dstToken, selectedRoute?.dstAmountFormatted)}
+                            >
+                                <ArrowIcon toggleDirection={StyleToggleDirection.UpDown} />
+                            </Button>
                         >
-                            <ArrowIcon toggleDirection={StyleToggleDirection.UpDown} />
-                        </Button>
+                            Switch Tokens
+                        </Tooltip>
                     </div>
                     <TokenInput
                         selectedChain={dstChain}
