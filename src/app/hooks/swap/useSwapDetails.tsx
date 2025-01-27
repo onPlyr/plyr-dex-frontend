@@ -415,20 +415,29 @@ const getHopAndEventData = ({
 
         else {
 
+            // const transferLog = parseEventLogs({
+            //     abi: erc20Abi,
+            //     logs: txReceipt.logs,
+            //     eventName: "Transfer",
+            //     args: {
+            //         to: accountAddress,
+            //     },
+            // }).findLast((log) => isAddressEqual(log.args.to, accountAddress))
+
             const transferLog = parseEventLogs({
                 abi: erc20Abi,
                 logs: txReceipt.logs,
                 eventName: "Transfer",
-                args: {
-                    to: accountAddress,
-                },
-            }).findLast((log) => isAddressEqual(log.args.to, accountAddress))
+            }).findLast((log) => log)
+
 
             let dstData = getBaseSwapData({
                 chain: hopData.srcData.chain,
                 tokenAddress: transferLog?.address,
                 amount: transferLog?.args.value,
             })
+
+            //alert('haha')
 
             if (!dstData) {
 

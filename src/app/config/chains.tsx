@@ -27,7 +27,7 @@ export const teschain = {
 
 export const plyrTau = {
     id: 62831,
-    name: "PLYR TAU",
+    name: "PLYR TAU NETWORK",
     testnet: true,
     nativeCurrency: {
         name: "PLYR",

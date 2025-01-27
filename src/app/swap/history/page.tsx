@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import Link from "next/link"
 import { twMerge } from "tailwind-merge"
 
@@ -69,12 +71,16 @@ const HistoryPage = () => {
                                         ) : "Pending"}
                                     </div>
                                     {swap.dstData && (
-                                        <div className="flex flex-row flex-1 gap-2 items-center text-muted-500">
+                                        <div className="flex flex-row gap-2 items-center text-muted-500">
+                                            
                                             <ChainImageInline
                                                 chain={swap.dstData.chain}
                                                 size="xs"
                                             />
-                                            {swap.dstData.chain.name}
+                                            <div className="flex flex-col flex-1 items-start text-muted-500">
+                                                <span className="leading-none">{swap.dstData.chain.name}</span>
+                                                {swap.plyrId && <span className="text-xs leading-none font-bold">@{swap.plyrId.toUpperCase()}</span>}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
