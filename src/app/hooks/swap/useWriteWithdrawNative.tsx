@@ -1,6 +1,6 @@
 import { Address } from "viem"
 
-import { depositWithdrawNativeAbi } from "@/app/config/abis"
+import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
 import useWriteTransaction from "@/app/hooks/txs/useWriteTransaction"
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
@@ -28,7 +28,7 @@ const useWriteWithdrawNative = ({
             chainId: connectedChain?.id,
             account: accountAddress,
             address: token?.wrappedAddress,
-            abi: depositWithdrawNativeAbi,
+            abi: nativeDepositWithdrawAbi,
             functionName: "withdraw",
             args: [amount || BigInt(0)],
             query: {

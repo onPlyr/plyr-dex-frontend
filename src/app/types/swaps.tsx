@@ -53,6 +53,8 @@ export interface SwapQueryResult {
     hopEvents?: SwapEvent[],
     nextHopQuery?: SwapQuery,
     error?: React.ReactNode,
+    isRetry?: boolean,
+    retryDelay?: number,
 }
 
 ////////////////////////////////////////////////////////////////////////////////

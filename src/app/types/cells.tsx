@@ -1,4 +1,4 @@
-import { Abi, Address } from "viem"
+import { Address } from "viem"
 
 export enum CellType {
     HopOnly = "hopOnly",
@@ -9,7 +9,6 @@ export enum CellType {
 
 export interface CellTypeData {
     type: CellType,
-    abi: Abi,
     routeDataParams?: CellRouteDataParameter[],
     tradeParams?: CellTradeParameter[],
     tradeDataParams?: CellTradeDataParameter[],

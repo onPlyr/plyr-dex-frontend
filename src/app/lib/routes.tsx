@@ -1,7 +1,7 @@
 import { Address, formatUnits, isAddressEqual, parseUnits, toHex, zeroAddress } from "viem"
 
 import { defaultRouteSortType, durationEstimateNumConfirmations, tmpGasBuffer, tmpHopGasEstimate, tmpRollbackTeleporterFee, tmpSecondaryTeleporterFee, tmpTeleporterFee } from "@/app/config/swaps"
-import { getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getSwapCells } from "@/app/lib/cells"
+import { getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getSwapCells } from "@/app/lib/cells"
 import { getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { getHopGasEstimate, getIsBridgeHop, getIsTradeHop } from "@/app/lib/swaps"
@@ -1009,15 +1009,17 @@ export const getSwapQuery = (data: HopQuoteData, cellRouteData?: CellRouteData, 
 
     const swapChain = getChain(swapData.srcChainId)
     const swapCell = swapChain?.cells.find((cell) => cell.address === data.srcCellAddress && cell.canSwap)
+    const swapCellAbi = getCellAbi(swapCell)
     const encodedRouteData = swapChain && swapCell ? getEncodedCellRouteData(swapChain, swapCell, cellRouteData, useSlippage) : undefined
-    if (!swapChain || !swapCell || !encodedRouteData) {
+    if (!swapChain || !swapCell || !swapCellAbi || !encodedRouteData) {
         return undefined
     }
 
     const query: RouteQuery = {
         chainId: swapChain.id,
         address: swapCell.address,
-        abi: swapCell.abi,
+        // abi: swapCell.abi,
+        abi: swapCellAbi,
         functionName: "route",
         args: [swapData.srcAmount, swapData.swapSrcTokenAddress, swapData.swapDstTokenAddress, encodedRouteData],
     }

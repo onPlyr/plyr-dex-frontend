@@ -1,7 +1,17 @@
 import { AbiParameter } from "viem"
+import { Abi, AbiParameter } from "viem"
 
-import { cellAbi, dexalotCellAbi, uniV2CellAbi } from "@/app/config/abis"
+import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
+import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
+import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
 import { CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
+
+export const CellTypeAbi: Record<CellType, Abi> = {
+    [CellType.HopOnly]: yakSwapCellAbi,
+    [CellType.YakSwap]: yakSwapCellAbi,
+    [CellType.UniV2]: uniV2CellAbi,
+    [CellType.Dexalot]: dexalotCellAbi,
+} as const
 
 export const cellRouteDataParameters: Record<CellRouteDataParameter, AbiParameter> = {
     [CellRouteDataParameter.MaxSteps]: {
@@ -70,13 +80,11 @@ export const cellTradeDataParameters: Record<CellTradeDataParameter, AbiParamete
 export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
     [CellType.HopOnly]: {
         type: CellType.HopOnly,
-        abi: cellAbi,
         canSwap: false,
         isApiRoute: false,
     },
     [CellType.YakSwap]: {
         type: CellType.YakSwap,
-        abi: cellAbi,
         routeDataParams: [
             CellRouteDataParameter.MaxSteps,
             CellRouteDataParameter.GasPrice,
@@ -97,7 +105,6 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
     },
     [CellType.UniV2]: {
         type: CellType.UniV2,
-        abi: uniV2CellAbi,
         routeDataParams: [
             CellRouteDataParameter.SlippageBips,
         ],
@@ -111,7 +118,6 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
     },
     [CellType.Dexalot]: {
         type: CellType.Dexalot,
-        abi: dexalotCellAbi,
         canSwap: true,
         isApiRoute: true,
     },

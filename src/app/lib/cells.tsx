@@ -1,6 +1,6 @@
 import { AbiParameter, decodeAbiParameters, encodeAbiParameters, Hex, parseUnits, toHex } from "viem"
 
-import { cellRouteDataParameters, cellTradeDataParameters, cellTradeParameters } from "@/app/config/cells"
+import { cellRouteDataParameters, cellTradeDataParameters, cellTradeParameters, CellTypeAbi } from "@/app/config/cells"
 import { defaultGasPriceExponent, defaultMinGasPrice, defaultSlippageBps, tmpMaxSteps, tmpYakSwapFee } from "@/app/config/swaps"
 import { Cell, CellRouteData, CellRouteDataParameter, CellTrade, CellTradeData } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
@@ -19,6 +19,10 @@ export const getCellRouteDataParams = (cell?: Cell) => {
 
 export const getCellRouteDataArgs = (cell?: Cell, routeData?: CellRouteData) => {
     return cell?.routeDataParams !== undefined && cell.routeDataParams.length > 0 && routeData !== undefined ? cell.routeDataParams.map((param) => routeData[param]) : undefined
+}
+
+export const getCellAbi = (cell?: Cell) => {
+    return cell ? CellTypeAbi[cell.type] : undefined
 }
 
 export const getCellRouteData = (chain?: Chain, cell?: Cell, routeData?: CellRouteData, useSlippage?: boolean) => {

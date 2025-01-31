@@ -4,14 +4,15 @@ import { Address, formatUnits, Hash, zeroAddress } from "viem"
 import { hopActionCompletedLabels, hopActionInProgressLabels, hopActionLabels, routeTypeLabels, supportedTeleporterMessengerVersion, SwapStatus, teleporterMessengerContracts, tmpGasBuffer, tmpHopGasEstimate } from "@/app/config/swaps"
 import { getChain, getChainByBlockchainId } from "@/app/lib/chains"
 import { MathBigInt } from "@/app/lib/numbers"
+import { getPlatform } from "@/app/lib/platforms"
 import { getStorageItem, setStorageItem } from "@/app/lib/storage"
+import { toShort } from "@/app/lib/strings"
 import { getToken, getTokenByAddress, getTokenByBridgeAddress } from "@/app/lib/tokens"
 import { Chain, ChainId } from "@/app/types/chains"
 import { StorageDataKey, StorageType } from "@/app/types/storage"
 import { BaseSwapData, BaseSwapDataJson, HopAction, Route, RouteType, SelectedSwapData, Swap, SwapEvent, SwapHop, SwapJson, TeleporterMessengerVersion } from "@/app/types/swaps"
 import { Token, TokenId } from "@/app/types/tokens"
-import { getPlatform } from "./platforms"
-import { toShort } from "./strings"
+
 
 export const getPercentBalance = ({
     token,

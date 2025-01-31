@@ -80,7 +80,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                address: "0x605E3f6239066f350C6497241d2cA285061dd095",
+                address: "0x5e30439FDD999686ccbb22a59bfedD05b6bFe1C3",
             },
             // {
             //     ...cellTypeDefinitions[CellType.Dexalot],

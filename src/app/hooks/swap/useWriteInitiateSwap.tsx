@@ -1,7 +1,7 @@
 import { Address, TransactionReceipt, zeroAddress } from "viem"
 
-import { cellAbi } from "@/app/config/abis"
 import useWriteTransaction from "@/app/hooks/txs/useWriteTransaction"
+import { getCellAbi } from "@/app/lib/cells"
 import { getRouteInstructions } from "@/app/lib/routes"
 import { Chain } from "@/app/types/chains"
 import { Route } from "@/app/types/swaps"
@@ -22,17 +22,16 @@ const useWriteInitiateSwap = ({
     _enabled?: boolean,
 }) => {
 
+    const abi = getCellAbi(route?.srcCell)
     const instructions = getRouteInstructions((destinationAddress ? destinationAddress : accountAddress), route)
-    const enabled = _enabled !== false && connectedChain !== undefined && accountAddress !== undefined && route !== undefined && route.initiateTx === undefined && instructions !== undefined && connectedChain.id === route.srcChain.id
+    const enabled = _enabled !== false && connectedChain !== undefined && accountAddress !== undefined && route !== undefined && abi !== undefined && route.initiateTx === undefined && instructions !== undefined && connectedChain.id === route.srcChain.id
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
             chainId: route?.srcChain.id,
             account: accountAddress,
             address: route?.srcCell.address,
-            // todo: come back to this, univ2 cell doesn't seem to accept value
-            // abi: route?.srcCell.abi,
-            abi: cellAbi,
+            abi: abi,
             functionName: "initiate",
             args: [route?.srcToken.address || zeroAddress, route?.srcAmount || BigInt(0), instructions!],
             value: route?.srcToken.isNative ? route?.srcAmount : undefined,

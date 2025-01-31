@@ -5,7 +5,10 @@ import { getContractEvents } from "viem/actions"
 import { serialize, useBlock, useWaitForTransactionReceipt } from "wagmi"
 import { getBlock, getClient, getTransactionReceipt } from "@wagmi/core"
 
-import { depositWithdrawNativeAbi, teleporterMessengerAbi } from "@/app/config/abis"
+import { yakAdapterAbi } from "@/app/abis/adapters/yakAdapter"
+import { uniV2AdapterAbi } from "@/app/abis/adapters/uniV2Adapter"
+import { teleporterMessengerAbi } from "@/app/abis/teleporter/messenger"
+import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
 import { SwapStatus } from "@/app/config/swaps"
 import { wagmiConfig } from "@/app/config/wagmi"
 import useSwapData from "@/app/hooks/swap/useSwapData"
@@ -18,113 +21,10 @@ import { Chain } from "@/app/types/chains"
 import { BaseSwapData, BridgeType, RouteType, Swap, SwapEvent, SwapHop, SwapQuery, SwapQueryResult } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
 
-const initiatedAbi = [
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "sender",
-                "type": "address",
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "token",
-                "type": "address",
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256",
-            }
-        ],
-        "name": "Initiated",
-        "type": "event",
-    },
-] as const
-
-const yakAdapterSwapAbi = [
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "_tokenFrom",
-                "type": "address",
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "_tokenTo",
-                "type": "address",
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "_amountIn",
-                "type": "uint256",
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "_amountOut",
-                "type": "uint256"
-            }
-        ],
-        "name": "YakAdapterSwap",
-        "type": "event",
-    },
-] as const
-
-const uniV2SwapAbi = [
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "name": "sender",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "amount0In",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "amount1In",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "amount0Out",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "amount1Out",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "to",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            }
-        ],
-        "name": "Swap",
-        "type": "event",
-    },
-] as const
+import { getCellAbi } from "@/app/lib/cells"
+const maxNumRetries = 3
+const defaultRetryDelay = 2000
+const maxRetryDelay = 4000
 
 const getIsPreviousToken = (tokenAddress: Address, chain: Chain, prevToken: Token) => {
     const token = getTokenByAddress(tokenAddress, chain)
@@ -156,7 +56,7 @@ const getHopEvents = ({
 
     const hopEvents = storedEventData?.filter((event) => event.hopIndex === hopData.index)
     const yakSwapLogs = parseEventLogs({
-        abi: yakAdapterSwapAbi,
+        abi: yakAdapterAbi,
         logs: txReceipt.logs,
         eventName: "YakAdapterSwap",
     })
@@ -203,7 +103,7 @@ const getHopEvents = ({
     if (events.length === 0 && hopData.srcData.amount) {
 
         const uniV2SwapLogs = parseEventLogs({
-            abi: uniV2SwapAbi,
+            abi: uniV2AdapterAbi,
             logs: txReceipt.logs,
             eventName: "Swap",
         })
@@ -357,7 +257,7 @@ const getHopAndEventData = ({
         else if (srcData.token.isNative && srcData.token.wrappedAddress) {
 
             const srcWithdrawalLog = parseEventLogs({
-                abi: depositWithdrawNativeAbi,
+                abi: nativeDepositWithdrawAbi,
                 logs: txReceipt.logs,
                 eventName: "Withdrawal",
             }).find((log) => isAddressEqual(log.address, srcData.token.wrappedAddress!))
@@ -397,7 +297,7 @@ const getHopAndEventData = ({
                 else if (dstData.token.isNative && dstData.token.wrappedAddress) {
 
                     const depositLog = parseEventLogs({
-                        abi: depositWithdrawNativeAbi,
+                        abi: nativeDepositWithdrawAbi,
                         logs: txReceipt.logs,
                         eventName: "Deposit",
                     }).findLast((log) => isAddressEqual(log.address, dstData.token.wrappedAddress!))
@@ -455,7 +355,7 @@ const getHopAndEventData = ({
                 if (nativeDstToken && nativeDstToken.wrappedAddress) {
 
                     const withdrawalLog = parseEventLogs({
-                        abi: depositWithdrawNativeAbi,
+                        abi: nativeDepositWithdrawAbi,
                         logs: txReceipt.logs,
                         eventName: "Withdrawal",
                     }).findLast((log) => isAddressEqual(log.address, nativeDstToken.wrappedAddress!))
@@ -486,10 +386,12 @@ const getHopAndEventData = ({
     }
 }
 
-const getSwapQueryResultError = (result: SwapQueryResult, error: React.ReactNode) => {
+const getSwapQueryResultError = (result: SwapQueryResult, error: React.ReactNode, isRetry?: boolean, retryDelay?: number) => {
     return {
         ...result,
         error: error,
+        isRetry: isRetry,
+        retryDelay: retryDelay,
     } as SwapQueryResult
 }
 
@@ -515,6 +417,7 @@ const useSwapDetails = ({
     const [isRefetch, setIsRefetch] = useState(false)
     const [queryStatus, setQueryStatus] = useState<QueryStatus>()
     const [nextSwapQuery, setNextSwapQuery] = useState<SwapQuery>()
+    const [retryNum, setRetryNum] = useState(0)
 
     useEffect(() => {
         setSwap(getSwap(chain, txHash))
@@ -523,7 +426,7 @@ const useSwapDetails = ({
     }, [enabled, chain, txHash])
 
     const initiateHop = swap?.hops[0]
-    const isFetchInitiate = !swap || swap.status !== SwapStatus.Success || !initiateHop || !initiateHop.dstData || !initiateHop.txHash || initiateHop.txHash !== txHash || initiateHop.status !== SwapStatus.Success
+    const isFetchInitiate = isRefetch || !swap || swap.status !== SwapStatus.Success || !initiateHop || !initiateHop.dstData || !initiateHop.txHash || initiateHop.txHash !== txHash || initiateHop.status !== SwapStatus.Success
     const { data: initiateTxReceipt, refetch: refetchInitiateTxReceipt } = useWaitForTransactionReceipt({
         chainId: chain?.id,
         hash: txHash,
@@ -595,6 +498,12 @@ const useSwapDetails = ({
             return getSwapQueryResultError(result, `No ${!chain ? "chain" : !txReceipt ? "tx receipt" : "block"} found`)
         }
 
+        const txCell = txReceipt.to ? chain.cells.find((cell) => isAddressEqual(cell.address, txReceipt.to!)) : undefined
+        const initiatedAbi = getCellAbi(txCell)
+        if (!txCell || !initiatedAbi) {
+            return getSwapQueryResultError(result, `No ${!txCell ? "cell" : "abi"} found`)
+        }
+
         const initiatedLog = parseEventLogs({
             abi: initiatedAbi,
             logs: txReceipt.logs,
@@ -606,6 +515,8 @@ const useSwapDetails = ({
             return getSwapQueryResultError(result, "No initiate logs found")
         }
 
+        // todo: lint warnings, but causes no issues
+        // todo: instructions now emitted in logs, use to build full swap structure
         const { token: srcTokenAddress, amount: srcAmount, sender: accountAddress } = initiatedLog.args
 
         const hopSrcData = getBaseSwapData({
@@ -697,13 +608,15 @@ const useSwapDetails = ({
 
         let txReceipt = isRefetch ? undefined : hopQuery.hopData.txReceipt
         let txTimestamp = isRefetch ? undefined : hopQuery.hopData.timestamp
+        let retryDelay: number | undefined = undefined
 
         if (!txReceipt || !txTimestamp) {
 
-            const { estimatedBlock, targetTimestampSeconds, latestBlock } = await getEstimatedBlockFromTimestamp({
+            const { estimatedBlock, targetTimestampSeconds, avgBlockTimeSeconds, latestBlock } = await getEstimatedBlockFromTimestamp({
                 chain: srcChain,
                 timestamp: new Date(hopQuery.originTimestamp),
             })
+            retryDelay = avgBlockTimeSeconds * 1000
 
             const isEstPrevious = estimatedBlock.timestamp < targetTimestampSeconds
             const chunkSize = BigInt(srcChain.clientData.maxQueryChunkSize)
@@ -778,7 +691,7 @@ const useSwapDetails = ({
         if (!txReceipt || !txTimestamp) {
             // todo: error handling
             result.swapData = hopQuery.swapData
-            return getSwapQueryResultError(result, !txReceipt ? "No tx receipt found" : "No block found")
+            return getSwapQueryResultError(result, !txReceipt ? "No tx receipt found" : "No block found", true, retryDelay)
         }
 
         // todo: msg failed handling
@@ -841,6 +754,15 @@ const useSwapDetails = ({
 
     }, [enabled, isRefetch, messengerAddress])
 
+    const retrySwapQuery = useCallback((query: SwapQuery, delay?: number) => {
+        if (enabled && retryNum < maxNumRetries) {
+            setTimeout(() => {
+                setNextSwapQuery(query)
+                setRetryNum(retryNum + 1)
+            }, Math.min(maxRetryDelay, delay || defaultRetryDelay))
+        }
+    }, [enabled, retryNum, maxNumRetries, defaultRetryDelay, maxRetryDelay, setNextSwapQuery, setRetryNum])
+
     useEffect(() => {
 
         if (enabled && initiateTxReceipt && initiateTxBlock) {
@@ -866,7 +788,7 @@ const useSwapDetails = ({
         if (enabled && nextSwapQuery) {
             getHopQueryResult(nextSwapQuery).then((result) => {
 
-                const { swapData, nextHopQuery, error } = result
+                const { swapData, nextHopQuery, error, isRetry, retryDelay } = result
 
                 if (error) {
                     console.log(`>>>>>>>>>>>>>>>>>> useSwapDetails ERROR: ${error}`)
@@ -875,6 +797,9 @@ const useSwapDetails = ({
                 setSwap(swapData)
                 setNextSwapQuery(nextHopQuery)
                 setQueryStatus(error ? "error" : nextHopQuery ? "pending" : "success")
+                if (isRetry && !nextHopQuery) {
+                    retrySwapQuery(nextSwapQuery, retryDelay)
+                }
             })
         }
         else if (isRefetch) {
@@ -898,7 +823,7 @@ const useSwapDetails = ({
         }
 
         if (swap) {
-            console.log(`>>> useSwapDetails swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${queryStatus}`)
+            console.log(`>>> useSwapDetails swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${queryStatus} / retryNum: ${retryNum}`)
             swap.hops.forEach((hop, i) => {
                 console.log(`   >>> useSwapDetails hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
             })
@@ -920,6 +845,7 @@ const useSwapDetails = ({
 
     return {
         data: swap,
+        status: queryStatus,
         refetch: refetch,
     }
 }
