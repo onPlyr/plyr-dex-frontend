@@ -1,4 +1,3 @@
-import { AbiParameter } from "viem"
 import { Abi, AbiParameter } from "viem"
 
 import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
