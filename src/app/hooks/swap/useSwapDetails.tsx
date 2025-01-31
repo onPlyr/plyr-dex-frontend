@@ -517,6 +517,7 @@ const useSwapDetails = ({
 
         // todo: lint warnings, but causes no issues
         // todo: instructions now emitted in logs, use to build full swap structure
+        // @ts-ignore
         const { token: srcTokenAddress, amount: srcAmount, sender: accountAddress } = initiatedLog.args
 
         const hopSrcData = getBaseSwapData({
