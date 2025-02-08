@@ -1,5 +1,5 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 import { QueryStatus } from "@tanstack/react-query"
 
@@ -13,7 +13,7 @@ export interface ReviewRouteButtonProps extends React.ComponentPropsWithoutRef<t
     queryStatus?: QueryStatus,
 }
 
-export const ReviewRouteButton = React.forwardRef<React.ElementRef<typeof Button>, ReviewRouteButtonProps>(({
+export const ReviewRouteButton = React.forwardRef<React.ComponentRef<typeof Button>, ReviewRouteButtonProps>(({
     className,
     err,
     isConnectWalletErr,

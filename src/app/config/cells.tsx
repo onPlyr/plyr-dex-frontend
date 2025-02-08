@@ -1,8 +1,8 @@
 import { Abi, AbiParameter } from "viem"
 
-import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
-import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
 import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
+import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
+import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
 import { CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
 
 export const CellTypeAbi: Record<CellType, Abi> = {

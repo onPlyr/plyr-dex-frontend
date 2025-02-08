@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import { FavouriteIcon, FavouriteIconVariant } from "@/app/components/icons/FavouriteIcon"
@@ -11,7 +11,7 @@ interface FavouriteTokenDetailProps extends React.ComponentPropsWithoutRef<"div"
     token: Token,
 }
 
-export const FavouriteTokenDetail = React.forwardRef<React.ElementRef<typeof SelectItem>, FavouriteTokenDetailProps>(({
+export const FavouriteTokenDetail = React.forwardRef<React.ComponentRef<typeof SelectItem>, FavouriteTokenDetailProps>(({
     className,
     token,
     ...props

@@ -3,8 +3,13 @@ import { Address, TransactionReceipt, zeroAddress } from "viem"
 import useWriteTransaction from "@/app/hooks/txs/useWriteTransaction"
 import { getCellAbi } from "@/app/lib/cells"
 import { getRouteInstructions } from "@/app/lib/routes"
+import { getRouteTypeLabel } from "@/app/lib/swaps"
+import { getTxActionMsg } from "@/app/lib/txs"
+import { getStatusLabel } from "@/app/lib/utils"
 import { Chain } from "@/app/types/chains"
-import { Route } from "@/app/types/swaps"
+import { NotificationType } from "@/app/types/notifications"
+import { Route, RouteType } from "@/app/types/swaps"
+import { TxAction, TxNotificationType } from "@/app/types/txs"
 
 const useWriteInitiateSwap = ({
     connectedChain,
@@ -40,6 +45,18 @@ const useWriteInitiateSwap = ({
             },
         },
         onConfirmation: onConfirmation,
+        notifications: {
+            type: NotificationType.Swap,
+            msgs: {
+                [TxNotificationType.Submitted]: {
+                    header: route ? `${getRouteTypeLabel(route.type)} ${getStatusLabel("pending")}` : undefined,
+                    body: route ? `${getTxActionMsg(route.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, true)} to ${route.dstToken.symbol} on ${route.dstChain.name}.` : undefined,
+                },
+                [TxNotificationType.Success]: {
+                    ignore: true,
+                },
+            },
+        },
         _enabled: enabled,
     })
 

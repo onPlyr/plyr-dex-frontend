@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import CloseIcon from "@/app/components/icons/CloseIcon"
@@ -12,7 +12,7 @@ interface SearchInputProps extends React.ComponentPropsWithoutRef<typeof TextInp
     clearValue?: () => void,
 }
 
-const SearchInput = React.forwardRef<React.ElementRef<typeof TextInput>, SearchInputProps>(({
+const SearchInput = React.forwardRef<React.ComponentRef<typeof TextInput>, SearchInputProps>(({
     className,
     handleInput,
     clearValue,

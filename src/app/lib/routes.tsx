@@ -63,7 +63,6 @@ export const getRouteInstructions = (destinationAddress?: Address, route?: Route
 }
 
 export const getSwapQuoteTokenAddress = (chain: Chain, token: Token) => {
-    // return token.isNative && token.wrappedToken ? getWrappedTokenVariant(token, chain)?.address : token.chainId === chain.id ? token.address : getToken(token.id, chain)?.address
     const swapQuoteToken = chain.id === token.chainId ? token : getToken(token.id, chain)
     return swapQuoteToken?.isNative && swapQuoteToken.wrappedAddress ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
 }
@@ -76,7 +75,6 @@ export const getSwapQuoteTokenAddresses = (srcChain: Chain, srcToken: Token, dst
 }
 
 export const getIsHopOnlyRoute = (srcToken: Token, dstToken: Token, bridgeRoute: BridgeRoute) => {
-    // return getIsTokenOrVariant(srcToken, bridgeRoute.srcToken) && getIsTokenOrVariant(dstToken, bridgeRoute.dstToken) ? true : false
     return srcToken.id === bridgeRoute.srcToken.id && dstToken.id === bridgeRoute.dstToken.id
 }
 
@@ -1018,7 +1016,6 @@ export const getSwapQuery = (data: HopQuoteData, cellRouteData?: CellRouteData, 
     const query: RouteQuery = {
         chainId: swapChain.id,
         address: swapCell.address,
-        // abi: swapCell.abi,
         abi: swapCellAbi,
         functionName: "route",
         args: [swapData.srcAmount, swapData.swapSrcTokenAddress, swapData.swapDstTokenAddress, encodedRouteData],

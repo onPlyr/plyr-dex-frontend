@@ -1,7 +1,7 @@
 "use client"
  
 import { AnimatePresence } from "motion/react"
-import * as React from "react"
+import React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import { twMerge } from "tailwind-merge"
 
@@ -20,7 +20,7 @@ interface PopoverProps extends React.ComponentPropsWithoutRef<typeof PopoverPrim
     delays?: AnimationDelays,
 }
 
-const PopoverTrigger = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>>(({
+const PopoverTrigger = React.forwardRef<React.ComponentRef<typeof PopoverPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>>(({
     className,
     asChild,
     ...props
@@ -45,7 +45,7 @@ const PopoverPortal = ({
 )
 PopoverPortal.displayName = PopoverPrimitive.Portal.displayName
 
-const PopoverClose = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Close>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Close>>(({
+const PopoverClose = React.forwardRef<React.ComponentRef<typeof PopoverPrimitive.Close>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Close>>(({
     className,
     children,
     ...props
@@ -60,7 +60,7 @@ const PopoverClose = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.C
 ))
 PopoverClose.displayName = PopoverPrimitive.Close.displayName
 
-const PopoverContent = React.forwardRef<React.ElementRef<typeof PopoverPrimitive.Content>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>>(({
+const PopoverContent = React.forwardRef<React.ComponentRef<typeof PopoverPrimitive.Content>, React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>>(({
     children,
     className,
     asChild,

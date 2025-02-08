@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import * as ProgressPrimitive from "@radix-ui/react-progress"
 import { twMerge } from "tailwind-merge"
 
@@ -102,7 +102,7 @@ interface ProgressIndicatorProps extends React.ComponentPropsWithoutRef<typeof P
     value?: number,
 }
 
-export const ProgressIndicator = React.forwardRef<React.ElementRef<typeof ProgressPrimitive.Indicator>, ProgressIndicatorProps>(({
+export const ProgressIndicator = React.forwardRef<React.ComponentRef<typeof ProgressPrimitive.Indicator>, ProgressIndicatorProps>(({
     className,
     value,
     ...props
@@ -129,7 +129,7 @@ interface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPr
     checkpoints?: ProgressCheckpointProps[],
 }
 
-export const Progress = React.forwardRef<React.ElementRef<typeof ProgressPrimitive.Root>, ProgressProps>(({
+export const Progress = React.forwardRef<React.ComponentRef<typeof ProgressPrimitive.Root>, ProgressProps>(({
     className,
     indicatorContainerClass,
     labelContainerClass,

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import ExternalLinkIcon from "@/app/components/icons/ExternalLinkIcon"
@@ -13,7 +13,7 @@ interface ExternalLinkProps extends React.ComponentPropsWithoutRef<typeof Link> 
     replaceClass?: boolean,
 }
 
-const ExternalLink = React.forwardRef<React.ElementRef<typeof Link>, ExternalLinkProps>(({
+const ExternalLink = React.forwardRef<React.ComponentRef<typeof Link>, ExternalLinkProps>(({
     children,
     className,
     iconSize,

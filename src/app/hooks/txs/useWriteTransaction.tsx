@@ -1,33 +1,44 @@
 import React, { useCallback, useEffect, useState } from "react"
-import { Hash, TransactionReceipt } from "viem"
+import { Hash, toHex, TransactionReceipt, zeroAddress } from "viem"
 import { useAccount, useSimulateContract, UseSimulateContractParameters, useWriteContract, UseWriteContractReturnType } from "wagmi"
 import { waitForTransactionReceipt } from "@wagmi/core"
 
+import { TxNotificationMsgs } from "@/app/config/txs"
 import { wagmiConfig } from "@/app/config/wagmi"
-import useToast from "@/app/hooks/toast/useToast"
+import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { getChain } from "@/app/lib/chains"
 import { getParsedError } from "@/app/lib/utils"
+import { NotificationStatus, NotificationStatusType, NotificationType } from "@/app/types/notifications"
+import { TxNotificationMsg, TxNotificationType } from "@/app/types/txs"
 
 const defaultConfirmations = 1
 
-enum TxMsgType {
-    Success = "success",
-    Info = "info",
-    Error = "error",
+type MsgData = {
+    [key in TxNotificationType]?: TxNotificationMsg
 }
 
-interface TxMsg {
-    header: React.ReactNode,
-    msg: React.ReactNode,
-    type: TxMsgType,
-    isMsgOnly?: boolean,
+type NotificationData = {
+    type?: NotificationType,
+    msgs?: MsgData,
+}
+
+type NotificationMsgs = Record<TxNotificationType, TxNotificationMsg>
+
+const getTransactionNotificationData = (data?: MsgData) => {
+    const msgs: MsgData = {}
+    for (const type of Object.values(TxNotificationType)) {
+        msgs[type] = {
+            header: data?.[type]?.header ?? TxNotificationMsgs[type].header,
+            body: data?.[type]?.body ?? TxNotificationMsgs[type].body,
+            ignore: data?.[type]?.ignore ?? TxNotificationMsgs[type].ignore,
+        }
+    }
+    return msgs as NotificationMsgs
 }
 
 type UseWriteTransactionReturnType = Omit<UseWriteContractReturnType, "writeContract" | "writeContractAsync"> & {
     writeTransaction: () => void,
     txReceipt?: TransactionReceipt,
-    simulateMsg?: TxMsg,
-    txMsg?: TxMsg,
     isInProgress: boolean,
 }
 
@@ -35,18 +46,17 @@ const useWriteTransaction = ({
     params,
     confirmations,
     onConfirmation,
+    notifications,
     _enabled = true,
 }: {
     params: UseSimulateContractParameters,
     confirmations?: number,
     onConfirmation?: (receipt?: TransactionReceipt) => void,
+    notifications?: NotificationData,
     _enabled?: boolean,
 }): UseWriteTransactionReturnType => {
 
-    // todo: replace generic toasts with specific tx status component
-    // todo: add tx name / description or similar to pass to hook and display in messages
-
-    const { addToast } = useToast()
+    const { setNotification } = useNotifications()
     const { address: accountAddress, chainId: connectedChainId } = useAccount()
     const connectedChain = connectedChainId ? getChain(connectedChainId) : undefined
     const txChain = params.chainId ? getChain(params.chainId) : undefined
@@ -61,76 +71,84 @@ const useWriteTransaction = ({
         },
     })
     const [isInProgress, setIsInProgress] = useState(false)
-    const [simulateMsg, setSimulateMsg] = useState<TxMsg>()
-    const [txMsg, setTxMsg] = useState<TxMsg>()
     const [txReceipt, setTxReceipt] = useState<TransactionReceipt>()
     const wagmiWriteContract = useWriteContract(params)
 
-    useEffect(() => {
+    const notificationType = notifications?.type ?? NotificationType.Transaction
+    const notificationData = getTransactionNotificationData(notifications?.msgs)
 
-        let msgData: TxMsg | undefined = undefined
-
-        if (enabled) {
-            if (simulateError) {
-                msgData = {
-                    header: "Simulation Error",
-                    msg: getParsedError(simulateError),
-                    type: TxMsgType.Error,
-                }
-            }
-            else if (simulateFailureReason) {
-                msgData = {
-                    header: "Simulation Failed",
-                    msg: getParsedError(simulateFailureReason),
-                    type: TxMsgType.Error,
-                }
-            }
-            else if (simulateStatus !== "pending" && simulateData === undefined) {
-                msgData = {
-                    header: "Unknown Simulation Error",
-                    msg: "The transaction simulation failed to return any data.",
-                    type: TxMsgType.Error,
-                }
-            }
-        }
-
-        setSimulateMsg(msgData)
-
-    }, [enabled, simulateError, simulateFailureReason, simulateStatus, simulateData])
-
-    useEffect(() => {
-        if (simulateMsg && !simulateMsg.isMsgOnly) {
-            addToast({
-                header: simulateMsg.header,
-                description: simulateMsg.msg,
+    const setTransactionNotification = useCallback(({
+        id,
+        type,
+        status,
+        replaceBody,
+        txHash,
+    }: {
+        id: Hash,
+        type: TxNotificationType,
+        status: NotificationStatusType,
+        replaceBody?: React.ReactNode,
+        txHash?: Hash,
+    }) => {
+        const { header, body, ignore } = notificationData[type]
+        if (!ignore) {
+            setNotification({
+                id: id,
+                type: notificationType,
+                header: header,
+                body: replaceBody ?? body,
+                status: status,
+                txHash: txHash,
             })
         }
-    }, [simulateMsg])
+    }, [setNotification, notificationType, notificationData])
+
+    useEffect(() => {
+        if (enabled) {
+            if (simulateFailureReason) {
+                setTransactionNotification({
+                    id: zeroAddress,
+                    type: TxNotificationType.SimulateFailed,
+                    status: NotificationStatus.Error,
+                    replaceBody: getParsedError(simulateFailureReason),
+                })
+            }
+            else if (simulateError || (simulateStatus !== "pending" && simulateData === undefined)) {
+                setTransactionNotification({
+                    id: zeroAddress,
+                    type: TxNotificationType.SimulateError,
+                    status: NotificationStatus.Error,
+                    replaceBody: simulateError ? getParsedError(simulateError) : undefined,
+                })
+            }
+        }
+    }, [enabled, simulateError, simulateFailureReason, simulateStatus, simulateData])
 
     const writeTransaction = useCallback(async () => {
 
         let txHash: Hash | undefined = undefined
         let txReceipt: TransactionReceipt | undefined = undefined
+        const notificationId = toHex(window.crypto.randomUUID())
 
-        if (!enabled || !simulateData || simulateMsg) {
+        if (!enabled || !simulateData) {
             return
         }
 
         try {
 
             setIsInProgress(true)
-            setTxMsg({
-                header: "Awaiting User Confirmation",
-                msg: "Please confirm the transaction in your wallet.",
-                type: TxMsgType.Info,
+            setTransactionNotification({
+                id: notificationId,
+                type: TxNotificationType.Pending,
+                status: NotificationStatus.Pending,
             })
 
             txHash = await wagmiWriteContract.writeContractAsync(simulateData.request)
-
-            setTxMsg({
-                header: "Transaction Submitted",
-                msg: "Awaiting confirmation that the transaction has completed.",
-                type: TxMsgType.Info,
+            setTransactionNotification({
+                id: notificationId,
+                type: TxNotificationType.Submitted,
+                status: NotificationStatus.Pending,
+                txHash: txHash,
             })
 
             txReceipt = await waitForTransactionReceipt(wagmiConfig, {
@@ -144,20 +162,23 @@ const useWriteTransaction = ({
                 throw new Error("Transaction Reverted")
             }
 
-            setTxMsg({
-                header: "Transaction Complete",
-                msg: "Your transaction has completed successfully.",
-                type: TxMsgType.Success,
+            setTransactionNotification({
+                id: notificationId,
+                type: TxNotificationType.Success,
+                status: NotificationStatus.Success,
+                txHash: txHash,
             })
 
             onConfirmation?.(txReceipt)
         }
 
         catch (err: unknown) {
-            setTxMsg({
-                header: txReceipt && txReceipt.status === "reverted" ? "Transaction Reverted" : "Error Executing Transaction",
-                msg: getParsedError(err),
-                type: TxMsgType.Error,
+            setTransactionNotification({
+                id: notificationId,
+                type: txReceipt?.status === "reverted" ? TxNotificationType.Reverted : TxNotificationType.Error,
+                status: NotificationStatus.Error,
+                replaceBody: err ? getParsedError(err) : undefined,
+                txHash: txHash,
             })
         }
 
@@ -165,23 +186,12 @@ const useWriteTransaction = ({
             setIsInProgress(false)
         }
 
-    }, [enabled, simulateMsg, simulateData, setTxMsg, setTxReceipt, wagmiWriteContract.writeContractAsync, receiptConfirmations, onConfirmation, setIsInProgress])
-
-    useEffect(() => {
-        if (txMsg) {
-            addToast({
-                header: txMsg.header,
-                description: txMsg.msg,
-            })
-        }
-    }, [txMsg])
+    }, [enabled, simulateData, setTransactionNotification, setTxReceipt, wagmiWriteContract.writeContractAsync, receiptConfirmations, onConfirmation, setIsInProgress])
 
     return {
         ...wagmiWriteContract,
         writeTransaction: writeTransaction,
         txReceipt: txReceipt,
-        simulateMsg: simulateMsg,
-        txMsg: txMsg,
         isInProgress: isInProgress,
     }
 }

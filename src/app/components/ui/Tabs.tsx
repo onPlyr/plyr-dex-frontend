@@ -1,9 +1,9 @@
-import * as TabsPrimitive from "@radix-ui/react-tabs"
 import { motion } from "motion/react"
-import * as React from "react"
+import React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
 import { twMerge } from "tailwind-merge"
 
-export const TabsContainer = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(({
+export const TabsContainer = React.forwardRef<React.ComponentRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(({
     className,
     orientation = "horizontal",
     ...props
@@ -17,7 +17,7 @@ export const TabsContainer = React.forwardRef<React.ElementRef<typeof TabsPrimit
 ))
 TabsContainer.displayName = TabsPrimitive.Root.displayName
 
-export const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.List>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>>(({
+export const TabsList = React.forwardRef<React.ComponentRef<typeof TabsPrimitive.List>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>>(({
     className,
     ...props
 }, ref) => (
@@ -29,7 +29,7 @@ export const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.L
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
 
-export const TabIndicator = React.forwardRef<React.ElementRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+export const TabIndicator = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
     className,
     layoutId,
     ...props
@@ -43,7 +43,7 @@ export const TabIndicator = React.forwardRef<React.ElementRef<typeof motion.div>
 ))
 TabIndicator.displayName = "TabIndicator"
 
-export const TabTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>>(({
+export const TabTrigger = React.forwardRef<React.ComponentRef<typeof TabsPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>>(({
     className,
     ...props
 }, ref) => (
@@ -55,7 +55,7 @@ export const TabTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive
 ))
 TabTrigger.displayName = TabsPrimitive.Trigger.displayName
 
-export const TabContent = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Content>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>>(({
+export const TabContent = React.forwardRef<React.ComponentRef<typeof TabsPrimitive.Content>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>>(({
     className,
     asChild = true,
     ...props

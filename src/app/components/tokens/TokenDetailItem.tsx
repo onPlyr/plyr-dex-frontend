@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
@@ -16,7 +16,7 @@ export interface TokenDetailItemProps extends React.ComponentPropsWithoutRef<typ
     showFavourites?: boolean,
 }
 
-export const TokenDetailItem = React.forwardRef<React.ElementRef<typeof SelectItem>, TokenDetailItemProps>(({
+export const TokenDetailItem = React.forwardRef<React.ComponentRef<typeof SelectItem>, TokenDetailItemProps>(({
     token,
     showFavourites = true,
     ...props

@@ -3,7 +3,7 @@ import { BaseError, ContractFunctionRevertedError } from "viem"
 
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import { iconSizes } from "@/app/config/styling"
-import { statusLabels } from "@/app/config/txs"
+import { TxStatusLabel } from "@/app/config/txs"
 
 export const isEqualObj = (objA?: object, objB?: object) => {
     if (objA === undefined && objB === undefined) {
@@ -16,7 +16,7 @@ export const isEqualObj = (objA?: object, objB?: object) => {
 }
 
 export const getStatusLabel = (status: QueryStatus) => {
-    return statusLabels[status]
+    return TxStatusLabel[status]
 }
 
 export const getErrorToastData = ({

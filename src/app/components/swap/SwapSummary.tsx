@@ -23,7 +23,7 @@ interface SwapSummaryProps extends React.ComponentPropsWithoutRef<typeof SelectI
     backUrl?: `/${string}`,
 }
 
-const SwapSummary = React.forwardRef<React.ElementRef<typeof SelectItem>, SwapSummaryProps>(({
+const SwapSummary = React.forwardRef<React.ComponentRef<typeof SelectItem>, SwapSummaryProps>(({
     className,
     route,
     index,

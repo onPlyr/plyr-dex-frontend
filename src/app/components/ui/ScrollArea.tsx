@@ -1,6 +1,6 @@
 "use client"
  
-import * as React from "react"
+import React from "react"
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
 import { twMerge } from "tailwind-merge"
 
@@ -8,7 +8,7 @@ interface ScrollAreaProps extends React.ComponentPropsWithoutRef<typeof ScrollAr
     orientation?: "vertical" | "horizontal",
 }
 
-const ScrollBar = React.forwardRef<React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>, React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>>(({
+const ScrollBar = React.forwardRef<React.ComponentRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>, React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>>(({
     className,
     orientation = "vertical",
     ...props
@@ -29,7 +29,7 @@ const ScrollBar = React.forwardRef<React.ElementRef<typeof ScrollAreaPrimitive.S
 ))
 ScrollBar.displayName = "ScrollBar"
 
-const ScrollArea = React.forwardRef<React.ElementRef<typeof ScrollAreaPrimitive.Root>, ScrollAreaProps>(({
+const ScrollArea = React.forwardRef<React.ComponentRef<typeof ScrollAreaPrimitive.Root>, ScrollAreaProps>(({
     children,
     className,
     orientation = "vertical",

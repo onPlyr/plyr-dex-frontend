@@ -9,7 +9,7 @@ interface SwapProgressBarProps extends React.ComponentPropsWithoutRef<typeof mot
     swap: Swap,
 }
 
-const SwapProgressBar = React.forwardRef<React.ElementRef<typeof motion.div>, SwapProgressBarProps>(({
+const SwapProgressBar = React.forwardRef<React.ComponentRef<typeof motion.div>, SwapProgressBarProps>(({
     className,
     swap,
     initial,

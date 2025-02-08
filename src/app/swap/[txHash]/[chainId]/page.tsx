@@ -22,7 +22,7 @@ import { Page } from "@/app/components/ui/Page"
 import { SwapTab } from "@/app/config/pages"
 import { imgSizes } from "@/app/config/styling"
 import { SwapStatus } from "@/app/config/swaps"
-import useSwapDetails from "@/app/hooks/swap/useSwapDetails"
+import useSwapData from "@/app/hooks/swap/useSwapData"
 import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { getRouteTypeLabel } from "@/app/lib/swaps"
@@ -56,10 +56,8 @@ const SwapDetailPage = ({
         notFound()
     }
 
-    const { data: swap } = useSwapDetails({
-        chain: chain,
-        txHash: txHash,
-    })
+    const { getSwap } = useSwapData()
+    const swap = getSwap(txHash)
 
     // Add to Depositlog //
     const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {

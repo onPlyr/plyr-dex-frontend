@@ -17,7 +17,6 @@ import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { SwapTab } from "@/app/config/pages"
 import { iconSizes } from "@/app/config/styling"
-import { txActionInProgressMessages, txActionMessages } from "@/app/config/txs"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useSwapData from "@/app/hooks/swap/useSwapData"
 import useWriteInitiateSwap from "@/app/hooks/swap/useWriteInitiateSwap"
@@ -26,8 +25,9 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
 import { getChain } from "@/app/lib/chains"
 import { getInitiateSwapErrMsg, getRouteTypeLabel, getSwapFromQuote } from "@/app/lib/swaps"
+import { getTxActionMsg } from "@/app/lib/txs"
 import { RouteType } from "@/app/types/swaps"
-import { TxActionType } from "@/app/types/txs"
+import { TxAction } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
@@ -222,9 +222,8 @@ const ReviewSwapPage = () => {
         _enabled: enabled && !errInitiateSwap && !isSwitchChainRequired && !isApprovalRequired,
     })
 
-    const approvalMsg = isApprovalRequired ? approveIsInProgress ? txActionInProgressMessages[TxActionType.Approve] : txActionMessages[TxActionType.Approve] : undefined
-    const initiateAction = route?.type === RouteType.Bridge ? TxActionType.Bridge : TxActionType.Swap
-    const initiateMsg = initiateIsInProgress ? txActionInProgressMessages[initiateAction] : txActionMessages[initiateAction]
+    const approvalMsg = getTxActionMsg(TxAction.Approve, approveIsInProgress)
+    const initiateMsg = getTxActionMsg(route?.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress)
     const swapActionMsg = errInitiateSwap ?? (isApprovalRequired ? approvalMsg : initiateMsg)
 
     const handleSwitchAndApprove = useCallback(async () => {

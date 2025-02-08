@@ -3,13 +3,13 @@ import { Hash } from "viem"
 
 import { getStorageItem, isStorageAvailable, setStorageItem } from "@/app/lib/storage"
 import { getSwapFromJson, getSwapJsonFromSwap } from "@/app/lib/swaps"
-import { Chain } from "@/app/types/chains"
 import { StorageDataKey, StorageType } from "@/app/types/storage"
 import { Swap, SwapJson } from "@/app/types/swaps"
 
 interface SwapDataContextType {
     data: Swap[],
-    getSwap: (chain?: Chain, txHash?: Hash) => Swap | undefined,
+    pendingData: Hash[],
+    getSwap: (txHash?: Hash) => Swap | undefined,
     addSwap: (swapToAdd?: Swap) => Swap | undefined,
     updateSwap: (swapToUpdate?: Swap) => Swap | undefined,
     refetch: () => void,
@@ -32,6 +32,7 @@ const SwapDataProvider = ({
     const storageAvailable = isStorageAvailable(storageType)
 
     const [swapData, setSwapData] = useState<Swap[]>([])
+    const [pendingSwapData, setPendingSwapData] = useState<Hash[]>([])
 
     const getStoredSwapData = useCallback(() => {
 
@@ -52,27 +53,20 @@ const SwapDataProvider = ({
 
     }, [storageKey, storageType])
 
-    // const clearStoredSwapData = useCallback(() => {
-    //     if (storageAvailable) {
-    //         setStorageItem(storageKey, undefined, storageType)
-    //     }
-    // }, [storageAvailable, storageKey])
-
-    // clearStoredSwapData()
-
     useEffect(() => {
         if (storageAvailable) {
             setSwapData(getStoredSwapData())
         }
     }, [storageAvailable, getStoredSwapData])
 
-    const getSwap = useCallback((chain?: Chain, txHash?: Hash) => {
-        return chain && txHash ? swapData.find((swap) => swap.id.toLowerCase() === txHash.toLowerCase() && swap.srcData.chain.id === chain.id) : undefined
+    const getSwap = useCallback((txHash?: Hash) => {
+        return txHash ? swapData.find((swap) => swap.id.toLowerCase() === txHash.toLowerCase()) : undefined
     }, [swapData])
 
     const updateSwap = useCallback((swapToUpdate?: Swap) => {
 
         if (swapToUpdate) {
+
             setSwapData(sortSwapData([
                 ...swapData.filter((swap) => swap.id !== swapToUpdate.id),
                 swapToUpdate,
@@ -87,7 +81,7 @@ const SwapDataProvider = ({
 
         if (swapToAdd) {
 
-            const existingSwap = getSwap(swapToAdd.srcData.chain, swapToAdd.id)
+            const existingSwap = getSwap(swapToAdd.id)
             if (existingSwap) {
                 updateSwap(swapToAdd)
             }
@@ -110,8 +104,13 @@ const SwapDataProvider = ({
         }
     }, [storageKey, storageType, storageAvailable, swapData])
 
+    useEffect(() => {
+        setPendingSwapData(swapData.filter((swap) => swap.status !== "success").map((swap) => swap.id))
+    }, [swapData])
+
     const context: SwapDataContextType = {
         data: swapData,
+        pendingData: pendingSwapData,
         getSwap: getSwap,
         addSwap: addSwap,
         updateSwap: updateSwap,

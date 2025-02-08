@@ -1,35 +1,37 @@
-import { useCallback, useEffect, useState } from "react"
 import { QueryStatus } from "@tanstack/query-core"
-import { Address, Block, Client, erc20Abi, formatUnits, Hash, isAddressEqual, parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
+import { Address, Client, erc20Abi, Hash, isAddressEqual, parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
 import { getContractEvents } from "viem/actions"
-import { serialize, useBlock, useWaitForTransactionReceipt } from "wagmi"
+import { serialize } from "wagmi"
 import { getBlock, getClient, getTransactionReceipt } from "@wagmi/core"
 
-import { yakAdapterAbi } from "@/app/abis/adapters/yakAdapter"
 import { uniV2AdapterAbi } from "@/app/abis/adapters/uniV2Adapter"
+import { yakAdapterAbi } from "@/app/abis/adapters/yakAdapter"
 import { teleporterMessengerAbi } from "@/app/abis/teleporter/messenger"
 import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
 import { SwapStatus } from "@/app/config/swaps"
 import { wagmiConfig } from "@/app/config/wagmi"
-import useSwapData from "@/app/hooks/swap/useSwapData"
+import { getCellAbi } from "@/app/lib/cells"
 import { getEstimatedBlockFromTimestamp } from "@/app/lib/chains"
-import { formatDuration } from "@/app/lib/datetime"
 import { MathBigInt } from "@/app/lib/numbers"
 import { getBaseSwapData, getTeleporterMessengerAddress } from "@/app/lib/swaps"
 import { getNativeToken, getTokenByAddress } from "@/app/lib/tokens"
+import { getParsedError } from "@/app/lib/utils"
 import { Chain } from "@/app/types/chains"
 import { BaseSwapData, BridgeType, RouteType, Swap, SwapEvent, SwapHop, SwapQuery, SwapQueryResult } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
 
-import { getCellAbi } from "@/app/lib/cells"
-
-import useNotifications from "@/app/hooks/notifications/useNotifications"
-import { Notification, NotificationType } from "@/app/types/notifications"
-import { getStatusLabel } from "@/app/lib/utils"
-
+// todo: move elsewhere to config
 const maxNumRetries = 3
-const defaultRetryDelay = 2000
+const defaultRetryDelay = 1000
 const maxRetryDelay = 4000
+
+// todo: move elsewhere with the other types onces finalised
+export interface SwapStatusResult {
+    swapData?: Swap,
+    status: QueryStatus,
+    isInProgress: boolean,
+    error?: string,
+}
 
 const getIsPreviousToken = (tokenAddress: Address, chain: Chain, prevToken: Token) => {
     const token = getTokenByAddress(tokenAddress, chain)
@@ -320,7 +322,7 @@ const getHopAndEventData = ({
 
         else {
 
-            let transferLog = parseEventLogs({
+            const transferLog = parseEventLogs({
                 abi: erc20Abi,
                 logs: txReceipt.logs,
                 eventName: "Transfer",
@@ -329,29 +331,11 @@ const getHopAndEventData = ({
                 },
             }).findLast((log) => isAddressEqual(log.args.to, accountAddress))
 
-            // Try without args
-            if (!transferLog) {
-                transferLog = parseEventLogs({
-                    abi: erc20Abi,
-                    logs: txReceipt.logs,
-                    eventName: "Transfer",
-                }).findLast((log) => log)
-            }
-
-            // const transferLog = parseEventLogs({
-            //     abi: erc20Abi,
-            //     logs: txReceipt.logs,
-            //     eventName: "Transfer",
-            // }).findLast((log) => log)
-
-
             let dstData = getBaseSwapData({
                 chain: hopData.srcData.chain,
                 tokenAddress: transferLog?.address,
                 amount: transferLog?.args.value,
             })
-
-            //alert('haha')
 
             if (!dstData) {
 
@@ -391,136 +375,212 @@ const getHopAndEventData = ({
     }
 }
 
-const getSwapQueryResultError = (result: SwapQueryResult, error: React.ReactNode, isRetry?: boolean, retryDelay?: number) => {
-    return {
-        ...result,
-        error: error,
-        isRetry: isRetry,
-        retryDelay: retryDelay,
-    } as SwapQueryResult
-}
-
-const useSwapDetails = ({
-    chain,
-    txHash,
-    _enabled,
+const getNextHopQuery = ({
+    swapData,
+    currentHopData,
+    nextHopIndex,
 }: {
-    chain?: Chain,
-    txHash?: Hash,
-    _enabled?: boolean,
+    swapData: Swap,
+    currentHopData: SwapHop,
+    nextHopIndex: number,
 }) => {
 
-    // todo: consider retries / interval between fetches or attempting again
-    // todo: can either remove action from hop types or use it to determine if there should be a next hop, currently unset and unused
+    let query: SwapQuery | undefined = undefined
+    let nextHopData = swapData.hops.length >= nextHopIndex + 1 ? swapData.hops[nextHopIndex] : undefined
 
-    const { getNotification, setNotification } = useNotifications()
-    const { getSwap, updateSwap, addSwap } = useSwapData()
-    const initialSwap = getSwap(txHash)
+    if (!currentHopData.dstData || !currentHopData.sentMsgId || !currentHopData.timestamp) {
+        return query
+    }
+
+    if (!nextHopData || nextHopData.receivedMsgId !== currentHopData.sentMsgId) {
+
+        const srcData = getBaseSwapData({
+            chain: currentHopData.dstData.chain,
+            tokenId: currentHopData.dstData.token.id,
+            amount: currentHopData.dstData.amount,
+        })
+
+        if (srcData) {
+            nextHopData = {
+                ...nextHopData,
+                srcData: srcData,
+                index: nextHopIndex,
+                receivedMsgId: currentHopData.sentMsgId,
+                status: SwapStatus.Pending,
+            }
+        }
+    }
+
+    if (nextHopData) {
+        query = {
+            swapData: swapData,
+            hopData: nextHopData,
+            hopIndex: nextHopIndex,
+            originBlockchainId: currentHopData.srcData.chain.blockchainId,
+            originTimestamp: currentHopData.timestamp,
+        }
+    }
+
+    return query
+}
+
+export const delayRetry = async (delay: number) => {
+    return new Promise(resolve => setTimeout(resolve, delay))
+}
+
+
+
+
+
+
+
+
+export const getSwapStatus = async ({
+    swap,
+}: {
+    swap?: Swap
+}) => {
+
+    // todo: add notifications
+
+    console.log(`>>>>>>>>>>>>>>>>>>>>>>> getSwapStatus START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+
+    const result: SwapStatusResult = {
+        swapData: swap,
+        status: "pending",
+        isInProgress: false,
+    }
     const messengerAddress = getTeleporterMessengerAddress()
-    const enabled = _enabled !== false && chain !== undefined && txHash !== undefined
 
-    const [swap, setSwap] = useState(initialSwap)
-    const [isRefetch, setIsRefetch] = useState(false)
-    const [queryStatus, setQueryStatus] = useState<QueryStatus>()
-    const [nextSwapQuery, setNextSwapQuery] = useState<SwapQuery>()
-    const [retryNum, setRetryNum] = useState(0)
-    const [notificationData, setNotificationData] = useState<Notification>()
+    // todo: error handling / notifications
+    if (!swap || swap.status === SwapStatus.Success) {
+        result.status = swap?.status === SwapStatus.Success ? "success" : "error"
+        return result
+    }
 
-    useEffect(() => {
-        setSwap(getSwap(txHash))
-        setQueryStatus(enabled ? "pending" : undefined)
-        setNextSwapQuery(undefined)
-        setNotificationData(enabled ? getNotification(txHash) : undefined)
-    }, [enabled, chain, txHash])
+    const chain = swap.srcData.chain
 
-    const initiateHop = swap?.hops[0]
-    const isFetchInitiate = isRefetch || !swap || swap.status !== SwapStatus.Success || !initiateHop || !initiateHop.dstData || !initiateHop.txHash || initiateHop.txHash !== txHash || initiateHop.status !== SwapStatus.Success
-    const { data: initiateTxReceipt, refetch: refetchInitiateTxReceipt } = useWaitForTransactionReceipt({
-        chainId: chain?.id,
-        hash: txHash,
-        confirmations: 1,
-        query: {
-            enabled: enabled && (isRefetch || isFetchInitiate),
-        },
-    })
+    try {
 
-    const { data: initiateTxBlock, refetch: refetchInitiateTxBlock } = useBlock({
-        chainId: chain?.id,
-        blockNumber: initiateTxReceipt?.blockNumber,
-        query: {
-            enabled: enabled && (isRefetch || isFetchInitiate) && initiateTxReceipt !== undefined,
-        }
-    })
+        result.isInProgress = true
 
-    console.log(`>>> useSwapDetails chain: ${chain?.name ?? "n/a"} / tx hash: ${txHash ?? "n/a"} / enabled: ${serialize(enabled)} / swap id: ${swap?.id ?? "n/a"} / fetch initiate: ${serialize(isFetchInitiate)} / isRefetch: ${serialize(isRefetch)}`)
+        // todo: rename nextHopQuery to nextSwapQuery for consistency
+        const initiated = await getInitiatedSwapQueryResult({
+            swap: swap,
+            chain: chain,
+            txHash: swap.id,
+        })
 
-    const getNextHopQuery = useCallback((swapData: Swap, currentHopData: SwapHop, nextHopIndex: number) => {
+        let nextSwapQuery = initiated.nextHopQuery
+        let retryNum = 0
 
-        let query: SwapQuery | undefined = undefined
-        let nextHopData = enabled && swapData.hops.length >= nextHopIndex + 1 ? swapData.hops[nextHopIndex] : undefined
+        result.swapData = initiated.swapData
+        result.status = initiated.error ? "error" : nextSwapQuery ? "pending" : "success"
 
-        if (!enabled || !currentHopData.dstData || !currentHopData.sentMsgId || !currentHopData.timestamp) {
-            return query
+        // todo: error handling
+        if (initiated.error) {
+            console.log(`   >>>>>>>>>>>>>>>> getSwapStatus initiated error: ${initiated.error}`)
         }
 
-        if (!nextHopData || nextHopData.receivedMsgId !== currentHopData.sentMsgId) {
+        console.log(`   >>>>>>>>>>>>>>>> getSwapStatus initiated nextSwapQuery: ${nextSwapQuery ? "YES" : "NO"}`)
 
-            const srcData = getBaseSwapData({
-                chain: currentHopData.dstData.chain,
-                tokenId: currentHopData.dstData.token.id,
-                amount: currentHopData.dstData.amount,
+        while (nextSwapQuery && retryNum < maxNumRetries) {
+
+            // setTimeout(() => {
+
+            // }, retryNum > 0 ? Math.min(maxRetryDelay, retryDelay || defaultRetryDelay) : 0)
+
+            const queryResult = await getSwapQueryResult({
+                query: nextSwapQuery,
+                messengerAddress: messengerAddress,
+                // isRefetch: ???,
             })
 
-            if (srcData) {
-                nextHopData = {
-                    ...nextHopData,
-                    srcData: srcData,
-                    index: nextHopIndex,
-                    receivedMsgId: currentHopData.sentMsgId,
-                    status: SwapStatus.Pending,
-                }
+            result.swapData = queryResult.swapData
+            result.status = queryResult.error ? "error" : queryResult.nextHopQuery ? "pending" : "success"
+
+            // todo: error handling
+            if (queryResult.error) {
+                console.log(`      >>>>>>>>>>>>>>>> getSwapStatus queryResult error: ${queryResult.error}`)
             }
-        }
 
-        if (nextHopData) {
-            query = {
-                swapData: swapData,
-                hopData: nextHopData,
-                hopIndex: nextHopIndex,
-                originBlockchainId: currentHopData.srcData.chain.blockchainId,
-                originTimestamp: currentHopData.timestamp,
+            if (queryResult.isRetry && !queryResult.nextHopQuery) {
+                console.log(`   >>>>>>>>>>>>>>>> getSwapStatus IS RETRY: ${retryNum} / delay: ${queryResult.retryDelay || defaultRetryDelay} / isRetry: ${serialize(queryResult.isRetry)} / subsequent nextSwapQuery: ${nextSwapQuery ? "YES" : "NO"}`)
+                await delayRetry(Math.min(maxRetryDelay, queryResult.retryDelay || defaultRetryDelay))
+                retryNum++
             }
+            else {
+                nextSwapQuery = queryResult.nextHopQuery
+            }
+            console.log(`   >>>>>>>>>>>>>>>> getSwapStatus retry: ${retryNum} / subsequent nextSwapQuery: ${nextSwapQuery ? "YES" : "NO"}`)
+        }
+    }
+
+    catch (err) {
+        result.error = getParsedError(err)
+        result.status = "error"
+    }
+
+    finally {
+
+        result.isInProgress = false
+        result.status = result.error ? "error" : result.swapData?.status === SwapStatus.Success ? "success" : "pending"
+
+        // console.log(`>>> getSwapStatus swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${result.status} / error: ${result.error}`)
+        // swap.hops.forEach((hop, i) => {
+        //     console.log(`   >>> getSwapStatus hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
+        // })
+        // swap.events.forEach((event, i) => {
+        //     console.log(`      >>> getSwapStatus event ${i}: ${event.srcData.amount ? formatUnits(event.srcData.amount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData?.amount ? formatUnits(event.dstData.amount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol} (${event.dstData?.chain.name}) / status: ${event.status} / tx hash: ${event.txHash ?? "n/a"}`)
+        // })
+
+        console.log(`>>>>>>>>>>>>>>>>>>>>>>> getSwapStatus END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+    }
+
+    return result
+}
+
+export const getInitiatedSwapQueryResult = async ({
+    swap,
+    chain,
+    txHash,
+}: {
+    swap: Swap,
+    chain: Chain,
+    txHash: Hash,
+}) => {
+
+    const result: SwapQueryResult = {
+        swapData: swap,
+    }
+
+    try {
+
+        const receipt = await getTransactionReceipt(wagmiConfig, {
+            chainId: chain.id,
+            hash: txHash,
+        })
+        const recipient = receipt.to
+
+        if (receipt.status === "reverted" || !recipient) {
+            throw new Error(receipt.status === "reverted" ? "Transaction Reverted" : "No Recipient")
         }
 
-        return query
+        const cell = chain.cells.find((cellData) => isAddressEqual(cellData.address, recipient))
+        const abi = getCellAbi(cell)
 
-    }, [enabled])
-
-    const getInitialSwapData = useCallback((chain?: Chain, txReceipt?: TransactionReceipt, txBlock?: Block) => {
-
-        const result: SwapQueryResult = {}
-        if (!enabled) {
-            return result
-        }
-        else if (!chain || !txReceipt || !txBlock) {
-            return getSwapQueryResultError(result, `No ${!chain ? "chain" : !txReceipt ? "tx receipt" : "block"} found`)
-        }
-
-        const txCell = txReceipt.to ? chain.cells.find((cell) => isAddressEqual(cell.address, txReceipt.to!)) : undefined
-        const initiatedAbi = getCellAbi(txCell)
-        if (!txCell || !initiatedAbi) {
-            return getSwapQueryResultError(result, `No ${!txCell ? "cell" : "abi"} found`)
+        if (!cell || !abi) {
+            throw new Error(!cell ? "No Cell" : "No ABI")
         }
 
         const initiatedLog = parseEventLogs({
-            abi: initiatedAbi,
-            logs: txReceipt.logs,
+            abi: abi,
+            logs: receipt.logs,
             eventName: "Initiated",
         })[0]
 
         if (!initiatedLog) {
-            // todo: error handling if not found
-            return getSwapQueryResultError(result, "No initiate logs found")
+            throw new Error("No Initiated Log")
         }
 
         // todo: lint warnings, but causes no issues
@@ -533,40 +593,44 @@ const useSwapDetails = ({
             tokenAddress: srcTokenAddress,
             amount: srcAmount,
         })
-        const srcData = swap?.srcData ?? hopSrcData
-        if (!srcData) {
-            // todo: error handling
-            return getSwapQueryResultError(result, "Invalid swap and hop src data")
-        }
+
+        const block = await getBlock(wagmiConfig, {
+            chainId: chain.id,
+            blockNumber: receipt.blockNumber,
+        })
+        const blockTimestamp = Number(block.timestamp) * 1000
 
         const { hopData, hopEvents } = getHopAndEventData({
-            swapSrcData: srcData,
+            swapSrcData: swap.srcData,
             hopSrcData: hopSrcData,
             hopIndex: 0,
-            txReceipt: txReceipt,
-            txTimestamp: Number(txBlock.timestamp) * 1000,
-            accountAddress: swap?.destinationAddress ?? accountAddress,
+            txReceipt: receipt,
+            txTimestamp: blockTimestamp,
+            accountAddress: accountAddress,
         })
 
         const swapData: Swap = {
             ...swap,
-            id: txReceipt.transactionHash,
-            srcData: srcData,
-            dstData: swap?.dstData,
+            id: receipt.transactionHash,
             hops: [
                 hopData,
-                ...(swap?.hops ?? []).filter((hop) => hop.index !== hopData.index),
+                ...swap.hops.filter((hop) => hop.index !== hopData.index),
             ],
             events: [
                 ...hopEvents,
-                ...(swap?.events ?? []).filter((event) => event.hopIndex !== hopData.index),
+                ...swap.events.filter((event) => event.hopIndex !== hopData.index),
             ],
             account: accountAddress,
-            status: swap?.status ?? SwapStatus.Pending,
-            timestamp: Number(txBlock.timestamp) * 1000,
+            status: swap.status ?? SwapStatus.Pending,
+            timestamp: blockTimestamp,
         }
 
-        const nextHopQuery = getNextHopQuery(swapData, hopData, 1)
+        const nextHopQuery = getNextHopQuery({
+            swapData: swapData,
+            currentHopData: hopData,
+            nextHopIndex: 1,
+        })
+
         if (!nextHopQuery) {
             swapData.dstData = hopData.dstData
             swapData.type = swapData.events.some((event) => event.type && event.type === RouteType.Swap) ? RouteType.Swap : swapData.events.every((event) => event.type && event.type === RouteType.Bridge) ? RouteType.Bridge : undefined
@@ -578,52 +642,70 @@ const useSwapDetails = ({
         result.hopData = hopData
         result.nextHopQuery = nextHopQuery
 
-        return result
+    }
 
-    }, [enabled, swap])
+    catch (err) {
+        result.error = getParsedError(err)
+    }
 
-    const getHopQueryResult = useCallback(async (hopQuery?: SwapQuery) => {
+    return result
+}
 
-        // todo: determine whether it's the final hop, should only be used to confirm received amounts
-        // is not actually another hop in terms of how we refer to a hop elsewhere, basically just the receipt
+export const getSwapQueryResult = async ({
+    query,
+    messengerAddress,
+    isRefetch,
+}: {
+    query?: SwapQuery,
+    messengerAddress?: Address,
+    isRefetch?: boolean,
+}) => {
 
-        const result: SwapQueryResult = {}
-        if (!enabled || !hopQuery) {
-            return result
+    // todo: determine whether it's the final hop, should only be used to confirm received amounts
+    // is not actually another hop in terms of how we refer to a hop elsewhere, basically just the receipt
+
+    const result: SwapQueryResult = {
+        swapData: query?.swapData,
+    }
+
+    try {
+
+        if (!query) {
+            throw new Error("No Query")
         }
 
-        // todo: test and double check the below returns all the required data
-        const isFetchResult = isRefetch || !hopQuery.hopData.dstData || !hopQuery.hopData.txHash || hopQuery.hopData.status !== SwapStatus.Success
+        const isFetchResult = isRefetch || !query.hopData.dstData || !query.hopData.txHash || query.hopData.status !== SwapStatus.Success
         if (!isFetchResult) {
-            result.swapData = hopQuery.swapData
-            result.hopData = hopQuery.hopData
-            result.hopEvents = hopQuery.swapData.events.filter((event) => event.hopIndex === hopQuery.hopIndex)
-            result.nextHopQuery = getNextHopQuery(hopQuery.swapData, hopQuery.hopData, hopQuery.hopIndex + 1)
+            result.hopData = query.hopData
+            result.hopEvents = query.swapData.events.filter((event) => event.hopIndex === query.hopIndex)
+            result.nextHopQuery = getNextHopQuery({
+                swapData: query.swapData,
+                currentHopData: query.hopData,
+                nextHopIndex: query.hopIndex + 1,
+            })
             return result
         }
 
-        else if (!hopQuery.swapData.account || !hopQuery.hopData.receivedMsgId || !hopQuery.originBlockchainId || !hopQuery.originTimestamp) {
-            // todo: error handling
-            result.swapData = hopQuery.swapData
-            return getSwapQueryResultError(result, "Invalid query data")
+        else if (!query.swapData.account || !query.hopData.receivedMsgId || !query.originBlockchainId || !query.originTimestamp || !messengerAddress) {
+            throw new Error("Invalid Query")
         }
 
-        const srcChain = hopQuery.hopData.srcData.chain
-        const msgId = hopQuery.hopData.receivedMsgId
+        const srcChain = query.hopData.srcData.chain
+        const msgId = query.hopData.receivedMsgId
 
         const client: Client = getClient(wagmiConfig, {
             chainId: srcChain.id,
         })
 
-        let txReceipt = isRefetch ? undefined : hopQuery.hopData.txReceipt
-        let txTimestamp = isRefetch ? undefined : hopQuery.hopData.timestamp
+        let txReceipt = isRefetch ? undefined : query.hopData.txReceipt
+        let txTimestamp = isRefetch ? undefined : query.hopData.timestamp
         let retryDelay: number | undefined = undefined
 
         if (!txReceipt || !txTimestamp) {
 
             const { estimatedBlock, targetTimestampSeconds, avgBlockTimeSeconds, latestBlock } = await getEstimatedBlockFromTimestamp({
                 chain: srcChain,
-                timestamp: new Date(hopQuery.originTimestamp),
+                timestamp: new Date(query.originTimestamp),
             })
             retryDelay = avgBlockTimeSeconds * 1000
 
@@ -651,19 +733,19 @@ const useSwapDetails = ({
                             break
                         }
 
-                        const query = getContractEvents(client, {
+                        const receiveMsgQuery = getContractEvents(client, {
                             address: messengerAddress,
                             abi: teleporterMessengerAbi,
                             eventName: "ReceiveCrossChainMessage",
                             args: {
                                 messageID: msgId,
-                                sourceBlockchainID: hopQuery.originBlockchainId,
+                                sourceBlockchainID: query.originBlockchainId,
                             },
                             fromBlock: fromBlock,
                             toBlock: toBlock,
                             strict: true,
                         })
-                        queries.push(query)
+                        queries.push(receiveMsgQuery)
 
                         fromBlock = MathBigInt.max([
                             isEstPrevious ? fromBlock + chunkSize : fromBlock - chunkSize,
@@ -698,9 +780,9 @@ const useSwapDetails = ({
         }
 
         if (!txReceipt || !txTimestamp) {
-            // todo: error handling
-            result.swapData = hopQuery.swapData
-            return getSwapQueryResultError(result, !txReceipt ? "No tx receipt found" : "No block found", true, retryDelay)
+            result.isRetry = true
+            result.retryDelay = retryDelay
+            throw new Error("No Transaction Receipt Found")
         }
 
         // todo: msg failed handling
@@ -715,25 +797,25 @@ const useSwapDetails = ({
         // })[0]
 
         const { hopData, hopEvents } = getHopAndEventData({
-            swapSrcData: hopQuery.swapData.srcData,
-            hopSrcData: hopQuery.hopData.srcData,
-            hopIndex: hopQuery.hopIndex,
-            storedHopData: hopQuery.hopData,
+            swapSrcData: query.swapData.srcData,
+            hopSrcData: query.hopData.srcData,
+            hopIndex: query.hopIndex,
+            storedHopData: query.hopData,
             txReceipt: txReceipt,
             txTimestamp: txTimestamp,
-            accountAddress: hopQuery.swapData.destinationAddress ?? hopQuery.swapData.account,
+            accountAddress: query.swapData.account,
         })
 
-        const prevHops = hopQuery.swapData.hops.filter((hop) => hop.index < hopQuery.hopIndex)
-        const nextHops = hopQuery.swapData.hops.filter((hop) => hop.index > hopQuery.hopIndex)
+        const prevHops = query.swapData.hops.filter((hop) => hop.index < query.hopIndex)
+        const nextHops = query.swapData.hops.filter((hop) => hop.index > query.hopIndex)
         const swapHops = [
             ...prevHops,
             hopData,
             ...nextHops,
         ]
 
-        const prevEvents = hopQuery.swapData.events.filter((event) => event.hopIndex < hopQuery.hopIndex)
-        const nextEvents = hopQuery.swapData.events.filter((event) => event.hopIndex > hopQuery.hopIndex)
+        const prevEvents = query.swapData.events.filter((event) => event.hopIndex < query.hopIndex)
+        const nextEvents = query.swapData.events.filter((event) => event.hopIndex > query.hopIndex)
         const swapEvents = [
             ...prevEvents,
             ...hopEvents,
@@ -741,12 +823,17 @@ const useSwapDetails = ({
         ]
 
         const swapData: Swap = {
-            ...hopQuery.swapData,
+            ...query.swapData,
             hops: swapHops,
             events: swapEvents,
         }
 
-        const nextHopQuery = getNextHopQuery(swapData, hopData, hopQuery.hopIndex + 1)
+        const nextHopQuery = getNextHopQuery({
+            swapData: swapData,
+            currentHopData: hopData,
+            nextHopIndex: query.hopIndex + 1,
+        })
+
         if (!nextHopQuery) {
             swapData.dstData = hopData.dstData
             swapData.type = swapEvents.some((event) => event.type && event.type === RouteType.Swap) ? RouteType.Swap : swapEvents.every((event) => event.type && event.type === RouteType.Bridge) ? RouteType.Bridge : undefined
@@ -758,105 +845,11 @@ const useSwapDetails = ({
         result.hopData = hopData
         result.hopEvents = hopEvents
         result.nextHopQuery = nextHopQuery
-
-        return result
-
-    }, [enabled, isRefetch, messengerAddress])
-
-    const retrySwapQuery = useCallback((query: SwapQuery, delay?: number) => {
-        if (enabled && retryNum < maxNumRetries) {
-            setTimeout(() => {
-                setNextSwapQuery(query)
-                setRetryNum(retryNum + 1)
-            }, Math.min(maxRetryDelay, delay || defaultRetryDelay))
-        }
-    }, [enabled, retryNum, maxNumRetries, defaultRetryDelay, maxRetryDelay, setNextSwapQuery, setRetryNum])
-
-    useEffect(() => {
-
-        if (enabled && initiateTxReceipt && initiateTxBlock) {
-
-            const { swapData, nextHopQuery, error } = getInitialSwapData(chain, initiateTxReceipt, initiateTxBlock)
-
-            if (error) {
-                console.log(`>>>>>>>>>>>>>>>>>> useSwapDetails INITIAL ERROR: ${error}`)
-            }
-
-            setSwap(swapData)
-            setNextSwapQuery(nextHopQuery)
-            setQueryStatus(error ? "error" : nextHopQuery ? "pending" : "success")
-            if (isRefetch && !nextHopQuery) {
-                setIsRefetch(false)
-            }
-        }
-
-    }, [enabled, chain, txHash, initiateTxReceipt, initiateTxBlock])
-
-    useEffect(() => {
-
-        if (enabled && nextSwapQuery) {
-            getHopQueryResult(nextSwapQuery).then((result) => {
-
-                const { swapData, nextHopQuery, error, isRetry, retryDelay } = result
-
-                if (error) {
-                    console.log(`>>>>>>>>>>>>>>>>>> useSwapDetails ERROR: ${error}`)
-                }
-
-                setSwap(swapData)
-                setNextSwapQuery(nextHopQuery)
-                setQueryStatus(error ? "error" : nextHopQuery ? "pending" : "success")
-                if (isRetry && !nextHopQuery) {
-                    retrySwapQuery(nextSwapQuery, retryDelay)
-                }
-            })
-        }
-        else if (isRefetch) {
-            setIsRefetch(false)
-            setQueryStatus(enabled ? "success" : undefined)
-        }
-
-    }, [enabled, chain, txHash, nextSwapQuery])
-
-    useEffect(() => {
-        console.log(`>>> useSwapDetails >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
-
-        if (swap) {
-            const isNewSwap = !getSwap(swap.id)
-            if (isNewSwap) {
-                addSwap(swap)
-            }
-            else {
-                updateSwap(swap)
-            }
-        }
-
-        if (swap) {
-            console.log(`>>> useSwapDetails swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${queryStatus} / retryNum: ${retryNum}`)
-            swap.hops.forEach((hop, i) => {
-                console.log(`   >>> useSwapDetails hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
-            })
-            swap.events.forEach((event, i) => {
-                console.log(`      >>> useSwapDetails event ${i}: ${event.srcData.amount ? formatUnits(event.srcData.amount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData?.amount ? formatUnits(event.dstData.amount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol} (${event.dstData?.chain.name}) / status: ${event.status} / tx hash: ${event.txHash ?? "n/a"}`)
-            })
-        }
-        else {
-            console.log(`>>> useSwapDetails NO SWAP`)
-        }
-        console.log(`>>> useSwapDetails >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
-    }, [swap])
-
-    const refetch = useCallback(() => {
-        refetchInitiateTxReceipt()
-        refetchInitiateTxBlock()
-        setIsRefetch(true)
-    }, [refetchInitiateTxReceipt, refetchInitiateTxBlock])
-
-    return {
-        data: swap,
-        status: queryStatus,
-        refetch: refetch,
     }
-}
 
-export default useSwapDetails
+    catch (err) {
+        result.error = getParsedError(err)
+    }
+
+    return result
+}

@@ -1,7 +1,7 @@
 "use client"
 
 import * as ToastPrimitive from "@radix-ui/react-toast"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import SlideInOut from "@/app/components/animations/SlideInOut"
@@ -21,7 +21,7 @@ export interface ToastData extends React.ComponentPropsWithoutRef<typeof ToastPr
 
 export const RadixToastProvider = ToastPrimitive.Provider
 
-export const ToastViewport = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Viewport>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Viewport>>(({
+export const ToastViewport = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Viewport>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Viewport>>(({
     className,
     ...props
 }, ref) => (
@@ -33,7 +33,7 @@ export const ToastViewport = React.forwardRef<React.ElementRef<typeof ToastPrimi
 ))
 ToastViewport.displayName = ToastPrimitive.Viewport.displayName
 
-export const ToastClose = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Close>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Close>>(({
+export const ToastClose = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Close>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Close>>(({
     children,
     className,
     ...props
@@ -48,7 +48,7 @@ export const ToastClose = React.forwardRef<React.ElementRef<typeof ToastPrimitiv
 ))
 ToastClose.displayName = ToastPrimitive.Close.displayName
 
-export const ToastHeader = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Title>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Title>>(({
+export const ToastHeader = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Title>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Title>>(({
     className,
     children,
     ...props
@@ -68,7 +68,7 @@ export const ToastHeader = React.forwardRef<React.ElementRef<typeof ToastPrimiti
 ))
 ToastHeader.displayName = ToastPrimitive.Title.displayName
 
-export const ToastDescription = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Description>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Description>>(({
+export const ToastDescription = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Description>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Description>>(({
     className,
     ...props
 }, ref) => (
@@ -80,7 +80,7 @@ export const ToastDescription = React.forwardRef<React.ElementRef<typeof ToastPr
 ))
 ToastDescription.displayName = ToastPrimitive.Description.displayName
 
-export const ToastAction = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Action>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Action>>(({
+export const ToastAction = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Action>, React.ComponentPropsWithoutRef<typeof ToastPrimitive.Action>>(({
     className,
     asChild = true,
     ...props
@@ -94,7 +94,7 @@ export const ToastAction = React.forwardRef<React.ElementRef<typeof ToastPrimiti
 ))
 ToastAction.displayName = ToastPrimitive.Action.displayName
 
-export const Toast = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Root>, ToastData>(({
+export const Toast = React.forwardRef<React.ComponentRef<typeof ToastPrimitive.Root>, ToastData>(({
     className,
     forceMount = true,
     asChild = true,

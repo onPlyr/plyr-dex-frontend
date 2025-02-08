@@ -1,23 +1,31 @@
-import { Hash } from "viem"
-import { ChainId } from "@/app/types/chains"
-
-export type TxStatusType = "idle" | "pending" | "error" | "success"
-// todo: replace with tanstack QueryStatus
-export type TxReceiptStatusType = "pending" | "error" | "success"
-
-export enum TxActionType {
-    Approve = "approve",
-    Swap = "swap",
-    Bridge = "bridge",
-    Unwrap = "unwrap",
+export const TxAction = {
+    Approve: "approve",
+    Swap: "swap",
+    Transfer: "transfer",
+    Unwrap: "unwrap",
 }
+export type TxActionType = (typeof TxAction)[keyof typeof TxAction]
 
-export interface TxHistory {
-    chainId: ChainId,
-    txHash: Hash,
-    txIndex: number,
-    block: string,
-    timestamp: number,
-    description?: string,
-    reverted?: boolean,
+export const TxMsgType = {
+    Default: "default",
+    InProgress: "inProgress",
+    Complete: "complete",
+}
+export type TxMsgType = (typeof TxMsgType)[keyof typeof TxMsgType]
+
+export const TxNotificationType = {
+    SimulateError: "simulateError",
+    SimulateFailed: "simulateFailed",
+    Pending: "pending",
+    Submitted: "submitted",
+    Success: "success",
+    Reverted: "reverted",
+    Error: "error",
+} as const
+export type TxNotificationType = (typeof TxNotificationType)[keyof typeof TxNotificationType]
+
+export interface TxNotificationMsg {
+    header?: React.ReactNode,
+    body?: React.ReactNode,
+    ignore?: boolean,
 }

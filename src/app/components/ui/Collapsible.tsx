@@ -2,7 +2,7 @@
  
 import { AnimatePresence } from "motion/react"
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
-import * as React from "react"
+import React from "react"
 import { useCallback, useState } from "react"
 import { twMerge } from "tailwind-merge"
 
@@ -26,7 +26,7 @@ interface CollapsibleTriggerProps extends React.ComponentPropsWithoutRef<typeof 
     replaceClass?: boolean,
 }
  
-const CollapsibleTrigger = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitive.CollapsibleTrigger>, CollapsibleTriggerProps>(({
+const CollapsibleTrigger = React.forwardRef<React.ComponentRef<typeof CollapsiblePrimitive.CollapsibleTrigger>, CollapsibleTriggerProps>(({
     children,
     className,
     isOpen,
@@ -45,7 +45,7 @@ const CollapsibleTrigger = React.forwardRef<React.ElementRef<typeof CollapsibleP
 ))
 CollapsibleTrigger.displayName = CollapsiblePrimitive.CollapsibleTrigger.displayName
 
-const CollapsibleContent = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitive.CollapsibleContent>, React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.CollapsibleContent>>(({
+const CollapsibleContent = React.forwardRef<React.ComponentRef<typeof CollapsiblePrimitive.CollapsibleContent>, React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.CollapsibleContent>>(({
     className,
     forceMount = true,
     ...props
@@ -59,7 +59,7 @@ const CollapsibleContent = React.forwardRef<React.ElementRef<typeof CollapsibleP
 ))
 CollapsibleContent.displayName = CollapsiblePrimitive.CollapsibleContent.displayName
 
-const Collapsible = React.forwardRef<React.ElementRef<typeof CollapsiblePrimitive.Root>, CollapsibleProps>(({
+const Collapsible = React.forwardRef<React.ComponentRef<typeof CollapsiblePrimitive.Root>, CollapsibleProps>(({
     children,
     className,
     open,

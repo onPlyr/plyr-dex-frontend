@@ -1,8 +1,7 @@
 "use client"
 
 import { AnimatePresence, Transition } from "motion/react"
-import * as React from "react"
-import { useCallback, useState } from "react"
+import React, { useCallback, useState } from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import { twMerge } from "tailwind-merge"
 
@@ -44,7 +43,7 @@ export const TooltipProvider = ({
     />
 )
 
-const TooltipTrigger = React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>>(({
+const TooltipTrigger = React.forwardRef<React.ComponentRef<typeof TooltipPrimitive.Trigger>, React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>>(({
     className,
     asChild = true,
     ...props
@@ -69,7 +68,7 @@ const TooltipPortal = ({
 )
 TooltipPortal.displayName = TooltipPrimitive.Portal.displayName
 
-const TooltipArrow = React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Arrow>, React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow>>(({
+const TooltipArrow = React.forwardRef<React.ComponentRef<typeof TooltipPrimitive.Arrow>, React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow>>(({
     className,
     asChild,
     ...props
@@ -83,7 +82,7 @@ const TooltipArrow = React.forwardRef<React.ElementRef<typeof TooltipPrimitive.A
 ))
 TooltipArrow.displayName = TooltipPrimitive.Arrow.displayName
 
-const TooltipContent = React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Content>, TooltipContentProps>(({
+const TooltipContent = React.forwardRef<React.ComponentRef<typeof TooltipPrimitive.Content>, TooltipContentProps>(({
     children,
     className,
     asChild,
@@ -130,7 +129,7 @@ export const Tooltip = ({
     ...props
 }: TooltipProps) => {
 
-    const [isOpen, setIsOpenState] = useState<boolean>((open || defaultOpen) ? true : false)
+    const [isOpen, setIsOpenState] = useState(open || defaultOpen ? true : false)
     const setIsOpen = useCallback((open: boolean) => {
         onOpenChange?.(open)
         setIsOpenState(open)

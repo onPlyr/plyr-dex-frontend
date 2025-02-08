@@ -14,9 +14,11 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { TooltipProvider } from "@/app/components/ui/Tooltip"
 import { wagmiConfig } from "@/app/config/wagmi"
 import FavouriteTokensProvider from "@/app/providers/FavouriteTokensProvider"
+import NotificationProvider from "@/app/providers/NotificationProvider"
 import PreferencesProvider from "@/app/providers/PreferencesProvider"
 import QuoteDataProvider from "@/app/providers/QuoteDataProvider"
 import SwapDataProvider from "@/app/providers/SwapDataProvider"
+import SwapStatusProvider from "@/app/providers/SwapStatusProvider"
 import ToastProvider from "@/app/providers/ToastProvider"
 import TokenDataProvider from "@/app/providers/TokenDataProvider"
 
@@ -33,7 +35,9 @@ const queryClient = new QueryClient({
 const UiDataProviders = ({ children }: { children: ReactNode }) => (
     <TooltipProvider>
         <ToastProvider>
-            {children}
+            <NotificationProvider>
+                {children}
+            </NotificationProvider>
         </ToastProvider>
     </TooltipProvider>
 )
@@ -51,7 +55,9 @@ const StoredDataProviders = ({ children }: { children: ReactNode }) => (
 const QueryDataProviders = ({ children }: { children: ReactNode }) => (
     <TokenDataProvider>
         <QuoteDataProvider>
-            {children}
+            <SwapStatusProvider>
+                {children}
+            </SwapStatusProvider>
         </QuoteDataProvider>
     </TokenDataProvider>
 )

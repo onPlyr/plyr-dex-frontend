@@ -1,0 +1,1 @@
+export const defaultNotificationRemoveDelayMs = 4000

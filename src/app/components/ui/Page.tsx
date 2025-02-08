@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
@@ -93,7 +93,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(({
 ))
 PageHeader.displayName = "PageHeader"
 
-export const PageFooter = React.forwardRef<React.ElementRef<typeof ScaleInOut>, React.ComponentPropsWithoutRef<typeof ScaleInOut>>(({
+export const PageFooter = React.forwardRef<React.ComponentRef<typeof ScaleInOut>, React.ComponentPropsWithoutRef<typeof ScaleInOut>>(({
     className,
     ...props
 }, ref) => (
@@ -106,7 +106,7 @@ export const PageFooter = React.forwardRef<React.ElementRef<typeof ScaleInOut>, 
 ))
 PageFooter.displayName = "PageFooter"
 
-export const PageMessage = React.forwardRef<React.ElementRef<typeof ScaleInOut>, PageMessageProps>(({
+export const PageMessage = React.forwardRef<React.ComponentRef<typeof ScaleInOut>, PageMessageProps>(({
     className,
     data,
     type,
