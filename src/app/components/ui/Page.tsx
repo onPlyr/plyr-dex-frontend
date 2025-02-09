@@ -1,5 +1,8 @@
+"use client"
+
 import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link"
+import { useAccountModal, useChainModal, useConnectModal } from "@rainbow-me/rainbowkit"
 import React from "react"
 import { twMerge } from "tailwind-merge"
 
@@ -35,7 +38,6 @@ interface PageProps extends React.ComponentPropsWithoutRef<"div"> {
     error?: PageMsgData,
     warning?: PageMsgData,
     info?: PageMsgData,
-    hideFooter?: boolean,
 }
 
 interface PageHeaderProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -158,79 +160,87 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
     info,
     warning,
     ...props
-}, ref) => (
-    <motion.main className="flex flex-col flex-1 w-full h-full justify-start items-center">
-        <ScrollArea>
-            <div
-                ref={ref}
-                className={twMerge(
-                    "flex flex-col flex-none pt-16 sm:pt-20 w-full min-h-fit max-h-fit h-fit justify-start items-center",
-                    footer ? undefined : "pb-4",
-                    className,
-                )}
-                {...props}
-            >
-                <div className={twMerge("flex flex-col flex-none page-width min-h-fit max-h-fit items-start overflow-auto", header ? undefined : "pt-4")}>
-                    <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full">
-                        {/* <div className="container-select flex flex-row flex-1 p-4 gap-2 mt-4 sm:mt-0 w-full justify-between" data-selected={true}>
-                            <div className="flex flex-row flex-1 flex-wrap">Tesseract is currently in beta and only available on testnet. Funds are not real or transferrable to mainnet.</div>
-                            <div className="flex flex-row flex-none items-center">
-                                <ExternalLink
-                                    href="https://test.core.app/tools/testnet-faucet/?subnet=c&token=c"
-                                    className="gradient-btn px-3 py-2 font-bold text-white hover:text-white"
-                                    iconSize="sm"
+}, ref) => {
+
+    const { accountModalOpen } = useAccountModal()
+    const { chainModalOpen } = useChainModal()
+    const { connectModalOpen } = useConnectModal()
+    const hideFooter = accountModalOpen || chainModalOpen || connectModalOpen
+
+    return (
+        <motion.main className="flex flex-col flex-1 w-full h-full justify-start items-center">
+            <ScrollArea>
+                <div
+                    ref={ref}
+                    className={twMerge(
+                        "flex flex-col flex-none pt-16 sm:pt-20 w-full min-h-fit max-h-fit h-fit justify-start items-center",
+                        footer ? undefined : "pb-4",
+                        className,
+                    )}
+                    {...props}
+                >
+                    <div className={twMerge("flex flex-col flex-none page-width min-h-fit max-h-fit items-start overflow-auto", header ? undefined : "pt-4")}>
+                        <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full">
+                            {/* <div className="container-select flex flex-row flex-1 p-4 gap-2 mt-4 sm:mt-0 w-full justify-between" data-selected={true}>
+                                <div className="flex flex-row flex-1 flex-wrap">Tesseract is currently in beta and only available on testnet. Funds are not real or transferrable to mainnet.</div>
+                                <div className="flex flex-row flex-none items-center">
+                                    <ExternalLink
+                                        href="https://test.core.app/tools/testnet-faucet/?subnet=c&token=c"
+                                        className="gradient-btn px-3 py-2 font-bold text-white hover:text-white"
+                                        iconSize="sm"
+                                    >
+                                        Faucet
+                                    </ExternalLink>
+                                </div>
+                            </div> */}
+                            {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
+                                <PageHeader
+                                    backUrl={backUrl}
+                                    tab={backTab}
+                                    fromTab={fromTab}
+                                    setTab={setTab}
+                                    icon={headerIcon}
                                 >
-                                    Faucet
-                                </ExternalLink>
-                            </div>
-                        </div> */}
-                        {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
-                            <PageHeader
-                                backUrl={backUrl}
-                                tab={backTab}
-                                fromTab={fromTab}
-                                setTab={setTab}
-                                icon={headerIcon}
-                            >
-                                {header}
-                            </PageHeader>
-                        )}
-                        {children}
+                                    {header}
+                                </PageHeader>
+                            )}
+                            {children}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </ScrollArea>
-        <AnimatePresence mode="wait">
-            {(error || warning || info) && (
-                <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width z-[125]", footer ? "pb-0" : undefined)}>
-                    {error && (
-                        <PageMessage
-                            data={error}
-                            type={PageMsgType.Error}
-                        />
-                    )}
-                    {warning && (
-                        <PageMessage
-                            data={warning}
-                            type={PageMsgType.Warning}
-                        />
-                    )}
-                    {info && (
-                        <PageMessage
-                            data={info}
-                            type={PageMsgType.Info}
-                        />
-                    )}
-                </div>
-            )}
-        </AnimatePresence>
-        <AnimatePresence mode="wait">
-            {footer && (
-                <PageFooter>
-                    {footer}
-                </PageFooter>
-            )}
-        </AnimatePresence>
-    </motion.main>
-))
+            </ScrollArea>
+            <AnimatePresence mode="wait">
+                {(error || warning || info) && (
+                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width z-[125]", footer ? "pb-0" : undefined)}>
+                        {error && (
+                            <PageMessage
+                                data={error}
+                                type={PageMsgType.Error}
+                            />
+                        )}
+                        {warning && (
+                            <PageMessage
+                                data={warning}
+                                type={PageMsgType.Warning}
+                            />
+                        )}
+                        {info && (
+                            <PageMessage
+                                data={info}
+                                type={PageMsgType.Info}
+                            />
+                        )}
+                    </div>
+                )}
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
+                {footer && !hideFooter && (
+                    <PageFooter>
+                        {footer}
+                    </PageFooter>
+                )}
+            </AnimatePresence>
+        </motion.main>
+    )
+})
 Page.displayName = "Page"

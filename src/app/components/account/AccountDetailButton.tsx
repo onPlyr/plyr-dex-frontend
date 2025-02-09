@@ -28,7 +28,7 @@ import { getNativeToken } from "@/app/lib/tokens"
 
 const AccountDetailButton = () => {
 
-    const { address: accountAddress, chainId: connectedChainId } = useAccount()
+    const { address: accountAddress, chainId: connectedChainId, isDisconnected } = useAccount()
     const { formattedName: avvyName } = useReadAvvyName({
         accountAddress: accountAddress,
     })
@@ -44,7 +44,7 @@ const AccountDetailButton = () => {
         address: accountAddress,
     })
 
-    const [menuOpen, setMenuOpenState] = useState<boolean>(false)
+    const [menuOpen, setMenuOpenState] = useState(false)
     const setMenuOpen = useCallback((open: boolean) => {
         setMenuOpenState(open)
     }, [setMenuOpenState])
@@ -55,109 +55,113 @@ const AccountDetailButton = () => {
         setMenuOpen(false)
     }, [setMenuOpen])
 
+    const disconnectAccount = useCallback(() => {
+        disconnect()
+        setMenuOpen(false)
+    }, [disconnect, setMenuOpen])
+
     return (
         <RainbowConnectButton.Custom>
             {({ account, chain, mounted }) => {
                 const rainbowKitChain = chain
-                const connected = mounted && account !== undefined && rainbowKitChain !== undefined && accountAddress !== undefined
+                const connected = !(!mounted || isDisconnected || !account || !rainbowKitChain || !accountAddress)
                 return (
                     <div className={mounted ? "contents" : "hidden"}>
                         {!connected ? (
                              <ConnectButton />
                         ) : (
-                            // <Popover
-                            //     open={menuOpen}
-                            //     onOpenChange={setMenuOpen}
-                            //     trigger=<div className="btn gradient-btn px-3 py-2 gap-2">
-                            //         {avvyName ?? account.displayName}
-                            //         <MenuIcon className={iconSizes.xs} />
-                            //     </div>
-                            //     contentProps={{
-                            //         side: "bottom",
-                            //     }}
-                            // >
-                            //     <AccountMenuItem
-                            //         icon={connectedChain ? <ChainImageInline chain={connectedChain} size="xs" /> : <InfoIcon className={iconSizes.sm} />}
-                            //         idx={0}
-                            //         numItems={numItems}
-                            //     >
-                            //         <div className="flex flex-col flex-1">
-                            //             <div className="flex flex-row flex-1 font-bold">
-                            //                 {explorerUrl ? (
-                            //                     <ExternalLink
-                            //                         href={explorerUrl}
-                            //                         iconSize="xs"
-                            //                         className="text-white"
-                            //                     >
-                            //                         {shortAddress}
-                            //                     </ExternalLink>
-                            //                 ) : shortAddress}
-                            //             </div>
-                            //             <div className="flex flex-row flex-1 font-mono font-bold text-muted-500">
-                            //                 {nativeData?.balance ? (
-                            //                     <DecimalAmount
-                            //                         amount={nativeData.balance}
-                            //                         symbol={nativeData.symbol}
-                            //                         token={nativeToken}
-                            //                         type={NumberFormatType.Precise}
-                            //                     />
-                            //                 ) : account.displayBalance}
-                            //             </div>
-                            //         </div>
-                            //         <div className="flex flex-row flex-none justify-center items-center">
-                            //             <Button
-                            //                 label="Disconnect"
-                            //                 className="icon-btn text-muted-500 hover:text-white"
-                            //                 replaceClass={true}
-                            //                 onClick={() => disconnect.bind(this)}
-                            //             >
-                            //                 <DisconnectIcon className={iconSizes.sm} />
-                            //             </Button>
-                            //         </div>
-                            //     </AccountMenuItem>
-                            //     <AccountMenuItem
-                            //         icon=<AccountIcon className={iconSizes.sm} />
-                            //         onClick={onClickMenu.bind(this)}
-                            //         url="/account"
-                            //         idx={1}
-                            //         numItems={numItems}
-                            //     >
-                            //         My Account
-                            //     </AccountMenuItem>
-                            //     <AccountMenuItem
-                            //         icon=<TxIcon className={iconSizes.sm} />
-                            //         onClick={onClickMenu.bind(this)}
-                            //         url="/swap/history"
-                            //         idx={2}
-                            //         numItems={numItems}
-                            //     >
-                            //         My Transactions
-                            //     </AccountMenuItem>
-                            //     <AccountMenuItem
-                            //         icon=<SettingsIcon className={iconSizes.sm} />
-                            //         onClick={onClickMenu.bind(this)}
-                            //         url="/preferences"
-                            //         idx={3}
-                            //         numItems={numItems}
-                            //     >
-                            //         My Preferences
-                            //     </AccountMenuItem>
-                            //     {socialLinks.map((link, i) => (
-                            //         <AccountMenuItem
-                            //             key={link.id}
-                            //             icon=<div className={iconSizes.sm}>
-                            //                 {link.icon}
-                            //             </div>
-                            //             onClick={onClickMenu.bind(this)}
-                            //             externalUrl={link.href}
-                            //             idx={4 + i}
-                            //             numItems={numItems}
-                            //         >
-                            //             {link.name}
-                            //         </AccountMenuItem>
-                            //     ))}
-                            // </Popover>
-                            <></>
+                            <Popover
+                                open={menuOpen}
+                                onOpenChange={setMenuOpen}
+                                trigger=<div className="btn gradient-btn px-3 py-2 gap-2">
+                                    {avvyName ?? account.displayName}
+                                    <MenuIcon className={iconSizes.xs} />
+                                </div>
+                                contentProps={{
+                                    side: "bottom",
+                                }}
+                            >
+                                <AccountMenuItem
+                                    icon={connectedChain ? <ChainImageInline chain={connectedChain} size="xs" /> : <InfoIcon className={iconSizes.sm} />}
+                                    idx={0}
+                                    numItems={numItems}
+                                >
+                                    <div className="flex flex-col flex-1">
+                                        <div className="flex flex-row flex-1 font-bold">
+                                            {explorerUrl ? (
+                                                <ExternalLink
+                                                    href={explorerUrl}
+                                                    iconSize="xs"
+                                                    className="text-white"
+                                                >
+                                                    {shortAddress}
+                                                </ExternalLink>
+                                            ) : shortAddress}
+                                        </div>
+                                        <div className="flex flex-row flex-1 font-mono font-bold text-muted-500">
+                                            {nativeData?.balance ? (
+                                                <DecimalAmount
+                                                    amount={nativeData.balance}
+                                                    symbol={nativeData.symbol}
+                                                    token={nativeToken}
+                                                    type={NumberFormatType.Precise}
+                                                />
+                                            ) : account.displayBalance}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-row flex-none justify-center items-center">
+                                        <Button
+                                            label="Disconnect"
+                                            className="icon-btn text-muted-500 hover:text-white"
+                                            replaceClass={true}
+                                            onClick={disconnectAccount.bind(this)}
+                                        >
+                                            <DisconnectIcon className={iconSizes.sm} />
+                                        </Button>
+                                    </div>
+                                </AccountMenuItem>
+                                <AccountMenuItem
+                                    icon=<AccountIcon className={iconSizes.sm} />
+                                    onClick={onClickMenu.bind(this)}
+                                    url="/account"
+                                    idx={1}
+                                    numItems={numItems}
+                                >
+                                    My Account
+                                </AccountMenuItem>
+                                <AccountMenuItem
+                                    icon=<TxIcon className={iconSizes.sm} />
+                                    onClick={onClickMenu.bind(this)}
+                                    url="/swap/history"
+                                    idx={2}
+                                    numItems={numItems}
+                                >
+                                    My Transactions
+                                </AccountMenuItem>
+                                <AccountMenuItem
+                                    icon=<SettingsIcon className={iconSizes.sm} />
+                                    onClick={onClickMenu.bind(this)}
+                                    url="/preferences"
+                                    idx={3}
+                                    numItems={numItems}
+                                >
+                                    My Preferences
+                                </AccountMenuItem>
+                                {socialLinks.map((link, i) => (
+                                    <AccountMenuItem
+                                        key={link.id}
+                                        icon=<div className={iconSizes.sm}>
+                                            {link.icon}
+                                        </div>
+                                        onClick={onClickMenu.bind(this)}
+                                        externalUrl={link.href}
+                                        idx={4 + i}
+                                        numItems={numItems}
+                                    >
+                                        {link.name}
+                                    </AccountMenuItem>
+                                ))}
+                            </Popover>
                         )}
                     </div>
                 )
