@@ -19,7 +19,7 @@ interface SwapStatusContextType {
 
 export const SwapStatusContext = createContext({} as SwapStatusContextType)
 
-const getSwapNotificationData = (id: Hash, swap: Swap, error?: string) => {
+const getSwapNotificationData = (id: string, swap: Swap, error?: string) => {
 
     const swapType = swap.type ? getRouteTypeLabel(swap.type) : "Transaction"
     const header = `${swapType} ${getStatusLabel(swap.status)}`
@@ -50,7 +50,7 @@ const SwapStatusProvider = ({
 }) => {
 
     const { getNotification, setNotification } = useNotifications()
-    const { data: swapData, pendingData, getSwap, updateSwap } = useSwapData()
+    const { data: swapData, pendingData, getSwap, setSwap } = useSwapData()
 
     const [seenPendingIds, setSeenPendingIds] = useState<Hash[]>([])
 
@@ -78,23 +78,16 @@ const SwapStatusProvider = ({
                     swap: swap,
                 }).then((result) => {
 
-                    const notification = getNotification(swap.id, swap.id)
                     const { swapData, error } = result
+                    const notification = getNotification({
+                        txHash: swap.id,
+                    })
 
                     if (swapData) {
-                        updateSwap(swapData)
+                        setSwap(swapData)
                         if (notification) {
                             setNotification(getSwapNotificationData(notification.id, swapData, error))
                         }
-
-                        // const swap = swapData
-                        // console.log(`>>> getPendingSwapData swap: ${swap.srcData.amount ? formatUnits(swap.srcData.amount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${swap.dstData?.amount ? formatUnits(swap.dstData.amount, swap.dstData.token.decimals) : "n/a"} ${swap.dstData?.token.symbol} (${swap.dstData?.chain.name}) / type: ${serialize(swap.type)} / duration: ${swap.duration ? formatDuration(swap.duration) : "n/a"} / status: ${swap.status} / queryStatus: ${result.status} / error: ${result.error}`)
-                        // swap.hops.forEach((hop, i) => {
-                        //     console.log(`   >>> getPendingSwapData hop ${i}: ${hop.srcData.amount ? formatUnits(hop.srcData.amount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${hop.dstData?.amount ? formatUnits(hop.dstData.amount, hop.dstData.token.decimals) : "n/a"} ${hop.dstData?.token.symbol} (${hop.dstData?.chain.name}) / status: ${hop.status} / tx hash: ${hop.txHash ?? "n/a"}`)
-                        // })
-                        // swap.events.forEach((event, i) => {
-                        //     console.log(`      >>> getPendingSwapData event ${i}: ${event.srcData.amount ? formatUnits(event.srcData.amount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData?.amount ? formatUnits(event.dstData.amount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol} (${event.dstData?.chain.name}) / status: ${event.status} / tx hash: ${event.txHash ?? "n/a"}`)
-                        // })
                     }
                 })
             }

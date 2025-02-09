@@ -92,3 +92,9 @@ export const SwapStatus: Record<SwapStatusType, QueryStatus> = {
 
 // 60 seconds
 export const RouteValidMs = 60 * 1000
+
+export const RetrySwapStatus = {
+    MaxRetries: 3,
+    DefaultDelay: 1000,
+    MaxDelay: 2000,
+} as const

@@ -1,4 +1,4 @@
-import { TxAction, TxActionType, TxMsgType, TxNotificationMsg, TxNotificationType } from "@/app/types/txs"
+import { TxAction, TxMsgType, TxNotificationMsgData, TxNotificationType } from "@/app/types/txs"
 import { QueryStatus } from "@tanstack/react-query"
 
 export const TxStatusLabel: Record<QueryStatus, string> = {
@@ -7,7 +7,7 @@ export const TxStatusLabel: Record<QueryStatus, string> = {
     "pending": "Pending",
 } as const
 
-export const TxActionMsg: Record<TxActionType, Record<TxMsgType, string>> = {
+export const TxActionMsg: Record<TxAction, Record<TxMsgType, string>> = {
     [TxAction.Approve]: {
         [TxMsgType.Default]: "Approve",
         [TxMsgType.InProgress]: "Approving",
@@ -30,7 +30,7 @@ export const TxActionMsg: Record<TxActionType, Record<TxMsgType, string>> = {
     },
 } as const
 
-export const TxNotificationMsgs: Record<TxNotificationType, TxNotificationMsg> = {
+export const DefaultTxNotificationMsgData: TxNotificationMsgData = {
     [TxNotificationType.SimulateError]: {
         header: "Simulation Error",
         body: "An unknown error occurred when simulating the transaction and no data was returned.",
@@ -45,7 +45,7 @@ export const TxNotificationMsgs: Record<TxNotificationType, TxNotificationMsg> =
     },
     [TxNotificationType.Submitted]: {
         header: "Awaiting Confirmation",
-        body: "Waiting for your transaction to be successfully included in a block.",
+        body: "Waiting for confirmation of your transaction.",
     },
     [TxNotificationType.Success]: {
         header: "Success!",

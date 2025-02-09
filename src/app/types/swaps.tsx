@@ -51,10 +51,17 @@ export interface SwapQueryResult {
     swapData?: Swap,
     hopData?: SwapHop,
     hopEvents?: SwapEvent[],
-    nextHopQuery?: SwapQuery,
+    nextSwapQuery?: SwapQuery,
     error?: React.ReactNode,
     isRetry?: boolean,
     retryDelay?: number,
+}
+
+export interface SwapStatusQueryResult {
+    swapData?: Swap,
+    status: QueryStatus,
+    isInProgress: boolean,
+    error?: string,
 }
 
 ////////////////////////////////////////////////////////////////////////////////

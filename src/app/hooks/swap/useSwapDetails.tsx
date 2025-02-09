@@ -829,6 +829,15 @@ const useSwapDetails = ({
             else {
                 updateSwap(swap)
             }
+            if (notificationData) {
+                setNotification({
+                    id: swap.id,
+                    header: `UPDATED - tx ${getStatusLabel(swap.status)}`,
+                    body: `UPDATED - testing`,
+                    type: NotificationType.Swap,
+                    status: swap.status,
+                })
+            }
         }
 
         if (swap) {

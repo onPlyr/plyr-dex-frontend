@@ -10,8 +10,7 @@ interface SwapDataContextType {
     data: Swap[],
     pendingData: Hash[],
     getSwap: (txHash?: Hash) => Swap | undefined,
-    addSwap: (swapToAdd?: Swap) => Swap | undefined,
-    updateSwap: (swapToUpdate?: Swap) => Swap | undefined,
+    setSwap: (swap?: Swap) => void,
     refetch: () => void,
 }
 
@@ -63,39 +62,16 @@ const SwapDataProvider = ({
         return txHash ? swapData.find((swap) => swap.id.toLowerCase() === txHash.toLowerCase()) : undefined
     }, [swapData])
 
-    const updateSwap = useCallback((swapToUpdate?: Swap) => {
-
-        if (swapToUpdate) {
-
-            setSwapData(sortSwapData([
-                ...swapData.filter((swap) => swap.id !== swapToUpdate.id),
-                swapToUpdate,
-            ]))
+    const setSwap = useCallback((swap?: Swap) => {
+        if (swap) {
+            setSwapData((prevData) => {
+                return sortSwapData([
+                    ...prevData.filter((data) => data.id.toLowerCase() !== swap.id.toLowerCase()),
+                    swap,
+                ])
+            })
         }
-
-        return swapToUpdate
-
-    }, [swapData])
-
-    const addSwap = useCallback((swapToAdd?: Swap) => {
-
-        if (swapToAdd) {
-
-            const existingSwap = getSwap(swapToAdd.id)
-            if (existingSwap) {
-                updateSwap(swapToAdd)
-            }
-            else {
-                setSwapData(sortSwapData([
-                    swapToAdd,
-                    ...swapData,
-                ]))
-            }
-        }
-
-        return swapToAdd
-
-    }, [swapData, getSwap, updateSwap])
+    }, [setSwapData])
 
     useEffect(() => {
         if (storageAvailable && swapData.length > 0) {
@@ -112,8 +88,7 @@ const SwapDataProvider = ({
         data: swapData,
         pendingData: pendingSwapData,
         getSwap: getSwap,
-        addSwap: addSwap,
-        updateSwap: updateSwap,
+        setSwap: setSwap,
         refetch: getStoredSwapData,
     }
 

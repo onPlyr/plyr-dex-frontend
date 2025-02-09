@@ -40,7 +40,7 @@ const ReviewSwapPage = () => {
     const { openConnectModal } = useConnectModal()
     const { refetch: refetchTokens } = useTokens()
     const { handleSrcAmountInput, selectedRoute: route } = useQuoteData()
-    const { addSwap } = useSwapData()
+    const { setSwap } = useSwapData()
     const router = useRouter()
 
     // Mirror Address //
@@ -148,7 +148,7 @@ const ReviewSwapPage = () => {
         }
     }, [accountAddress])
 
-    const { err: errInitiateSwap, isConnectWalletErr} = getInitiateSwapErrMsg({
+    const { err: errInitiateSwap, isConnectWalletErr } = getInitiateSwapErrMsg({
         accountAddress: accountAddress,
         route: route,
     })
@@ -194,7 +194,7 @@ const ReviewSwapPage = () => {
                 destinationAddress: destinationAddress
             })
             if (swap) {
-                addSwap(swap)
+                setSwap(swap)
                 let plyrToCheck = '';
                 if (plyrId && destinationAddress && destinationAddress !== accountAddress && route) {
                     plyrToCheck = '?plyrId=' + plyrId
@@ -211,7 +211,7 @@ const ReviewSwapPage = () => {
             }
         }
 
-    }, [refetchTokens, refetchAllowance, handleSrcAmountInput, plyrId, destinationAddress])
+    }, [refetchTokens, refetchAllowance, handleSrcAmountInput, setSwap, plyrId, destinationAddress])
 
     const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus } = useWriteInitiateSwap({
         connectedChain: connectedChain,
@@ -253,7 +253,7 @@ const ReviewSwapPage = () => {
         onClick={swapBtnEnabled ? swapOnClick?.bind(this) : undefined}
         disabled={!swapBtnEnabled}
     >
-         {errInitiateSwap ?? `${isSwitchChainRequired ? `Switch to ${route!.srcChain.name} and ${swapActionMsg}` : swapActionMsg}`}
+        {errInitiateSwap ?? `${isSwitchChainRequired ? `Switch to ${route!.srcChain.name} and ${swapActionMsg}` : swapActionMsg}`}
         {(approveIsInProgress || initiateIsInProgress) && (
             <LoadingIcon className={iconSizes.sm} />
         )}

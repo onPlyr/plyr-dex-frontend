@@ -52,3 +52,7 @@ export const getParsedError = (error: any): string => {
     }
     return parsed?.message ?? "An unknown error occurred"
 }
+
+export const setTimeoutPromise = async (delay: number) => {
+    return new Promise(resolve => setTimeout(resolve, delay))
+}

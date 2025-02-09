@@ -3,7 +3,6 @@
 import { Portal } from "@radix-ui/react-portal"
 import React, { useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"
-import { Hash } from "viem"
 
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import CloseIcon from "@/app/components/icons/CloseIcon"
@@ -13,11 +12,12 @@ import SuccessIcon from "@/app/components/icons/SuccessIcon"
 import Button from "@/app/components/ui/Button"
 import { defaultNotificationRemoveDelayMs } from "@/app/config/notifications"
 import { iconSizes } from "@/app/config/styling"
-import { Notification, NotificationStatus, NotificationStatusType } from "@/app/types/notifications"
+import useNotifications from "@/app/hooks/notifications/useNotifications"
+import { Notification, NotificationStatus } from "@/app/types/notifications"
 
 interface BaseNotificationProps extends React.ComponentPropsWithoutRef<"div"> {
     notification: Notification,
-    removeNotification: (id?: Hash) => void,
+    removeNotification?: (id?: string) => void,
 }
 
 interface NotificationHeaderProps extends BaseNotificationProps {
@@ -26,7 +26,6 @@ interface NotificationHeaderProps extends BaseNotificationProps {
 
 interface NotificationContentProps extends BaseNotificationProps {
     container: Element | DocumentFragment | null | undefined,
-    removeOnStatus?: NotificationStatusType,
     removeDelayMs?: number,
     portalProps?: React.ComponentPropsWithoutRef<typeof Portal>,
     headerProps?: React.ComponentPropsWithoutRef<"div">,
@@ -76,7 +75,7 @@ export const NotificationClose = React.forwardRef<HTMLDivElement, BaseNotificati
                 label="Close"
                 className="icon-btn transition hover:rotate-180"
                 replaceClass={true}
-                onClick={removeNotification.bind(this, notification.id)}
+                onClick={removeNotification?.bind(this, notification.id)}
             >
                 <CloseIcon className={iconSizes.sm} />
             </Button>
@@ -117,9 +116,7 @@ NotificationHeader.displayName = "NotificationHeader"
 export const NotificationContent = React.forwardRef<HTMLDivElement, NotificationContentProps>(({
     className,
     notification,
-    removeNotification,
     container,
-    removeOnStatus,
     removeDelayMs,
     portalProps,
     headerProps,
@@ -127,13 +124,13 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
     ...props
 }, ref) => {
 
-    const removeStatus = removeOnStatus ?? NotificationStatus.Success
+    const { removeNotification } = useNotifications()
     const removeDelay = Math.abs(removeDelayMs ?? defaultNotificationRemoveDelayMs)
     const [statusIcon, setStatusIcon] = useState<React.ReactNode>()
 
     useEffect(() => {
         setStatusIcon(notification.status === "success" ? <SuccessIcon highlight={true} /> : notification.status === "error" ? <ErrorIcon highlight={true} /> : <LoadingIcon highlight={true} />)
-        if (notification.status === removeStatus) {
+        if (notification.status !== NotificationStatus.Pending) {
             setTimeout(() => {
                 removeNotification(notification.id)
             }, removeDelay)

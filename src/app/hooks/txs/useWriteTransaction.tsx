@@ -1,45 +1,55 @@
 import React, { useCallback, useEffect, useState } from "react"
-import { Hash, toHex, TransactionReceipt, zeroAddress } from "viem"
+import { Hash, TransactionReceipt, zeroAddress } from "viem"
 import { useAccount, useSimulateContract, UseSimulateContractParameters, useWriteContract, UseWriteContractReturnType } from "wagmi"
 import { waitForTransactionReceipt } from "@wagmi/core"
 
-import { TxNotificationMsgs } from "@/app/config/txs"
+import { DefaultTxNotificationMsgData } from "@/app/config/txs"
 import { wagmiConfig } from "@/app/config/wagmi"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { getChain } from "@/app/lib/chains"
 import { getParsedError } from "@/app/lib/utils"
-import { NotificationStatus, NotificationStatusType, NotificationType } from "@/app/types/notifications"
-import { TxNotificationMsg, TxNotificationType } from "@/app/types/txs"
+import { NotificationStatus, NotificationType } from "@/app/types/notifications"
+import { TxNotificationMsg, TxNotificationMsgData, TxNotificationType } from "@/app/types/txs"
 
 const defaultConfirmations = 1
 
-type MsgData = {
+type TransactionMsgData = {
     [key in TxNotificationType]?: TxNotificationMsg
 }
 
-type NotificationData = {
+type TransactionNotificationData = {
     type?: NotificationType,
-    msgs?: MsgData,
-}
-
-type NotificationMsgs = Record<TxNotificationType, TxNotificationMsg>
-
-const getTransactionNotificationData = (data?: MsgData) => {
-    const msgs: MsgData = {}
-    for (const type of Object.values(TxNotificationType)) {
-        msgs[type] = {
-            header: data?.[type]?.header ?? TxNotificationMsgs[type].header,
-            body: data?.[type]?.body ?? TxNotificationMsgs[type].body,
-            ignore: data?.[type]?.ignore ?? TxNotificationMsgs[type].ignore,
-        }
-    }
-    return msgs as NotificationMsgs
+    msgs?: TransactionMsgData,
 }
 
 type UseWriteTransactionReturnType = Omit<UseWriteContractReturnType, "writeContract" | "writeContractAsync"> & {
     writeTransaction: () => void,
     txReceipt?: TransactionReceipt,
     isInProgress: boolean,
+}
+
+const getTransactionNotificationData = (txMsgData?: TransactionMsgData) => {
+
+    const msgData: TxNotificationMsgData = {
+        ...DefaultTxNotificationMsgData,
+    }
+
+    if (txMsgData) {
+        for (const [type, msg] of Object.entries(txMsgData)) {
+            const typeData = msgData[type as TxNotificationType]
+            if (msg.header) {
+                typeData.header = msg.header
+            }
+            if (msg.body) {
+                typeData.body = msg.body
+            }
+            if (msg.ignore !== undefined) {
+                typeData.ignore = msg.ignore
+            }
+        }
+    }
+
+    return msgData
 }
 
 const useWriteTransaction = ({
@@ -52,7 +62,7 @@ const useWriteTransaction = ({
     params: UseSimulateContractParameters,
     confirmations?: number,
     onConfirmation?: (receipt?: TransactionReceipt) => void,
-    notifications?: NotificationData,
+    notifications?: TransactionNotificationData,
     _enabled?: boolean,
 }): UseWriteTransactionReturnType => {
 
@@ -84,9 +94,9 @@ const useWriteTransaction = ({
         replaceBody,
         txHash,
     }: {
-        id: Hash,
+        id: string,
         type: TxNotificationType,
-        status: NotificationStatusType,
+        status: NotificationStatus,
         replaceBody?: React.ReactNode,
         txHash?: Hash,
     }) => {
@@ -128,7 +138,7 @@ const useWriteTransaction = ({
 
         let txHash: Hash | undefined = undefined
         let txReceipt: TransactionReceipt | undefined = undefined
-        const notificationId = toHex(window.crypto.randomUUID())
+        const notificationId = window.crypto.randomUUID()
 
         if (!enabled || !simulateData) {
             return

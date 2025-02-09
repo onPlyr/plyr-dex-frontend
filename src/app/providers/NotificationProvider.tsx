@@ -7,11 +7,21 @@ import { Hash } from "viem"
 import { NotificationContainer, NotificationContent } from "@/app/components/ui/Notification"
 import { Notification } from "@/app/types/notifications"
 
+interface NotificationData {
+    [id: string]: Notification,
+}
+
 interface NotificationContextType {
-    data: Notification[],
-    getNotification: (id?: Hash, txHash?: Hash) => Notification | undefined,
+    data: NotificationData,
+    getNotification: ({
+        id,
+        txHash,
+    }: {
+        id?: string,
+        txHash?: Hash,
+    }) => Notification | undefined,
     setNotification: (notification?: Notification) => void,
-    removeNotification: (id?: Hash) => void,
+    removeNotification: (id?: string) => void,
 }
 
 export const NotificationContext = createContext({} as NotificationContextType)
@@ -23,38 +33,43 @@ const NotificationProvider = ({
 }) => {
 
     const [container, setContainer] = useState<HTMLDivElement | null>(null)
-    const [notificationData, setNotificationData] = useState<Notification[]>([])
+    const [notificationData, setNotificationData] = useState<NotificationData>({})
 
-    const getNotification = useCallback((id?: Hash, txHash?: Hash) => {
-        return id ? notificationData.find((notification) => notification.id.toLowerCase() === id.toLowerCase() || (notification.txHash && txHash && notification.txHash.toLowerCase() === txHash.toLowerCase())) : undefined
+    const getNotification = useCallback(({
+        id,
+        txHash,
+    }: {
+        id?: string,
+        txHash?: Hash,
+    }) => {
+
+        const byId = id ? notificationData[id] : undefined
+        const byTxHash = txHash && !byId ? Object.values(notificationData).find((data) => data.txHash && data.txHash === txHash) : undefined
+
+        return byId ?? byTxHash
+
     }, [notificationData])
 
     const setNotification = useCallback((notification?: Notification) => {
-
         if (notification) {
-
-            const index = notificationData.findIndex((existing) => existing.id.toLowerCase() === notification.id.toLowerCase() || (existing.txHash && notification.txHash && existing.txHash.toLowerCase() === notification.txHash.toLowerCase()))
-            const data = [
-                ...notificationData,
-            ]
-
-            if (index !== -1) {
-                data[index] = notification
-            }
-            else {
-                data.push(notification)
-            }
-
-            setNotificationData(data)
+            setNotificationData((prevData) => {
+                return {
+                    ...prevData,
+                    [notification.id]: notification,
+                }
+            })
         }
+    }, [setNotificationData])
 
-    }, [notificationData, setNotificationData])
-
-    const removeNotification = useCallback((id?: Hash) => {
+    const removeNotification = useCallback((id?: string) => {
         if (id) {
-            setNotificationData(notificationData.filter((data) => data.id.toLowerCase() !== id.toLowerCase()))
+            setNotificationData((prevData) => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { [id]: _, ...data } = prevData
+                return data
+            })
         }
-    }, [notificationData, setNotificationData])
+    }, [setNotificationData])
 
     const context: NotificationContextType = {
         data: notificationData,
@@ -63,18 +78,15 @@ const NotificationProvider = ({
         removeNotification: removeNotification,
     }
 
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> notifications: ${serialize(notificationData)} <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
-
     return (
         <NotificationContext.Provider value={context}>
             {children}
             <NotificationContainer ref={setContainer}>
                 <AnimatePresence>
-                    {notificationData.map((notification) => (
+                    {Object.values(notificationData).map((notification) => (
                         <NotificationContent
                             key={notification.id}
                             notification={notification}
-                            removeNotification={removeNotification}
                             container={container}
                         />
                     ))}

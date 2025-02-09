@@ -4,7 +4,7 @@ export const TxAction = {
     Transfer: "transfer",
     Unwrap: "unwrap",
 }
-export type TxActionType = (typeof TxAction)[keyof typeof TxAction]
+export type TxAction = (typeof TxAction)[keyof typeof TxAction]
 
 export const TxMsgType = {
     Default: "default",
@@ -29,3 +29,5 @@ export interface TxNotificationMsg {
     body?: React.ReactNode,
     ignore?: boolean,
 }
+
+export type TxNotificationMsgData = Record<TxNotificationType, TxNotificationMsg>
