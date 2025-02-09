@@ -1,26 +1,28 @@
-import { Address, erc20Abi, TransactionReceipt } from "viem"
+import { Address, erc20Abi } from "viem"
 
-import useWriteTransaction from "@/app/hooks/txs/useWriteTransaction"
+import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
+import { NotificationType } from "@/app/types/notifications"
+import { TxNotificationType } from "@/app/types/txs"
 
 const useWriteApprove = ({
     chain,
     token,
     spenderAddress,
     amount,
-    onConfirmation,
+    callbacks,
     _enabled = true,
 }: {
     chain?: Chain,
     token?: Token,
     spenderAddress?: Address,
     amount?: bigint,
-    onConfirmation?: (receipt?: TransactionReceipt) => void,
+    callbacks?: WriteTransactionCallbacks,
     _enabled?: boolean,
 }) => {
 
-    const enabled = _enabled !== false && chain !== undefined && token !== undefined && token.isNative !== true && spenderAddress !== undefined && amount !== undefined && amount > 0
+    const enabled = !(!_enabled || !chain || !token || token.isNative || !spenderAddress || !amount || amount === BigInt(0))
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
@@ -33,7 +35,23 @@ const useWriteApprove = ({
                 enabled: enabled,
             },
         },
-        onConfirmation: onConfirmation,
+        callbacks: callbacks,
+        notifications: {
+            type: NotificationType.Transaction,
+            msgs: enabled ? {
+                [TxNotificationType.Pending]: {
+                    header: `Approve ${token.symbol}`,
+                },
+                [TxNotificationType.Submitted]: {
+                    header: `Approving ${token.symbol}`,
+                    body: `Awaiting confirmation of ${token.symbol} approval.`,
+                },
+                [TxNotificationType.Success]: {
+                    header: "Approval Complete",
+                    body: `Successfully approved ${token.symbol}!`,
+                },
+            } : undefined,
+        },
         _enabled: enabled,
     })
 

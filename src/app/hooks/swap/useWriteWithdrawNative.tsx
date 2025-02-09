@@ -1,7 +1,7 @@
 import { Address } from "viem"
 
 import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
-import useWriteTransaction from "@/app/hooks/txs/useWriteTransaction"
+import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
 
@@ -10,14 +10,14 @@ const useWriteWithdrawNative = ({
     accountAddress,
     token,
     amount,
-    onConfirmation,
+    callbacks,
     _enabled = true,
 }: {
     connectedChain?: Chain,
     accountAddress?: Address,
     token?: Token,
     amount?: bigint,
-    onConfirmation?: () => void,
+    callbacks?: WriteTransactionCallbacks,
     _enabled?: boolean,
 }) => {
 
@@ -35,7 +35,7 @@ const useWriteWithdrawNative = ({
                 enabled: enabled,
             },
         },
-        onConfirmation: onConfirmation,
+        callbacks: callbacks,
         _enabled: enabled,
     })
 

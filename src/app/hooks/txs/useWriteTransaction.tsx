@@ -9,60 +9,44 @@ import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { getChain } from "@/app/lib/chains"
 import { getParsedError } from "@/app/lib/utils"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
-import { TxNotificationMsg, TxNotificationMsgData, TxNotificationType } from "@/app/types/txs"
+import { TxNotificationMsg, TxNotificationType } from "@/app/types/txs"
 
 const defaultConfirmations = 1
 
-type TransactionMsgData = {
+type WriteTransactionMsgData = {
     [key in TxNotificationType]?: TxNotificationMsg
 }
 
-type TransactionNotificationData = {
+export interface WriteTransactionNotificationData {
     type?: NotificationType,
-    msgs?: TransactionMsgData,
+    msgs?: WriteTransactionMsgData,
 }
 
-type UseWriteTransactionReturnType = Omit<UseWriteContractReturnType, "writeContract" | "writeContractAsync"> & {
+interface UseWriteTransactionReturnType extends Omit<UseWriteContractReturnType, "writeContract" | "writeContractAsync"> {
     writeTransaction: () => void,
     txReceipt?: TransactionReceipt,
     isInProgress: boolean,
+    refetch: () => void,
 }
 
-const getTransactionNotificationData = (txMsgData?: TransactionMsgData) => {
-
-    const msgData: TxNotificationMsgData = {
-        ...DefaultTxNotificationMsgData,
-    }
-
-    if (txMsgData) {
-        for (const [type, msg] of Object.entries(txMsgData)) {
-            const typeData = msgData[type as TxNotificationType]
-            if (msg.header) {
-                typeData.header = msg.header
-            }
-            if (msg.body) {
-                typeData.body = msg.body
-            }
-            if (msg.ignore !== undefined) {
-                typeData.ignore = msg.ignore
-            }
-        }
-    }
-
-    return msgData
+export type WriteTransactionCallbackType = (receipt?: TransactionReceipt, notificationId?: string, txHash?: Hash) => void
+export interface WriteTransactionCallbacks {
+    onSuccess?: WriteTransactionCallbackType,
+    onError?: WriteTransactionCallbackType,
+    onSettled?: WriteTransactionCallbackType,
 }
 
 const useWriteTransaction = ({
     params,
     confirmations,
-    onConfirmation,
+    callbacks,
     notifications,
     _enabled = true,
 }: {
     params: UseSimulateContractParameters,
     confirmations?: number,
-    onConfirmation?: (receipt?: TransactionReceipt) => void,
-    notifications?: TransactionNotificationData,
+    callbacks?: WriteTransactionCallbacks,
+    notifications?: WriteTransactionNotificationData,
     _enabled?: boolean,
 }): UseWriteTransactionReturnType => {
 
@@ -73,7 +57,7 @@ const useWriteTransaction = ({
     const receiptConfirmations = confirmations || defaultConfirmations
     const enabled = _enabled !== false && params.query?.enabled !== false && accountAddress !== undefined && connectedChain !== undefined && txChain !== undefined && connectedChain.id === txChain.id
 
-    const { data: simulateData, status: simulateStatus, error: simulateError, failureReason: simulateFailureReason } = useSimulateContract({
+    const { data: simulateData, status: simulateStatus, error: simulateError, failureReason: simulateFailureReason, refetch } = useSimulateContract({
         ...params,
         query: {
             ...params.query,
@@ -83,9 +67,6 @@ const useWriteTransaction = ({
     const [isInProgress, setIsInProgress] = useState(false)
     const [txReceipt, setTxReceipt] = useState<TransactionReceipt>()
     const wagmiWriteContract = useWriteContract(params)
-
-    const notificationType = notifications?.type ?? NotificationType.Transaction
-    const notificationData = getTransactionNotificationData(notifications?.msgs)
 
     const setTransactionNotification = useCallback(({
         id,
@@ -100,18 +81,18 @@ const useWriteTransaction = ({
         replaceBody?: React.ReactNode,
         txHash?: Hash,
     }) => {
-        const { header, body, ignore } = notificationData[type]
-        if (!ignore) {
+        const msgData = notifications?.msgs?.[type]
+        if (!msgData?.ignore) {
             setNotification({
                 id: id,
-                type: notificationType,
-                header: header,
-                body: replaceBody ?? body,
+                type: notifications?.type ?? NotificationType.Transaction,
+                header: msgData?.header ?? DefaultTxNotificationMsgData[type].header,
+                body: replaceBody ?? msgData?.body ?? DefaultTxNotificationMsgData[type].body,
                 status: status,
                 txHash: txHash,
             })
         }
-    }, [setNotification, notificationType, notificationData])
+    }, [setNotification, notifications, simulateData])
 
     useEffect(() => {
         if (enabled) {
@@ -179,7 +160,7 @@ const useWriteTransaction = ({
                 txHash: txHash,
             })
 
-            onConfirmation?.(txReceipt)
+            callbacks?.onSuccess?.(txReceipt, notificationId, txHash)
         }
 
         catch (err: unknown) {
@@ -190,19 +171,22 @@ const useWriteTransaction = ({
                 replaceBody: err ? getParsedError(err) : undefined,
                 txHash: txHash,
             })
+            callbacks?.onError?.(txReceipt, notificationId, txHash)
         }
 
         finally {
             setIsInProgress(false)
+            callbacks?.onSettled?.(txReceipt, notificationId, txHash)
         }
 
-    }, [enabled, simulateData, setTransactionNotification, setTxReceipt, wagmiWriteContract.writeContractAsync, receiptConfirmations, onConfirmation, setIsInProgress])
+    }, [enabled, callbacks, simulateData, setTransactionNotification, setTxReceipt, wagmiWriteContract.writeContractAsync, receiptConfirmations, setIsInProgress])
 
     return {
         ...wagmiWriteContract,
         writeTransaction: writeTransaction,
         txReceipt: txReceipt,
         isInProgress: isInProgress,
+        refetch: refetch,
     }
 }
 

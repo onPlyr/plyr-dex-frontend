@@ -42,6 +42,7 @@ const ReviewSwapPage = () => {
     const { handleSrcAmountInput, selectedRoute: route } = useQuoteData()
     const { setSwap } = useSwapData()
     const router = useRouter()
+    const [initiatePrompted, setInitiatePrompted] = useState(false)
 
     // Mirror Address //
     const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
@@ -164,24 +165,11 @@ const ReviewSwapPage = () => {
 
     const enabled = !(!accountAddress || !route || !route.srcChain || !route.srcToken || !route.srcAmount || route.srcAmount === BigInt(0) || !route.dstChain || !route.dstToken)
     const isSwitchChainRequired = !connectedChain || (route && connectedChain.id !== route.srcChain.id)
-
-
     const isApprovalRequired = enabled && (route.srcToken.isNative !== true && !(allowance !== undefined && allowance >= route.srcAmount))
+    const approveEnabled = enabled && isApprovalRequired
+    const initiateEnabled = enabled && !errInitiateSwap && !isSwitchChainRequired && !isApprovalRequired
 
-    const approveOnConfirmation = useCallback(() => {
-        refetchAllowance?.()
-    }, [refetchAllowance])
-
-    const { write: writeApprove, isInProgress: approveIsInProgress } = useWriteApprove({
-        chain: route?.srcChain,
-        token: route?.srcToken,
-        spenderAddress: route?.srcCell.address,
-        amount: route?.srcAmount,
-        onConfirmation: approveOnConfirmation,
-        _enabled: enabled && isApprovalRequired,
-    })
-
-    const initiateOnConfirmation = useCallback((receipt?: TransactionReceipt) => {
+    const initiateOnSettled = useCallback((receipt?: TransactionReceipt) => {
 
         let redirectUrl: `/${string}` | undefined = undefined
 
@@ -203,7 +191,7 @@ const ReviewSwapPage = () => {
             }
 
             refetchTokens()
-            refetchAllowance?.()
+            refetchAllowance()
             handleSrcAmountInput("")
 
             if (redirectUrl) {
@@ -213,21 +201,50 @@ const ReviewSwapPage = () => {
 
     }, [refetchTokens, refetchAllowance, handleSrcAmountInput, setSwap, plyrId, destinationAddress])
 
-    const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus } = useWriteInitiateSwap({
+    const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus, refetch: refetchInitiate } = useWriteInitiateSwap({
         connectedChain: connectedChain,
         accountAddress: accountAddress,
         destinationAddress: destinationAddress,
         route: route,
-        onConfirmation: initiateOnConfirmation,
-        _enabled: enabled && !errInitiateSwap && !isSwitchChainRequired && !isApprovalRequired,
+        callbacks: {
+            onSettled: initiateOnSettled,
+        },
+        _enabled: initiateEnabled,
     })
+
+    const handleInitiate = useCallback(() => {
+        if (initiateEnabled) {
+            writeInitiate()
+            setInitiatePrompted(true)
+        }
+    }, [initiateEnabled, writeInitiate, setInitiatePrompted])
+    const approveOnSettled = useCallback(() => {
+        refetchAllowance()
+        refetchInitiate()
+    }, [refetchAllowance, refetchInitiate])
+    const { write: writeApprove, isInProgress: approveIsInProgress, txReceipt: approveTxReceipt } = useWriteApprove({
+        chain: route?.srcChain,
+        token: route?.srcToken,
+        spenderAddress: route?.srcCell.address,
+        amount: route?.srcAmount,
+        callbacks: {
+            onSettled: approveOnSettled,
+        },
+        _enabled: approveEnabled,
+    })
+    useEffect(() => {
+        if (!initiatePrompted && initiateEnabled && approveTxReceipt?.status === "success" && !initiateIsInProgress) {
+            handleInitiate()
+        }
+    }, [initiateEnabled])
 
     const approvalMsg = getTxActionMsg(TxAction.Approve, approveIsInProgress)
     const initiateMsg = getTxActionMsg(route?.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress)
     const swapActionMsg = errInitiateSwap ?? (isApprovalRequired ? approvalMsg : initiateMsg)
+    const isInProgress = approveIsInProgress || initiateIsInProgress
 
     const handleSwitchAndApprove = useCallback(async () => {
-        if (route && writeApprove) {
+        if (route) {
             await switchChainAsync({
                 chainId: route.srcChain.id,
             })
@@ -236,25 +253,24 @@ const ReviewSwapPage = () => {
     }, [route, writeApprove, switchChainAsync])
 
     const handleSwitchAndInitiate = useCallback(async () => {
-        if (route && writeInitiate) {
+        if (route) {
             await switchChainAsync({
                 chainId: route.srcChain.id,
             })
-            writeInitiate()
+            handleInitiate()
         }
-    }, [route, writeInitiate, switchChainAsync])
+    }, [route, handleInitiate, switchChainAsync])
 
-    const swapOnClick = isConnectWalletErr ? openConnectModal : isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : writeInitiate)
-    const swapBtnEnabled = isConnectWalletErr || isSwitchChainRequired || (enabled && !errInitiateSwap && !approveIsInProgress && !initiateIsInProgress && destinationAddress)
-
+    const swapOnClick = isConnectWalletErr ? openConnectModal : isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : handleInitiate)
+    const swapBtnEnabled = isConnectWalletErr || isSwitchChainRequired || (enabled && !errInitiateSwap && !isInProgress)
 
     const pageFooter = <Button
         className="gradient-btn"
         onClick={swapBtnEnabled ? swapOnClick?.bind(this) : undefined}
         disabled={!swapBtnEnabled}
     >
-        {errInitiateSwap ?? `${isSwitchChainRequired ? `Switch to ${route!.srcChain.name} and ${swapActionMsg}` : swapActionMsg}`}
-        {(approveIsInProgress || initiateIsInProgress) && (
+        {errInitiateSwap ?? `${isSwitchChainRequired && !isInProgress ? `Switch to ${route!.srcChain.name} and ${swapActionMsg}` : swapActionMsg}`}
+        {isInProgress && (
             <LoadingIcon className={iconSizes.sm} />
         )}
     </Button>

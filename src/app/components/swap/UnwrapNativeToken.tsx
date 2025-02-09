@@ -41,7 +41,7 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
         },
     })
 
-    const unwrapOnConfirmation = useCallback(() => {
+    const unwrapOnSuccess = useCallback(() => {
         refetchTokens()
         refetchWrappedBalance()
     }, [refetchTokens, refetchWrappedBalance])
@@ -51,7 +51,9 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
         accountAddress: accountAddress,
         token: srcToken,
         amount: wrappedBalance,
-        onConfirmation: unwrapOnConfirmation,
+        callbacks: {
+            onSuccess: unwrapOnSuccess,
+        },
         _enabled: unwrapEnabled,
     })
 
