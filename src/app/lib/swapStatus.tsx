@@ -412,8 +412,10 @@ const getNextSwapQuery = ({
 
 export const getSwapStatus = async ({
     swap,
+    setSwap,
 }: {
-    swap?: Swap
+    swap: Swap
+    setSwap: (swap?: Swap) => void,
 }) => {
 
     const result: SwapStatusQueryResult = {
@@ -422,9 +424,8 @@ export const getSwapStatus = async ({
         isInProgress: false,
     }
 
-    // todo: error handling / notifications
-    if (!swap || swap.status === SwapStatus.Success) {
-        result.status = swap?.status === SwapStatus.Success ? "success" : "error"
+    if (swap.status === SwapStatus.Success) {
+        result.status = "success"
         return result
     }
 
@@ -447,6 +448,9 @@ export const getSwapStatus = async ({
 
         result.swapData = initiated.swapData
         result.status = initiated.error ? "error" : nextSwapQuery ? "pending" : "success"
+        if (result.swapData) {
+            setSwap(result.swapData)
+        }
 
         // todo: error handling
         if (initiated.error) {
@@ -474,6 +478,9 @@ export const getSwapStatus = async ({
                 retryNum++
             }
             else {
+                if (result.swapData) {
+                    setSwap(result.swapData)
+                }
                 nextSwapQuery = queryResult.nextSwapQuery
             }
         }
@@ -487,6 +494,9 @@ export const getSwapStatus = async ({
     finally {
         result.isInProgress = false
         result.status = result.error ? "error" : result.swapData?.status === SwapStatus.Success ? "success" : "pending"
+        if (result.swapData) {
+            setSwap(result.swapData)
+        }
     }
 
     return result

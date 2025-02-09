@@ -76,6 +76,7 @@ const SwapStatusProvider = ({
             if (swap) {
                 getSwapStatus({
                     swap: swap,
+                    setSwap: setSwap,
                 }).then((result) => {
 
                     const { swapData, error } = result
@@ -84,7 +85,7 @@ const SwapStatusProvider = ({
                     })
 
                     if (swapData) {
-                        setSwap(swapData)
+                        //setSwap(swapData)
                         if (notification) {
                             setNotification(getSwapNotificationData(notification.id, swapData, error))
                         }
