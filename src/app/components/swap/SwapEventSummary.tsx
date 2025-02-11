@@ -44,6 +44,7 @@ interface SwapEventSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: Swap,
     index?: number,
     isReviewSwap?: boolean,
+    animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
 }
 
 const defaultTransition: Transition = {
