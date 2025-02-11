@@ -2,7 +2,6 @@ import { createContext, useEffect, useState } from "react"
 import { Hash } from "viem"
 import { serialize } from "wagmi"
 
-import { NumberFormatType } from "@/app/config/numbers"
 import { SwapStatus } from "@/app/config/swaps"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useSwapData from "@/app/hooks/swap/useSwapData"
@@ -19,12 +18,12 @@ interface SwapStatusContextType {
 
 export const SwapStatusContext = createContext({} as SwapStatusContextType)
 
-const getSwapNotificationData = (id: string, swap: Swap, error?: string) => {
+const getSwapNotificationData = (id: string, swap: Swap, error?: string): Notification => {
 
     const swapType = swap.type ? getRouteTypeLabel(swap.type) : "Transaction"
     const header = `${swapType} ${getStatusLabel(swap.status)}`
     const body = swap.status === SwapStatus.Success ? swap.dstData ? (<>
-        {swap.dstData.amount ? `${amountToLocale(swap.dstData.amount, swap.dstData.token.decimals, NumberFormatType.Precise)} ` : ""}{swap.dstData.token.symbol} received on {swap.dstData.chain.name}!
+        {swap.dstData.amount ? `Received ${amountToLocale(swap.dstData.amount, swap.dstData.token.decimals)} ` : ""}{swap.dstData.token.symbol}!
     </>) : (<>
         {swapType} completed successfully!
     </>) : swap.status === SwapStatus.Error ? (<>
@@ -40,7 +39,7 @@ const getSwapNotificationData = (id: string, swap: Swap, error?: string) => {
         type: NotificationType.Swap,
         status: swap.status,
         txHash: swap.id,
-    } as Notification
+    }
 }
 
 const SwapStatusProvider = ({

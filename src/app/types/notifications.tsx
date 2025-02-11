@@ -20,4 +20,5 @@ export interface Notification {
     body: React.ReactNode,
     status: NotificationStatus,
     txHash?: Hash,
+    animateKey?: string,
 }

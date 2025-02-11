@@ -82,7 +82,7 @@ const NotificationProvider = ({
         <NotificationContext.Provider value={context}>
             {children}
             <NotificationContainer ref={setContainer}>
-                <AnimatePresence>
+                <AnimatePresence mode="popLayout">
                     {Object.values(notificationData).map((notification) => (
                         <NotificationContent
                             key={notification.id}

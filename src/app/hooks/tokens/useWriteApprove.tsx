@@ -5,6 +5,7 @@ import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
 import { NotificationType } from "@/app/types/notifications"
 import { TxNotificationType } from "@/app/types/txs"
+import { amountToLocale } from "@/app/lib/numbers"
 
 const useWriteApprove = ({
     chain,
@@ -40,15 +41,16 @@ const useWriteApprove = ({
             type: NotificationType.Transaction,
             msgs: enabled ? {
                 [TxNotificationType.Pending]: {
-                    header: `Approve ${token.symbol}`,
+                    header: `Confirm Approval`,
+                    body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
                 },
                 [TxNotificationType.Submitted]: {
-                    header: `Approving ${token.symbol}`,
-                    body: `Awaiting confirmation of ${token.symbol} approval.`,
+                    header: `Confirming Approval`,
+                    body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
                 },
                 [TxNotificationType.Success]: {
                     header: "Approval Complete",
-                    body: `Successfully approved ${token.symbol}!`,
+                    body: `Successfully approved ${amountToLocale(amount, token.decimals)} ${token.symbol}!`,
                 },
             } : undefined,
         },

@@ -65,7 +65,7 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
                 chainId: srcChain.id,
             })
         }
-    }, [switchChainRequired, srcChain])
+    }, [switchChainRequired, srcChain, switchChain])
 
     return (
         <AnimatePresence mode="wait">

@@ -1,5 +1,6 @@
 import { Address, zeroAddress } from "viem"
 
+import { SwapStatus } from "@/app/config/swaps"
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { getCellAbi } from "@/app/lib/cells"
 import { getRouteInstructions } from "@/app/lib/routes"
@@ -51,9 +52,10 @@ const useWriteInitiateSwap = ({
             msgs: enabled ? {
                 [TxNotificationType.Pending]: {
                     header: `Confirm ${routeType}`,
+                    body: `${routeType} to ${route.dstToken.symbol} on ${route.dstChain.name}.`
                 },
                 [TxNotificationType.Submitted]: {
-                    header: `${routeType} ${getStatusLabel("pending")}`,
+                    header: `${routeType} ${getStatusLabel(SwapStatus.Pending)}`,
                     body: `${getTxActionMsg(route.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, true)} to ${route.dstToken.symbol} on ${route.dstChain.name}.`,
                 },
                 [TxNotificationType.Success]: {

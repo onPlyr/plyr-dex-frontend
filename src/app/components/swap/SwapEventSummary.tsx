@@ -1,11 +1,10 @@
 "use client"
 
-import { AnimatePresence, Transition } from "motion/react"
+import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import React, { useCallback, useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"
 import { parseUnits } from "viem"
 
-import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import ApproxEqualIcon from "@/app/components/icons/ApproxEqualIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import CoinsIcon from "@/app/components/icons/CoinsIcon"
@@ -26,7 +25,6 @@ import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { TabContent, TabIndicator, TabsContainer, TabsList, TabTrigger } from "@/app/components/ui/Tabs"
 import { Tooltip } from "@/app/components/ui/Tooltip"
-import { defaultTransition } from "@/app/config/animations"
 import { NumberFormatType } from "@/app/config/numbers"
 import { iconSizes, imgSizes } from "@/app/config/styling"
 import { defaultSlippageBps, SwapStatus } from "@/app/config/swaps"
@@ -48,16 +46,53 @@ interface SwapEventSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     isReviewSwap?: boolean,
 }
 
-const eventTransition: Transition = {
-    ...defaultTransition,
+const defaultTransition: Transition = {
+    type: "spring",
     duration: 0.15,
 }
+
+const defaultEventAnimations: Variants = {
+    initial: {
+        y: "50%",
+        opacity: 0,
+    },
+    animate: {
+        y: 0,
+        opacity: 1,
+    },
+    exit: {
+        y: "50%",
+        opacity: 0,
+    },
+}
+const SwapEventAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+    initial = "initial",
+    animate = "animate",
+    exit = "exit",
+    transition = defaultTransition,
+    variants = defaultEventAnimations,
+    layout = true,
+    ...props
+}, ref) => (
+    <motion.div
+        ref={ref}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        transition={transition}
+        layout={layout}
+        variants={variants}
+        {...props}
+    />
+))
+SwapEventAnimation.displayName = "SwapEventAnimation"
 
 const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>(({
     className,
     swap,
     index,
     isReviewSwap = false,
+    animationProps,
     ...props
 }, ref) => {
 
@@ -71,7 +106,7 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
     const setEventTab = useCallback((tab: string) => {
         const tabIndex = parseInt(tab)
         setEventTabState(tabIndex === statusTab || swap.events.length > tabIndex ? tabIndex.toString() : defaultTab)
-    }, [eventTab, setEventTabState, defaultTab])
+    }, [swap.events.length, setEventTabState, defaultTab])
 
     useEffect(() => {
         if (!isReviewSwap) {
@@ -106,9 +141,14 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                 <TabsList className="container flex flex-row flex-1 flex-wrap gap-2">
                     {swap.events.map((event, i) => {
                         const { platform, platformName } = getSwapEventPlatformData(event)
+                        const eventKey = `${index ?? swap.id}-${i}`
                         return event.type && event.dstData && (
-                            <React.Fragment key={`${index ?? swap.id}-${i}`}>
-                                <TabTrigger key={`${index ?? swap.id}-${i}`} value={i.toString()} onClick={(e) => e.stopPropagation()}>
+                            <React.Fragment key={eventKey}>
+                                <TabTrigger
+                                    key={eventKey}
+                                    value={i.toString()}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     <Tooltip
                                         trigger=<div className="flex flex-row flex-1 justify-center items-center">
                                             {eventTab === i.toString() && <TabIndicator />}
@@ -141,7 +181,7 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                         <Tooltip
                             trigger=<div className="group relative flex flex-row flex-1 p-2 justify-center items-center">
                                 {eventTab.toString() === statusTab.toString() && <TabIndicator />}
-                                <ScrollText className={`${eventTab.toString() === '100' ? 'text-black' : 'text-white'} transition-colors duration-300 font-bold`} style={{strokeWidth: 1.5}}/>
+                                <ScrollText className={`${eventTab.toString() === '100' ? 'text-black' : 'text-white'} transition-colors duration-300 font-bold`} style={{ strokeWidth: 1.5 }} />
                             </div>
                         >
                             {isReviewSwap && "Review "}{`${swap.type && getRouteTypeLabel(swap.type)} `}{!isReviewSwap && getStatusLabel(swap.status)}
@@ -158,14 +198,9 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                         })
 
                         return eventTab === i.toString() && (
-                            <ScaleInOut
+                            <SwapEventAnimation
                                 key={`${index ?? swap.id}-${i}`}
-                                fadeInOut={true}
-                                transitions={{
-                                    initial: eventTransition,
-                                    animate: eventTransition,
-                                    exit: eventTransition,
-                                }}
+                                {...animationProps}
                             >
                                 <TabContent
                                     value={i.toString()}
@@ -243,18 +278,13 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                                         </div>
                                     </div>
                                 </TabContent>
-                            </ScaleInOut>
+                            </SwapEventAnimation>
                         )
                     })}
                     {eventTab === statusTab.toString() && (
-                        <ScaleInOut
+                        <SwapEventAnimation
                             key={`${index ?? swap.id}-${statusTab}`}
-                            fadeInOut={true}
-                            transitions={{
-                                initial: eventTransition,
-                                animate: eventTransition,
-                                exit: eventTransition,
-                            }}
+                            {...animationProps}
                         >
                             <TabContent
                                 value={statusTab.toString()}
@@ -367,7 +397,7 @@ const SwapEventSummary = React.forwardRef<HTMLDivElement, SwapEventSummaryProps>
                                     </div>
                                 </div>
                             </TabContent>
-                        </ScaleInOut>
+                        </SwapEventAnimation>
                     )}
                 </AnimatePresence>
             </TabsContainer>

@@ -90,9 +90,10 @@ const useWriteTransaction = ({
                 body: replaceBody ?? msgData?.body ?? DefaultTxNotificationMsgData[type].body,
                 status: status,
                 txHash: txHash,
+                animateKey: type,
             })
         }
-    }, [setNotification, notifications, simulateData])
+    }, [setNotification, notifications])
 
     useEffect(() => {
         if (enabled) {
@@ -179,8 +180,8 @@ const useWriteTransaction = ({
             callbacks?.onSettled?.(txReceipt, notificationId, txHash)
         }
 
-    }, [enabled, callbacks, simulateData, setTransactionNotification, setTxReceipt, wagmiWriteContract.writeContractAsync, receiptConfirmations, setIsInProgress])
-
+    }, [enabled, callbacks, simulateData, setTransactionNotification, setTxReceipt, wagmiWriteContract, receiptConfirmations, setIsInProgress])
+    
     return {
         ...wagmiWriteContract,
         writeTransaction: writeTransaction,

@@ -38,7 +38,7 @@ export const formattedAmountToLocale = (value?: Intl.StringNumericLiteral, type?
     }
 
     const int = Math.abs(parseInt(value))
-    // const numberFormat = type ? numberFormats[type] : int < smNumberFormatMax ? smNumberFormat : int < mdNumberFormatMax ? mdNumberFormat : lgNumberFormat
+    
     const numberFormat = getNumberFormatType(int, type)
 
     return numberFormat.format(value)

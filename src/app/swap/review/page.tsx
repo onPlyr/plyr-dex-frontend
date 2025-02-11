@@ -199,7 +199,7 @@ const ReviewSwapPage = () => {
             }
         }
 
-    }, [refetchTokens, refetchAllowance, handleSrcAmountInput, setSwap, plyrId, destinationAddress])
+    }, [accountAddress, router, route, refetchTokens, refetchAllowance, handleSrcAmountInput, setSwap, plyrId, destinationAddress])
 
     const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus, refetch: refetchInitiate } = useWriteInitiateSwap({
         connectedChain: connectedChain,
@@ -317,7 +317,10 @@ const ReviewSwapPage = () => {
                         />
                     </div>
                 </div>
-                <SwapEventSummary swap={reviewSwap} isReviewSwap={true} />
+                <SwapEventSummary
+                    swap={reviewSwap}
+                    isReviewSwap={true}
+                />
 
                 <div className="container flex flex-col flex-1 p-4 gap-4">
                     <div className="flex flex-row flex-1 gap-4">

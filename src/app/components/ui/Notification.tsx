@@ -1,10 +1,10 @@
 "use client"
 
+import { motion, Transition, Variants } from "motion/react"
 import { Portal } from "@radix-ui/react-portal"
-import React, { useEffect, useState } from "react"
+import React, { useEffect } from "react"
 import { twMerge } from "tailwind-merge"
 
-import SlideInOut from "@/app/components/animations/SlideInOut"
 import CloseIcon from "@/app/components/icons/CloseIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
@@ -15,21 +15,66 @@ import { iconSizes } from "@/app/config/styling"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { Notification, NotificationStatus } from "@/app/types/notifications"
 
-interface BaseNotificationProps extends React.ComponentPropsWithoutRef<"div"> {
+interface NotificationPortalProps extends React.ComponentPropsWithoutRef<typeof Portal> {
+    animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
+}
+
+interface NotificationIconProps extends React.ComponentPropsWithoutRef<"div"> {
+    status: NotificationStatus,
+}
+
+interface NotificationHeaderProps extends React.ComponentPropsWithoutRef<"div"> {
+    status: NotificationStatus,
+}
+
+interface NotificationContentProps extends React.ComponentPropsWithoutRef<"div"> {
     notification: Notification,
-    removeNotification?: (id?: string) => void,
-}
-
-interface NotificationHeaderProps extends BaseNotificationProps {
-    icon?: React.ReactNode,
-}
-
-interface NotificationContentProps extends BaseNotificationProps {
     container: Element | DocumentFragment | null | undefined,
     removeDelayMs?: number,
-    portalProps?: React.ComponentPropsWithoutRef<typeof Portal>,
-    headerProps?: React.ComponentPropsWithoutRef<"div">,
+    portalProps?: NotificationPortalProps,
+    animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
+    iconProps?: NotificationIconProps,
+    headerProps?: NotificationHeaderProps,
+    closeProps?: React.ComponentPropsWithoutRef<"div">,
     bodyProps?: React.ComponentPropsWithoutRef<"div">,
+}
+
+const defaultTransition: Transition = {
+    type: "spring",
+    duration: 0.4,
+}
+
+const defaultPortalAnimations: Variants = {
+    initial: {
+        y: "50%",
+        opacity: 0,
+        height: 0,
+    },
+    animate: {
+        y: 0,
+        opacity: 1,
+        height: "auto",
+    },
+    exit: {
+        y: "50%",
+        opacity: 0,
+        height: 0,
+    },
+}
+
+const defaultContentAnimations: Variants = {
+    initial: {
+        y: "50%",
+        opacity: 0,
+    },
+    animate: {
+        y: 0,
+        opacity: 1,
+    },
+    exit: {
+        y: "-50%",
+        opacity: 0,
+    },
 }
 
 export const NotificationContainer = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(({
@@ -44,9 +89,35 @@ export const NotificationContainer = React.forwardRef<HTMLDivElement, React.Comp
 ))
 NotificationContainer.displayName = "NotificationContainer"
 
-export const NotificationPortal = React.forwardRef<React.ComponentRef<typeof Portal>, React.ComponentPropsWithoutRef<typeof Portal>>(({
+export const NotificationPortalAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+    initial = "initial",
+    animate = "animate",
+    exit = "exit",
+    transition = defaultTransition,
+    variants = defaultPortalAnimations,
+    layout = true,
+    className,
+    ...props
+}, ref) => (
+    <motion.div
+        ref={ref}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        transition={transition}
+        layout={layout}
+        variants={variants}
+        className={twMerge("w-full max-h-fit", className)}
+        {...props}
+    />
+))
+NotificationPortalAnimation.displayName = "NotificationPortalAnimation"
+
+export const NotificationPortal = React.forwardRef<React.ComponentRef<typeof Portal>, NotificationPortalProps>(({
+    children,
     asChild = true,
     container,
+    animationProps,
     ...props
 }, ref) => (
     <Portal
@@ -54,15 +125,17 @@ export const NotificationPortal = React.forwardRef<React.ComponentRef<typeof Por
         asChild={asChild}
         container={container}
         {...props}
-    />
+    >
+        <NotificationPortalAnimation {...animationProps}>
+            {children}
+        </NotificationPortalAnimation>
+    </Portal>
 ))
 NotificationPortal.displayName = "NotificationPortal"
 
-export const NotificationClose = React.forwardRef<HTMLDivElement, BaseNotificationProps>(({
+export const NotificationClose = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(({
     children,
     className,
-    notification,
-    removeNotification,
     ...props
 }, ref) => (
     <div
@@ -75,7 +148,6 @@ export const NotificationClose = React.forwardRef<HTMLDivElement, BaseNotificati
                 label="Close"
                 className="icon-btn transition hover:rotate-180"
                 replaceClass={true}
-                onClick={removeNotification?.bind(this, notification.id)}
             >
                 <CloseIcon className={iconSizes.sm} />
             </Button>
@@ -84,34 +156,77 @@ export const NotificationClose = React.forwardRef<HTMLDivElement, BaseNotificati
 ))
 NotificationClose.displayName = "NotificationClose"
 
-export const NotificationHeader = React.forwardRef<HTMLDivElement, NotificationHeaderProps>(({
-    children,
+export const NotificationIcon = React.forwardRef<HTMLDivElement, NotificationIconProps>(({
     className,
-    notification,
-    removeNotification,
-    icon,
+    status,
     ...props
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge("flex flex-row flex-1 gap-4", className)}
+        className={twMerge("flex flex-row flex-none justify-center items-center", className)}
         {...props}
     >
-        {children ?? (<>
-            <div className={twMerge(icon ? "flex" : "hidden", "flex-row flex-none justify-start items-center")}>
-                {icon}
-            </div>
-            <div className={twMerge("flex flex-row flex-1 justify-start items-center font-bold", notification.status === NotificationStatus.Error ? "text-error-500" : notification.status === NotificationStatus.Success ? "text-success-500" : "text-white")}>
-                {notification.header}
-            </div>
-            <NotificationClose
-                notification={notification}
-                removeNotification={removeNotification}
-            />
-        </>)}
+        {status === NotificationStatus.Success ? (
+            <SuccessIcon highlight={true} />
+        ) : status === NotificationStatus.Error ? (
+            <ErrorIcon highlight={true} />
+        ) : (
+            <LoadingIcon highlight={true} />
+        )}
     </div>
 ))
+NotificationIcon.displayName = "NotificationIcon"
+
+export const NotificationHeader = React.forwardRef<HTMLDivElement, NotificationHeaderProps>(({
+    className,
+    status,
+    ...props
+}, ref) => (
+    <div
+        ref={ref}
+        className={twMerge(
+            "flex flex-row flex-1 justify-start items-center font-bold",
+            status === NotificationStatus.Error ? "text-error-500" : status === NotificationStatus.Success ? "text-success-500" : "text-white",
+            className,
+        )}
+        {...props}
+    />
+))
 NotificationHeader.displayName = "NotificationHeader"
+
+export const NotificationBody = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(({
+    className,
+    ...props
+}, ref) => (
+    <div
+        ref={ref}
+        className={twMerge("flex flex-col flex-1", className)}
+        {...props}
+    />
+))
+NotificationBody.displayName = "NotificationBody"
+
+export const NotificationContentAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+    initial = "initial",
+    animate = "animate",
+    exit = "exit",
+    transition = defaultTransition,
+    variants = defaultContentAnimations,
+    className,
+    ...props
+}, ref) => (
+    <motion.div
+        ref={ref}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        transition={transition}
+        variants={variants}
+        className={twMerge("flex flex-row flex-1 gap-4", className)}
+        {...props}
+    />
+))
+NotificationContentAnimation.displayName = "NotificationContentAnimation"
 
 export const NotificationContent = React.forwardRef<HTMLDivElement, NotificationContentProps>(({
     className,
@@ -119,17 +234,18 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
     container,
     removeDelayMs,
     portalProps,
+    animationProps,
+    iconProps,
     headerProps,
+    closeProps,
     bodyProps,
     ...props
 }, ref) => {
 
     const { removeNotification } = useNotifications()
     const removeDelay = Math.abs(removeDelayMs ?? defaultNotificationRemoveDelayMs)
-    const [statusIcon, setStatusIcon] = useState<React.ReactNode>()
 
     useEffect(() => {
-        setStatusIcon(notification.status === "success" ? <SuccessIcon highlight={true} /> : notification.status === "error" ? <ErrorIcon highlight={true} /> : <LoadingIcon highlight={true} />)
         if (notification.status !== NotificationStatus.Pending) {
             setTimeout(() => {
                 removeNotification(notification.id)
@@ -142,30 +258,38 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
             container={container}
             {...portalProps}
         >
-            <SlideInOut
-                from="right"
-                to="right"
-                className="w-full"
+            <div
+                ref={ref}
+                className={twMerge("container flex flex-col flex-1 p-4 gap-4 w-full max-h-fit overflow-hidden", className)}
+                {...props}
             >
-                <div
-                    ref={ref}
-                    className={twMerge("container flex flex-col flex-1 p-4 gap-4 w-full max-h-fit h-fit overflow-hidden", className)}
-                    {...props}
+                <NotificationContentAnimation
+                    key={notification.animateKey ?? notification.status}
+                    {...animationProps}
                 >
-                    <NotificationHeader
-                        notification={notification}
-                        removeNotification={removeNotification}
-                        icon={statusIcon}
-                        {...headerProps}
+                    <NotificationIcon
+                        {...iconProps}
+                        status={notification.status}
                     />
-                    <div
-                        {...bodyProps}
-                        className={twMerge("flex flex-col flex-1", bodyProps?.className)}
-                    >
-                        {notification.body}
+                    <div className="flex flex-col flex-1 gap-1">
+                        <div className="flex flex-row flex-1 gap-4">
+                            <NotificationHeader
+                                {...headerProps}
+                                status={notification.status}
+                            >
+                                {notification.header}
+                            </NotificationHeader>
+                            <NotificationClose
+                                {...closeProps}
+                                onClick={removeNotification.bind(this, notification.id)}
+                            />
+                        </div>
+                        <NotificationBody {...bodyProps}>
+                            {notification.body}
+                        </NotificationBody>
                     </div>
-                </div>
-            </SlideInOut>
+                </NotificationContentAnimation>
+            </div>
         </NotificationPortal>
     )
 })

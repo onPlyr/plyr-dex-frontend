@@ -51,7 +51,7 @@ const useReadTokensAndBalances = () => {
 
         setNativeBalanceData(enabled ? results : undefined)
 
-    }, [enabled, accountAddress])
+    }, [enabled, accountAddress, nativeTokens])
 
     useEffect(() => {
         getNativeBalances()
