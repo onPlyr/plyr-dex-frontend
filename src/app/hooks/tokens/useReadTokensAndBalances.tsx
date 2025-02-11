@@ -18,6 +18,7 @@ const formatTokenData = (token: Token, balance?: bigint) => {
 
 const useReadTokensAndBalances = () => {
 
+    // todo: proper error handling
     const { address: accountAddress } = useAccount()
     const tokens = getTokens({
         ignoreSort: true,

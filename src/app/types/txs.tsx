@@ -6,28 +6,9 @@ export const TxAction = {
 }
 export type TxAction = (typeof TxAction)[keyof typeof TxAction]
 
-export const TxMsgType = {
+export const TxLabelType = {
     Default: "default",
     InProgress: "inProgress",
     Complete: "complete",
 }
-export type TxMsgType = (typeof TxMsgType)[keyof typeof TxMsgType]
-
-export const TxNotificationType = {
-    SimulateError: "simulateError",
-    SimulateFailed: "simulateFailed",
-    Pending: "pending",
-    Submitted: "submitted",
-    Success: "success",
-    Reverted: "reverted",
-    Error: "error",
-} as const
-export type TxNotificationType = (typeof TxNotificationType)[keyof typeof TxNotificationType]
-
-export interface TxNotificationMsg {
-    header?: React.ReactNode,
-    body?: React.ReactNode,
-    ignore?: boolean,
-}
-
-export type TxNotificationMsgData = Record<TxNotificationType, TxNotificationMsg>
+export type TxLabelType = (typeof TxLabelType)[keyof typeof TxLabelType]

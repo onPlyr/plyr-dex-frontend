@@ -568,7 +568,7 @@ export const getInitiatedSwapQueryResult = async ({
             hopIndex: 0,
             txReceipt: receipt,
             txTimestamp: blockTimestamp,
-            accountAddress: accountAddress,
+            accountAddress: swap?.destinationAddress ?? accountAddress,
         })
 
         const swapData: Swap = {
@@ -764,7 +764,7 @@ export const getSwapQueryResult = async ({
             storedHopData: query.hopData,
             txReceipt: txReceipt,
             txTimestamp: txTimestamp,
-            accountAddress: query.swapData.account,
+            accountAddress: query.swapData.destinationAddress ?? query.swapData.account,
         })
 
         const prevHops = query.swapData.hops.filter((hop) => hop.index < query.hopIndex)

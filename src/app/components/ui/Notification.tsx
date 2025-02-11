@@ -10,7 +10,7 @@ import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import SuccessIcon from "@/app/components/icons/SuccessIcon"
 import Button from "@/app/components/ui/Button"
-import { defaultNotificationRemoveDelayMs } from "@/app/config/notifications"
+import { DefaultNotificationRemoveDelayMs } from "@/app/config/notifications"
 import { iconSizes } from "@/app/config/styling"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { Notification, NotificationStatus } from "@/app/types/notifications"
@@ -243,13 +243,16 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
 }, ref) => {
 
     const { removeNotification } = useNotifications()
-    const removeDelay = Math.abs(removeDelayMs ?? defaultNotificationRemoveDelayMs)
+    const removeDelay = Math.abs(removeDelayMs ?? DefaultNotificationRemoveDelayMs)
 
     useEffect(() => {
-        if (notification.status !== NotificationStatus.Pending) {
-            setTimeout(() => {
-                removeNotification(notification.id)
-            }, removeDelay)
+
+        const timeoutId = notification.status !== NotificationStatus.Pending ? setTimeout(() => {
+            removeNotification(notification.id)
+        }, removeDelay) : undefined
+
+        return () => {
+            clearTimeout(timeoutId)
         }
     }, [notification.status])
 
@@ -264,7 +267,7 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
                 {...props}
             >
                 <NotificationContentAnimation
-                    key={notification.animateKey ?? notification.status}
+                    key={notification.type}
                     {...animationProps}
                 >
                     <NotificationIcon

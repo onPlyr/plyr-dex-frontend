@@ -1,8 +1,13 @@
 import { Hash } from "viem"
 
 export const NotificationType = {
-    Swap: "swap",
-    Transaction: "transaction",
+    SimulateError: "simulateError",
+    SimulateFailed: "simulateFailed",
+    Pending: "pending",
+    Submitted: "submitted",
+    Success: "success",
+    Reverted: "reverted",
+    Error: "error",
 } as const
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
 
@@ -20,5 +25,14 @@ export interface Notification {
     body: React.ReactNode,
     status: NotificationStatus,
     txHash?: Hash,
-    animateKey?: string,
+}
+
+export interface NotificationTypeMsg {
+    header?: React.ReactNode,
+    body?: React.ReactNode,
+    ignore?: boolean,
+}
+
+export type NotificationTypeData = {
+    [key in NotificationType]?: NotificationTypeMsg
 }

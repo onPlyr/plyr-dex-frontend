@@ -15,8 +15,8 @@ import useWriteWithdrawNative from "@/app/hooks/swap/useWriteWithdrawNative"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getChain } from "@/app/lib/chains"
 import { amountToLocale } from "@/app/lib/numbers"
-import { getTxActionMsg } from "@/app/lib/txs"
-import { TxAction } from "@/app/types/txs"
+import { getTxActionLabel } from "@/app/lib/txs"
+import { TxAction, TxLabelType } from "@/app/types/txs"
 
 export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.ComponentPropsWithoutRef<"div">>(({
     className,
@@ -46,7 +46,7 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
         refetchWrappedBalance()
     }, [refetchTokens, refetchWrappedBalance])
 
-    const { write: writeUnwrap, isInProgress: unwrapIsInProgress } = useWriteWithdrawNative({
+    const { write: writeUnwrap, isInProgress } = useWriteWithdrawNative({
         connectedChain: connectedChain,
         accountAddress: accountAddress,
         token: srcToken,
@@ -87,7 +87,7 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
                             className={twMerge("gradient-btn px-3 py-2 h-fit rounded-lg", className)}
                             onClick={enabled ? switchChainRequired ? handleSwitchChain.bind(this) : writeUnwrap.bind(this) : undefined}
                         >
-                            {switchChainRequired ? `Switch to ${srcChain.name}` : getTxActionMsg(TxAction.Unwrap, unwrapIsInProgress)}
+                            {switchChainRequired ? `Switch to ${srcChain.name}` : getTxActionLabel(TxAction.Unwrap, isInProgress ? TxLabelType.InProgress : TxLabelType.Default)}
                         </Button>
                     </div>
                 </ScaleInOut>

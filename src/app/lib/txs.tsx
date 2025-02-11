@@ -1,5 +1,5 @@
-import { TxActionMsg } from "@/app/config/txs"
-import { TxAction, TxMsgType } from "@/app/types/txs"
-export const getTxActionMsg = (action: TxAction, isInProgress?: boolean) => {
-    return TxActionMsg[action][isInProgress ? TxMsgType.InProgress : TxMsgType.Default]
+import { TxActionLabel } from "@/app/config/txs"
+import { TxAction, TxLabelType } from "@/app/types/txs"
+export const getTxActionLabel = (action: TxAction, labelType?: TxLabelType) => {
+    return TxActionLabel[action][labelType ?? TxLabelType.Default]
 }

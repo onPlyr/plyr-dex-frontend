@@ -5,7 +5,6 @@ import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
 import { NotificationType } from "@/app/types/notifications"
-import { TxNotificationType } from "@/app/types/txs"
 import { amountToLocale } from "@/app/lib/numbers"
 
 const useWriteWithdrawNative = ({
@@ -39,23 +38,20 @@ const useWriteWithdrawNative = ({
             },
         },
         callbacks: callbacks,
-        notifications: {
-            type: NotificationType.Transaction,
-            msgs: enabled ? {
-                [TxNotificationType.Pending]: {
-                    header: `Unwrap ${token.wrappedToken ?? `to ${token.symbol}`}`,
-                    body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
-                },
-                [TxNotificationType.Submitted]: {
-                    header: `Unwrapping to ${token.symbol}`,
-                    body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
-                },
-                [TxNotificationType.Success]: {
-                    header: "Unwrap Complete",
-                    body: `Successfully unwrapped ${amountToLocale(amount, token.decimals)} ${token.symbol}!`,
-                },
-            } : undefined,
-        },
+        notifications: enabled ? {
+            [NotificationType.Pending]: {
+                header: `Unwrap ${token.wrappedToken ?? `to ${token.symbol}`}`,
+                body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
+            },
+            [NotificationType.Submitted]: {
+                header: `Unwrapping to ${token.symbol}`,
+                body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
+            },
+            [NotificationType.Success]: {
+                header: "Unwrap Complete",
+                body: `Successfully unwrapped ${amountToLocale(amount, token.decimals)} ${token.symbol}!`,
+            },
+        } : undefined,
         _enabled: enabled,
     })
 

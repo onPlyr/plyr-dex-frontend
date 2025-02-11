@@ -4,14 +4,16 @@ import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
 import { NotificationType } from "@/app/types/notifications"
-import { TxNotificationType } from "@/app/types/txs"
 import { amountToLocale } from "@/app/lib/numbers"
+import { getRouteTypeLabel } from "@/app/lib/swaps"
+import { Route } from "@/app/types/swaps"
 
 const useWriteApprove = ({
     chain,
     token,
     spenderAddress,
     amount,
+    route,
     callbacks,
     _enabled = true,
 }: {
@@ -19,10 +21,12 @@ const useWriteApprove = ({
     token?: Token,
     spenderAddress?: Address,
     amount?: bigint,
+    route?: Route,
     callbacks?: WriteTransactionCallbacks,
     _enabled?: boolean,
 }) => {
 
+    const routeType = route ? getRouteTypeLabel(route.type) : undefined
     const enabled = !(!_enabled || !chain || !token || token.isNative || !spenderAddress || !amount || amount === BigInt(0))
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
@@ -37,23 +41,20 @@ const useWriteApprove = ({
             },
         },
         callbacks: callbacks,
-        notifications: {
-            type: NotificationType.Transaction,
-            msgs: enabled ? {
-                [TxNotificationType.Pending]: {
-                    header: `Confirm Approval`,
-                    body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
-                },
-                [TxNotificationType.Submitted]: {
-                    header: `Confirming Approval`,
-                    body: `For ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
-                },
-                [TxNotificationType.Success]: {
-                    header: "Approval Complete",
-                    body: `Successfully approved ${amountToLocale(amount, token.decimals)} ${token.symbol}!`,
-                },
-            } : undefined,
-        },
+        notifications: enabled ? {
+            [NotificationType.Pending]: {
+                header: `Confirm ${routeType ? `${routeType} ` : ""}Approval`,
+                body: `Approve ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
+            },
+            [NotificationType.Submitted]: {
+                header: `Confirming ${routeType ? `${routeType} ` : ""}Approval`,
+                body: `Approving ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
+            },
+            [NotificationType.Success]: {
+                header: `${routeType ? `${routeType} ` : ""}Approval Complete`,
+                body: `Successfully approved ${amountToLocale(amount, token.decimals)} ${token.symbol}!`,
+            },
+        } : undefined,
         _enabled: enabled,
     })
 

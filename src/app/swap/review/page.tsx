@@ -25,9 +25,9 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
 import { getChain } from "@/app/lib/chains"
 import { getInitiateSwapErrMsg, getRouteTypeLabel, getSwapFromQuote } from "@/app/lib/swaps"
-import { getTxActionMsg } from "@/app/lib/txs"
+import { getTxActionLabel } from "@/app/lib/txs"
 import { RouteType } from "@/app/types/swaps"
-import { TxAction } from "@/app/types/txs"
+import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
@@ -227,6 +227,7 @@ const ReviewSwapPage = () => {
         token: route?.srcToken,
         spenderAddress: route?.srcCell.address,
         amount: route?.srcAmount,
+        route: route,
         callbacks: {
             onSettled: approveOnSettled,
         },
@@ -238,8 +239,8 @@ const ReviewSwapPage = () => {
         }
     }, [initiateEnabled])
 
-    const approvalMsg = getTxActionMsg(TxAction.Approve, approveIsInProgress)
-    const initiateMsg = getTxActionMsg(route?.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress)
+    const approvalMsg = getTxActionLabel(TxAction.Approve, approveIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
+    const initiateMsg = getTxActionLabel(route?.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
     const swapActionMsg = errInitiateSwap ?? (isApprovalRequired ? approvalMsg : initiateMsg)
     const isInProgress = approveIsInProgress || initiateIsInProgress
 

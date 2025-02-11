@@ -1,26 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react"
-import { Hash, TransactionReceipt, zeroAddress } from "viem"
+import React, { useCallback, useState } from "react"
+import { Hash, TransactionReceipt } from "viem"
 import { useAccount, useSimulateContract, UseSimulateContractParameters, useWriteContract, UseWriteContractReturnType } from "wagmi"
 import { waitForTransactionReceipt } from "@wagmi/core"
 
-import { DefaultTxNotificationMsgData } from "@/app/config/txs"
 import { wagmiConfig } from "@/app/config/wagmi"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { getChain } from "@/app/lib/chains"
 import { getParsedError } from "@/app/lib/utils"
-import { NotificationStatus, NotificationType } from "@/app/types/notifications"
-import { TxNotificationMsg, TxNotificationType } from "@/app/types/txs"
+import { NotificationStatus, NotificationType, NotificationTypeData } from "@/app/types/notifications"
+import { DefaultNotificationTypeMsg } from "@/app/config/notifications"
 
 const defaultConfirmations = 1
-
-type WriteTransactionMsgData = {
-    [key in TxNotificationType]?: TxNotificationMsg
-}
-
-export interface WriteTransactionNotificationData {
-    type?: NotificationType,
-    msgs?: WriteTransactionMsgData,
-}
 
 interface UseWriteTransactionReturnType extends Omit<UseWriteContractReturnType, "writeContract" | "writeContractAsync"> {
     writeTransaction: () => void,
@@ -46,7 +36,7 @@ const useWriteTransaction = ({
     params: UseSimulateContractParameters,
     confirmations?: number,
     callbacks?: WriteTransactionCallbacks,
-    notifications?: WriteTransactionNotificationData,
+    notifications?: NotificationTypeData,
     _enabled?: boolean,
 }): UseWriteTransactionReturnType => {
 
@@ -57,7 +47,7 @@ const useWriteTransaction = ({
     const receiptConfirmations = confirmations || defaultConfirmations
     const enabled = _enabled !== false && params.query?.enabled !== false && accountAddress !== undefined && connectedChain !== undefined && txChain !== undefined && connectedChain.id === txChain.id
 
-    const { data: simulateData, status: simulateStatus, error: simulateError, failureReason: simulateFailureReason, refetch } = useSimulateContract({
+    const { data: simulateData, error: simulateError, failureReason: simulateFailureReason, status: simulateStatus, refetch } = useSimulateContract({
         ...params,
         query: {
             ...params.query,
@@ -76,51 +66,41 @@ const useWriteTransaction = ({
         txHash,
     }: {
         id: string,
-        type: TxNotificationType,
+        type: NotificationType,
         status: NotificationStatus,
         replaceBody?: React.ReactNode,
         txHash?: Hash,
     }) => {
-        const msgData = notifications?.msgs?.[type]
-        if (!msgData?.ignore) {
+        const data = notifications?.[type]
+        if (!data?.ignore) {
             setNotification({
                 id: id,
-                type: notifications?.type ?? NotificationType.Transaction,
-                header: msgData?.header ?? DefaultTxNotificationMsgData[type].header,
-                body: replaceBody ?? msgData?.body ?? DefaultTxNotificationMsgData[type].body,
+                type: type,
+                header: data?.header ?? DefaultNotificationTypeMsg[type].header,
+                body: replaceBody ?? data?.body ?? DefaultNotificationTypeMsg[type].body,
                 status: status,
                 txHash: txHash,
-                animateKey: type,
             })
         }
     }, [setNotification, notifications])
-
-    useEffect(() => {
-        if (enabled) {
-            if (simulateFailureReason) {
-                setTransactionNotification({
-                    id: zeroAddress,
-                    type: TxNotificationType.SimulateFailed,
-                    status: NotificationStatus.Error,
-                    replaceBody: getParsedError(simulateFailureReason),
-                })
-            }
-            else if (simulateError || (simulateStatus !== "pending" && simulateData === undefined)) {
-                setTransactionNotification({
-                    id: zeroAddress,
-                    type: TxNotificationType.SimulateError,
-                    status: NotificationStatus.Error,
-                    replaceBody: simulateError ? getParsedError(simulateError) : undefined,
-                })
-            }
-        }
-    }, [enabled, simulateError, simulateFailureReason, simulateStatus, simulateData])
 
     const writeTransaction = useCallback(async () => {
 
         let txHash: Hash | undefined = undefined
         let txReceipt: TransactionReceipt | undefined = undefined
         const notificationId = window.crypto.randomUUID()
+
+        if (enabled && simulateStatus !== "pending" && (simulateFailureReason || simulateError || !simulateData)) {
+            const err = simulateFailureReason ?? simulateError
+            setTransactionNotification({
+                id: notificationId,
+                type: simulateFailureReason ? NotificationType.SimulateFailed : NotificationType.SimulateError,
+                status: NotificationStatus.Error,
+                replaceBody: err ? getParsedError(err) : undefined,
+            })
+            callbacks?.onSimulateError?.(txReceipt, notificationId, txHash)
+            return
+        }
 
         if (!enabled || !simulateData) {
             return
@@ -131,14 +111,14 @@ const useWriteTransaction = ({
             setIsInProgress(true)
             setTransactionNotification({
                 id: notificationId,
-                type: TxNotificationType.Pending,
+                type: NotificationType.Pending,
                 status: NotificationStatus.Pending,
             })
 
             txHash = await wagmiWriteContract.writeContractAsync(simulateData.request)
             setTransactionNotification({
                 id: notificationId,
-                type: TxNotificationType.Submitted,
+                type: NotificationType.Submitted,
                 status: NotificationStatus.Pending,
                 txHash: txHash,
             })
@@ -156,7 +136,7 @@ const useWriteTransaction = ({
 
             setTransactionNotification({
                 id: notificationId,
-                type: TxNotificationType.Success,
+                type: NotificationType.Success,
                 status: NotificationStatus.Success,
                 txHash: txHash,
             })
@@ -167,7 +147,7 @@ const useWriteTransaction = ({
         catch (err: unknown) {
             setTransactionNotification({
                 id: notificationId,
-                type: txReceipt?.status === "reverted" ? TxNotificationType.Reverted : TxNotificationType.Error,
+                type: txReceipt?.status === "reverted" ? NotificationType.Reverted : NotificationType.Error,
                 status: NotificationStatus.Error,
                 replaceBody: err ? getParsedError(err) : undefined,
                 txHash: txHash,
@@ -180,8 +160,8 @@ const useWriteTransaction = ({
             callbacks?.onSettled?.(txReceipt, notificationId, txHash)
         }
 
-    }, [enabled, callbacks, simulateData, setTransactionNotification, setTxReceipt, wagmiWriteContract, receiptConfirmations, setIsInProgress])
-    
+    }, [enabled, callbacks, simulateData, simulateError, simulateFailureReason, simulateStatus, setTransactionNotification, setTxReceipt, wagmiWriteContract, receiptConfirmations, setIsInProgress])
+
     return {
         ...wagmiWriteContract,
         writeTransaction: writeTransaction,

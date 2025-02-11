@@ -23,7 +23,7 @@ const getSwapNotificationData = (id: string, swap: Swap, error?: string): Notifi
     const swapType = swap.type ? getRouteTypeLabel(swap.type) : "Transaction"
     const header = `${swapType} ${getStatusLabel(swap.status)}`
     const body = swap.status === SwapStatus.Success ? swap.dstData ? (<>
-        {swap.dstData.amount ? `Received ${amountToLocale(swap.dstData.amount, swap.dstData.token.decimals)} ` : ""}{swap.dstData.token.symbol}!
+        {swap.dstData.amount ? `${amountToLocale(swap.dstData.amount, swap.dstData.token.decimals)} ` : ""}{swap.dstData.token.symbol} received on {swap.dstData.chain.name}!
     </>) : (<>
         {swapType} completed successfully!
     </>) : swap.status === SwapStatus.Error ? (<>
@@ -34,9 +34,9 @@ const getSwapNotificationData = (id: string, swap: Swap, error?: string): Notifi
 
     return {
         id: id,
+        type: swap.status === SwapStatus.Success ? NotificationType.Success : swap.status === SwapStatus.Error ? NotificationType.Error : NotificationType.Submitted,
         header: header,
         body: body,
-        type: NotificationType.Swap,
         status: swap.status,
         txHash: swap.id,
     }
