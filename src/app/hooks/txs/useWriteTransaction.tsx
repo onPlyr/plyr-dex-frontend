@@ -24,6 +24,7 @@ export interface WriteTransactionCallbacks {
     onSuccess?: WriteTransactionCallbackType,
     onError?: WriteTransactionCallbackType,
     onSettled?: WriteTransactionCallbackType,
+    onSimulateError?: WriteTransactionCallbackType,
 }
 
 const useWriteTransaction = ({
