@@ -50,11 +50,11 @@ const ReviewSwapPage = () => {
     const [mirrorAddress, setMirrorAddress] = useState<string | undefined>(undefined)
     const [isEditingPlyrId, setIsEditingPlyrId] = useState<boolean>(false)
     const [isEditedPlyrId, setIsEditedPlyrId] = useState<boolean>(false)
-    const [destinationAddress, setDestinationAddress] = useState<string | undefined>(undefined)
+    const [destinationAddress, setDestinationAddress] = useState<`0x${string}` | undefined>(undefined)
 
     useEffect(() => {
         if (accountAddress) {
-            setDestinationAddress(accountAddress)
+            setDestinationAddress(accountAddress as `0x${string}`)
         }
     }, [accountAddress]);
 
@@ -105,7 +105,7 @@ const ReviewSwapPage = () => {
                 setPlyrId('');
                 setMirrorAddress('');
                 setPlyrAvatar('');
-                setDestinationAddress(accountAddress || '');
+                setDestinationAddress(accountAddress as `0x${string}`);
 
 
                 // toast({
@@ -126,13 +126,13 @@ const ReviewSwapPage = () => {
 
                 if (isEdited) {
                     setIsEditedPlyrId(false);
-                    setDestinationAddress(retJson.mirrorAddress || '');
+                    setDestinationAddress(retJson.mirrorAddress as `0x${string}` || undefined);
                 }
             }
         }
         catch (e) {
             console.log(e);
-            setDestinationAddress(accountAddress || '');
+            setDestinationAddress(accountAddress as `0x${string}`);
         }
 
     }
@@ -204,7 +204,7 @@ const ReviewSwapPage = () => {
     const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus, refetch: refetchInitiate } = useWriteInitiateSwap({
         connectedChain: connectedChain,
         accountAddress: accountAddress,
-        destinationAddress: destinationAddress,
+        destinationAddress: destinationAddress as `0x${string}`,
         route: route,
         callbacks: {
             onSettled: initiateOnSettled,
@@ -348,7 +348,7 @@ const ReviewSwapPage = () => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 if (approveIsInProgress || initiateIsInProgress) return;
-                                setDestinationAddress(mirrorAddress || undefined)
+                                setDestinationAddress(mirrorAddress as `0x${string}` || undefined)
                             }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                                 <button onClick={(e) => {
                                     e.preventDefault();
