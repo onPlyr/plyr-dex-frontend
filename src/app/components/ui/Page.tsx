@@ -180,7 +180,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                     {...props}
                 >
                     <div className={twMerge("flex flex-col flex-none page-width min-h-fit max-h-fit items-start overflow-auto", header ? undefined : "pt-4")}>
-                        <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full">
+                        <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full overflow-hidden">
                             {/* <div className="container-select flex flex-row flex-1 p-4 gap-2 mt-4 sm:mt-0 w-full justify-between" data-selected={true}>
                                 <div className="flex flex-row flex-1 flex-wrap">Tesseract is currently in beta and only available on testnet. Funds are not real or transferrable to mainnet.</div>
                                 <div className="flex flex-row flex-none items-center">

@@ -3,10 +3,11 @@ import { Abi, AbiParameter } from "viem"
 import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
 import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
 import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
+import { hopOnlyCellAbi } from "@/app/abis/cells/hopOnly"
 import { CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
 
 export const CellTypeAbi: Record<CellType, Abi> = {
-    [CellType.HopOnly]: yakSwapCellAbi,
+    [CellType.HopOnly]: hopOnlyCellAbi,
     [CellType.YakSwap]: yakSwapCellAbi,
     [CellType.UniV2]: uniV2CellAbi,
     [CellType.Dexalot]: dexalotCellAbi,

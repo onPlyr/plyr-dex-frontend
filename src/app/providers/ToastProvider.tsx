@@ -2,13 +2,15 @@
 
 import { AnimatePresence } from "motion/react"
 import { useCallback, useState } from "react"
+import { v4 as uuidv4 } from 'uuid'
 
 import { ToastContext } from "@/app/lib/toasts"
 import { RadixToastProvider, Toast, ToastData, ToastViewport } from "@/app/components/ui/Toast"
 import { ToastContextType } from "@/app/types/toasts"
 
+
 const generateToastId = () => {
-    return window.crypto.randomUUID()
+    return uuidv4()
 }
 
 const ToastProvider = ({

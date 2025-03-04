@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react"
 import { Hash, TransactionReceipt } from "viem"
 import { useAccount, useSimulateContract, UseSimulateContractParameters, useWriteContract, UseWriteContractReturnType } from "wagmi"
 import { waitForTransactionReceipt } from "@wagmi/core"
+import { v4 as uuidv4 } from 'uuid';
 
 import { wagmiConfig } from "@/app/config/wagmi"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
@@ -89,7 +90,7 @@ const useWriteTransaction = ({
 
         let txHash: Hash | undefined = undefined
         let txReceipt: TransactionReceipt | undefined = undefined
-        const notificationId = window.crypto.randomUUID()
+        const notificationId = uuidv4()
 
         if (enabled && simulateStatus !== "pending" && (simulateFailureReason || simulateError || !simulateData)) {
             const err = simulateFailureReason ?? simulateError
