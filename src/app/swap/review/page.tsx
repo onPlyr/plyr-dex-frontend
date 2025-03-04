@@ -179,7 +179,7 @@ const ReviewSwapPage = () => {
                 txHash: receipt.transactionHash,
                 accountAddress: accountAddress,
                 plyrId: plyrId && destinationAddress && destinationAddress !== accountAddress ? plyrId : undefined,
-                destinationAddress: destinationAddress
+                destinationAddress: destinationAddress as `0x${string}`
             })
             if (swap) {
                 setSwap(swap)
