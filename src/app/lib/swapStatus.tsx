@@ -681,6 +681,27 @@ export const getSwapQueryResult = async ({
 
             while (!txReceipt) {
 
+                // If we've reached the latest block and found nothing, wait briefly and try again with new blocks
+                if (fromBlock >= latestBlock.number) {
+                    await setTimeoutPromise(2000) // Wait 2 seconds
+                    const newLatestBlock = await getBlock(wagmiConfig, {
+                        chainId: srcChain.id,
+                    })
+                    
+                    // Only continue if we have new blocks to check
+                    if (newLatestBlock.number > latestBlock.number) {
+                        fromBlock = newLatestBlock.number - chunkSize
+                        toBlock = newLatestBlock.number
+                        
+                        console.log("Checking new blocks:", {
+                            fromBlock: fromBlock.toString(),
+                            toBlock: toBlock.toString(),
+                            latestBlock: newLatestBlock.number.toString(),
+                        })
+                        break
+                    }
+                }
+
                 for (let batch = 0; batch < srcChain.clientData.maxQueryNumBatches; batch++) {
 
                     const queries = []
