@@ -1,12 +1,13 @@
-import { Abi, AbiParameter } from "viem"
+import { AbiParameter } from "viem"
 
 import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
+import { hopOnlyCellAbi } from "@/app/abis/cells/hopOnly"
 import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
 import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
-import { hopOnlyCellAbi } from "@/app/abis/cells/hopOnly"
-import { CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
+import { ApiProvider, ApiRoute } from "@/app/types/apis"
+import { CellAbiType, CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
 
-export const CellTypeAbi: Record<CellType, Abi> = {
+export const CellTypeAbi: Record<CellType, CellAbiType> = {
     [CellType.HopOnly]: hopOnlyCellAbi,
     [CellType.YakSwap]: yakSwapCellAbi,
     [CellType.UniV2]: uniV2CellAbi,
@@ -67,6 +68,58 @@ export const cellTradeParameters: Record<CellTradeParameter, AbiParameter> = {
         name: "minAmountOut",
         type: "uint256",
     },
+    [CellTradeParameter.DexalotOrder]: {
+        internalType: "struct",
+        name: "order",
+        type: "tuple",
+        components: [
+            {
+                internalType: "uint256",
+                name: "nonceAndMeta",
+                type: "uint256",
+            },
+            {
+                internalType: "uin128",
+                name: "expiry",
+                type: "uint256",
+            },
+            {
+                internalType: "address",
+                name: "makerAsset",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "takerAsset",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "maker",
+                type: "address",
+            },
+            {
+                internalType: "address",
+                name: "taker",
+                type: "address",
+            },
+            {
+                internalType: "uint256",
+                name: "makerAmount",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "takerAmount",
+                type: "uint256",
+            },
+        ],
+    },
+    [CellTradeParameter.Signature]: {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+    },
 } as const
 
 export const cellTradeDataParameters: Record<CellTradeDataParameter, AbiParameter> = {
@@ -81,7 +134,6 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
     [CellType.HopOnly]: {
         type: CellType.HopOnly,
         canSwap: false,
-        isApiRoute: false,
     },
     [CellType.YakSwap]: {
         type: CellType.YakSwap,
@@ -101,7 +153,6 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
             CellTradeDataParameter.YakSwapFeeBips,
         ],
         canSwap: true,
-        isApiRoute: false,
     },
     [CellType.UniV2]: {
         type: CellType.UniV2,
@@ -114,11 +165,19 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
             CellTradeParameter.MinAmountOut,
         ],
         canSwap: true,
-        isApiRoute: false,
     },
     [CellType.Dexalot]: {
         type: CellType.Dexalot,
+        tradeParams: [
+            CellTradeParameter.DexalotOrder,
+            CellTradeParameter.Signature,
+            CellTradeParameter.MinAmountOut,
+        ],
         canSwap: true,
-        isApiRoute: true,
+        apiData: {
+            provider: ApiProvider.Dexalot,
+            getQuote: ApiRoute.SimpleQuote,
+            getOrder: ApiRoute.SimpleQuote,
+        },
     },
 } as const
