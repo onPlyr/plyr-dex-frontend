@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.12.4",
+    "@apollo/client": "^3.13.4",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/networks": "^5.7.1",
