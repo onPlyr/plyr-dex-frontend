@@ -2,16 +2,14 @@
 
 import "@/app/styles/globals.css"
 
-import { Variants } from "motion/react"
+import { AnimatePresence, LayoutGroup, motion, Transition, Variants } from "motion/react"
 import { useRouter } from "next/navigation"
-import { use, useCallback, useEffect, useState } from "react"
+import React, { use, useCallback, useEffect, useState } from "react"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import SlideInOut from "@/app/components/animations/SlideInOut"
-import { defaultAnimations as slideInOutAnimations } from "@/app/components/animations/SlideInOut"
 import { ChainImage } from "@/app/components/images/ChainImage"
 import { TokenDetailItem } from "@/app/components/tokens/TokenDetailItem"
-import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import { Page } from "@/app/components/ui/Page"
 import SearchInput from "@/app/components/ui/SearchInput"
 import { SelectItemToggle } from "@/app/components/ui/SelectItemToggle"
@@ -36,20 +34,142 @@ const SelectOptions = {
     dst: "to",
 }
 
-const tokenAnimations: Variants = {
+const defaultDelay = 0.025
+const defaultTransition: Transition = {
+    type: "spring",
+    duration: 0.5,
+}
+
+// slide / fade in and out
+const defaultVariants: Variants = {
     initial: {
-        ...slideInOutAnimations.left.initial,
+        x: "-50%",
+        y: "-50%",
+        opacity: 0,
         height: 0,
+        transition: defaultTransition,
     },
     animate: {
-        ...slideInOutAnimations.left.animate,
+        x: 0,
+        y: 0,
+        opacity: 1,
         height: "auto",
     },
     exit: {
-        ...slideInOutAnimations.right.exit,
+        x: "50%",
+        y: "-50%",
+        opacity: 0,
         height: 0,
     },
 }
+
+// slide / fade in and out
+const TokenAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+    transition = defaultTransition,
+    variants = defaultVariants,
+    layout = true,
+    custom,
+    ...props
+}, ref) => {
+    return (
+        <motion.div
+            layout={layout}
+            transition={transition}
+        >
+            <motion.div
+                ref={ref}
+                className="overflow-hidden"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={{
+                    ...variants,
+                    animate: {
+                        ...variants.animate,
+                        transition: {
+                            ...transition,
+                            delay: custom.index * defaultDelay,
+                        },
+                    },
+                    exit: {
+                        ...variants.exit,
+                        transition: {
+                            ...transition,
+                            delay: (custom.numItems - custom.index - 1) * defaultDelay,
+                        },
+                    },
+                }}
+                {...props}
+            />
+        </motion.div>
+    )
+})
+TokenAnimation.displayName = "TokenAnimation"
+
+// const defaultVariants: Variants = {
+//     initial: {
+//         // y: "50%",
+//         opacity: 0,
+//         // height: 0,
+//         scale: 0,
+//         transition: defaultTransition,
+//     },
+//     animate: {
+//         // y: 0,
+//         opacity: 1,
+//         // height: "auto",
+//         scale: 1,
+//     },
+//     exit: {
+//         // y: "50%",
+//         opacity: 0,
+//         // height: 0,
+//         scale: 0,
+//     },
+// }
+
+// const TokenAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
+//     transition = defaultTransition,
+//     variants = defaultVariants,
+//     layout = true,
+//     custom,
+//     ...props
+// }, ref) => {
+//     return (
+//         // <motion.div
+//         //     layout={layout}
+//         //     transition={transition}
+//         // >
+//             <motion.div
+//                 ref={ref}
+//                 className="p-0 m-0 overflow-hidden"
+//                 initial="initial"
+//                 animate="animate"
+//                 exit="exit"
+//                 layout={layout}
+//                 variants={{
+//                     ...variants,
+//                     animate: {
+//                         ...variants.animate,
+//                         transition: {
+//                             ...transition,
+//                             delay: custom.index * defaultDelay,
+//                         },
+//                     },
+//                     exit: {
+//                         ...variants.exit,
+//                         transition: {
+//                             ...transition,
+//                             delay: (custom.numItems - custom.index - 1) * defaultDelay,
+//                         },
+//                     },
+//                 }}
+//                 {...props}
+//             />
+//         // </motion.div>
+//     )
+// })
+// TokenAnimation.displayName = "TokenAnimation"
 
 const SwapSelectPage = ({
     params,
@@ -155,19 +275,16 @@ const SwapSelectPage = ({
                         handleInput={handleSearchInput}
                         placeholder="Search by name, symbol or address"
                     />
-                    <div className="flex flex-col flex-1">
-                        {/* <AnimatePresence mode="wait"> */}
-                            {tokens && tokens.length > 0 ? tokens.map((token, i) => {
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <AnimatePresence>
+                            {tokens && tokens.length > 0 && tokens.map((token, i) => {
                                 const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
                                 return (
-                                    <SlideInOut
-                                        key={`${token.chainId}-${token.id}`}
-                                        from="left"
-                                        to="right"
-                                        animations={tokenAnimations}
-                                        delays={{
-                                            animate: i * 0.025,
-                                            exit: (tokens.length - 1 - i) * 0.025,
+                                    <TokenAnimation
+                                        key={`${token.id}-${token.chainId}`}
+                                        custom={{
+                                            index: i,
+                                            numItems: tokens.length,
                                         }}
                                     >
                                         <TokenDetailItem
@@ -177,23 +294,10 @@ const SwapSelectPage = ({
                                             className="container-select-transparent flex flex-row flex-1 p-4 gap-4"
                                             replaceClass={true}
                                         />
-                                    </SlideInOut>
+                                    </TokenAnimation>
                                 )
-                            }) : (
-                                <SlideInOut
-                                    key="error"
-                                    from="left"
-                                    to="right"
-                                    animations={tokenAnimations}
-                                >
-                                    <AlertDetail
-                                        type={AlertType.Error}
-                                        header="Error: No Results Found"
-                                        msg="No tokens were found matching your query. Please check or clear any selected filters and try again."
-                                    />
-                                </SlideInOut>
-                            )}
-                        {/* </AnimatePresence> */}
+                            })}
+                        </AnimatePresence>
                     </div>
                 </div>
             </SlideInOut>
