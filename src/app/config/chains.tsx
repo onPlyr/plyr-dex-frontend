@@ -98,8 +98,8 @@ export const wagmiChains = [
     avalancheFuji,
     teschain,
     plyrTau,
-    // coqnet,
-    // coqnetFuji,
+    coqnet,
+    coqnetFuji,
 ] as const
 
 // todo: avg block time needs updating / renaming as it's not used for that now
@@ -245,45 +245,45 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryNumBatches: 10,
         },
     },
-    // [coqnet.id]: {
-    //     ...coqnet,
-    //     icon: `${coqnet.id}.svg`,
-    //     iconBackground: "#ff6600",
-    //     cells: [
-    //         {
-    //             ...cellTypeDefinitions[CellType.HopOnly],
-    //             address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
-    //         },
-    //     ],
-    //     blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
-    //     minGasPrice: BigInt(25),
-    //     gasPriceExponent: 9,
-    //     avgBlockTimeMs: 500,
-    //     avgBlockTimeSampleRange: BigInt(10000),
-    //     adapters: [],
-    //     clientData: {
-    //         maxQueryChunkSize: 100,
-    //         maxQueryBatchSize: 10,
-    //         maxQueryNumBatches: 10,
-    //     },
-    // },
-    // [coqnetFuji.id]: {
-    //     ...coqnetFuji,
-    //     icon: `${coqnetFuji.id}.png`,
-    //     iconBackground: "#ff6600",
-    //     cells: [],
-    //     blockchainId: "0x1fbae9f07fdccb931e9de419b15690728296f4743f77588082b3e4425d6de54a",
-    //     minGasPrice: BigInt(25),
-    //     gasPriceExponent: 9,
-    //     avgBlockTimeMs: 500,
-    //     avgBlockTimeSampleRange: BigInt(10000),
-    //     adapters: [],
-    //     clientData: {
-    //         maxQueryChunkSize: 100,
-    //         maxQueryBatchSize: 10,
-    //         maxQueryNumBatches: 10,
-    //     },
-    // },
+    [coqnet.id]: {
+        ...coqnet,
+        icon: `${coqnet.id}.svg`,
+        iconBackground: "#ff6600",
+        cells: [
+            {
+                ...cellTypeDefinitions[CellType.HopOnly],
+                address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
+            },
+        ],
+        blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
+        minGasPrice: BigInt(25),
+        gasPriceExponent: 9,
+        avgBlockTimeMs: 500,
+        avgBlockTimeSampleRange: BigInt(10000),
+        adapters: [],
+        clientData: {
+            maxQueryChunkSize: 100,
+            maxQueryBatchSize: 10,
+            maxQueryNumBatches: 10,
+        },
+    },
+    [coqnetFuji.id]: {
+        ...coqnetFuji,
+        icon: `${coqnetFuji.id}.png`,
+        iconBackground: "#ff6600",
+        cells: [],
+        blockchainId: "0x1fbae9f07fdccb931e9de419b15690728296f4743f77588082b3e4425d6de54a",
+        minGasPrice: BigInt(25),
+        gasPriceExponent: 9,
+        avgBlockTimeMs: 500,
+        avgBlockTimeSampleRange: BigInt(10000),
+        adapters: [],
+        clientData: {
+            maxQueryChunkSize: 100,
+            maxQueryBatchSize: 10,
+            maxQueryNumBatches: 10,
+        },
+    },
 } as const
 
 export const defaultNetworkMode = NetworkMode.Testnet
