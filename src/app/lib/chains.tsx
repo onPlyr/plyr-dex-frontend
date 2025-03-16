@@ -4,19 +4,16 @@ import { getBlock } from "@wagmi/core"
 import { SupportedChains } from "@/app/config/chains"
 import { wagmiConfig } from "@/app/config/wagmi"
 import { MathBigInt } from "@/app/lib/numbers"
-import { Chain, ChainId } from "@/app/types/chains"
+import { Chain, isSupportedChainId } from "@/app/types/chains"
+import { NetworkMode } from "@/app/types/preferences"
 import { Token } from "@/app/types/tokens"
 
-export const isSupportedChain = (chainId: number) => {
-    return Object.keys(SupportedChains).includes(chainId.toString())
-}
-
 export const getChain = (chainId: number) => {
-    return isSupportedChain(chainId) ? SupportedChains[chainId as ChainId] : undefined
+    return isSupportedChainId(chainId) && !SupportedChains[chainId].isDisabled ? SupportedChains[chainId] : undefined
 }
 
 export const getChainByBlockchainId = (blockchainId?: Hash) => {
-    return blockchainId ? Object.values(SupportedChains).find((chain) => chain.blockchainId.toLowerCase() === blockchainId.toLowerCase()) : undefined
+    return blockchainId ? Object.values(SupportedChains).find((chain) => chain.blockchainId.toLowerCase() === blockchainId.toLowerCase() && !chain.isDisabled) : undefined
 }
 
 export const getDefaultBlockExplorerUrl = (chain?: Chain) => {
@@ -102,7 +99,12 @@ export const getEstimatedBlockFromTimestamp = async ({
     const diffSecondsSample = MathBigInt.abs(sampleBlock.timestamp - targetTimestampSeconds)
     const numBlocksSample = BigInt(Math.floor(Number(diffSecondsSample) / Number(avgTimeSeconds)))
 
-    const estBlockNum = diffSecondsSample < diffSecondsLatest ? (sampleBlock.timestamp < targetTimestampSeconds ? sampleBlock.number + numBlocksSample : sampleBlock.number - numBlocksSample) : latestBlock.number - numBlocksLatest
+    const estBlockNum = diffSecondsSample < diffSecondsLatest 
+        ? (sampleBlock.timestamp < targetTimestampSeconds 
+            ? sampleBlock.number + numBlocksSample 
+            : sampleBlock.number - numBlocksSample) 
+        : latestBlock.number - numBlocksLatest
+
     const estBlock = estBlockNum < BigInt(1) ? sampleBlock : await getBlock(wagmiConfig, {
         chainId: chain.id,
         blockNumber: estBlockNum,
@@ -119,4 +121,10 @@ export const getEstimatedBlockFromTimestamp = async ({
         latestBlock: latestBlock,
         sampleBlock: sampleBlock,
     }
+}
+
+export const getFilteredChains = (networkMode: NetworkMode) => {
+    return Object.values(SupportedChains).filter(chain => 
+        networkMode === NetworkMode.Testnet ? chain.testnet === true : chain.testnet !== true
+    )
 }

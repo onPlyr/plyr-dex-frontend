@@ -1,565 +1,758 @@
 export const dexalotCellAbi = [
     {
+        "type": "constructor",
         "inputs": [
             {
-                "internalType": "address",
                 "name": "owner",
-                "type": "address"
+                "type": "address",
+                "internalType": "address"
             },
             {
-                "internalType": "address",
                 "name": "mainnetRFQAddress",
-                "type": "address"
+                "type": "address",
+                "internalType": "address"
             },
             {
-                "internalType": "uint256",
                 "name": "estimatedSwapGas",
-                "type": "uint256"
+                "type": "uint256",
+                "internalType": "uint256"
             },
             {
-                "internalType": "address",
                 "name": "wrappedNativeToken",
-                "type": "address"
+                "type": "address",
+                "internalType": "address"
             }
         ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
+        "stateMutability": "nonpayable"
     },
     {
+        "type": "receive",
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "BIPS_DIVISOR",
         "inputs": [],
-        "name": "InvalidAmount",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "InvalidArgument",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "InvalidInstructions",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "InvalidSender",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "RollbackFailedInvalidFee",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "SlippageExceeded",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "SwapAndRollbackFailed",
-        "type": "error"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "sourceBlockchainID",
-                "type": "bytes32"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "sourceBridge",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "originSender",
-                "type": "address"
-            }
-        ],
-        "name": "CellReceivedNativeTokens",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "sourceBlockchainID",
-                "type": "bytes32"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "sourceBridge",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "originSender",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "CellReceivedTokens",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "sender",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "Initiated",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "previousOwner",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "newOwner",
-                "type": "address"
-            }
-        ],
-        "name": "OwnershipTransferred",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "Recovered",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "receiver",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "Rollback",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "string",
-                "name": "reason",
-                "type": "string"
-            }
-        ],
-        "name": "ValidationFailed",
-        "type": "event"
-    },
-    {
-        "inputs": [],
-        "name": "blockchainID",
         "outputs": [
             {
-                "internalType": "bytes32",
                 "name": "",
-                "type": "bytes32"
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability": "view"
     },
     {
+        "type": "function",
+        "name": "MAX_BASE_FEE",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "baseFeeBips",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "blockchainID",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bytes32",
+                "internalType": "bytes32"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "calculateFees",
         "inputs": [
             {
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
                 "name": "amount",
-                "type": "uint256"
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "fixedNativeFee",
+                "type": "uint256",
+                "internalType": "uint256"
             },
             {
+                "name": "baseFee",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "feeCollector",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "fixedFee",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "initiate",
+        "inputs": [
+            {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "instructions",
+                "type": "tuple",
+                "internalType": "struct Instructions",
                 "components": [
                     {
-                        "internalType": "address",
                         "name": "receiver",
-                        "type": "address"
+                        "type": "address",
+                        "internalType": "address"
                     },
                     {
-                        "internalType": "bool",
                         "name": "payableReceiver",
-                        "type": "bool"
+                        "type": "bool",
+                        "internalType": "bool"
                     },
                     {
-                        "internalType": "uint256",
                         "name": "rollbackTeleporterFee",
-                        "type": "uint256"
+                        "type": "uint256",
+                        "internalType": "uint256"
                     },
                     {
-                        "internalType": "uint256",
                         "name": "rollbackGasLimit",
-                        "type": "uint256"
+                        "type": "uint256",
+                        "internalType": "uint256"
                     },
                     {
+                        "name": "hops",
+                        "type": "tuple[]",
+                        "internalType": "struct Hop[]",
                         "components": [
                             {
-                                "internalType": "enum Action",
                                 "name": "action",
-                                "type": "uint8"
+                                "type": "uint8",
+                                "internalType": "enum Action"
                             },
                             {
-                                "internalType": "uint256",
                                 "name": "requiredGasLimit",
-                                "type": "uint256"
+                                "type": "uint256",
+                                "internalType": "uint256"
                             },
                             {
-                                "internalType": "uint256",
                                 "name": "recipientGasLimit",
-                                "type": "uint256"
+                                "type": "uint256",
+                                "internalType": "uint256"
                             },
                             {
-                                "internalType": "bytes",
                                 "name": "trade",
-                                "type": "bytes"
+                                "type": "bytes",
+                                "internalType": "bytes"
                             },
                             {
+                                "name": "bridgePath",
+                                "type": "tuple",
+                                "internalType": "struct BridgePath",
                                 "components": [
                                     {
-                                        "internalType": "address",
                                         "name": "bridgeSourceChain",
-                                        "type": "address"
+                                        "type": "address",
+                                        "internalType": "address"
                                     },
                                     {
-                                        "internalType": "bool",
                                         "name": "sourceBridgeIsNative",
-                                        "type": "bool"
+                                        "type": "bool",
+                                        "internalType": "bool"
                                     },
                                     {
-                                        "internalType": "address",
                                         "name": "bridgeDestinationChain",
-                                        "type": "address"
+                                        "type": "address",
+                                        "internalType": "address"
                                     },
                                     {
-                                        "internalType": "address",
                                         "name": "cellDestinationChain",
-                                        "type": "address"
+                                        "type": "address",
+                                        "internalType": "address"
                                     },
                                     {
-                                        "internalType": "bytes32",
                                         "name": "destinationBlockchainID",
-                                        "type": "bytes32"
+                                        "type": "bytes32",
+                                        "internalType": "bytes32"
                                     },
                                     {
-                                        "internalType": "uint256",
                                         "name": "teleporterFee",
-                                        "type": "uint256"
+                                        "type": "uint256",
+                                        "internalType": "uint256"
                                     },
                                     {
-                                        "internalType": "uint256",
                                         "name": "secondaryTeleporterFee",
-                                        "type": "uint256"
+                                        "type": "uint256",
+                                        "internalType": "uint256"
                                     }
-                                ],
-                                "internalType": "struct BridgePath",
-                                "name": "bridgePath",
-                                "type": "tuple"
+                                ]
                             }
-                        ],
-                        "internalType": "struct Hop[]",
-                        "name": "hops",
-                        "type": "tuple[]"
+                        ]
                     }
-                ],
-                "internalType": "struct Instructions",
-                "name": "instructions",
-                "type": "tuple"
+                ]
             }
         ],
-        "name": "initiate",
         "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
+        "stateMutability": "payable"
     },
     {
-        "inputs": [],
+        "type": "function",
         "name": "mainnetRFQ",
+        "inputs": [],
         "outputs": [
             {
-                "internalType": "contract IDexalotMainnetRFQ",
                 "name": "",
-                "type": "address"
+                "type": "address",
+                "internalType": "contract IDexalotMainnetRFQ"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability": "view"
     },
     {
-        "inputs": [],
+        "type": "function",
         "name": "owner",
+        "inputs": [],
         "outputs": [
             {
-                "internalType": "address",
                 "name": "",
-                "type": "address"
+                "type": "address",
+                "internalType": "address"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability": "view"
     },
     {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "sourceBlockchainID",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "originTokenTransferrerAddress",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "originSenderAddress",
-                "type": "address"
-            },
-            {
-                "internalType": "bytes",
-                "name": "payload",
-                "type": "bytes"
-            }
-        ],
+        "type": "function",
         "name": "receiveTokens",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
-                "internalType": "bytes32",
                 "name": "sourceBlockchainID",
-                "type": "bytes32"
+                "type": "bytes32",
+                "internalType": "bytes32"
             },
             {
-                "internalType": "address",
                 "name": "originTokenTransferrerAddress",
-                "type": "address"
+                "type": "address",
+                "internalType": "address"
             },
             {
-                "internalType": "address",
                 "name": "originSenderAddress",
-                "type": "address"
+                "type": "address",
+                "internalType": "address"
             },
             {
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bytes",
                 "name": "payload",
-                "type": "bytes"
+                "type": "bytes",
+                "internalType": "bytes"
             }
         ],
-        "name": "receiveTokens",
         "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "stateMutability": "payable"
     },
     {
+        "type": "function",
+        "name": "receiveTokens",
         "inputs": [
             {
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
+                "name": "sourceBlockchainID",
+                "type": "bytes32",
+                "internalType": "bytes32"
             },
             {
-                "internalType": "uint256",
+                "name": "originTokenTransferrerAddress",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "originSenderAddress",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
                 "name": "amount",
-                "type": "uint256"
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "payload",
+                "type": "bytes",
+                "internalType": "bytes"
             }
         ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "recoverERC20",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
-                "internalType": "uint256",
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
                 "name": "amount",
-                "type": "uint256"
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "recoverNative",
+        "inputs": [
+            {
+                "name": "amount",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
         "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "stateMutability": "nonpayable"
     },
     {
-        "inputs": [],
+        "type": "function",
         "name": "renounceOwnership",
+        "inputs": [],
         "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "stateMutability": "nonpayable"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "bytes",
-                "name": "",
-                "type": "bytes"
-            }
-        ],
+        "type": "function",
         "name": "route",
-        "outputs": [
-            {
-                "internalType": "bytes",
-                "name": "trade",
-                "type": "bytes"
-            },
-            {
-                "internalType": "uint256",
-                "name": "gasEstimate",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "swapGasEstimate",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
-                "internalType": "address",
-                "name": "newOwner",
-                "type": "address"
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "",
+                "type": "bytes",
+                "internalType": "bytes"
             }
         ],
-        "name": "transferOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "wrappedNativeToken",
         "outputs": [
             {
-                "internalType": "contract IWrappedNativeToken",
-                "name": "",
-                "type": "address"
+                "name": "trade",
+                "type": "bytes",
+                "internalType": "bytes"
+            },
+            {
+                "name": "gasEstimate",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability": "view"
     },
     {
-        "stateMutability": "payable",
-        "type": "receive"
+        "type": "function",
+        "name": "swapGasEstimate",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "transferOwnership",
+        "inputs": [
+            {
+                "name": "newOwner",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "updateBaseFeeBips",
+        "inputs": [
+            {
+                "name": "newBaseFeeBips",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "updateFeeCollector",
+        "inputs": [
+            {
+                "name": "newFeeCollector",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "updateFixedFee",
+        "inputs": [
+            {
+                "name": "newFixedFee",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "wrappedNativeToken",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "contract IWrappedNativeToken"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "event",
+        "name": "BaseFeeUpdated",
+        "inputs": [
+            {
+                "name": "newBaseFeeBips",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "CellReceivedNativeTokens",
+        "inputs": [
+            {
+                "name": "sourceBlockchainID",
+                "type": "bytes32",
+                "indexed": true,
+                "internalType": "bytes32"
+            },
+            {
+                "name": "sourceBridge",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "originSender",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "CellReceivedTokens",
+        "inputs": [
+            {
+                "name": "sourceBlockchainID",
+                "type": "bytes32",
+                "indexed": true,
+                "internalType": "bytes32"
+            },
+            {
+                "name": "sourceBridge",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "originSender",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "FeeCollectorUpdated",
+        "inputs": [
+            {
+                "name": "newFeeCollector",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "FixedFeeUpdated",
+        "inputs": [
+            {
+                "name": "newFixedFee",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Initiated",
+        "inputs": [
+            {
+                "name": "sender",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferred",
+        "inputs": [
+            {
+                "name": "previousOwner",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "newOwner",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Recovered",
+        "inputs": [
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "Rollback",
+        "inputs": [
+            {
+                "name": "receiver",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "ValidationFailed",
+        "inputs": [
+            {
+                "name": "reason",
+                "type": "string",
+                "indexed": true,
+                "internalType": "string"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "error",
+        "name": "InsufficientFeeReceived",
+        "inputs": [
+            {
+                "name": "required",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "received",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "error",
+        "name": "InvalidAmount",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidArgument",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidBaseFeeUpdate",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidFeeCollectorUpdate",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidInstructions",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidSender",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "RollbackFailedInvalidFee",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "SlippageExceeded",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "SwapAndRollbackFailed",
+        "inputs": []
     }
 ] as const

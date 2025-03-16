@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge"
 
 import ExternalLinkIcon from "@/app/components/icons/ExternalLinkIcon"
 import { iconSizes } from "@/app/config/styling"
+import { DefaultLinkProps } from "@/app/config/urls"
 import { StyleSize } from "@/app/types/styling"
 
 interface ExternalLinkProps extends React.ComponentPropsWithoutRef<typeof Link> {
@@ -20,14 +21,16 @@ const ExternalLink = React.forwardRef<React.ComponentRef<typeof Link>, ExternalL
     hideIcon,
     stopPropagation,
     replaceClass,
-    target,
+    target = DefaultLinkProps.Target,
+    rel = DefaultLinkProps.Rel,
     ...props
 }, ref) => (
     <Link
         ref={ref}
         className={replaceClass ? className : twMerge("inline-flex flex-row items-center gap-2 transition text-muted-500 hover:text-link-500", className)}
         onClick={stopPropagation ? (e) => e.stopPropagation() : undefined}
-        target={target || "_blank"}
+        target={target || DefaultLinkProps.Target}
+        rel={rel || DefaultLinkProps.Rel}
         {...props}
     >
         {children}

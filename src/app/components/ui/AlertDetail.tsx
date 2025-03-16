@@ -7,19 +7,19 @@ import SuccessIcon from "@/app/components/icons/SuccessIcon"
 import WarningIcon from "@/app/components/icons/WarningIcon"
 import { iconSizes } from "@/app/config/styling"
 
-type AlertTypeOption = "success" | "info" | "warning" | "error"
 export const AlertType = {
     Success: "success",
     Info: "info",
     Warning: "warning",
     Error: "error",
 } as const
+export type AlertType = (typeof AlertType)[keyof typeof AlertType]
 
 interface AlertTypeDataType {
     icon: React.ReactNode,
     className: string,
 }
-const AlertTypeData: Record<AlertTypeOption, AlertTypeDataType> = {
+const AlertTypeData: Record<AlertType, AlertTypeDataType> = {
     success: {
         icon: <SuccessIcon className="w-full h-full" />,
         className: "text-success-500",
@@ -39,7 +39,7 @@ const AlertTypeData: Record<AlertTypeOption, AlertTypeDataType> = {
 }
 
 interface AlertDetailProps extends React.ComponentPropsWithoutRef<"div"> {
-    type: AlertTypeOption,
+    type: AlertType,
     header?: React.ReactNode,
     headerClass?: string,
     msg?: React.ReactNode,

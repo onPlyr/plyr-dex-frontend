@@ -1,3 +1,5 @@
+"use client"
+
 import { createContext, useCallback } from "react"
 
 import useReadTokensAndBalances from "@/app/hooks/tokens/useReadTokensAndBalances"

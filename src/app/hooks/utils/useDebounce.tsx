@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 const useDebounce = <T,>(value: T, delayMs?: number): T => {
 
     const [debouncedValue, setDebouncedValue] = useState(value)
-    const delay = delayMs || 300
+    const delay = delayMs ?? 300
 
     useEffect(() => {
 

@@ -1,5 +1,7 @@
 import { Address } from "viem"
 
+import { ApiProvider } from "@/app/types/apis"
+import { TokenBridge } from "@/app/types/bridges"
 import { ChainId } from "@/app/types/chains"
 import { IconFormat } from "@/app/types/styling"
 
@@ -17,11 +19,11 @@ interface BaseTokenData {
     readonly decimals: number,
     readonly icon: TokenIcon,
     readonly iconBackground: TokenIconBackground,
+    readonly bridges?: TokenBridge[],
 }
 
-export interface TokenBridgeData {
-    readonly address: Address,
-    readonly type: TokenBridgeType,
+export interface TokenApiData {
+    readonly id: string,
 }
 
 interface TokenChainData {
@@ -30,13 +32,14 @@ interface TokenChainData {
     readonly displayName?: string,
     readonly displayIcon?: TokenIcon,
     readonly displayIconBackground?: TokenIconBackground,
-    readonly bridges?: {
-        readonly [chainId in ChainId]?: TokenBridgeData
-    }
+    readonly apiData?: {
+        readonly [provider in ApiProvider]?: TokenApiData
+    },
     readonly isNative?: boolean,
     readonly wrappedAddress?: Address,
     readonly wrappedToken?: string,
     readonly isHidden?: boolean,
+    readonly canBridge?: boolean,
 }
 
 export interface TokenFilterData {
@@ -69,13 +72,6 @@ export enum TokenSortType {
     BalanceValue,
     Symbol,
     Chain,
-}
-
-export enum TokenBridgeType {
-    NativeHome = "nativeHome",
-    NativeRemote = "nativeRemote",
-    Erc20Home = "erc20Home",
-    Erc20Remote = "erc20Remote"
 }
 
 export interface FavouriteTokenData {

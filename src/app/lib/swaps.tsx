@@ -1,692 +1,826 @@
-import { QueryStatus } from "@tanstack/react-query"
-import { Address, formatUnits, Hash, zeroAddress } from "viem"
+import { QueryStatus } from "@tanstack/query-core"
+import { Address, formatUnits, isAddressEqual } from "viem"
+import { readContracts } from "@wagmi/core"
+import { v4 as uuidv4 } from "uuid"
 
-import { hopActionCompletedLabels, hopActionInProgressLabels, hopActionLabels, routeTypeLabels, supportedTeleporterMessengerVersion, SwapStatus, teleporterMessengerContracts, tmpGasBuffer, tmpHopGasEstimate } from "@/app/config/swaps"
-import { getChain, getChainByBlockchainId } from "@/app/lib/chains"
+import { defaultSlippageBps, durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteConfig } from "@/app/config/swaps"
+import { wagmiConfig } from "@/app/config/wagmi"
+import { getApiUrl } from "@/app/lib/apis"
+import { getBridgePathHops } from "@/app/lib/bridges"
+import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getSwapCells } from "@/app/lib/cells"
 import { MathBigInt } from "@/app/lib/numbers"
 import { getPlatform } from "@/app/lib/platforms"
-import { getStorageItem, setStorageItem } from "@/app/lib/storage"
 import { toShort } from "@/app/lib/strings"
-import { getToken, getTokenByAddress, getTokenByBridgeAddress } from "@/app/lib/tokens"
-import { Chain, ChainId } from "@/app/types/chains"
-import { StorageDataKey, StorageType } from "@/app/types/storage"
-import { BaseSwapData, BaseSwapDataJson, HopAction, Route, RouteType, SelectedSwapData, Swap, SwapEvent, SwapHop, SwapJson, TeleporterMessengerVersion } from "@/app/types/swaps"
-import { Token, TokenId } from "@/app/types/tokens"
+import { getToken, getTokenByAddress } from "@/app/lib/tokens"
+import { getParsedError } from "@/app/lib/utils"
+import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
+import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/apis"
+import { BridgeProvider } from "@/app/types/bridges"
+import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
+import { Chain } from "@/app/types/chains"
+import { Token } from "@/app/types/tokens"
+import { GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction, isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType } from "@/app/types/swaps"
 
+export const generateSwapId = (): SwapId => {
+    return uuidv4()
+}
 
-export const getPercentBalance = ({
-    token,
-    balance,
-    percent,
-}: {
-    token?: Token,
-    balance?: bigint,
-    percent?: number,
-}) => {
+export const getSwapQuoteTokenAddress = (chain: Chain, token: Token) => {
+    const swapQuoteToken = chain.id === token.chainId ? token : getToken(token.id, chain)
+    return swapQuoteToken?.isNative && swapQuoteToken.wrappedAddress ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
+}
 
-    let amount = undefined
-    let amountFormatted = undefined
+export const getMaxHops = (num?: number) => {
+    return num && num <= SwapQuoteConfig.MaxHops ? num : SwapQuoteConfig.DefaultMaxHops
+}
 
-    if (token && balance && percent && percent >= 0) {
-        amount = percent === 100 ? balance : (balance * BigInt(percent)) / BigInt(100)
-        amountFormatted = formatUnits(amount, token.decimals)
+export const getHopTypeEstGasUnits = (type: HopType, estAmount?: bigint) => {
+    return HopTypeGasUnits[type].estBase + (estAmount || HopTypeGasUnits[type].estDefault)
+}
+
+export const getMinAmount = (estAmount?: bigint, slippageBps?: bigint) => {
+    return estAmount && estAmount > BigInt(0) && slippageBps ? (estAmount * (BigInt(10000) - slippageBps)) / BigInt(10000) : undefined
+}
+
+export const setNextHopAmounts = (hop: Hop, nextHop?: Hop, slippageBps?: bigint) => {
+
+    if (!nextHop || !isValidHopQuote(hop)) {
+        return
     }
 
-    return {
-        amount,
-        amountFormatted,
+    nextHop.srcData.estAmount = hop.dstData.estAmount
+    nextHop.srcData.minAmount = isSwapHopType(hop.type) ? getMinAmount(hop.dstData.estAmount, slippageBps) : hop.dstData.estAmount
+    if (!isSwapHopType(nextHop.type)) {
+        nextHop.dstData.estAmount = nextHop.srcData.estAmount
+        nextHop.dstData.minAmount = nextHop.srcData.estAmount
     }
 }
 
-export const getIsTradeHop = (action: HopAction) => {
-    return action === HopAction.SwapAndHop || action === HopAction.SwapAndTransfer
-}
+export const getQuoteEstDuration = (hops: Hop[]) => {
 
-export const getIsBridgeHop = (action: HopAction) => {
-    return action !== HopAction.SwapAndTransfer
-}
-
-export const getHopGasEstimate = (action: HopAction, estimate: bigint) => {
-    if (action === HopAction.HopAndCall) {
-        return estimate + tmpGasBuffer
+    const finalHop = hops.at(-1)
+    if (!finalHop || hops.every((hop) => !isCrossChainHopType(hop.type))) {
+        return 0
     }
-    if (action === HopAction.SwapAndHop) {
-        return estimate + tmpHopGasEstimate
-    }
-    if (action === HopAction.SwapAndTransfer) {
-        return estimate + tmpGasBuffer
-    }
-    return estimate
+
+    return hops.reduce((sum, hop) => sum + (hop.srcData.chain.avgBlockTimeMs * durationEstimateNumConfirmations), 0) + (finalHop.dstData.chain.avgBlockTimeMs * durationEstimateNumConfirmations)
 }
 
-export const getRouteTypeLabel = (type: RouteType) => {
-    return routeTypeLabels[type]
+export const getQuoteEstGasUnits = (hops: HopQuote[]) => {
+    return hops.reduce((sum, hop) => sum + hop.estGasUnits, BigInt(0))
 }
 
-export const getHopActionLabel = ({
+export const getQuoteEstGasFee = (chain: Chain, hops: HopQuote[]) => {
+    return getQuoteEstGasUnits(hops) * chain.minGasPrice
+}
+
+export const getSwapType = (hops: Hop[]) => {
+    return hops.some((hop) => isSwapHopType(hop.type)) ? SwapType.Swap : SwapType.Transfer
+}
+
+export const getSwapAdapter = (chain: Chain, address?: Address) => {
+    return address && chain.adapters?.find((adapter) => isAddressEqual(address, adapter.address))
+}
+
+export const getSwapHopStatus = (swap: Swap) => {
+    return swap.hops.some((hop) => hop.status === SwapStatus.Error) ? SwapStatus.Error : swap.hops.every((hop) => hop.status === SwapStatus.Success) ? SwapStatus.Success : SwapStatus.Pending
+}
+
+export const getSwapStatus = (swap: Swap, hopStatus: SwapStatus) => {
+    return hopStatus !== SwapStatus.Success ? hopStatus : swap.dstAmount && swap.dstAmount > BigInt(0) && swap.dstTxHash && swap.dstTimestamp ? SwapStatus.Success : SwapStatus.Pending
+}
+
+export const getSwapRouteEstGasFee = (route: SwapRoute) => {
+    return isValidSwapRoute(route) ? BigInt(SwapQuoteConfig.MaxHops) * (GasUnits.Est + GasUnits.Buffer + (BigInt(2) * GasUnits.Buffer)) * route.srcData.chain.minGasPrice : undefined
+}
+
+export const getInitiateSwapError = ({
     action,
-    isInProgress,
-    isComplete,
-}: {
-    action: HopAction,
-    isInProgress?: boolean,
-    isComplete?: boolean,
-}) => {
-    return isInProgress ? hopActionInProgressLabels[action] : isComplete ? hopActionCompletedLabels[action] : hopActionLabels[action]
-}
-
-export const getTeleporterMessengerAddress = (version?: TeleporterMessengerVersion) => {
-    return teleporterMessengerContracts[version ? version : supportedTeleporterMessengerVersion]
-}
-
-export const getRoutesMaxDstAmount = (routes?: Route[]) => {
-    return routes && routes.length !== 0 ? routes.length === 1 ? routes[0].dstAmount : MathBigInt.max(routes.map((route) => route.dstAmount)) : BigInt(0)
-}
-
-export const getReviewRouteErrMsg = ({
-    accountAddress,
+    isConnected,
     srcChain,
     srcToken,
     srcAmount,
     dstChain,
     dstToken,
-    routes,
-    selectedRoute,
+    quoteData,
+    selectedQuote,
+    isInProgress,
     queryStatus,
+    error,
     disabled,
 }: {
-    accountAddress?: Address,
+    action: InitiateSwapAction,
+    isConnected?: boolean,
     srcChain?: Chain,
     srcToken?: Token,
     srcAmount?: bigint,
     dstChain?: Chain,
     dstToken?: Token,
-    routes?: Route[],
-    selectedRoute?: Route,
+    quoteData?: SwapQuoteData,
+    selectedQuote?: SwapQuote,
+    isInProgress?: boolean,
     queryStatus?: QueryStatus,
+    error?: string,
     disabled?: boolean,
 }) => {
 
-    let err = undefined
-    let isConnectWalletErr = false
+    let msg: string | undefined = undefined
+    let isConnectError = false
 
-    if (srcChain === undefined || srcToken === undefined || dstChain === undefined || dstToken === undefined) {
-        err = "Select Tokens"
+    if (action === InitiateSwapAction.Review) {
+        if (!srcChain || !srcToken || !dstChain || !dstToken) {
+            msg = "Select Tokens"
+        }
+        else if (!srcAmount || srcAmount === BigInt(0)) {
+            msg = "Enter Amount"
+        }
+        else if (queryStatus && queryStatus === "error") {
+            msg = error || "Error Fetching Routes"
+        }
+        else if (!isInProgress && (!quoteData || quoteData.quotes.length === 0)) {
+            msg = "No Routes Found"
+        }
+        else if (!isConnected) {
+            msg = "Connect Wallet"
+            isConnectError = true
+        }
+        else if (selectedQuote && (!srcToken.balance || srcToken.balance < srcAmount)) {
+            msg = "Insufficient Balance"
+        }
     }
-    else if (srcAmount === undefined || srcAmount === BigInt(0)) {
-        err = "Enter Amount"
+
+    else if (action === InitiateSwapAction.Initiate) {
+        if (!isConnected) {
+            msg = "Connect Wallet"
+            isConnectError = true
+        }
+        else if (!selectedQuote) {
+            msg = "Select Route"
+        }
+        else if (selectedQuote.srcAmount === BigInt(0)) {
+            msg = "Enter Amount"
+        }
+        else if (!srcToken?.balance || srcToken.balance < selectedQuote.srcAmount) {
+            msg = "Insufficient Balance"
+        }
     }
-    else if (queryStatus && queryStatus === "success" && (routes === undefined || routes.length === 0)) {
-        err = "No Routes Found"
-    }
-    else if (queryStatus && queryStatus === "error") {
-        err = "Error Fetching Routes"
-    }
-    else if (accountAddress === undefined) {
-        err = "Connect Wallet"
-        isConnectWalletErr = true
-    }
-    else if (selectedRoute && (selectedRoute.srcToken.balance === undefined || selectedRoute.srcToken.balance < selectedRoute.srcAmount)) {
-        err = "Insufficient Balance"
-    }
-    else if (disabled) {
-        err = "Disabled"
+
+    if (!msg) {
+        if (disabled) {
+            msg = "Disabled"
+        }
     }
 
     return {
-        err,
-        isConnectWalletErr,
+        errorMsg: msg,
+        isConnectError: isConnectError,
     }
 }
 
-export const getInitiateSwapErrMsg = ({
-    accountAddress,
+export const getSwapQuoteData = async ({
     route,
-    disabled,
+    getApiTokenPair,
+    maxNumHops,
+    cellRouteData,
 }: {
-    accountAddress?: Address,
-    route?: Route,
-    disabled?: boolean,
+    route: SwapRoute,
+    getApiTokenPair: GetApiTokenPairFunction,
+    maxNumHops?: number,
+    cellRouteData?: CellRouteData,
+}): Promise<GetSwapQuoteDataReturnType> => {
+
+    const swapQuoteData: GetSwapQuoteDataReturnType = {}
+    const swapQuotes: SwapQuote[] = []
+    const timestamp = new Date().getTime()
+    const maxHops = getMaxHops(maxNumHops)
+    const slippageBps = cellRouteData?.[CellRouteDataParameter.SlippageBips] ?? BigInt(defaultSlippageBps)
+
+    if (!isValidSwapRoute(route)) {
+        return swapQuoteData
+    }
+
+    try {
+
+        const initialHopData = getInitialHopQuoteData({
+            route: route,
+            maxHops: maxHops,
+            slippageBps: slippageBps,
+        })
+        const { data: validHopData, error: quoteError } = await getValidHopQuoteData({
+            hopData: initialHopData,
+            getApiTokenPair: getApiTokenPair,
+            maxHops: maxHops,
+            slippageBps: slippageBps,
+            cellRouteData: cellRouteData,
+        })
+
+        if (quoteError || !validHopData) {
+            throw new Error(quoteError || "getValidHopQuoteData returned no data")
+        }
+
+        for (const [id, hops] of Object.entries(validHopData)) {
+
+            const [firstHop, finalHop] = [hops.at(0), hops.at(-1)]
+            if (!firstHop || !finalHop) {
+                continue
+            }
+
+            const events = getHopEventData({
+                hops: hops,
+                slippageBps: slippageBps,
+            })
+
+            const quote: SwapQuote = {
+                id: id,
+                srcData: {
+                    ...firstHop.srcData,
+                },
+                dstData: {
+                    ...finalHop.dstData,
+                },
+                hops: hops,
+                events: events,
+                srcAmount: route.srcData.amount,
+                estDstAmount: finalHop.dstData.estAmount,
+                minDstAmount: finalHop.dstData.minAmount,
+                estDuration: getQuoteEstDuration(hops),
+                estGasUnits: getQuoteEstGasUnits(hops),
+                estGasFee: getQuoteEstGasFee(route.srcData.chain, hops),
+                type: getSwapType(hops),
+                isConfirmed: hops.every((hop) => hop.isConfirmed),
+                timestamp: timestamp,
+            }
+            swapQuotes.push(quote)
+        }
+    }
+
+    catch (err) {
+        swapQuoteData.error = getParsedError(err)
+    }
+
+    finally {
+
+        if (swapQuotes.length > 0) {
+            swapQuotes.sort((a, b) => parseFloat(formatUnits(b.estDstAmount - a.estDstAmount, route.dstData.token.decimals)))
+            swapQuoteData.data = {
+                srcData: {
+                    chain: route.srcData.chain,
+                    token: route.srcData.token,
+                },
+                dstData: {
+                    chain: route.dstData.chain,
+                    token: route.dstData.token,
+                },
+                timestamp: timestamp,
+                maxDstAmount: MathBigInt.max(swapQuotes.map((quote) => quote.estDstAmount)),
+                minDuration: Math.min(...swapQuotes.map((quote) => quote.estDuration)),
+                quotes: swapQuotes,
+            }
+        }
+
+        return swapQuoteData
+    }
+
+    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getSwapQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+    // console.log(`>>> ${formatUnits(route.srcData.amount, route.srcData.token.decimals)} ${route.srcData.token.symbol} (${route.srcData.chain.name}) -> ${route.dstData.token.symbol} (${route.dstData.chain.name})`)
+    // swapQuotes.forEach((swap) => {
+    //     console.log(`>>> getSwapQuoteData quote: ${swap.srcData.minAmount ? formatUnits(swap.srcData.minAmount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${formatUnits(swap.minDstAmount, swap.dstData.token.decimals)} ${swap.dstData.token.symbol} (${swap.dstData.chain.name ?? "n/a"})`)
+    //     console.log(`>>> HOPS <<<`)
+    //     swap.hops.forEach((hop, i) => {
+    //         console.log(`   >>> getSwapQuoteData hop ${i}: ${hop.srcData.minAmount ? formatUnits(hop.srcData.minAmount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${formatUnits(hop.dstData.minAmount, hop.dstData.token.decimals)} ${hop.dstData.token.symbol} (${hop.dstData?.chain.name ?? "n/a"}) / type: ${hop.type}`)
+    //     })
+    //     console.log(`>>> EVENTS <<<`)
+    //     swap.events.forEach((event, i) => {
+    //         console.log(`   >>> getSwapQuoteData event ${i}: ${event.srcData.minAmount ? formatUnits(event.srcData.minAmount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData.minAmount ? formatUnits(event.dstData.minAmount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol ?? "n/a"} (${event.dstData?.chain.name ?? "n/a"}) / hop: ${event.hopIndex} / adapter: ${serialize(event.adapter)} / bridge: ${serialize(event.bridge)} / ${event.type}`)
+    //     })
+    // })
+    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getSwapQuoteData END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+}
+
+export const getInitialHopQuoteData = ({
+    route,
+    maxHops,
+    slippageBps,
+}: {
+    route: SwapRoute,
+    maxHops: number,
+    slippageBps?: bigint,
 }) => {
 
-    let err = undefined
-    let isConnectWalletErr = false
+    const hopData: Record<SwapId, HopQuote[]> = {}
+    if (!isValidSwapRoute(route)) {
+        return hopData
+    }
 
-    if (!accountAddress) {
-        err = "Connect Wallet"
-        isConnectWalletErr = true
+    const { srcData, dstData } = route
+
+    if (srcData.chain.id === dstData.chain.id && getChainCanSwap(srcData.chain)) {
+        for (const cell of getSwapCells(srcData.chain)) {
+            hopData[generateSwapId()] = [
+                {
+                    srcData: {
+                        chain: srcData.chain,
+                        token: srcData.token,
+                        cell: cell,
+                        estAmount: srcData.amount,
+                        minAmount: srcData.amount,
+                    },
+                    dstData: {
+                        chain: dstData.chain,
+                        token: dstData.token,
+                        cell: cell,
+                    },
+                    type: HopType.SwapAndTransfer,
+                    index: 0,
+                    estGasUnits: getHopTypeEstGasUnits(HopType.SwapAndTransfer),
+                },
+            ]
+        }
     }
-    else if (!route) {
-        err = "Select Route"
+
+    const bridgePathHops = getBridgePathHops({
+        route: route,
+        maxHops: maxHops,
+        slippageBps: slippageBps,
+    })
+
+    if (!bridgePathHops || bridgePathHops.length === 0) {
+        return hopData
     }
-    else if (route.srcAmount === BigInt(0)) {
-        err = "Enter Amount"
+
+    for (const pathHops of bridgePathHops) {
+
+        const pathSrcCells = pathHops.map((hop) => getBridgePathCells(hop.srcData.chain, isSwapHopType(hop.type)))
+        const maxHopCells = Math.max(...pathSrcCells.map((cells) => cells.length))
+        const pathSwapIds = Array.from(Array(maxHopCells), () => generateSwapId())
+
+        for (let quoteNum = 0; quoteNum < pathSwapIds.length; quoteNum++) {
+
+            const swapId = pathSwapIds[quoteNum]
+            hopData[swapId] = []
+
+            for (const hop of pathHops) {
+
+                const nextHop = pathHops.find((data) => data.index === hop.index + 1)
+                const hopSrcCells = pathSrcCells[hop.index]
+                const hopDstCells = nextHop && isSwapHopType(nextHop.type) ? getSwapCells(hop.dstData.chain) : [hop.dstData.chain.cells[0]]
+
+                hopData[swapId].push({
+                    ...hop,
+                    srcData: {
+                        ...hop.srcData,
+                        cell: hopSrcCells.at(quoteNum) ?? hopSrcCells[0],
+                    },
+                    dstData: {
+                        ...hop.dstData,
+                        cell: hopDstCells.at(quoteNum) ?? hopDstCells[0],
+                    },
+                } as HopQuote)
+            }
+        }
     }
-    else if (route.srcToken.balance === undefined || route.srcToken.balance < route.srcAmount) {
-        err = "Insufficient Balance"
+
+    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getInitialHopQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+    // Object.entries(hopData).forEach(([id, hops]) => {
+    //     console.log(`>>> path: ${id}`)
+    //     hops.forEach((data, i) => {
+    //         console.log(`   >>> hop ${i}: ${data.srcData.minAmount ? formatUnits(data.srcData.minAmount, data.srcData.token.decimals) : "n/a"} ${data.srcData.token.symbol} (${data.srcData.chain.name}) -> ${data.dstData.minAmount ? formatUnits(data.dstData.minAmount, data.dstData.token.decimals) : "n/a"} ${data.dstData.token.symbol} (${data.dstData.chain.name}) / type: ${data.type} / srcCell: ${data.srcData.cell?.type ?? "NO SRC CELL"} / dstCell: ${data.dstData.cell?.type ?? "NO CELL???????"}`)
+    //     })
+    // })
+    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getInitialHopQuoteData END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+
+    return hopData
+}
+
+export const getValidHopQuoteData = async ({
+    hopData,
+    getApiTokenPair,
+    maxHops,
+    slippageBps,
+    cellRouteData,
+}: {
+    hopData: Record<SwapId, HopQuote[]>,
+    getApiTokenPair: GetApiTokenPairFunction,
+    maxHops: number,
+    slippageBps?: bigint,
+    cellRouteData?: CellRouteData,
+}): Promise<GetValidHopQuoteDataReturnType> => {
+
+    const quoteIds = Object.keys(hopData)
+    const hopQuoteData: GetValidHopQuoteDataReturnType = {}
+
+    if (quoteIds.length === 0) {
+        return hopQuoteData
     }
-    else if (disabled) {
-        err = "Disabled"
+
+    try {
+
+        for (let i = 0; i < maxHops; i++) {
+
+            const apiQueries: HopApiQuery[] = []
+            const contractQueries: HopContractQuery[] = []
+
+            for (const id of quoteIds) {
+
+                const hops = hopData[id]
+                if (i > hops.length - 1) {
+                    continue
+                }
+
+                const hop = hops.find((data) => data.index === i)
+                const prevHop = i > 0 ? hops.find((data) => data.index === i - 1) : undefined
+
+                if (!hop || hop.isError) {
+                    continue
+                }
+                else if (prevHop && (prevHop.isError || !isValidHopQuote(prevHop))) {
+                    hop.isError = true
+                    continue
+                }
+                else if (isValidHopQuote(hop)) {
+                    continue
+                }
+                else if (!isSwapHopType(hop.type) && !isValidQuoteData(hop.srcData)) {
+                    hop.isError = true
+                    continue
+                }
+                else if (!hop.srcData.cell || !hop.dstData.cell) {
+                    hop.isError = true
+                    continue
+                }
+
+                const { apiQuery, contractQuery } = getHopQueryData({
+                    hop: hop,
+                    getApiTokenPair: getApiTokenPair,
+                    cellRouteData: cellRouteData,
+                })
+
+                if (hop.srcData.cell.apiData && apiQuery) {
+                    hop.queryIndex = apiQueries.push(apiQuery) - 1
+                }
+                else if (contractQuery) {
+                    hop.queryIndex = contractQueries.push(contractQuery) - 1
+                }
+                else {
+                    hop.isError = true
+                    continue
+                }
+            }
+
+            const { apiData, contractData, error: hopQueryResultsError } = await getHopQueryResults({
+                apiQueries: apiQueries,
+                contractQueries: contractQueries,
+            })
+
+            if (hopQueryResultsError) {
+                throw new Error(hopQueryResultsError)
+            }
+
+            for (const id of quoteIds) {
+
+                const hops = hopData[id]
+                if (i > hops.length - 1) {
+                    continue
+                }
+
+                const hop = hops.find((data) => data.index === i)
+                const prevHop = i > 0 ? hops.find((data) => data.index === i - 1) : undefined
+                const nextHop = i + 1 <= hops.length - 1 ? hops[i + 1] : undefined
+
+                if (!hop || hop.isError) {
+                    continue
+                }
+                else if (prevHop && (prevHop.isError || !isValidHopQuote(prevHop))) {
+                    hop.isError = true
+                    continue
+                }
+                else if (isValidHopQuote(hop)) {
+                    setNextHopAmounts(hop, nextHop, slippageBps)
+                    continue
+                }
+                else if (hop.queryIndex === undefined) {
+                    hop.isError = true
+                    continue
+                }
+
+                const { srcData, dstData } = hop
+                if (!isValidQuoteData(srcData)) {
+                    hop.isError = true
+                    continue
+                }
+
+                if (srcData.cell.apiData) {
+
+                    const dstSwapTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token)
+                    const { amount: dstAmount } = apiData[hop.queryIndex]
+                    if (!dstSwapTokenAddress || !dstAmount || dstAmount === BigInt(0)) {
+                        hop.isError = true
+                        continue
+                    }
+
+                    hop.dstData.estAmount = dstAmount
+                    hop.dstData.minAmount = getMinAmount(hop.dstData.estAmount, slippageBps)
+                    hop.trade = {
+                        [CellTradeParameter.AmountOut]: hop.dstData.estAmount,
+                        [CellTradeParameter.MinAmountOut]: hop.dstData.minAmount,
+                        [CellTradeParameter.Path]: [
+                            srcData.token.address,
+                            dstSwapTokenAddress,
+                        ],
+                        [CellTradeParameter.Adapters]: [
+                            srcData.cell.address,
+                        ],
+                    }
+                    hop.encodedTrade = getEncodedCellTrade(srcData.cell, hop.trade, [
+                        CellTradeParameter.AmountOut,
+                        CellTradeParameter.MinAmountOut,
+                        CellTradeParameter.Path,
+                        CellTradeParameter.Adapters,
+                    ])
+                }
+
+                else {
+
+                    const { encodedTrade, estGasUnits } = contractData[hop.queryIndex]
+                    const trade = getDecodedCellTradeData(srcData.cell, encodedTrade)?.trade
+                    const dstAmount = trade?.[CellTradeParameter.AmountOut] ?? trade?.[CellTradeParameter.MinAmountOut]
+                    if (!encodedTrade || !trade || !dstAmount || dstAmount === BigInt(0)) {
+                        hop.isError = true
+                        continue
+                    }
+
+                    hop.dstData.estAmount = dstAmount
+                    hop.dstData.minAmount = getMinAmount(hop.dstData.estAmount, slippageBps)
+                    hop.trade = trade
+                    hop.encodedTrade = encodedTrade
+                    hop.estGasUnits = getHopTypeEstGasUnits(hop.type, estGasUnits)
+                }
+
+                if (!isValidHopQuote(hop)) {
+                    hop.isError = true
+                    continue
+                }
+
+                if (nextHop) {
+                    setNextHopAmounts(hop, nextHop, slippageBps)
+                }
+            }
+        }
+    }
+
+    catch (err) {
+        hopQuoteData.error = getParsedError(err)
+    }
+
+    finally {
+        hopQuoteData.data = {}
+        for (const [swapId, hops] of Object.entries(hopData)) {
+            if (hops.length > 0 && hops.every((hop) => isValidHopQuote(hop))) {
+                hopQuoteData.data[swapId] = hops.map((hop, i) => {
+                    const prevHop = i > 0 ? hops.at(i - 1) : undefined
+                    return {
+                        ...hop,
+                        isConfirmed: !hop.srcData.cell.apiData || (prevHop && !prevHop.isConfirmed),
+                    }
+                })
+            }
+        }
+    }
+
+    return hopQuoteData
+}
+
+export const getHopQueryData = ({
+    hop,
+    getApiTokenPair,
+    cellRouteData,
+}: {
+    hop: Hop,
+    getApiTokenPair: GetApiTokenPairFunction,
+    cellRouteData?: CellRouteData,
+}) => {
+
+    const queryData: HopQueryData = {}
+    const { srcData, dstData } = hop
+    if (!isValidQuoteData(srcData)) {
+        return queryData
+    }
+
+    if (srcData.cell.apiData) {
+
+        const { pair, isBase } = getApiTokenPair({
+            provider: srcData.cell.apiData.provider,
+            chainId: srcData.chain.id,
+            srcTokenId: srcData.token.id,
+            dstTokenId: dstData.token.id,
+        })
+        if (!pair) {
+            return queryData
+        }
+
+        const apiQueryUrl = getApiUrl({
+            provider: srcData.cell.apiData.provider,
+            route: srcData.cell.apiData.getQuote,
+            type: ApiRouteType.App,
+            params: {
+                chain: srcData.chain.id.toString(),
+                srcToken: srcData.token.id,
+                srcAmount: srcData.estAmount.toString(),
+                dstToken: dstData.token.id,
+                pair: pair,
+                isBase: isBase ? "true" : "false",
+            },
+        })
+
+        if (!apiQueryUrl) {
+            return queryData
+        }
+
+        queryData.apiQuery = apiQueryUrl
+    }
+
+    else {
+
+        const abi = getCellAbi(srcData.cell)
+        const srcTokenAddress = getSwapQuoteTokenAddress(srcData.chain, srcData.token)
+        const dstTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token)
+        const routeData = getEncodedCellRouteData(srcData.chain, srcData.cell, cellRouteData, false)
+
+        if (!abi || !srcTokenAddress || !dstTokenAddress || !routeData) {
+            return queryData
+        }
+
+        queryData.contractQuery = {
+            chainId: srcData.chain.id,
+            address: srcData.cell.address,
+            abi: abi,
+            functionName: "route",
+            args: [srcData.estAmount, srcTokenAddress, dstTokenAddress, routeData],
+        }
+    }
+
+    return queryData
+}
+
+export const getHopQueryResults = async ({
+    apiQueries,
+    contractQueries,
+}: {
+    apiQueries: HopApiQuery[],
+    contractQueries: HopContractQuery[],
+}) => {
+
+    let apiData: HopQueryResult[] = []
+    let contractData: HopQueryResult[] = []
+    let error: string | undefined = undefined
+
+    try {
+
+        apiData = await Promise.all(apiQueries.map((query) => fetch(query).then((response) => response.json() as Promise<ApiResult>).then((result) => ({
+            amount: result.data ? BigInt((result.data as ApiSimpleQuoteResultData).amount) : undefined,
+        }))))
+
+        contractData = await readContracts(wagmiConfig, {
+            contracts: contractQueries,
+        }).then((responses) => responses.map((response) => ({
+            encodedTrade: response.result?.[0],
+            estGasUnits: response.result?.[1]
+        } as HopQueryResult)))
+    }
+
+    catch (err) {
+        error = `getHopQueryResults error: ${err}`
     }
 
     return {
-        err,
-        isConnectWalletErr,
+        apiData: apiData,
+        contractData: contractData,
+        error: error,
     }
 }
 
-export const getSelectedSwapData = () => {
-
-    const storedData = getStorageItem(StorageDataKey.SwapSelection, StorageType.Session)
-    const swapData = storedData ? storedData as SelectedSwapData : undefined
-
-    const srcChain = swapData?.srcChainId ? getChain(swapData.srcChainId) : undefined
-    const srcToken = srcChain && swapData?.srcTokenId ? getToken(swapData.srcTokenId, srcChain) : undefined
-
-    const dstChain = swapData?.dstChainId ? getChain(swapData.dstChainId) : undefined
-    const dstToken = dstChain && swapData?.dstTokenId ? getToken(swapData.dstTokenId, dstChain) : undefined
-
-    return {
-        srcChain,
-        srcToken,
-        dstChain,
-        dstToken,
-    }
-}
-
-export const setSelectedSwapData = ({
-    srcChainId,
-    srcTokenId,
-    dstChainId,
-    dstTokenId,
+export const getHopEventData = ({
+    hops,
+    slippageBps,
 }: {
-    srcChainId?: ChainId,
-    srcTokenId?: TokenId,
-    dstChainId?: ChainId,
-    dstTokenId?: TokenId,
+    hops: Hop[],
+    slippageBps?: bigint,
 }) => {
 
-    const storedData = getStorageItem(StorageDataKey.SwapSelection, StorageType.Session)
-    const swapData: SelectedSwapData = storedData ? {
-        ...storedData as SelectedSwapData,
-    } : {}
+    const events: HopEvent[] = []
 
-    if (srcChainId) {
-        swapData.srcChainId = srcChainId
-    }
-    if (srcTokenId) {
-        swapData.srcTokenId = srcTokenId
-    }
-    if (dstChainId) {
-        swapData.dstChainId = dstChainId
-    }
-    if (dstTokenId) {
-        swapData.dstTokenId = dstTokenId
-    }
+    for (let hopIndex = 0; hopIndex < hops.length; hopIndex++) {
 
-    setStorageItem(StorageDataKey.SwapSelection, swapData, StorageType.Session)
-}
+        const hop = hops[hopIndex]
+        const {
+            [CellTradeParameter.Adapters]: adapterAddresses,
+            [CellTradeParameter.Path]: tradePath,
+            [CellTradeParameter.AmountOut]: amountOut,
+            [CellTradeParameter.MinAmountOut]: minAmountOut,
+            [CellTradeParameter.TokenOut]: tokenOut,
+        } = hop.trade ?? {}
 
-////////////////////////////////////////////////////////////////////////////////
-// todo: tbc - confirm after finishing new swap status functionality
+        const tradeDstAmount = amountOut || minAmountOut || hop.dstData.estAmount
+        const tradeDstToken = tokenOut && getTokenByAddress(tokenOut, hop.srcData.chain)
 
-export const getSwapFromQuote = ({
-    route,
-    txHash,
-    accountAddress,
-    plyrId,
-    destinationAddress,
-    isReviewSwap = false,
-}: {
-    route?: Route,
-    txHash?: Hash,
-    accountAddress?: Address,
-    plyrId?: string,
-    destinationAddress?: Address,
-    isReviewSwap?: boolean,
-}) => {
+        let prevDstToken: Token | undefined = hop.srcData.token
+        let prevDstAmount = hop.srcData.estAmount
+        let isPrevSwap = hopIndex === 0 ? false : isSwapHopType(hops[hopIndex - 1].type)
 
-    // todo: update to use quote only, route only needed for est duration
-    // todo: move hop / events to functions, same as the ones from json
+        if (isSwapHopType(hop.type) && hop.srcData.cell) {
 
-    let swap: Swap | undefined = undefined
+            if (tradePath && tradePath.length > 0) {
 
-    const quote = route?.quote
-    if (!route || !quote || (!txHash && !isReviewSwap) || !(quote.hops.length > 0) || !(quote.events.length > 0)) {
-        return swap
-    }
+                for (let i = 0; i < tradePath.length - 1; i++) {
 
-    swap = {
-        id: isReviewSwap && !txHash ? zeroAddress : txHash!,
-        srcData: {
-            chain: quote.srcChain,
-            token: quote.srcToken,
-            amount: quote.srcAmount,
-        },
-        dstData: {
-            chain: quote.dstChain,
-            token: quote.dstToken,
-            amount: isReviewSwap ? quote.dstAmount : undefined,
-        },
-        plyrId: plyrId,
-        destinationAddress: destinationAddress,
-        hops: quote.hops.map((hop, i) => ({
-            srcData: {
-                chain: hop.srcChain,
-                token: hop.srcToken,
-                amount: isReviewSwap ? hop.srcAmount : undefined,
-                // msgId: Hash,
-            },
-            dstData: {
-                chain: hop.dstChain,
-                token: hop.dstToken,
-                amount: isReviewSwap ? hop.dstAmount : undefined,
-                // msgId: Hash,
-            },
-            index: i,
-            action: hop.action,
-            status: SwapStatus.Pending,
-        })),
-        events: quote.events.map((event) => ({
-            srcData: {
-                chain: event.srcChain,
-                token: event.srcToken,
-                amount: isReviewSwap ? event.srcAmount : undefined,
-            },
-            dstData: {
-                chain: event.dstChain,
-                token: event.dstToken,
-                amount: isReviewSwap ? event.dstAmount : undefined,
-            },
-            hopIndex: event.hop,
-            type: event.type,
-            adapter: event.adapter,
-            adapterAddress: event.adapterAddress,
-            bridge: event.bridge,
-            status: SwapStatus.Pending,
-        })),
-        account: accountAddress,
-        estAmount: quote.dstAmount,
-        // duration: number,
-        estDuration: route.durationEstimate,
-        type: quote.type,
-        status: SwapStatus.Pending,
-    }
+                    const adapterAddress = adapterAddresses?.[i] || hop.srcData.cell.address
+                    const adapter = getSwapAdapter(hop.srcData.chain, adapterAddress)
+                    const eventSrcToken = getTokenByAddress(tradePath[i], hop.srcData.chain)
+                    const eventDstToken = getTokenByAddress(tradePath[i + 1], hop.srcData.chain)
+                    const eventDstAmount = i === tradePath.length - 2 ? tradeDstAmount : undefined
 
-    return swap
-}
+                    if (eventSrcToken && eventDstToken) {
+                        events.push({
+                            srcData: {
+                                chain: hop.srcData.chain,
+                                token: eventSrcToken,
+                                estAmount: prevDstAmount,
+                                minAmount: isPrevSwap ? getMinAmount(prevDstAmount, slippageBps) : prevDstAmount,
+                            },
+                            dstData: {
+                                chain: hop.srcData.chain,
+                                token: eventDstToken,
+                                estAmount: eventDstAmount,
+                                minAmount: getMinAmount(eventDstAmount, slippageBps),
+                            },
+                            type: SwapType.Swap,
+                            index: i,
+                            hopIndex: hop.index,
+                            adapter: adapter,
+                            adapterAddress: adapterAddress,
+                        })
+                        prevDstAmount = eventDstAmount
+                    }
+                    prevDstToken = eventDstToken
+                }
+            }
 
-export const getSwapJsonFromQuote = ({
-    route,
-    txHash,
-    accountAddress,
-}: {
-    route?: Route,
-    txHash?: Hash,
-    accountAddress?: Address,
-}) => {
+            else if (tradeDstToken) {
+                events.push({
+                    srcData: {
+                        chain: hop.srcData.chain,
+                        token: hop.srcData.token,
+                        estAmount: prevDstAmount,
+                        minAmount: isPrevSwap ? getMinAmount(prevDstAmount, slippageBps) : prevDstAmount,
+                    },
+                    dstData: {
+                        chain: hop.srcData.chain,
+                        token: tradeDstToken,
+                        estAmount: tradeDstAmount,
+                        minAmount: getMinAmount(tradeDstAmount, slippageBps),
+                    },
+                    type: SwapType.Swap,
+                    index: 0,
+                    hopIndex: hop.index,
+                    adapter: getSwapAdapter(hop.srcData.chain, hop.srcData.cell.address),
+                    adapterAddress: hop.srcData.cell.address,
+                })
+                prevDstToken = tradeDstToken
+                prevDstAmount = tradeDstAmount
+            }
 
-    // todo: update to use quote only, route only needed for est duration
-    // todo: move hop / events to functions, same as the ones from json
-
-    let swapJson: SwapJson | undefined = undefined
-
-    const quote = route?.quote
-    if (!route || !quote || !txHash || !(quote.hops.length > 0) || !(quote.events.length > 0)) {
-        return swapJson
-    }
-
-    swapJson = {
-        id: txHash,
-        srcData: {
-            chain: quote.srcChain.id,
-            token: quote.srcToken.id,
-            amount: quote.srcAmount.toString(),
-        },
-        dstData: {
-            chain: quote.dstChain.id,
-            token: quote.dstToken.id,
-            // amount: quote.dstAmount.toString(),
-        },
-        hops: [],
-        events: [],
-        account: accountAddress,
-        estAmount: quote.dstAmount.toString(),
-        // duration: number,
-        estDuration: route.durationEstimate,
-        type: quote.type,
-        status: SwapStatus.Pending,
-    }
-
-    swapJson.hops = quote.hops.map((hop, i) => ({
-        srcData: {
-            chain: hop.srcChain.id,
-            token: hop.srcToken.id,
-            // amount: hop.srcAmount.toString(),
-            // msgId: Hash,
-        },
-        dstData: {
-            chain: hop.dstChain.id,
-            token: hop.dstToken.id,
-            // amount: hop.dstAmount.toString(),
-            // msgId: Hash,
-        },
-        index: i,
-        action: hop.action,
-        status: SwapStatus.Pending,
-    }))
-
-    swapJson.events = quote.events.map((event) => ({
-        srcData: {
-            chain: event.srcChain.id,
-            token: event.srcToken.id,
-            // amount: event.srcAmount?.toString(),
-        },
-        dstData: {
-            chain: event.dstChain.id,
-            token: event.dstToken.id,
-            // amount: event.dstAmount?.toString(),
-        },
-        hopIndex: event.hop,
-        type: event.type,
-        adapter: event.adapter,
-        adapterAddress: event.adapterAddress,
-        bridge: event.bridge,
-        status: SwapStatus.Pending,
-    }))
-
-    return swapJson
-}
-
-export const getSwapJsonFromSwap = (swap?: Swap) => {
-
-    let json: SwapJson | undefined = undefined
-
-    if (!swap) {
-        return json
-    }
-
-    json = {
-        id: swap.id,
-        srcData: {
-            chain: swap.srcData.chain.id,
-            token: swap.srcData.token.id,
-            amount: swap.srcData.amount?.toString(),
-        },
-        dstData: !swap.dstData ? undefined : {
-            chain: swap.dstData.chain.id,
-            token: swap.dstData.token.id,
-            amount: swap.dstData.amount?.toString(),
-        },
-        plyrId: swap.plyrId,
-        destinationAddress: swap.destinationAddress,
-        hops: swap.hops.map((hop) => ({
-            srcData: {
-                chain: hop.srcData.chain.id,
-                token: hop.srcData.token.id,
-                amount: hop.srcData.amount?.toString(),
-            },
-            dstData: !hop.dstData ? undefined : {
-                chain: hop.dstData.chain.id,
-                token: hop.dstData.token.id,
-                amount: hop.dstData.amount?.toString(),
-            },
-            plyrId: swap.plyrId,
-            destinationAddress: swap.destinationAddress,
-            index: hop.index,
-            receivedMsgId: hop.receivedMsgId,
-            sentMsgId: hop.sentMsgId,
-            action: hop.action,
-            txHash: hop.txHash,
-            timestamp: hop.timestamp,
-            status: hop.status,
-        })),
-        events: swap.events.map((event) => ({
-            srcData: {
-                chain: event.srcData.chain.id,
-                token: event.srcData.token.id,
-                amount: event.srcData.amount?.toString(),
-            },
-            dstData: !event.dstData ? undefined : {
-                chain: event.dstData.chain.id,
-                token: event.dstData.token.id,
-                amount: event.dstData.amount?.toString(),
-            },
-            plyrId: swap.plyrId,
-            destinationAddress: swap.destinationAddress,
-            hopIndex: event.hopIndex,
-            type: event.type,
-            adapter: event.adapter,
-            adapterAddress: event.adapterAddress,
-            bridge: event.bridge,
-            txHash: event.txHash,
-            timestamp: event.timestamp,
-            status: event.status,
-        })),
-        account: swap.account,
-        estAmount: swap.estAmount?.toString(),
-        duration: swap.duration,
-        estDuration: swap.estDuration,
-        type: swap.type,
-        timestamp: swap.timestamp,
-        status: swap.status,
-    }
-
-    return json
-}
-
-export const getBaseSwapDataFromJson = (json?: BaseSwapDataJson) => {
-
-    let data: BaseSwapData | undefined = undefined
-
-    if (!json) {
-        return data
-    }
-
-    const chain = getChain(json.chain)
-    const token = chain ? getToken(json.token, chain) : undefined
-    if (!chain || !token) {
-        return data
-    }
-
-    data = {
-        chain: chain,
-        token: token,
-        amount: json.amount ? BigInt(json.amount) : undefined,
-    }
-
-    return data
-}
-
-export const getSwapHopsFromJson = ({
-    json,
-    swapSrcData,
-}: {
-    json?: SwapJson,
-    swapSrcData?: BaseSwapData,
-}) => {
-
-    // todo: should be able to work out action if undefined
-
-    const hops: SwapHop[] = []
-    if (!json || !swapSrcData || !(json.hops.length > 0)) {
-        return hops
-    }
-
-    let prevHop: SwapHop | undefined = undefined
-    for (const hopJson of json.hops) {
-
-        const hopSrcData = getBaseSwapDataFromJson(hopJson.srcData)
-        const srcData: BaseSwapData = hopSrcData ?? {
-            chain: prevHop?.dstData?.chain ?? swapSrcData.chain,
-            token: prevHop?.dstData?.token ?? swapSrcData.token,
-            amount: prevHop?.dstData?.amount,
+            isPrevSwap = true
         }
-        const dstData = getBaseSwapDataFromJson(hopJson.dstData)
 
-        const hop: SwapHop = {
-            srcData: srcData,
-            dstData: dstData,
-            index: hopJson.index,
-            action: hopJson.action,
-            txHash: hopJson.txHash,
-            timestamp: hopJson.timestamp,
-            receivedMsgId: hopJson.receivedMsgId,
-            sentMsgId: hopJson.sentMsgId,
-            status: hopJson.status,
+        if (isCrossChainHopType(hop.type) && prevDstToken) {
+            events.push({
+                srcData: {
+                    chain: hop.srcData.chain,
+                    token: prevDstToken,
+                    estAmount: prevDstAmount,
+                    minAmount: isPrevSwap ? getMinAmount(prevDstAmount, slippageBps) : prevDstAmount,
+                },
+                dstData: {
+                    chain: hop.dstData.chain,
+                    token: hop.dstData.token,
+                    estAmount: hop.dstData.estAmount,
+                    minAmount: hop.dstData.minAmount,
+                },
+                type: SwapType.Transfer,
+                index: events.length,
+                hopIndex: hop.index,
+                bridge: BridgeProvider.ICTT,
+            })
         }
-        hops.push(hop)
-        prevHop = hop
-    }
-
-    return hops
-}
-
-export const getSwapEventsFromJson = ({
-    json,
-    swapSrcData,
-}: {
-    json?: SwapJson,
-    swapSrcData?: BaseSwapData,
-}) => {
-
-    // todo: should be able to work out type if undefined
-
-    const events: SwapEvent[] = []
-    if (!json || !swapSrcData || !(json.events.length > 0)) {
-        return events
-    }
-
-    let prevEvent: SwapEvent | undefined = undefined
-    for (const eventJson of json.events) {
-
-        const eventSrcData = getBaseSwapDataFromJson(eventJson.srcData)
-        const srcData: BaseSwapData = eventSrcData ?? {
-            chain: prevEvent?.dstData?.chain ?? swapSrcData.chain,
-            token: prevEvent?.dstData?.token ?? swapSrcData.token,
-            amount: prevEvent?.dstData?.amount,
-        }
-        const dstData = getBaseSwapDataFromJson(eventJson.dstData)
-
-        const event: SwapEvent = {
-            srcData: srcData,
-            dstData: dstData,
-            hopIndex: eventJson.hopIndex,
-            type: eventJson.type ?? (dstData ? srcData.token.id !== dstData.token.id ? RouteType.Swap : RouteType.Bridge : undefined),
-            adapter: eventJson.adapter,
-            adapterAddress: eventJson.adapterAddress,
-            bridge: eventJson.bridge,
-            txHash: eventJson.txHash,
-            timestamp: eventJson.timestamp,
-            status: eventJson.status,
-        }
-        events.push(event)
-        prevEvent = event
     }
 
     return events
 }
 
-export const getSwapFromJson = (json?: SwapJson) => {
-
-    let swap: Swap | undefined = undefined
-
-    if (!json || !(json.hops.length > 0) || !(json.events.length > 0)) {
-        return swap
-    }
-
-    const swapSrcData = getBaseSwapDataFromJson(json.srcData)
-    const swapDstData = getBaseSwapDataFromJson(json.dstData)
-    if (!swapSrcData) {
-        return swap
-    }
-
-    swap = {
-        id: json.id,
-        srcData: swapSrcData,
-        dstData: swapDstData,
-        plyrId: json.plyrId,
-        destinationAddress: json.destinationAddress,
-        hops: getSwapHopsFromJson({
-            json: json,
-            swapSrcData: swapSrcData,
-        }),
-        events: getSwapEventsFromJson({
-            json: json,
-            swapSrcData: swapSrcData,
-        }),
-        account: json.account,
-        estAmount: json.estAmount !== undefined ? BigInt(json.estAmount) : undefined,
-        duration: json.duration,
-        estDuration: json.estDuration,
-        type: json.type,
-        status: json.status,
-        timestamp: json.timestamp,
-    }
-
-    return swap
-}
-
-export const getBaseSwapData = ({
-    chain,
-    chainId,
-    blockchainId,
-    token,
-    tokenId,
-    tokenAddress,
-    srcChain,
-    dstBridgeAddress,
-    amount,
-}: {
-    chain?: Chain,
-    chainId?: ChainId,
-    blockchainId?: Hash,
-    token?: Token,
-    tokenId?: TokenId,
-    tokenAddress?: Address,
-    srcChain?: Chain,
-    dstBridgeAddress?: Address,
-    amount?: bigint,
-}) => {
-
-    let data: BaseSwapData | undefined = undefined
-
-    if (!(chain || chainId || blockchainId) && !(token || tokenId || tokenAddress || (srcChain && dstBridgeAddress))) {
-        return data
-    }
-
-    let dataChain = chain
-    let dataToken = token
-
-    if (!chain) {
-        dataChain = chainId ? getChain(chainId) : blockchainId ? getChainByBlockchainId(blockchainId) : undefined
-    }
-
-    if (!token && dataChain) {
-        dataToken = tokenId ? getToken(tokenId, dataChain) : tokenAddress ? getTokenByAddress(tokenAddress, dataChain) : undefined
-        if (!dataToken && srcChain && dstBridgeAddress) {
-            const dstTokenId = getTokenByBridgeAddress(dstBridgeAddress, srcChain, dataChain)?.id
-            dataToken = dstTokenId ? getToken(dstTokenId, srcChain) : undefined
-        }
-    }
-
-    if (!dataChain || !dataToken) {
-        return data
-    }
-
-    data = {
-        chain: dataChain,
-        token: dataToken,
-        amount: amount,
-    }
-
-    return data
-}
-
-export const getSwapEventPlatformData = (event: SwapEvent) => {
+export const getHopEventPlatformData = (event: HopEvent) => {
 
     const platform = getPlatform(event.adapter?.platform)
-    const platformName = (event.type === RouteType.Bridge ? event.bridge : platform?.name) || event.adapter?.name || (event.adapterAddress && toShort(event.adapterAddress))
+    const platformName = isTransferEvent(event) ? event.bridge : event.adapter ? event.adapter.name : event.adapterAddress && toShort(event.adapterAddress)
 
     return {
         platform: platform,

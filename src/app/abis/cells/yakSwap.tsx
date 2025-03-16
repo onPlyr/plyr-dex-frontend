@@ -39,6 +39,32 @@ export const yakSwapCellAbi = [
     },
     {
         "type": "function",
+        "name": "MAX_BASE_FEE",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "baseFeeBips",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "blockchainID",
         "inputs": [],
         "outputs": [
@@ -46,6 +72,56 @@ export const yakSwapCellAbi = [
                 "name": "",
                 "type": "bytes32",
                 "internalType": "bytes32"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "calculateFees",
+        "inputs": [
+            {
+                "name": "amount",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "fixedNativeFee",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "baseFee",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "feeCollector",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "fixedFee",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
             }
         ],
         "stateMutability": "view"
@@ -348,6 +424,45 @@ export const yakSwapCellAbi = [
     },
     {
         "type": "function",
+        "name": "updateBaseFeeBips",
+        "inputs": [
+            {
+                "name": "newBaseFeeBips",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "updateFeeCollector",
+        "inputs": [
+            {
+                "name": "newFeeCollector",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "updateFixedFee",
+        "inputs": [
+            {
+                "name": "newFixedFee",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "wrappedNativeToken",
         "inputs": [],
         "outputs": [
@@ -358,6 +473,19 @@ export const yakSwapCellAbi = [
             }
         ],
         "stateMutability": "view"
+    },
+    {
+        "type": "event",
+        "name": "BaseFeeUpdated",
+        "inputs": [
+            {
+                "name": "newBaseFeeBips",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
     },
     {
         "type": "event",
@@ -423,6 +551,32 @@ export const yakSwapCellAbi = [
     },
     {
         "type": "event",
+        "name": "FeeCollectorUpdated",
+        "inputs": [
+            {
+                "name": "newFeeCollector",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "FixedFeeUpdated",
+        "inputs": [
+            {
+                "name": "newFixedFee",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "Initiated",
         "inputs": [
             {
@@ -442,12 +596,6 @@ export const yakSwapCellAbi = [
                 "type": "uint256",
                 "indexed": false,
                 "internalType": "uint256"
-            },
-            {
-                "name": "instructions",
-                "type": "bytes",
-                "indexed": false,
-                "internalType": "bytes"
             }
         ],
         "anonymous": false
@@ -517,12 +665,38 @@ export const yakSwapCellAbi = [
     },
     {
         "type": "error",
+        "name": "InsufficientFeeReceived",
+        "inputs": [
+            {
+                "name": "required",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "received",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ]
+    },
+    {
+        "type": "error",
         "name": "InvalidAmount",
         "inputs": []
     },
     {
         "type": "error",
         "name": "InvalidArgument",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidBaseFeeUpdate",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InvalidFeeCollectorUpdate",
         "inputs": []
     },
     {
@@ -554,5 +728,5 @@ export const yakSwapCellAbi = [
         "type": "error",
         "name": "SwapAndRollbackFailed",
         "inputs": []
-    }
+    },
 ] as const

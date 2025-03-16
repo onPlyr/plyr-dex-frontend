@@ -1,10 +1,10 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 
 import TextInput from "@/app/components/ui/TextInput"
-import { NumberFormatType } from "@/app/config/numbers"
 import { formatDecimalInput, formattedAmountToLocale } from "@/app/lib/numbers"
+import { NumberFormatType } from "@/app/types/numbers"
 
 export interface DecimalInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     setValue?: (value: string) => void,
@@ -39,7 +39,7 @@ export const DecimalInput = React.forwardRef<HTMLInputElement, DecimalInputProps
             replaceClass={replaceClass}
             value={value}
             handleInput={handleInput}
-            placeholder={placeholder ?? formattedAmountToLocale("0.0" as Intl.StringNumericLiteral, NumberFormatType.ZeroDecimal)}
+            placeholder={placeholder ?? formattedAmountToLocale("0.0" as Intl.StringNumericLiteral, NumberFormatType.ZeroWithDecimal)}
             type={type}
             autoComplete={autoComplete}
             inputMode={inputMode}

@@ -1,15 +1,15 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import { Variants } from "motion/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
-import "@/app/styles/globals.css"
-
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import { defaultAnimations as slideInOutAnimations } from "@/app/components/animations/SlideInOut"
-import SwapSummary from "@/app/components/swap/SwapSummary"
+import SwapQuotePreview from "@/app/components/swapQuotes/SwapQuotePreview"
 import { Page } from "@/app/components/ui/Page"
 import { SwapTab } from "@/app/config/pages"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
@@ -31,13 +31,14 @@ const routeAnimations: Variants = {
 
 const RoutesPage = () => {
 
-    const { routes } = useQuoteData()
+    const { useSwapQuotesData: { data: quoteData } } = useQuoteData()
     const router = useRouter()
+
     useEffect(() => {
-        if (!routes || routes.length === 0) {
+        if (!quoteData || quoteData.quotes.length === 0) {
             router.push("/swap")
         }
-    }, [routes])
+    }, [quoteData])
 
     return (
         <Page
@@ -46,7 +47,7 @@ const RoutesPage = () => {
             backUrl="/swap"
         >
             <ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
-                {routes && routes.length > 0 && routes.map((route, i) => (
+                {quoteData && quoteData.quotes.length > 0 && quoteData.quotes.map((quote, i) => (
                     <SlideInOut
                         key={i}
                         from="right"
@@ -54,15 +55,12 @@ const RoutesPage = () => {
                         animations={routeAnimations}
                         delays={{
                             animate: i * 0.1,
-                            exit: (routes.length - 1 - i) * 0.1,
+                            exit: (quoteData.quotes.length - 1 - i) * 0.1,
                         }}
                     >
-                        <SwapSummary
-                            route={route}
-                            index={i}
-                            hideEventSummary={true}
-                            showFullEvents={true}
-                            backUrl="/swap"
+                        <SwapQuotePreview
+                            key={quote.id}
+                            quote={quote}
                         />
                     </SlideInOut>
                 ))}

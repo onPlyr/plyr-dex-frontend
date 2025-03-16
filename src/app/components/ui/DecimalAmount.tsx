@@ -1,8 +1,8 @@
 import * as React from "react"
 import { twMerge } from "tailwind-merge"
 
-import { NumberFormatType } from "@/app/config/numbers"
 import { amountToLocale, formattedAmountToLocale } from "@/app/lib/numbers"
+import { NumberFormatType } from "@/app/types/numbers"
 import { Token } from "@/app/types/tokens"
 
 interface DecimalAmountProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -12,6 +12,7 @@ interface DecimalAmountProps extends React.ComponentPropsWithoutRef<"div"> {
     token?: Token,
     decimals?: number,
     type?: NumberFormatType,
+    withSign?: boolean,
 }
 
 const DecimalAmount = React.forwardRef<HTMLDivElement, DecimalAmountProps>(({
@@ -22,15 +23,12 @@ const DecimalAmount = React.forwardRef<HTMLDivElement, DecimalAmountProps>(({
     token,
     decimals,
     type,
+    withSign,
     ...props
 }, ref) => {
-    let localeAmount = ""
-    if (amountFormatted !== undefined) {
-        localeAmount = formattedAmountToLocale(amountFormatted as Intl.StringNumericLiteral, type)
-    }
-    else if (amount !== undefined && (token !== undefined || decimals !== undefined)) {
-        localeAmount = amountToLocale(amount, token?.decimals || decimals!, type)
-    }
+
+    const localeAmount = amountFormatted ? formattedAmountToLocale(amountFormatted as Intl.StringNumericLiteral, type, withSign) : amount ? amountToLocale(amount, decimals || token?.decimals || 18, type, withSign) : undefined
+
     return (
         <div
             ref={ref}

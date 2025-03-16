@@ -1,69 +1,6 @@
-export const numberFormatBaseOptions: Intl.NumberFormatOptions = {
-    style: "decimal",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 18,
-    roundingMode: "floor",
-    notation: "standard",
-}
+import { BaseNumberFormatOptions } from "@/app/types/numbers"
 
-export const smNumberFormatMax = 1
-export const mdNumberFormatMax = 100
-export const preciseNumberFormatMax = 1000000
-
-export const smNumberFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    maximumFractionDigits: 4,
-    maximumSignificantDigits: 4,
-})
-export const mdNumberFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    maximumFractionDigits: 4,
-})
-export const lgNumberFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    maximumFractionDigits: 2,
-})
-export const preciseNumberFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    maximumFractionDigits: 8,
-})
-export const exactNumberFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    maximumFractionDigits: 18,
-})
-export const zeroDecimalFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    minimumFractionDigits: 1,
-})
-export const inputDecimalFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    maximumFractionDigits: 18,
-    useGrouping: false,
-})
-
-export enum NumberFormatType {
-    Precise = "precise",
-    Exact = "exact",
-    ZeroDecimal = "zeroDecimal",
-    Input = "input",
-}
-export const numberFormats: Record<NumberFormatType, Intl.NumberFormat> = {
-    [NumberFormatType.Precise]: preciseNumberFormat,
-    [NumberFormatType.Exact]: exactNumberFormat,
-    [NumberFormatType.ZeroDecimal]: zeroDecimalFormat,
-    [NumberFormatType.Input]: inputDecimalFormat,
-}
-
-export const percentFormat = new Intl.NumberFormat(undefined, {
-    ...numberFormatBaseOptions,
-    style: "percent",
-    maximumFractionDigits: 2,
-})
-export const bpsFormat = new Intl.NumberFormat(undefined, {
-    ...percentFormat,
-    minimumFractionDigits: 2,
-})
-
+// todo: move to currency specific file, replace enum with const as const
 export enum Currency {
     Usd = "usd",
     Eur = "eur",
@@ -77,7 +14,7 @@ export const currencyLabels: Record<Currency, string> = {
 }
 
 export const currencyFormatBaseOptions: Intl.NumberFormatOptions = {
-    ...numberFormatBaseOptions,
+    ...BaseNumberFormatOptions,
     style: "currency",
     currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 2,

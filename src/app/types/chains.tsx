@@ -1,10 +1,10 @@
 import { Chain as RainbowKitChain } from "@rainbow-me/rainbowkit"
-import { Address, FallbackTransport, Hex, Transport } from "viem"
+import { FallbackTransport, Hex, Transport } from "viem"
 
 import { wagmiConfig } from "@/app/config/wagmi"
 import { Cell } from "@/app/types/cells"
 import { IconFormat } from "@/app/types/styling"
-import { Adapter } from "@/app/types/swaps"
+import { SwapAdapter } from "@/app/types/swaps"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const wagmiChainIds = wagmiConfig.chains.map((chain) => chain.id)
@@ -19,10 +19,9 @@ export interface Chain extends RainbowKitChain {
     gasPriceExponent: number,
     avgBlockTimeMs: number,
     avgBlockTimeSampleRange: bigint,
-    adapters?: {
-        [key: Address]: Adapter,
-    },
+    adapters?: SwapAdapter[],
     clientData: ClientData,
+    isDisabled?: boolean,
 }
 
 export interface RainbowKitChainData {
@@ -42,4 +41,8 @@ export interface ClientData {
 
 export type ClientTransportsType = {
     [chainId in ChainId]?: FallbackTransport<Transport[]>
+}
+
+export const isSupportedChainId = (chainId: number): chainId is ChainId => {
+    return wagmiChainIds.includes(chainId as ChainId)
 }

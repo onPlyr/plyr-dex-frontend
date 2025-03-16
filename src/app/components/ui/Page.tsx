@@ -12,9 +12,11 @@ import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import WarningIcon from "@/app/components/icons/WarningIcon"
 import Button from "@/app/components/ui/Button"
-import ExternalLink from "@/app/components/ui/ExternalLink"
 import ScrollArea from "@/app/components/ui/ScrollArea"
 import { iconSizes } from "@/app/config/styling"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
+import { NetworkMode, PreferenceType } from "@/app/types/preferences"
+import { defaultNetworkMode } from "@/app/config/chains"
 
 export interface PageMsgData {
     header: React.ReactNode,
@@ -68,6 +70,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(({
         className={twMerge("flex flex-row flex-1 p-4 gap-4 w-full relative justify-center items-center font-bold", className)}
         {...props}
     >
+        {children}
         {backUrl ? (
             <Link
                 className="flex flex-row flex-none w-fit p-2 pe-3 gap-2 items-center absolute start-0 rounded-lg transition text-xs text-muted-400 hover:text-white hover:container-bg"
@@ -90,7 +93,6 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(({
                 {icon}
             </div>
         )}
-        {children}
     </div>
 ))
 PageHeader.displayName = "PageHeader"
@@ -161,6 +163,8 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
     warning,
     ...props
 }, ref) => {
+    const { preferences } = usePreferences()
+    const networkMode = preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode
 
     const { accountModalOpen } = useAccountModal()
     const { chainModalOpen } = useChainModal()
@@ -181,18 +185,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                 >
                     <div className={twMerge("flex flex-col flex-none page-width min-h-fit max-h-fit items-start overflow-auto", header ? undefined : "pt-4")}>
                         <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full overflow-hidden">
-                            {/* <div className="container-select flex flex-row flex-1 p-4 gap-2 mt-4 sm:mt-0 w-full justify-between" data-selected={true}>
-                                <div className="flex flex-row flex-1 flex-wrap">Tesseract is currently in beta and only available on testnet. Funds are not real or transferrable to mainnet.</div>
-                                <div className="flex flex-row flex-none items-center">
-                                    <ExternalLink
-                                        href="https://test.core.app/tools/testnet-faucet/?subnet=c&token=c"
-                                        className="gradient-btn px-3 py-2 font-bold text-white hover:text-white"
-                                        iconSize="sm"
-                                    >
-                                        Faucet
-                                    </ExternalLink>
-                                </div>
-                            </div> */}
+                           
                             {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
                                 <PageHeader
                                     backUrl={backUrl}

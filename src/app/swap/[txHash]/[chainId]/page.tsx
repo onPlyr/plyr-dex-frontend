@@ -2,32 +2,40 @@
 
 import "@/app/styles/globals.css"
 
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence } from "motion/react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { use, useEffect } from "react"
+import { useEffect } from "react"
+import React, { use } from "react"
 import { twMerge } from "tailwind-merge"
 import { isHex } from "viem"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
-import { CurrencyIcon, CurrencyIconVariant } from "@/app/components/icons/CurrencyIcon"
+
 import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
-import SuccessIcon from "@/app/components/icons/SuccessIcon"
+import SwapStatusIndicator from "@/app/components/animations/SwapStatusIndicator"
+import ConfettiIcon from "@/app/components/icons/ConfettiIcon"
+import { RefreshIcon } from "@/app/components/icons/RefreshIcon"
+import SpeedIcon from "@/app/components/icons/SpeedIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
-import SwapEventSummary from "@/app/components/swap/SwapEventSummary"
-import SwapProgressBar from "@/app/components/swap/SwapProgressBar"
-import ExternalLink from "@/app/components/ui/ExternalLink"
-import { Page } from "@/app/components/ui/Page"
-import { SwapTab } from "@/app/config/pages"
-import { imgSizes } from "@/app/config/styling"
-import { SwapStatus } from "@/app/config/swaps"
-import useSwapData from "@/app/hooks/swap/useSwapData"
-import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
-import { toShort } from "@/app/lib/strings"
-import { getRouteTypeLabel } from "@/app/lib/swaps"
-import { getStatusLabel } from "@/app/lib/utils"
 
+import SwapProgressBar from "@/app/components/swap/SwapProgressBar"
+import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
+import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
+import Button from "@/app/components/ui/Button"
+import DecimalAmount from "@/app/components/ui/DecimalAmount"
+import { Page } from "@/app/components/ui/Page"
+import { Tooltip } from "@/app/components/ui/Tooltip"
+import { NumberFormatType } from "@/app/types/numbers"
+import { SwapTab } from "@/app/config/pages"
+import { iconSizes } from "@/app/config/styling"
+import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
+import { getChain } from "@/app/lib/chains"
+import { formatDuration } from "@/app/lib/datetime"
+import { getPercentDifferenceFormatted } from "@/app/lib/numbers"
+import { getStatusLabel } from "@/app/lib/utils"
+import { CompletedSwapHistory, isCompletedSwapHistory, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
 import { useSearchParams } from 'next/navigation'
 import { toTokens } from "thirdweb/utils"
@@ -37,6 +45,106 @@ interface Params {
     txHash: string,
     chainId: string,
 }
+
+interface SwapCompleteDetailProps extends React.ComponentPropsWithoutRef<typeof ScaleInOut> {
+    swap: CompletedSwapHistory,
+}
+
+const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut>, SwapCompleteDetailProps>(({
+    swap,
+    ...props
+}, ref) => {
+
+    const dstAmountDiff = swap.dstAmount - swap.minDstAmount
+
+    return (
+        <ScaleInOut
+            ref={ref}
+            key={swap.status}
+            fadeInOut={true}
+            {...props}
+        >
+            <div className="flex flex-col flex-1 gap-2">
+                <div className="relative flex flex-row flex-1 gap-2 justify-center items-center font-bold text-base">
+                    <SwapStatusIcon
+                        status={swap.status}
+                        className={iconSizes.lg}
+                        highlight={true}
+                    />
+                    {SwapTypeLabel[swap.type]} {getStatusLabel(swap.status)}!
+                </div>
+                <div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
+                    {/*<Tooltip
+                        trigger=<ChainImageInline
+                            chain={swap.srcData.chain}
+                            size="xs"
+                            className="absolute end-0"
+                        />
+                    >
+                        {swap.srcData.chain.name}
+                    </Tooltip>*/}
+                    You {SwapActionLabel[swap.type].sent.toLowerCase()}
+                    <DecimalAmount
+                        amount={swap.srcAmount}
+                        symbol={swap.srcData.token.symbol}
+                        token={swap.srcData.token}
+                        type={NumberFormatType.Precise}
+                        className="font-mono font-bold text-base"
+                    />
+                    <TokenImage
+                        token={swap.srcData.token}
+                        size="xs"
+                    />
+                </div>
+                <div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
+                    {/*<Tooltip
+                        trigger=<ChainImageInline
+                            chain={swap.dstData.chain}
+                            size="xs"
+                            className="absolute end-0"
+                        />
+                    >
+                        {swap.dstData.chain.name}
+                    </Tooltip>*/}
+                    You {SwapActionLabel[swap.type].received.toLowerCase()}
+                    <DecimalAmount
+                        amount={swap.dstAmount}
+                        symbol={swap.dstData.token.symbol}
+                        token={swap.dstData.token}
+                        type={NumberFormatType.Precise}
+                        className="font-mono font-bold text-base"
+                    />
+                    <TokenImage
+                        token={swap.dstData.token}
+                        size="xs"
+                    />
+                </div>
+                {dstAmountDiff && dstAmountDiff > BigInt(0) ? (
+                    <div className="flex flex-row flex-1 gap-2 justify-center items-center">
+                        That&apos;s an extra
+                        <DecimalAmount
+                            amount={dstAmountDiff}
+                            symbol={swap.dstData.token.symbol}
+                            token={swap.dstData.token}
+                            type={NumberFormatType.PreciseWithSign}
+                            className="font-mono font-bold text-base text-success-500"
+                        />
+                        <ConfettiIcon className={twMerge(iconSizes.sm, "text-success-500")} />
+                    </div>
+                ) : (
+                    <div className="flex flex-row flex-1 gap-2 justify-center items-center">
+                        {SwapTypeLabel[swap.type]} {getStatusLabel(swap.status).toLowerCase()} in
+                        <span className="font-mono font-bold text-base text-success-500">
+                            {formatDuration(swap.duration)}
+                        </span>
+                        <SpeedIcon className={twMerge(iconSizes.sm, "text-success-500")} />
+                    </div>
+                )}
+            </div>
+        </ScaleInOut>
+    )
+})
+SwapCompleteDetail.displayName = "SwapCompleteDetail"
 
 const SwapDetailPage = ({
     params,
@@ -48,16 +156,17 @@ const SwapDetailPage = ({
     const chainId = parseInt(pageParams.chainId)
     const chain = getChain(chainId)
     const txHash = isHex(pageParams.txHash) ? pageParams.txHash : undefined
+
+    const { getSwapHistory, refetchSwapHistory } = useSwapHistory()
+    const swap = txHash && getSwapHistory(txHash)
+
     const router = useRouter()
     const searchParams = useSearchParams()
     let plyrId = searchParams.get('plyrId');
 
-    if (!chain || !txHash) {
+    if (!chain || !txHash || !swap) {
         notFound()
     }
-
-    const { getSwap } = useSwapData()
-    const swap = getSwap(txHash)
 
     // Add to Depositlog //
     const addDepositLog = async (plyrId: string, token: string, amount: string, hash: string) => {
@@ -94,31 +203,31 @@ const SwapDetailPage = ({
         }
     }, [swap?.status, plyrId])
 
-    const indicatorDuration = 1
-    const indicatorDurationSm = 0.75
-    const numPendingIndicatorsSm = 5
-    const numPendingIndicators = 7
-    const txString = toShort(txHash)
-    const txUrl = getBlockExplorerLink({
-        chain: chain,
-        tx: txHash,
-    })
-
     // todo: add suspense / loading state
-
-
     return swap && (
         <Page
             key={SwapTab.Transactions}
-            header={txUrl ? (
-                <ExternalLink
-                    href={txUrl}
-                    iconSize="xs"
-                    className="text-white"
-                >
-                    {txString}
-                </ExternalLink>
-            ) : txString}
+            header=<div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
+                {SwapTypeLabel[swap.type]} to {swap.dstData.chain.name}
+                <ChainImageInline
+                    chain={swap.dstData.chain}
+                    size="xs"
+                />
+                {swap.status !== SwapStatus.Success && (
+                    <Tooltip
+                        trigger=<Button
+                            label="Refetch"
+                            className="icon-btn absolute end-0 transition hover:rotate-180"
+                            replaceClass={true}
+                            onClick={refetchSwapHistory.bind(this, swap)}
+                        >
+                            <RefreshIcon className={iconSizes.sm} />
+                        </Button>
+                    >
+                        Refetch {SwapTypeLabel[swap.type]}
+                    </Tooltip>
+                )}
+            </div>
             footer={swap.status === SwapStatus.Success && (
                 <Link
                     href="/swap"
@@ -131,109 +240,67 @@ const SwapDetailPage = ({
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
                 <div className="container p-4">
-                    <div className="flex flex-col flex-1 gap-4">
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="flex flex-row flex-1 justify-center items-center font-bold text-muted-500">
-                                From
-                            </div>
-                            <div />
-                            <div className="flex flex-row flex-1 justify-center items-center font-bold text-muted-500">
-                                To
-                            </div>
-                            <div className="flex flex-col flex-1 justify-center items-center">
-                                <TokenImage token={swap.srcData.token} size="lg" />
-                            </div>
-                            <div className="flex flex-row flex-1 gap-2 justify-center items-center">
-                                <AnimatePresence mode="wait">
-                                    {swap.status === SwapStatus.Success ? (
-                                        <ScaleInOut
-                                            key="success"
-                                            fadeInOut={true}
-                                        >
-                                            <SuccessIcon className={imgSizes.lg} highlight={true} />
-                                        </ScaleInOut>
-                                    ) : (
-                                        <ScaleInOut
-                                            key="pending"
-                                            fadeInOut={true}
-                                            className="flex flex-row flex-1 gap-2 justify-center items-center"
-                                        >
-                                            {[...Array(numPendingIndicatorsSm)].map((_, i) => (
-                                                <div key={`${i}-sm`} className="flex sm:hidden flex-row flex-1 max-w-4 max-h-4 aspect-square items-center justify-center">
-                                                    <motion.div
-                                                        key={i}
-                                                        className={twMerge("rounded-full aspect-square bg-gradient-btn")}
-                                                        animate={{
-                                                            height: [0, "100%", 0],
-                                                            width: [0, "100%", 0],
-                                                        }}
-                                                        transition={{
-                                                            type: "tween",
-                                                            repeat: Infinity,
-                                                            repeatDelay: (indicatorDurationSm / numPendingIndicatorsSm) * 2,
-                                                            duration: indicatorDurationSm,
-                                                            delay: (indicatorDurationSm / numPendingIndicatorsSm) * i,
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
-                                            {[...Array(numPendingIndicators)].map((_, i) => (
-                                                <div key={i} className="hidden sm:flex flex-row flex-1 max-w-4 max-h-4 aspect-square items-center justify-center">
-                                                    <motion.div
-                                                        key={i}
-                                                        className={twMerge("rounded-full aspect-square bg-gradient-btn")}
-                                                        animate={{
-                                                            height: [0, "100%", 0],
-                                                            width: [0, "100%", 0],
-                                                        }}
-                                                        transition={{
-                                                            type: "tween",
-                                                            repeat: Infinity,
-                                                            repeatDelay: (indicatorDuration / numPendingIndicators) * 2,
-                                                            duration: indicatorDuration,
-                                                            delay: (indicatorDuration / numPendingIndicators) * i,
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </ScaleInOut>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                            <div className="flex flex-col flex-1 justify-center items-center">
-                                {swap.dstData ? (
+                    {isCompletedSwapHistory(swap) ? (
+                        <SwapCompleteDetail swap={swap} />
+                    ) : (
+                        <div className="flex flex-col flex-1 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="flex flex-row flex-1 justify-center items-center font-bold text-muted-500">
+                                    From
+                                </div>
+                                <div className="flex flex-row flex-1 gap-4 justify-center items-center font-bold text-center">
+                                    {getStatusLabel(swap.status)}
+                                </div>
+                                <div className="flex flex-row flex-1 justify-center items-center font-bold text-muted-500">
+                                    To
+                                </div>
+                                <div className="flex flex-col flex-1 justify-center items-center">
+                                    <TokenImage token={swap.srcData.token} size="lg" />
+                                </div>
+                                <div className="flex flex-row flex-1 gap-2 justify-center items-center">
+                                    <AnimatePresence mode="wait">
+                                        <SwapStatusIndicator swap={swap} />
+                                    </AnimatePresence>
+                                </div>
+                                <div className="flex flex-col flex-1 justify-center items-center">
                                     <TokenImage
                                         token={swap.dstData.token}
                                         size="lg"
                                     />
-                                ) : (
-                                    <CurrencyIcon
-                                        variant={CurrencyIconVariant.UsdCircle}
-                                        className={twMerge(imgSizes.lg, "text-muted-500")}
+                                </div>
+                                <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
+                                    <ChainImageInline chain={swap.srcData.chain} size="xs" />
+                                    {swap.srcData.token.symbol}
+                                </div>
+                                <div className={twMerge("flex flex-row flex-1 gap-2 flex-wrap justify-center items-center font-bold font-mono text-base text-center", swap.status === SwapStatus.Success ? "text-success-500" : "text-muted-500")}>
+                                    <DecimalAmount
+                                        amount={swap.status === SwapStatus.Success ? swap.dstAmount && swap.dstAmount - swap.minDstAmount : swap.minDstAmount}
+                                        symbol={swap.dstData.token.symbol}
+                                        token={swap.dstData.token}
+                                        type={swap.status === SwapStatus.Success ? NumberFormatType.PreciseWithSign : NumberFormatType.Precise}
+                                        className="hidden sm:flex"
                                     />
-                                )}
-                            </div>
-                            <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
-                                <ChainImageInline chain={swap.srcData.chain} size="xs" />
-                                {swap.srcData.token.symbol}
-                            </div>
-                            <div className="flex flex-row flex-1 gap-4 justify-center items-center font-bold text-center">
-                                {swap.type ? `${getRouteTypeLabel(swap.type)} ` : ""}{getStatusLabel(swap.status)}
-                            </div>
-                            <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
-                                {swap.dstData ? (<>
+                                    <div className="flex sm:hidden">
+                                        {swap.status === SwapStatus.Success && swap.dstAmount && `${getPercentDifferenceFormatted(swap.minDstAmount, swap.dstAmount, swap.dstData.token.decimals, true)} ${swap.dstData.token.symbol}`}
+                                    </div>
+                                </div>
+                                <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
                                     <ChainImageInline chain={swap.dstData.chain} size="xs" />
                                     {swap.dstData.token.symbol}
-                                </>) : (<>
-                                    <SwapStatusIcon status={SwapStatus.Pending} className={imgSizes.xs} />
-                                    Loading
-                                </>)}
+                                </div>
                             </div>
+                            <SwapProgressBar swap={swap} />
                         </div>
-                        <SwapProgressBar swap={swap} />
-                    </div>
+                    )}
                 </div>
-                <SwapEventSummary swap={swap} />
+                {(swap.status === SwapStatus.Error || swap.error) && (
+                    <AlertDetail
+                        type={AlertType.Error}
+                        header={`${SwapTypeLabel[swap.type]} Error`}
+                        msg={swap.error ?? `An unknown error was encountered confirming your ${SwapTypeLabel[swap.type]}.`}
+                    />
+                )}
+                <SwapHistoryEventSummary swap={swap} />
             </div>
         </Page>
     )

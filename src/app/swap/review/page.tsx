@@ -6,43 +6,46 @@ import { useRouter } from "next/navigation"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { useCallback, useEffect, useState } from "react"
 import { TransactionReceipt } from "viem"
-import { useAccount, useSwitchChain } from "wagmi"
+import { useAccount } from "wagmi"
 
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
-import RouteSummaryBadges from "@/app/components/routes/RouteSummaryBadges"
-import SwapEventSummary from "@/app/components/swap/SwapEventSummary"
-import SwapSummaryLabels from "@/app/components/swap/SwapSummaryLabels"
-import SwapSummaryTokenDetail from "@/app/components/swap/SwapSummaryTokenDetail"
+import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
+import SwapQuoteExpiryTimer from "@/app/components/swapQuotes/SwapQuoteExpiryTimer"
+import SwapQuotePreviewSummary from "@/app/components/swapQuotes/SwapQuotePreviewSummary"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
+import { Tooltip } from "@/app/components/ui/Tooltip"
 import { SwapTab } from "@/app/config/pages"
 import { iconSizes } from "@/app/config/styling"
+import useApiData from "@/app/hooks/apis/useApiData"
+import useBlockData from "@/app/hooks/blocks/useBlockData"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
-import useSwapData from "@/app/hooks/swap/useSwapData"
+import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import useWriteInitiateSwap from "@/app/hooks/swap/useWriteInitiateSwap"
 import useReadAllowance from "@/app/hooks/tokens/useReadAllowance"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
-import { getChain } from "@/app/lib/chains"
-import { getInitiateSwapErrMsg, getRouteTypeLabel, getSwapFromQuote } from "@/app/lib/swaps"
-import { getTxActionLabel } from "@/app/lib/txs"
-import { RouteType } from "@/app/types/swaps"
-import { TxAction, TxLabelType } from "@/app/types/txs"
+import { formatDuration } from "@/app/lib/datetime"
+import { amountToLocale } from "@/app/lib/numbers"
+import { getInitiateSwapError } from "@/app/lib/swaps"
+import useNotifications from "@/app/hooks/notifications/useNotifications"
+import { NotificationStatus, NotificationType } from "@/app/types/notifications"
+import { InitiateSwapAction, isValidQuoteData, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
 
 const ReviewSwapPage = () => {
 
-    const { address: accountAddress, chainId: connectedChainId } = useAccount()
-    const connectedChain = connectedChainId ? getChain(connectedChainId) : undefined
-    const { switchChainAsync } = useSwitchChain()
+    const { address: accountAddress, isConnected } = useAccount()
+    const { getTokenData, refetch: refetchTokens } = useTokens()
+    const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
+    const { getFirmQuote } = useApiData()
+    const { latestBlocks } = useBlockData()
+    const { setSrcAmountInput, useSwapQuotesData, selectedQuote, quoteExpiry } = useQuoteData()
+    const { setNotification, removeNotification } = useNotifications()
     const { openConnectModal } = useConnectModal()
-    const { refetch: refetchTokens } = useTokens()
-    const { handleSrcAmountInput, selectedRoute: route } = useQuoteData()
-    const { setSwap } = useSwapData()
     const router = useRouter()
-    const [initiatePrompted, setInitiatePrompted] = useState(false)
 
     // Mirror Address //
     const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
@@ -149,187 +152,254 @@ const ReviewSwapPage = () => {
         }
     }, [accountAddress])
 
-    const { err: errInitiateSwap, isConnectWalletErr } = getInitiateSwapErrMsg({
-        accountAddress: accountAddress,
-        route: route,
+
+    const [quote, setQuote] = useState(selectedQuote)
+    const isValidQuote = quote && isValidSwapQuote(quote)
+    const [isConfirmQuote, setIsConfirmQuote] = useState(!quote?.isConfirmed)
+    const [initiatedBlockData, setInitiatedBlockData] = useState(latestBlocks)
+
+    // todo: add message / 404 / notification on redirect
+    useEffect(() => {
+        if (!isValidQuote) {
+            router.push("/swap")
+        }
+    }, [isValidQuote])
+
+    // todo: check if review quote has expired, add time limit (eg. 5 mins) and prevent swapping before refreshing or force auto update to prevent stale quotes
+    useEffect(() => {
+        if (quote && selectedQuote && selectedQuote.estDstAmount > quote.estDstAmount) {
+            setNotification({
+                id: quote.id,
+                type: NotificationType.Info,
+                header: `${amountToLocale(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals)} ${selectedQuote.dstData.token.symbol} Route Found`,
+                body: `An alternative route has been found with an increased estimated return of ${amountToLocale(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals)} ${selectedQuote.dstData.token.symbol}`,
+                action: <Button
+                    className="btn gradient-btn px-3 py-2"
+                    onClick={switchQuote.bind(this, selectedQuote)}
+                >
+                    Switch Route
+                </Button>,
+                status: NotificationStatus.Info,
+                isManualDismiss: true,
+            })
+        }
+    }, [quote, selectedQuote])
+
+    useEffect(() => {
+        setIsConfirmQuote(!quote?.isConfirmed)
+        setInitiatedBlockData(latestBlocks)
+    }, [quote?.id])
+
+    const { srcData, dstData } = quote ?? {}
+    const { errorMsg, isConnectError } = getInitiateSwapError({
+        action: InitiateSwapAction.Initiate,
+        isConnected: isConnected,
+        selectedQuote: quote,
+        srcToken: getTokenData(srcData?.token.id, srcData?.chain.id),
     })
 
     const { data: allowance, refetch: refetchAllowance } = useReadAllowance({
-        chain: route?.srcChain,
-        token: route?.srcToken,
+        chain: srcData?.chain,
+        token: srcData?.token,
         accountAddress: accountAddress,
-        spenderAddress: route?.srcCell.address,
-        _enabled: route !== undefined,
+        spenderAddress: srcData?.cell.address,
+        _enabled: isConnected,
     })
 
 
-    const enabled = !(!accountAddress || !route || !route.srcChain || !route.srcToken || !route.srcAmount || route.srcAmount === BigInt(0) || !route.dstChain || !route.dstToken)
-    const isSwitchChainRequired = !connectedChain || (route && connectedChain.id !== route.srcChain.id)
-    const isApprovalRequired = enabled && (route.srcToken.isNative !== true && !(allowance !== undefined && allowance >= route.srcAmount))
-    const approveEnabled = enabled && isApprovalRequired
-    const initiateEnabled = enabled && !errInitiateSwap && !isSwitchChainRequired && !isApprovalRequired
+    const enabled = isConnected && !(!accountAddress || !isValidQuote || !srcData || !dstData)
+    const isApprove = enabled && !srcData.token.isNative && (!allowance || allowance < quote.srcAmount)
 
     const initiateOnSettled = useCallback((receipt?: TransactionReceipt) => {
 
-        let redirectUrl: `/${string}` | undefined = undefined
-
-        if (receipt) {
-            const swap = getSwapFromQuote({
-                route: route,
-                txHash: receipt.transactionHash,
-                accountAddress: accountAddress,
-                plyrId: plyrId && destinationAddress && destinationAddress !== accountAddress ? plyrId : undefined,
-                destinationAddress: destinationAddress as `0x${string}`
-            })
-            if (swap) {
-                setSwap(swap)
-                let plyrToCheck = '';
-                if (plyrId && destinationAddress && destinationAddress !== accountAddress && route) {
-                    plyrToCheck = '?plyrId=' + plyrId
-                }
-                redirectUrl = `/swap/${swap.id}/${swap.srcData.chain.id}` + plyrToCheck
-            }
-
-            refetchTokens()
-            refetchAllowance()
-            handleSrcAmountInput("")
-
-            if (redirectUrl) {
-                router.push(redirectUrl)
-            }
+        // todo: testing, may need updating, eg. error message
+        if (!enabled || !receipt || !isValidQuoteData(quote.srcData) || !isValidQuoteData(quote.dstData)) {
+            return
         }
 
-    }, [accountAddress, router, route, refetchTokens, refetchAllowance, handleSrcAmountInput, setSwap, plyrId, destinationAddress])
+        // todo: should probably be put in a function somewhere
+        const swap: SwapHistory = {
+            ...quote,
+            srcData: quote.srcData,
+            dstData: quote.dstData,
+            hops: quote.hops.map((hop) => ({
+                ...hop,
+                initiatedBlock: initiatedBlockData[hop.srcData.chain.id]?.number ?? undefined,
+                status: SwapStatus.Pending,
+            })),
+            events: quote.events.map((event) => ({
+                ...event,
+                status: SwapStatus.Pending,
+            })),
+            accountAddress: accountAddress,
+            txHash: receipt.transactionHash,
+            dstInitiatedBlock: initiatedBlockData[quote.dstData.chain.id]?.number ?? undefined,
+            status: SwapStatus.Pending,
+        }
 
-    const { write: writeInitiate, isInProgress: initiateIsInProgress, status: initiateStatus, refetch: refetchInitiate } = useWriteInitiateSwap({
-        connectedChain: connectedChain,
-        accountAddress: accountAddress,
-        destinationAddress: destinationAddress as `0x${string}`,
-        route: route,
+        setSwapHistory(swap)
+        setInitiateSwapData(swap, receipt)
+        refetchTokens()
+        refetchAllowance()
+        setSrcAmountInput("")
+
+        router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}`)
+
+    }, [enabled, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, initiatedBlockData, setInitiateSwapData])
+
+    const { write: writeInitiate, isInProgress: initiateIsInProgress } = useWriteInitiateSwap({
+        quote: quote,
         callbacks: {
             onSettled: initiateOnSettled,
         },
-        _enabled: initiateEnabled,
+    })
+
+    const switchQuote = useCallback((newQuote: SwapQuote) => {
+        setQuote(newQuote)
+        removeNotification(quote?.id)
+    }, [quote, setQuote, removeNotification])
+
+    const confirmQuote = useCallback(async () => {
+
+        if (enabled && isConfirmQuote && !quote.isConfirmed) {
+
+            setNotification({
+                id: quote.id,
+                type: NotificationType.Pending,
+                header: "Confirming Quote",
+                body: "Fetching confirmation for your selected quote.",
+                status: NotificationStatus.Pending,
+            })
+
+            const { swap: confirmedQuote, error } = await getFirmQuote(quote) ?? {}
+
+            if (confirmedQuote) {
+                switchQuote(confirmedQuote)
+            }
+
+            setNotification({
+                id: quote.id,
+                type: error ? NotificationType.Error : NotificationType.Success,
+                header: error ? "Error Confirming Quote" : "Quote Confirmed",
+                body: error ?? "Successfully confirmed quote!",
+                status: error ? NotificationStatus.Error : NotificationStatus.Success,
+            })
+
+            if (!error) {
+                writeInitiate()
+            }
+        }
+
+    }, [enabled, quote, isConfirmQuote, getFirmQuote, switchQuote, setNotification, writeInitiate])
+
+    const approveOnSettled = useCallback(() => {
+        refetchAllowance()
+    }, [refetchAllowance])
+
+    const { write: writeApprove, isInProgress: approveIsInProgress } = useWriteApprove({
+        chain: srcData?.chain,
+        token: srcData?.token,
+        spenderAddress: srcData?.cell?.address,
+        amount: quote?.srcAmount,
+        quote: quote,
+        callbacks: {
+            onSettled: approveOnSettled,
+            onSuccess: (isConfirmQuote ? confirmQuote : writeInitiate),
+        },
+        _enabled: isApprove,
     })
 
     const handleInitiate = useCallback(() => {
-        if (initiateEnabled) {
-            writeInitiate()
-            setInitiatePrompted(true)
-        }
-    }, [initiateEnabled, writeInitiate, setInitiatePrompted])
-    const approveOnSettled = useCallback(() => {
-        refetchAllowance()
-        refetchInitiate()
-    }, [refetchAllowance, refetchInitiate])
-    const { write: writeApprove, isInProgress: approveIsInProgress, txReceipt: approveTxReceipt } = useWriteApprove({
-        chain: route?.srcChain,
-        token: route?.srcToken,
-        spenderAddress: route?.srcCell.address,
-        amount: route?.srcAmount,
-        route: route,
-        callbacks: {
-            onSettled: approveOnSettled,
-        },
-        _enabled: approveEnabled,
-    })
-    useEffect(() => {
-        if (!initiatePrompted && initiateEnabled && approveTxReceipt?.status === "success" && !initiateIsInProgress) {
-            handleInitiate()
-        }
-    }, [initiateEnabled])
 
-    const approvalMsg = getTxActionLabel(TxAction.Approve, approveIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
-    const initiateMsg = getTxActionLabel(route?.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
-    const swapActionMsg = errInitiateSwap ?? (isApprovalRequired ? approvalMsg : initiateMsg)
-    const isInProgress = approveIsInProgress || initiateIsInProgress
+        if (isConnectError || !isConnected) {
+            openConnectModal?.()
+           
+        }
 
-    const handleSwitchAndApprove = useCallback(async () => {
-        if (route) {
-            await switchChainAsync({
-                chainId: route.srcChain.id,
+        else if (!enabled || errorMsg) {
+            
+            setNotification({
+                id: quote?.id ?? "initiate-disabled",
+                type: NotificationType.Error,
+                header: `${quote ? SwapTypeLabel[quote.type] : "Quote"} Error`,
+                body: errorMsg ?? "Invalid quote.",
+                status: NotificationStatus.Error,
             })
-            writeApprove()
         }
-    }, [route, writeApprove, switchChainAsync])
 
-    const handleSwitchAndInitiate = useCallback(async () => {
-        if (route) {
-            await switchChainAsync({
-                chainId: route.srcChain.id,
-            })
-            handleInitiate()
+        else {
+            (isApprove ? writeApprove : isConfirmQuote ? confirmQuote : writeInitiate)()
         }
-    }, [route, handleInitiate, switchChainAsync])
+        
 
-    const swapOnClick = isConnectWalletErr ? openConnectModal : isSwitchChainRequired ? (isApprovalRequired ? handleSwitchAndApprove : handleSwitchAndInitiate) : (isApprovalRequired ? writeApprove : handleInitiate)
-    const swapBtnEnabled = isConnectWalletErr || isSwitchChainRequired || (enabled && !errInitiateSwap && !isInProgress)
+    }, [enabled, quote, errorMsg, isConfirmQuote, isConnected, isConnectError, isApprove, openConnectModal, setNotification, writeInitiate, confirmQuote, writeApprove])
 
-    const pageFooter = <Button
-        className="gradient-btn"
-        onClick={swapBtnEnabled ? swapOnClick?.bind(this) : undefined}
-        disabled={!swapBtnEnabled}
-    >
-        {errInitiateSwap ?? `${isSwitchChainRequired && !isInProgress ? `Switch to ${route!.srcChain.name} and ${swapActionMsg}` : swapActionMsg}`}
-        {isInProgress && (
-            <LoadingIcon className={iconSizes.sm} />
-        )}
-    </Button>
+    const pageHeader = quote && <div className="relative flex flex-row flex-1 gap-4 justify-center items-center">
+        <div className="flex flex-row flex-none justify-center items-center">
+            Review {SwapTypeLabel[quote.type]}
+        </div>
+        <Tooltip
+            trigger=<Button
+                label="Refresh"
+                className="icon-btn absolute end-0"
+                replaceClass={true}
+                onClick={useSwapQuotesData.refetch.bind(this)}
+            >
+                <SwapQuoteExpiryTimer />
+            </Button>
+        >
+            Refresh in {formatDuration(quoteExpiry)}
+        </Tooltip>
+    </div>
 
-    const reviewSwap = getSwapFromQuote({
-        route: route,
-        isReviewSwap: true,
-    })
-
-    useEffect(() => {
-        console.log('route', route)
-        console.log('initiateStatus', initiateStatus)
-        if (!route && initiateStatus !== "success") {
-            router.push("/swap")
-        }
-    }, [route])
+    const pageFooter = <>
+        <Button
+            className="gradient-btn"
+            onClick={handleInitiate.bind(this)}
+            disabled={approveIsInProgress || initiateIsInProgress}
+        >
+            {errorMsg ? errorMsg : isApprove ? "Approve" : quote ? SwapTypeLabel[quote.type] : "Swap"}
+            {(approveIsInProgress || initiateIsInProgress) && (
+                <LoadingIcon className={iconSizes.sm} />
+            )}
+        </Button>
+    </>
 
     // todo: display message / redirect if no route, handle properly
-    return route && reviewSwap && (
+    return (
         <Page
             key={SwapTab.Review}
-            header={`Review ${getRouteTypeLabel(route.type)}`}
+            header={pageHeader}
             footer={pageFooter}
             backUrl="/swap"
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
                 <div
-                    className="container-select p-6"
+                    className="container-select p-4"
                     data-selected={true}
                 >
                     <div className="flex flex-col flex-1 gap-4">
-                        <div className="flex flex-col sm:flex-row flex-1 gap-4">
-                            <SwapSummaryTokenDetail
-                                token={route.dstToken}
-                                chain={route.dstChain}
-                                amountFormatted={route.dstAmountFormatted}
-                                minAmountFormatted={route.minDstAmountFormatted}
+                        {quote && (
+                            <SwapQuotePreviewSummary
+                                quote={quote}
+                                quoteData={useSwapQuotesData.data}
                             />
-                            <RouteSummaryBadges route={route} />
-                        </div>
-                        <SwapSummaryLabels
-                            route={route}
-                            hideEvents={true}
-                        />
+                        )}
                     </div>
                 </div>
-                <SwapEventSummary
-                    swap={reviewSwap}
-                    isReviewSwap={true}
-                />
 
-                <div className="container flex flex-col flex-1 p-4 gap-4">
+                
+                {quote && <SwapHistoryEventSummary swap={quote} />}
+
+                {/* Destination Address */}
+                {/* <div className="container flex flex-col flex-1 p-4 gap-4">
                     <div className="flex flex-row flex-1 gap-4">
                         <div>Destination Address</div>
                         <div className="font-bold text-right">{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
                     </div>
-                    {/* Destination Address */}
-                    <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
+                    
+                </div> */}
+                {/* <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
                         <div onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -343,7 +413,7 @@ const ReviewSwapPage = () => {
                             </div>
                         </div>
                         {
-                            (route.dstToken.chainId.toString() === '62831' || route.dstToken.chainId.toString() === '16180') &&
+                            (quote?.dstData.token.chainId.toString() === '62831' || quote?.dstData.token.chainId.toString() === '16180') &&
                             <div onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -385,16 +455,14 @@ const ReviewSwapPage = () => {
                                                 <div className="font-bold text-[10px] md:text-xs">PLYR[ID]</div>
                                                 <div className="text-sm md:text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
 
-                                                    {/* {mirrorAddress && shortenAddress(mirrorAddress)} */}
+                                                   
                                                 </div>
                                             </>
                                     }
                                 </div>
                             </div>
                         }
-                    </div>
-                </div>
-
+                    </div> */}
             </div>
         </Page>
     )

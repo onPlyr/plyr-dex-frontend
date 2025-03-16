@@ -1,6 +1,7 @@
 import { formatUnits, parseUnits } from "viem"
 
-import { bpsFormat, Currency, currencyFormats, currencyLabels, defaultCurrency, lgNumberFormat, mdNumberFormat, mdNumberFormatMax, numberFormats, NumberFormatType, percentFormat, preciseNumberFormatMax, smNumberFormat, smNumberFormatMax } from "@/app/config/numbers"
+import { Currency, currencyFormats, currencyLabels, defaultCurrency } from "@/app/config/numbers"
+import { NumberFormat, NumberFormatType, NumberFormatTypeLimit } from "@/app/types/numbers"
 import { Token } from "@/app/types/tokens"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,57 +20,58 @@ export const formatCommaSepatatedDecimalInput = (value: string, decimals?: numbe
 }
 
 export const formatDecimalInput = (value?: string, decimals?: number) => {
-    return value === undefined || value.trim().length === 0 ? "" : value.indexOf(".") > -1 ? formatPeriodSepatatedDecimalInput(value, decimals) : formatCommaSepatatedDecimalInput(value, decimals)
+    return value?.trim() ? value.indexOf(".") > -1 ? formatPeriodSepatatedDecimalInput(value, decimals) : formatCommaSepatatedDecimalInput(value, decimals) : ""
 }
 
-export const getNumberFormatType = (num: number, type?: NumberFormatType) => {
+export const getNumberFormat = (numValue: number, type?: NumberFormatType, withSign?: boolean) => {
+    const num = Math.abs(numValue)
     if (type) {
-        return type === NumberFormatType.Precise && num > preciseNumberFormatMax ? lgNumberFormat : numberFormats[type]
+        if ((type === NumberFormatType.Precise || type === NumberFormatType.PreciseWithSign) && num > NumberFormatTypeLimit[NumberFormatType.Precise]) {
+            return NumberFormat[withSign ? NumberFormatType.LgWithSign : NumberFormatType.Lg]
+        }
+        return NumberFormat[type]
     }
-    return num < smNumberFormatMax ? smNumberFormat : num < mdNumberFormatMax ? mdNumberFormat : lgNumberFormat
+    else {
+        if (num < NumberFormatTypeLimit[NumberFormatType.Sm]) {
+            return NumberFormat[withSign ? NumberFormatType.SmWithSign : NumberFormatType.Sm]
+        }
+        else if (num < NumberFormatTypeLimit[NumberFormatType.Md]) {
+            return NumberFormat[withSign ? NumberFormatType.MdWithSign : NumberFormatType.Md]
+        }
+        return NumberFormat[withSign ? NumberFormatType.LgWithSign : NumberFormatType.Lg]
+    }
 }
 
 // todo: update abs/max checks to use bigint rather than numbers
 // note: low priority as MOST whole token amounts should be lower than Number.MAX_SAFE_INTEGER
-export const formattedAmountToLocale = (value?: Intl.StringNumericLiteral, type?: NumberFormatType) => {
-
-    if (value === undefined || value.trim().length === 0) {
-        return ""
-    }
-
-    const int = Math.abs(parseInt(value))
-    
-    const numberFormat = getNumberFormatType(int, type)
-
-    return numberFormat.format(value)
+export const formattedAmountToLocale = (value?: Intl.StringNumericLiteral, type?: NumberFormatType, withSign?: boolean) => {
+    return value?.trim() ? getNumberFormat(parseInt(value), type, withSign).format(value) : ""
 }
 
-export const amountToLocale = (amount: bigint, decimals: number, type?: NumberFormatType) => {
-
-    if (amount === BigInt(0)) {
-        return "0"
-    }
-
-    const formatted = formatUnits(amount, decimals) as Intl.StringNumericLiteral
-    return formattedAmountToLocale(formatted, type)
+export const amountToLocale = (amount: bigint, decimals: number, type?: NumberFormatType, withSign?: boolean) => {
+    return amount === BigInt(0) ? "0" : formattedAmountToLocale(formatUnits(amount, decimals) as Intl.StringNumericLiteral, type, withSign)
 }
 
 export const bpsToPercent = (bps: number | bigint) => {
-    return bpsFormat.format(Number(bps) / 100)
+    return NumberFormat[NumberFormatType.Bps].format(BigInt(bps) / BigInt(100))
 }
 
-export const getExchangeRate = (srcToken: Token, srcAmount: bigint, dstAmount: bigint) => {
-    if (srcAmount === BigInt(0) || dstAmount === BigInt(0)) {
-        return BigInt(0)
+export const getExchangeRate = ({
+    srcToken,
+    srcAmount = BigInt(0),
+    dstToken,
+    dstAmount = BigInt(0),
+}: {
+    srcToken: Token,
+    srcAmount?: bigint,
+    dstToken: Token,
+    dstAmount?: bigint,
+}) => {
+    const isZero = srcAmount === BigInt(0) || dstAmount === BigInt(0)
+    return {
+        exchangeRate: isZero ? BigInt(0) : (dstAmount * parseUnits("1", srcToken.decimals)) / srcAmount,
+        inverseRate: isZero ? BigInt(0) : (srcAmount * parseUnits("1", dstToken.decimals)) / dstAmount,
     }
-    return (dstAmount * parseUnits("1", srcToken.decimals)) / srcAmount
-}
-
-export const getExchangeRateFormatted = (srcToken: Token, srcAmount: bigint, dstToken: Token, dstAmount: bigint, type?: NumberFormatType) => {
-    if (srcAmount === BigInt(0) || dstAmount === BigInt(0)) {
-        return "0"
-    }
-    return amountToLocale(getExchangeRate(srcToken, srcAmount, dstAmount), dstToken.decimals, type)
 }
 
 export const getPercentChangeFormatted = (srcAmount: bigint, dstAmount: bigint, decimals: number) => {
@@ -79,11 +81,11 @@ export const getPercentChangeFormatted = (srcAmount: bigint, dstAmount: bigint, 
     return amountToLocale((parseUnits(srcAmount.toString(), decimals + 2) / dstAmount) - parseUnits("100", decimals), decimals)
 }
 
-export const getPercentDifferenceFormatted = (srcAmount: bigint, dstAmount: bigint, decimals: number) => {
+export const getPercentDifferenceFormatted = (srcAmount: bigint, dstAmount: bigint, decimals: number, withSign?: boolean) => {
     if (srcAmount === BigInt(0) || dstAmount === BigInt(0)) {
         return "0"
     }
-    return percentFormat.format(formatUnits(parseUnits((dstAmount - srcAmount).toString(), decimals) / srcAmount, decimals) as Intl.StringNumericLiteral)
+    return NumberFormat[withSign ? NumberFormatType.PercentWithSign : NumberFormatType.Percent].format(formatUnits(parseUnits((dstAmount - srcAmount).toString(), decimals) / srcAmount, decimals) as Intl.StringNumericLiteral)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

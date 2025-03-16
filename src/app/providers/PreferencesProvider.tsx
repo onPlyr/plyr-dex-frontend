@@ -1,10 +1,12 @@
+"use client"
+
 import { useCallback, useEffect, useState } from "react"
 
 import { Currency } from "@/app/config/numbers"
 import { defaultPreferences } from "@/app/config/preferences"
-import { isPreference, PreferencesContext, validateBoolean, validateCurrency, validateSlippage } from "@/app/lib/preferences"
+import { isPreference, PreferencesContext, validateBoolean, validateCurrency, validateNetworkMode, validateSlippage } from "@/app/lib/preferences"
 import { getStorageItem, isStorageAvailable, setStorageItem } from "@/app/lib/storage"
-import { PreferenceType, UserPreferences, UserPreferencesContextType } from "@/app/types/preferences"
+import { NetworkMode, PreferenceType, UserPreferences, UserPreferencesContextType } from "@/app/types/preferences"
 import { StorageDataKey, StorageType } from "@/app/types/storage"
 
 const PreferencesProvider = ({
@@ -27,7 +29,6 @@ const PreferencesProvider = ({
     }, [storageKey, enabled, storageType])
 
     const validatePreference = useCallback((key: PreferenceType, preferences: UserPreferences) => {
-
         if (isPreference(key)) {
             if (key === PreferenceType.Slippage) {
                 return validateSlippage(preferences[PreferenceType.Slippage])
@@ -35,14 +36,17 @@ const PreferencesProvider = ({
             else if (key === PreferenceType.Currency) {
                 return validateCurrency(preferences[PreferenceType.Currency])
             }
-            else if (key === PreferenceType.DarkMode || key === PreferenceType.DirectRouteOnly || key === PreferenceType.ExcludeChains) {
+            else if (key === PreferenceType.NetworkMode) {
+                return validateNetworkMode(preferences[PreferenceType.NetworkMode])
+            }
+            else if (key === PreferenceType.DarkMode || 
+                     key === PreferenceType.DirectRouteOnly || 
+                     key === PreferenceType.ExcludeChains) {
                 return validateBoolean(preferences[key])
             }
         }
-
         return false
-
-    }, [validateSlippage, validateBoolean])
+    }, [validateSlippage, validateBoolean, validateNetworkMode])
 
     const validateAllPreferences = useCallback((preferences: UserPreferences) => {
         return Object.keys(preferences).every((key) => validatePreference(key as PreferenceType, preferences) === true)
@@ -65,6 +69,10 @@ const PreferencesProvider = ({
             else if (key === PreferenceType.Currency) {
                 const value = getValidPreferenceOrDefault(key, storagePreferences)
                 preferences[PreferenceType.Currency] = value !== undefined ? value as Currency : undefined
+            }
+            else if (key === PreferenceType.NetworkMode) {
+                const value = getValidPreferenceOrDefault(key, storagePreferences)
+                preferences[PreferenceType.NetworkMode] = value !== undefined ? value as NetworkMode : undefined
             }
             else if (key === PreferenceType.DarkMode || key === PreferenceType.DirectRouteOnly || key === PreferenceType.ExcludeChains) {
                 const value = getValidPreferenceOrDefault(key, storagePreferences)

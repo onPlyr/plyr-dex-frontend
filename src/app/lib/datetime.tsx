@@ -30,7 +30,6 @@ export const timestampAgo = (timestamp: number) => {
 }
 
 export const padNum = (num: number, padStr?: string) => {
-    // return num < 10 ? `${padStr ?? "0"}${num}` : num.toString()
     return num < 10 ? num.toString().padStart(2, padStr ?? "0") : num.toString()
 }
 
@@ -75,7 +74,7 @@ export const timestampToISO = (timestamp: number, precision?: DatePrecision, utc
 }
 
 export const formatDuration = (duration: number) => {
-    if (duration === 0) {
+    if (duration <= 0) {
         return "< 1s"
     }
     const minutes = Math.floor(duration / 60000)

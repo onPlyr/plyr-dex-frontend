@@ -1,39 +1,47 @@
+"use client"
+
+import { MotionValue, useMotionValue } from "motion/react"
 import { createContext, useCallback, useEffect, useState } from "react"
-import { QueryStatus } from "@tanstack/query-core"
 import { parseUnits } from "viem"
 
-import { defaultChain } from "@/app/config/chains"
-import { defaultDstTokenId } from "@/app/config/swaps"
-import useReadSwapRoutes from "@/app/hooks/swap/useReadSwapRoutes"
+import { defaultNetworkMode } from "@/app/config/chains"
+import { DefaultSwapRouteConfig, SwapQuoteConfig } from "@/app/config/swaps"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
+import useSwapQuotes, { UseSwapQuotesReturnType } from "@/app/hooks/swap/useSwapQuotes"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useDebounce from "@/app/hooks/utils/useDebounce"
+import useInterval from "@/app/hooks/utils/useInterval"
+import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
 import { getChain } from "@/app/lib/chains"
-import { getSuggestedRoute } from "@/app/lib/routes"
-import { getRoutesMaxDstAmount, getSelectedSwapData, setSelectedSwapData } from "@/app/lib/swaps"
 import { getNativeToken } from "@/app/lib/tokens"
-import { Chain } from "@/app/types/chains"
-import { Route } from "@/app/types/swaps"
+import { StorageKey } from "@/app/types/storage"
+import { SwapQuote, SwapRoute, SwapRouteJson } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
 
-interface QuoteDataContextType {
-    srcChain?: Chain,
+export type SetSwapRouteFunction = ({
+    srcToken,
+    srcAmount,
+    dstToken,
+    isSwitchTokens,
+}: {
     srcToken?: Token,
-    setSrcToken: (token?: Token, ignoreSameToken?: boolean) => void,
-    srcAmount: bigint,
-    setSrcAmount: (value: string) => void,
-    srcAmountFormatted: string,
-    setSrcAmountFormatted: (value: string) => void,
-    handleSrcAmountInput: (value: string) => void,
-    dstChain?: Chain,
+    srcAmount?: bigint,
     dstToken?: Token,
-    setDstToken: (token?: Token, ignoreSameToken?: boolean) => void,
-    switchTokens: (srcToken?: Token, dstToken?: Token, dstAmountFormatted?: string) => void,
-    routes?: Route[],
-    routesQueryStatus?: QueryStatus,
-    refetchRoutes: () => void,
-    selectedRoute?: Route,
-    setSelectedRoute: (route?: Route) => void,
-    maxDstAmount: bigint,
+    isSwitchTokens?: boolean,
+}) => void
+
+interface QuoteDataContextType {
+    swapRoute: SwapRoute,
+    setSwapRoute: SetSwapRouteFunction,
+    switchTokens: () => void,
+    srcAmountInput: string,
+    setSrcAmountInput: (value: string) => void,
+    useSwapQuotesData: UseSwapQuotesReturnType,
+    selectedQuote?: SwapQuote,
+    setSelectedQuote: (quote?: SwapQuote) => void,
+    quoteExpiry: number,
+    quoteExpiryProgress: MotionValue<number>,
+    isQuoteExpired: boolean,
 }
 
 export const QuoteDataContext = createContext({} as QuoteDataContextType)
@@ -44,150 +52,215 @@ const QuoteDataProvider = ({
     children: React.ReactNode,
 }) => {
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // tokens and related data
-
     const { data: tokens, getTokenData } = useTokens()
+    const { preferences } = usePreferences()
+    const networkMode = preferences.networkMode ?? defaultNetworkMode
 
-    const [srcChain, setSrcChain] = useState<Chain>()
-    const [srcToken, setSrcTokenState] = useState<Token>()
+    const swapRouteSerializer = useCallback((route: SwapRoute): string => {
+        return JSON.stringify({
+            srcData: {
+                chain: route.srcData.chain?.id,
+                token: route.srcData.token?.id,
+                amount: route.srcData.amount?.toString(),
+            },
+            dstData: {
+                chain: route.dstData.chain?.id,
+                token: route.dstData.token?.id,
+            },
+        } as SwapRouteJson)
+    }, [])
 
-    const [dstChain, setDstChain] = useState<Chain>()
-    const [dstToken, setDstTokenState] = useState<Token>()
+    const swapRouteDeserializer = useCallback((value: string): SwapRoute => {
+        const route = JSON.parse(value) as SwapRouteJson
+        return {
+            srcData: {
+                chain: route.srcData.chain && getChain(route.srcData.chain),
+                token: getTokenData(route.srcData.token, route.srcData.chain),
+                amount: route.srcData.amount ? BigInt(route.srcData.amount) : undefined,
+            },
+            dstData: {
+                chain: route.dstData.chain && getChain(route.dstData.chain),
+                token: getTokenData(route.dstData.token, route.dstData.chain),
+            },
+        }
+    }, [getTokenData])
 
-    const setSrcToken = useCallback((token?: Token, ignoreSameToken?: boolean) => {
+    const [swapRoute, setSwapRouteState] = useSessionStorage({
+        key: StorageKey.SwapRoute,
+        initialValue: {
+            srcData: {},
+            dstData: {},
+        },
+        options: {
+            serializer: swapRouteSerializer,
+            deserializer: swapRouteDeserializer,
+        },
+    })
 
-        setSrcTokenState(getTokenData(token?.id, token?.chainId))
-        setSrcChain(token ? getChain(token.chainId) : undefined)
-        setSelectedSwapData({
-            srcChainId: token?.chainId,
-            srcTokenId: token?.id,
+    const setSwapRoute: SetSwapRouteFunction = useCallback(({
+        srcToken,
+        srcAmount,
+        dstToken,
+        isSwitchTokens = false,
+    }) => {
+
+        setSwapRouteState((prev) => {
+
+            if (isSwitchTokens) {
+                return {
+                    srcData: {
+                        chain: prev.dstData.chain,
+                        token: prev.dstData.token,
+                        amount: BigInt(0),
+                    },
+                    dstData: {
+                        chain: prev.srcData.chain,
+                        token: prev.srcData.token,
+                    },
+                }
+            }
+
+            let srcDataToken = srcToken ?? prev.srcData.token
+            let dstDataToken = dstToken ?? prev.dstData.token
+
+            if (srcDataToken && dstDataToken && srcDataToken.id === dstDataToken.id && srcDataToken.chainId === dstDataToken.chainId) {
+                if (srcToken) {
+                    dstDataToken = undefined
+                }
+                else if (dstToken) {
+                    srcDataToken = undefined
+                }
+                else {
+                    srcDataToken = undefined
+                    dstDataToken = undefined
+                }
+            }
+
+            return {
+                srcData: {
+                    chain: (srcDataToken && getChain(srcDataToken.chainId)) ?? prev.srcData.chain,
+                    token: (srcDataToken && getTokenData(srcDataToken.id, srcDataToken.chainId)) ?? prev.srcData.token,
+                    amount: srcAmount ?? (prev.srcData.token && srcDataToken && prev.srcData.token.id === srcDataToken.id ? prev.srcData.amount : BigInt(0)),
+                },
+                dstData: {
+                    chain: (dstDataToken && getChain(dstDataToken.chainId)) ?? prev.dstData.chain,
+                    token: (dstDataToken && getTokenData(dstDataToken.id, dstDataToken.chainId)) ?? prev.dstData.token,
+                },
+            }
         })
 
-        if (!ignoreSameToken && token && dstToken && token.id === dstToken.id && token.chainId === dstToken.chainId) {
-            setDstTokenState(undefined)
-            setDstChain(undefined)
-            setSelectedSwapData({
-                dstChainId: undefined,
-                dstTokenId: undefined,
-            })
-        }
+    }, [setSwapRouteState, getTokenData])
 
-    }, [setSrcTokenState, setSrcChain, getTokenData, setDstChain, setDstTokenState, dstToken])
+    const useSwapQuotesData = useSwapQuotes(swapRoute)
+    const [selectedQuote, setSelectedQuoteState] = useState<SwapQuote>()
+    const setSelectedQuote = useCallback((quote?: SwapQuote) => {
+        setSelectedQuoteState(quote)
+    }, [setSelectedQuoteState])
 
-    const setDstToken = useCallback((token?: Token, ignoreSameToken?: boolean) => {
+    useEffect(() => {
+        setSelectedQuote(useSwapQuotesData.data?.quotes[0])
+    }, [useSwapQuotesData.data?.quotes])
 
-        setDstTokenState(getTokenData(token?.id, token?.chainId))
-        setDstChain(token ? getChain(token.chainId) : undefined)
-        setSelectedSwapData({
-            dstChainId: token?.chainId,
-            dstTokenId: token?.id,
+    const [srcAmountInput, setSrcAmountInputState] = useState("")
+    const setSrcAmountInput = useCallback((value: string) => {
+        setSrcAmountInputState(value)
+    }, [setSrcAmountInputState])
+
+    const srcAmountDebounced = useDebounce(srcAmountInput)
+    useEffect(() => {
+        setSwapRoute({
+            srcAmount: parseUnits(srcAmountDebounced.replace(",", "."), swapRoute.srcData.token?.decimals || 18),
         })
+    }, [srcAmountDebounced])
 
-        if (!ignoreSameToken && token && srcToken && token.id === srcToken.id && token.chainId === srcToken.chainId) {
-            setSrcTokenState(undefined)
-            setSrcChain(undefined)
-            setSelectedSwapData({
-                srcChainId: undefined,
-                srcTokenId: undefined,
+    useEffect(() => {
+        setSrcAmountInput("")
+        setSelectedQuote(undefined)
+    }, [swapRoute.srcData.token?.id])
+
+    const switchTokens = useCallback(() => {
+        setSrcAmountInput("")
+        setSelectedQuote(undefined)
+        setSwapRoute({
+            isSwitchTokens: true,
+        })
+    }, [setSwapRoute, setSelectedQuote, setSrcAmountInput])
+
+    useEffect(() => {
+        if (!swapRoute.srcData.token || !swapRoute.dstData.token) {
+            setSrcAmountInput("")
+            setSwapRoute({
+                srcToken: swapRoute.srcData.token ?? getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain),
+                srcAmount: BigInt(0),
+                dstToken: swapRoute.dstData.token ?? getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain),
             })
-        }
-
-    }, [setDstTokenState, setDstChain, getTokenData, setSrcChain, setSrcTokenState, srcToken])
-
-    const [srcAmount, setSrcAmountState] = useState(BigInt(0))
-    const [srcAmountFormatted, setSrcAmountFormatted] = useState("")
-
-    const handleSrcAmountInput = useCallback((value: string) => {
-        setSrcAmountFormatted(value)
-    }, [setSrcAmountFormatted])
-
-    const srcAmountInput = useDebounce(srcAmountFormatted)
-    const setSrcAmount = useCallback((value: string) => {
-        setSrcAmountState(parseUnits(value.replace(",", "."), srcToken?.decimals || 18))
-    }, [srcToken, setSrcAmountState])
-
-    useEffect(() => {
-        setSrcAmount(srcAmountInput)
-    }, [srcToken, srcAmountInput])
-
-    const switchTokens = useCallback((srcToken?: Token, dstToken?: Token, dstAmountFormatted?: string) => {
-        if (srcToken || dstToken || dstAmountFormatted) {
-            setSrcToken(dstToken, true)
-            setDstToken(srcToken, true)
-            handleSrcAmountInput(dstAmountFormatted ?? "")
-        }
-    }, [setSrcToken, setDstToken, handleSrcAmountInput])
-
-    // run once to set initial stored or default values
-    useEffect(() => {
-        const storedSwapData = getSelectedSwapData()
-        if (!srcToken) {
-            const defaultSrcToken = getNativeToken(defaultChain)
-            setSrcToken(storedSwapData.srcToken ?? getTokenData(defaultSrcToken?.id, defaultSrcToken?.chainId))
-        }
-        if (!dstToken) {
-            setDstToken(storedSwapData.dstToken ?? getTokenData(defaultDstTokenId, defaultChain.id))
         }
     }, [])
 
     useEffect(() => {
-        if (srcToken) {
-            setSrcToken(srcToken)
-        }
-        if (dstToken) {
-            setDstToken(dstToken)
+        setSrcAmountInput("")
+        setSwapRoute({
+            srcToken: getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain),
+            srcAmount: BigInt(0),
+            dstToken: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain),
+        })
+    }, [networkMode])
+
+    useEffect(() => {
+        if (swapRoute.srcData.token || swapRoute.dstData.token) {
+            setSwapRoute({
+                srcToken: swapRoute.srcData.token,
+                dstToken: swapRoute.dstData.token,
+            })
         }
     }, [tokens])
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // routes
+    const [quoteExpiry, setQuoteExpiryState] = useState(0)
+    const quoteExpiryProgress = useMotionValue(0)
+    const [isQuoteExpired, setIsQuoteExpired] = useState(false)
+    const [quoteExpiryInterval, setQuoteExpiryInterval] = useState(selectedQuote ? 1000 : undefined)
 
-    // todo: split into separate provider and add only to swap pages where needed
-    // should store the results in state and add a countdown timer to automatically refetch after eg. 60 seconds
-    // should not refetch automatically, and instead only manually or when the timer expires
+    const setQuoteExpiry = useCallback((ms: number) => {
 
-    const [selectedRoute, setSelectedRouteState] = useState<Route>()
-    const setSelectedRoute = useCallback((route?: Route) => {
-        setSelectedRouteState(route)
-    }, [setSelectedRouteState])
+        const isExpired = ms < 0
+        const expiry = isExpired ? 0 : ms
 
-    const { routes, status: routesQueryStatus, refetch: refetchRoutes } = useReadSwapRoutes({
-        srcChain: srcChain,
-        srcToken: srcToken,
-        srcAmount: srcAmount,
-        dstChain: dstChain,
-        dstToken: dstToken,
-    })
+        if (isExpired) {
+            quoteExpiryProgress.set(1)
+            setQuoteExpiryState(0)
+            setIsQuoteExpired(true)
+            setQuoteExpiryInterval(undefined)
+            useSwapQuotesData.refetch()
+        }
+        else {
+            quoteExpiryProgress.set(1 - (expiry / SwapQuoteConfig.QuoteValidMs))
+            setQuoteExpiryState(expiry - 1000)
+            setIsQuoteExpired(false)
+        }
+
+    }, [useSwapQuotesData, setQuoteExpiryState, quoteExpiryProgress, setIsQuoteExpired, setQuoteExpiryInterval])
+
+    useInterval(() => {
+        setQuoteExpiry(quoteExpiry)
+    }, quoteExpiryInterval)
 
     useEffect(() => {
-        setSelectedRoute(getSuggestedRoute(routes))
-    }, [routes, setSelectedRoute])
-
-    const [maxDstAmount, setMaxDstAmount] = useState<bigint>(BigInt(0))
-    useEffect(() => {
-        setMaxDstAmount(getRoutesMaxDstAmount(routes))
-    }, [routes])
+        setQuoteExpiry(SwapQuoteConfig.QuoteValidMs - 1000)
+        setQuoteExpiryInterval(selectedQuote ? 1000 : undefined)
+    }, [selectedQuote?.id])
 
     const context: QuoteDataContextType = {
-        srcChain: srcChain,
-        srcToken: srcToken,
-        setSrcToken: setSrcToken,
-        srcAmount: srcAmount,
-        setSrcAmount: setSrcAmount,
-        srcAmountFormatted: srcAmountFormatted,
-        setSrcAmountFormatted: setSrcAmountFormatted,
-        handleSrcAmountInput: handleSrcAmountInput,
-        dstChain: dstChain,
-        dstToken: dstToken,
-        setDstToken: setDstToken,
+        swapRoute: swapRoute,
+        setSwapRoute: setSwapRoute,
         switchTokens: switchTokens,
-        routes: routes,
-        routesQueryStatus: routesQueryStatus,
-        refetchRoutes: refetchRoutes,
-        selectedRoute: selectedRoute,
-        setSelectedRoute: setSelectedRoute,
-        maxDstAmount: maxDstAmount,
+        srcAmountInput: srcAmountInput,
+        setSrcAmountInput: setSrcAmountInput,
+        useSwapQuotesData: useSwapQuotesData,
+        selectedQuote: selectedQuote,
+        setSelectedQuote: setSelectedQuote,
+        quoteExpiry: quoteExpiry,
+        quoteExpiryProgress: quoteExpiryProgress,
+        isQuoteExpired: isQuoteExpired,
     }
 
     return (

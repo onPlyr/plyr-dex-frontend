@@ -1,496 +1,389 @@
-import { QueryStatus } from "@tanstack/react-query"
-import { Abi, Address, Hash, Hex, TransactionReceipt } from "viem"
+import { Address, Hash, Hex, toHex } from "viem"
 
 import { PlatformId } from "@/app/config/platforms"
-import { Cell, CellTradeData } from "@/app/types/cells"
+import { BridgeProvider, BridgePath } from "@/app/types/bridges"
+import { Cell, CellAbiType, CellTrade } from "@/app/types/cells"
 import { Chain, ChainId } from "@/app/types/chains"
-import { Token, TokenBridgeData, TokenId } from "@/app/types/tokens"
-
-export enum TeleporterMessengerEvent {
-    Send = "SendCrossChainMessage",
-    Receive = "ReceiveCrossChainMessage",
-    Executed = "MessageExecuted",
-    Failed = "MessageExecutionFailed",
-}
-
-// note: use string union type to add new versions
-export type TeleporterMessengerVersion = "v1.0.0"
-export type TeleporterMessengerContractData = Record<TeleporterMessengerVersion, Address>
-
-// todo: tbc
-export enum BridgeType {
-    ICTT = "ICTT",
-}
-
-// todo: tbc
-export enum RouteType {
-    Swap = "swap",
-    Bridge = "bridge",
-}
-
-export enum RouteSortType {
-    Amount = "amount",
-    Value = "value",
-    Duration = "duration",
-}
+import { Token, TokenId } from "@/app/types/tokens"
+import { WithRequired } from "@/app/types/utils"
 
 ////////////////////////////////////////////////////////////////////////////////
-// todo: tbc - should be renamed to replace the similar types below
+// generic
 
-export type SwapStatusType = "Pending" | "Error" | "Success"
+export const SwapStatus = {
+    Pending: "pending",
+    Success: "success",
+    Error: "error",
+} as const
+export type SwapStatus = (typeof SwapStatus)[keyof typeof SwapStatus]
 
-export interface SwapQuery {
-    swapData: Swap,
-    hopData: SwapHop,
-    hopIndex: number,
-    originBlockchainId: Hash,
-    originTimestamp: number,
-}
+export const SwapType = {
+    Swap: "swap",
+    Transfer: "transfer",
+} as const
+export type SwapType = (typeof SwapType)[keyof typeof SwapType]
 
-export interface SwapQueryResult {
-    swapData?: Swap,
-    hopData?: SwapHop,
-    hopEvents?: SwapEvent[],
-    nextSwapQuery?: SwapQuery,
-    error?: React.ReactNode,
-    isRetry?: boolean,
-    retryDelay?: number,
-}
+export const HopType = {
+    Hop: "hop",
+    HopAndCall: "hopAndCall",
+    SwapAndHop: "swapAndHop",
+    SwapAndTransfer: "swapAndTransfer",
+} as const
+export type HopType = (typeof HopType)[keyof typeof HopType]
 
-export interface SwapStatusQueryResult {
-    swapData?: Swap,
-    status: QueryStatus,
-    isInProgress: boolean,
-    error?: string,
-}
+export const InitiateSwapAction = {
+    Review: "review",
+    Initiate: "initiate",
+} as const
+export type InitiateSwapAction = (typeof InitiateSwapAction)[keyof typeof InitiateSwapAction]
 
-////////////////////////////////////////////////////////////////////////////////
-// todo: tbc - should be renamed to replace the similar types below
+export const SwapHopType = [HopType.SwapAndHop, HopType.SwapAndTransfer] as const
+export type SwapHopType = typeof SwapHopType[number]
 
-export interface BaseSwapData {
-    chain: Chain,
-    token: Token,
-    amount?: bigint,
-}
+export const CrossChainHopType = [HopType.Hop, HopType.HopAndCall, HopType.SwapAndHop] as const
+export type CrossChainHopType = typeof CrossChainHopType[number]
 
-export interface BaseSwap {
-    srcData: BaseSwapData,
-    dstData?: BaseSwapData,
-    status: QueryStatus,
-}
+export const SwapTypeLabel: Record<SwapType, string> = {
+    [SwapType.Swap]: "Swap",
+    [SwapType.Transfer]: "Transfer",
+} as const
 
-export interface SwapTxData {
-    txHash?: Hash,
-    txReceipt?: TransactionReceipt,
-    timestamp?: number,
-}
+export const SwapAction = {
+    Send: "send",
+    Sent: "sent",
+    Receive: "receive",
+    Received: "received",
+} as const
+export type SwapAction = (typeof SwapAction)[keyof typeof SwapAction]
 
-export interface Swap extends BaseSwap {
-    id: Hash,
-    hops: SwapHop[],
-    events: SwapEvent[],
-    account?: Address,
-    plyrId?: string,
-    destinationAddress?: Address,
-    estAmount?: bigint,
-    estDuration?: number,
-    duration?: number,
-    type?: RouteType,
-    timestamp?: number,
-}
-
-export interface SwapHop extends BaseSwap, SwapTxData {
-    index: number,
-    receivedMsgId?: Hash,
-    sentMsgId?: Hash,
-    action?: HopAction,
-}
-
-export interface SwapEvent extends BaseSwap, SwapTxData {
-    hopIndex: number,
-    type?: RouteType,
-    adapter?: Adapter,
-    adapterAddress?: Address,
-    bridge?: BridgeType,
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// todo: tbc - locally stored versions of the above - should replace those below
-
-export interface BaseSwapDataJson {
-    chain: ChainId,
-    token: TokenId,
-    amount?: string,
-}
-
-export interface BaseSwapJson {
-    srcData: BaseSwapDataJson,
-    dstData?: BaseSwapDataJson,
-    status: QueryStatus,
-}
-
-export interface SwapTxDataJson {
-    txHash?: Hash,
-    timestamp?: number,
-    status: QueryStatus,
-}
-
-export interface SwapJson extends BaseSwapJson {
-    id: Hash,
-    hops: HopJson[],
-    events: EventJson[],
-    account?: Address,
-    plyrId?: string,
-    destinationAddress?: Address,
-    estAmount?: string,
-    duration?: number,
-    estDuration?: number,
-    type?: RouteType,
-    timestamp?: number,
-}
-
-export interface HopJson extends BaseSwapJson, SwapTxDataJson {
-    index: number,
-    receivedMsgId?: Hash,
-    sentMsgId?: Hash,
-    action?: HopAction,
-}
-
-export interface EventJson extends BaseSwapJson, SwapTxDataJson {
-    hopIndex: number,
-    type?: RouteType,
-    adapter?: Adapter,
-    adapterAddress?: Address,
-    bridge?: BridgeType,
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// todo: new types/interfaces need organising after rewrite
-
-export type ChainBridgeRouteData = Record<ChainId, BridgeRoute[]>
-export type TokenBridgeRouteData = Record<TokenId, BridgeRoute[]>
-
-export interface BridgeRoute {
-    srcChain: Chain,
-    srcToken: Token,
-    srcBridge: TokenBridgeData,
-    dstChain: Chain,
-    dstToken: Token,
-    dstBridge: TokenBridgeData,
-}
-
-export interface BridgeRouteData {
-    srcRoute: BridgeRoute,
-    dstRoute?: BridgeRoute,
-}
-
-// quotedata types use minimal data, quote types use full objects
-export interface BaseQuoteData {
-    srcChainId: ChainId,
-    srcTokenId: TokenId,
-    srcAmount?: bigint,
-    dstChainId: ChainId,
-    dstTokenId: TokenId,
-    dstAmount?: bigint,
-    minDstAmount?: bigint,
-}
-
-export interface RouteQuoteData extends BaseQuoteData {
-    srcCellAddress: Address,
-    dstCellAddress: Address,
-    type: RouteType,
-    hops: HopQuoteData[],
-}
-
-export interface HopQuoteData extends BaseQuoteData {
-    srcCellAddress: Address,
-    srcBridgeData?: TokenBridgeData,
-    dstCellAddress: Address,
-    dstBridgeData?: TokenBridgeData,
-    action: HopAction,
-    steps: StepQuoteData[],
-}
-
-export interface StepQuoteData extends BaseQuoteData {
-    swapSrcTokenAddress?: Address,
-    swapDstTokenAddress?: Address,
-    type: RouteType,
-}
-
-// final quotes populated with query results
-export interface BaseQuote {
-    srcChain: Chain,
-    srcToken: Token,
-    srcAmount: bigint,
-    dstChain: Chain,
-    dstToken: Token,
-    dstAmount: bigint,
-    minDstAmount: bigint,
-}
-
-export interface RouteQuote extends BaseQuote {
-    srcCell: Cell,
-    dstCell: Cell,
-    type: RouteType,
-    hops: HopQuote[],
-    data: RouteQuoteData,
-    events: RouteEvent[],
-    timestamp: number,
-}
-
-export interface RouteEvent {
-    srcChain: Chain,
-    srcToken: Token,
-    srcAmount?: bigint,
-    dstChain: Chain,
-    dstToken: Token,
-    dstAmount?: bigint,
-    hop: number,
-    type: RouteType,
-    adapterAddress?: Address,
-    adapter?: Adapter,
-    bridge?: BridgeType,
-}
-
-export interface HopQuote extends BaseQuote {
-    srcCell: Cell,
-    srcBridge?: TokenBridgeData,
-    dstCell: Cell,
-    dstBridge?: TokenBridgeData,
-    action: HopAction,
-    steps: StepQuote[],
-    data: HopQuoteData,
-    result?: RouteQueryResult,
-    minAmountResult?: RouteQueryResult,
-}
-
-export interface StepQuote extends BaseQuote {
-    swapSrcToken?: Token,
-    swapDstToken?: Token,
-    type: RouteType,
-    data: StepQuoteData,
-}
-
-export interface SwapQueryData {
-    data: RouteQuoteData,
-    primaryHop: SwapQueryHopData,
-    secondaryHop?: SwapQueryHopData,
-    finalHop?: SwapQueryHopData,
-}
-
-export interface SwapQueryHopData {
-    data: HopQuoteData,
-    isPrimaryQuery?: boolean,
-    isSecondaryQuery?: boolean,
-    isFinalQuery?: boolean,
-    index?: number,
-    minAmountIndex?: number,
-    result?: RouteQueryResult,
-    minAmountResult?: RouteQueryResult,
-}
-
-export enum SwapQueryType {
-    Primary,
-    Secondary,
-    Final,
-}
-
-export interface RouteQuery {
-    chainId: ChainId,
-    address: Address,
-    abi: Abi,
-    functionName: string,
-    args: [bigint, Address, Address, Hex],
-    query?: {
-        enabled?: boolean,
+export const SwapActionLabel: Record<SwapType, Record<SwapAction, string>> = {
+    [SwapType.Swap]: {
+        [SwapAction.Send]: "Sell",
+        [SwapAction.Sent]: "Sold",
+        [SwapAction.Receive]: "Receive at least",
+        [SwapAction.Received]: "Received",
     },
-}
+    [SwapType.Transfer]: {
+        [SwapAction.Send]: "Send",
+        [SwapAction.Sent]: "Sent",
+        [SwapAction.Receive]: "Receive",
+        [SwapAction.Received]: "Received",
+    },
+} as const
 
-export interface RouteQueryResult {
-    tradeData: CellTradeData,
-    estimatedGasFee: bigint,
-    encodedTradeData: Hex,
-}
-
-export type EncodedRouteQueryResult = [Hex, bigint]
-
-export interface SelectedSwapData {
-    srcChainId?: ChainId,
-    srcTokenId?: TokenId,
-    dstChainId?: ChainId,
-    dstTokenId?: TokenId,
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-export interface BaseRouteData {
-    srcChain: Chain,
-    srcToken: Token,
-    srcAmount: bigint,
-    srcAmountFormatted: string,
-    dstChain: Chain,
-    dstToken: Token,
-    dstAmount: bigint,
-    dstAmountFormatted: string,
-    type: RouteType,
-}
-
-export interface RouteAction extends BaseRouteData {
-    order: number,
-    swapAdapter?: string,
-    bridgeType?: BridgeType,
-}
-
-// todo: fee accounting
-export interface Route extends BaseRouteData {
-    srcCell: Cell,
-    dstCell: Cell,
-    minDstAmountFormatted: string,
-    hopData: HopData[],
-    actions: RouteAction[],
-    totalGasEstimate: bigint,
-    totalGasEstimateFormatted: string,
-    totalGasCost: bigint,
-    totalGasCostFormatted: string,
-    // totalFee: bigint,
-    // totalFeeFormatted: string,
-    durationEstimate: number,
-    initiateTx?: Hash,
-    quote: RouteQuote,
-}
-
-export interface BaseHopData {
-    action: HopAction,
-    srcChain: Chain,
-    srcToken: Token,
-    // srcAmount: bigint,
-    dstChain: Chain,
-    dstToken: Token,
-}
-
-export interface HopData extends BaseHopData {
-    srcAmount: bigint,
-    dstAmount: bigint,
-    hop: Hop,
-    tradeData?: CellTradeData,
-    gasEstimate: bigint,
-}
-
-// todo: tbc
-export type Adapter = {
+export interface SwapAdapter {
+    address: Address,
     name: string,
     platform: PlatformId,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-// yak router interface
-// https://github.com/tesseract-protocol/smart-contracts/blob/9e85faab7a930730ab799085a5bc3a57e2873028/src/interfaces/IYakRouter.sol
-export type HopTrade = {
-    amountIn: bigint,
-    amountOut: bigint,
-    path: Address[],
-    adapters: Address[],
+export const isSwapType = (type: SwapType): type is typeof SwapType.Swap => {
+    return type === SwapType.Swap
 }
 
-// yak swap cell interface
-// https://github.com/tesseract-protocol/smart-contracts/blob/9e85faab7a930730ab799085a5bc3a57e2873028/src/YakSwapCell.sol
-export type HopTradeData = {
-    trade: HopTrade,
-    yakSwapFeeBips: bigint,
+export const isTransferType = (type: SwapType): type is typeof SwapType.Transfer => {
+    return type === SwapType.Transfer
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-// cell interface
-// https://github.com/tesseract-protocol/smart-contracts/blob/main/src/interfaces/ICell.sol
-
-/**
-* @notice Defines the complete path for cross-chain token bridging
-* @dev Contains all necessary information for token movement between chains
-*
-* Fee Handling:
-* - Primary fee is in input token if no swap occurred, output token if swapped
-* - Secondary fee used for multi-hop scenarios
-*
-* @param bridgeSourceChain Address of bridge contract on source chain
-* @param sourceBridgeIsNative True if bridge handles native tokens
-* @param bridgeDestinationChain Address of bridge contract on destination chain
-* @param cellDestinationChain Address of Cell contract on destination chain
-* @param destinationBlockchainID Unique identifier of destination blockchain
-* @param teleporterFee Primary fee for Teleporter service
-* @param secondaryTeleporterFee Additional fee for multi-hop operations
-*/
-export type BridgePath = {
-    bridgeSourceChain: Address,
-    sourceBridgeIsNative: boolean,
-    bridgeDestinationChain: Address,
-    cellDestinationChain: Address,
-    destinationBlockchainID: Hex,
-    teleporterFee: bigint,
-    secondaryTeleporterFee: bigint,
+export const isSwapHopType = (type: HopType): type is SwapHopType => {
+    return SwapHopType.includes(type as SwapHopType)
 }
 
-/**
-* @notice Available actions for each hop in a cross-chain operation
-* @dev Defines all possible operations that can be performed in a single hop
-*
-* Actions:
-* @param Hop Simple token transfer between chains
-*        - No swap involved
-*        - Direct bridge transfer
-*
-* @param HopAndCall Token transfer with destination contract call
-*        - Includes contract interaction
-*        - Requires recipient gas limit
-*
-* @param SwapAndHop Token swap followed by chain transfer
-*        - Performs swap first
-*        - Then bridges to destination
-*
-* @param SwapAndTransfer Token swap with final transfer
-*        - Last hop in path
-*        - Delivers to final receiver
-*/
-export enum HopAction {
-    Hop,
-    HopAndCall,
-    SwapAndHop,
-    SwapAndTransfer,
-}
-
-/**
-* @notice Represents a single step in a cross-chain operation
-* @dev Each hop can involve a swap, transfer, or both, between chains
-* @param action Enum defining the type of operation for this hop
-* @param requiredGasLimit Gas limit for the whole operation (bridge + recipientGasLimit)
-* @param recipientGasLimit Gas limit for any recipient contract calls
-* @param trade Encoded trade data (interpretation depends on action type)
-* @param bridgePath Detailed path information for cross-chain token movement
-*/
-export type Hop = {
-    action: HopAction,
-    requiredGasLimit: bigint,
-    recipientGasLimit: bigint,
-    trade: Hex,
-    bridgePath: BridgePath,
-}
-
-/**
-* @notice Detailed instructions for cross-chain operations
-* @dev Defines the complete path and parameters for token movement across chains
-* @param receiver Address that will receive the final tokens
-* @param payableReceiver Boolean indicating if receiver can/should receive native tokens
-* @param rollbackTeleporterFee Amount of input token for rollback operation fees
-* @param rollbackGasLimit Gas limit for rollback operations
-* @param hops Ordered array of Hop structures defining the complete operation path
-*/
-export type Instructions = {
-    receiver: Address,
-    payableReceiver: boolean,
-    rollbackTeleporterFee: bigint,
-    rollbackGasLimit: bigint,
-    hops: Hop[],
+export const isCrossChainHopType = (type: HopType): type is CrossChainHopType => {
+    return CrossChainHopType.includes(type as CrossChainHopType)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// base data
+
+interface SwapBaseData {
+    chain: Chain,
+    token: Token,
+    cell?: Cell,
+    estAmount?: bigint,
+    minAmount?: bigint,
+}
+type QuoteData = WithRequired<SwapBaseData, "cell">
+type ValidQuoteData = Required<SwapBaseData>
+interface HistoryBaseData extends Required<Omit<SwapBaseData, "cell">> {
+    cell?: Cell,
+    amount?: bigint,
+}
+type EventHistoryBaseData = WithRequired<Partial<HistoryBaseData>, "chain" | "token">
+export type BaseData = SwapBaseData | QuoteData | ValidQuoteData | HistoryBaseData | EventHistoryBaseData
+
+export interface SwapBaseJson {
+    chain: ChainId,
+    token: TokenId,
+    cell?: Address,
+    estAmount: string,
+    minAmount: string,
+    amount?: string,
+}
+export type EventBaseJson = WithRequired<Partial<SwapBaseJson>, "chain" | "token">
+export type BaseJson = SwapBaseJson | EventBaseJson
+
+////////////////////////////////////////////////////////////////////////////////
+// routes
+
+export interface SwapRouteData extends Partial<Omit<SwapBaseData, "estAmount" | "minAmount">> {
+    amount?: bigint,
+}
+
+interface BaseSwapRoute<TSrcData = SwapRouteData, TDstData = SwapRouteData> {
+    srcData: TSrcData,
+    dstData: TDstData,
+}
+type ValidSwapRoute = BaseSwapRoute<Required<SwapRouteData>, Required<Omit<SwapRouteData, "amount">>>
+export type SwapRoute = BaseSwapRoute | ValidSwapRoute
+
+export interface SwapRouteBaseJson {
+    chain?: ChainId,
+    token?: TokenId,
+    amount?: string,
+}
+export interface SwapRouteJson {
+    srcData: SwapRouteBaseJson,
+    dstData: Omit<SwapRouteBaseJson, "amount">,
+}
+
+export const isValidSwapRoute = (route: SwapRoute): route is ValidSwapRoute => {
+    return !(!route.srcData.chain || !route.srcData.token || !route.srcData.amount || route.srcData.amount === BigInt(0) || route.srcData.chain.cells.length === 0 || !route.dstData.chain || !route.dstData.token || route.dstData.chain.cells.length === 0)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// swaps
+
+export type SwapId = string
+interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent = HopEvent> {
+    id: SwapId,
+    srcData: TSrcData,
+    dstData: TDstData,
+    type: SwapType,
+    hops: THop[],
+    events: TEvent[],
+    accountAddress?: Address,
+    plyrId?: string,
+    destinationAddress?: Address,
+    srcAmount: bigint,
+    dstAmount?: bigint,
+    minDstAmount?: bigint,
+    estDstAmount?: bigint,
+    duration?: number,
+    estDuration: number,
+    gasFee?: bigint,
+    estGasFee: bigint,
+    estGasUnits: bigint,
+    timestamp: number,
+    txHash?: Hash,
+    dstTxHash?: Hash,
+    dstTimestamp?: number,
+    dstInitiatedBlock?: bigint,
+    dstLastCheckedBlock?: bigint,
+    isDstQueryInProgress?: boolean,
+    isConfirmed?: boolean,
+    status?: SwapStatus,
+    error?: string,
+}
+export type SwapQuote = WithRequired<BaseSwap<QuoteData, BaseData, ValidHopQuote>, "estDstAmount" | "minDstAmount">
+export type BaseSwapHistory = WithRequired<BaseSwap<HistoryBaseData, HistoryBaseData, HopHistory, HopEventHistory>, "accountAddress" | "estDstAmount" | "minDstAmount" | "txHash" | "status">
+export type CompletedSwapHistory = WithRequired<BaseSwapHistory, "dstAmount" | "duration" | "gasFee" | "dstTxHash" | "dstTimestamp">
+export type SwapHistory = BaseSwapHistory | CompletedSwapHistory
+export type Swap = BaseSwap | SwapQuote | SwapHistory
+
+export interface SwapJson extends WithRequired<Omit<SwapHistory, "srcData" | "dstData" | "hops" | "events" | "srcAmount" | "dstAmount" | "minDstAmount" | "estDstAmount" | "gasFee" | "estGasFee" | "estGasUnits" | "dstInitiatedBlock" | "dstLastCheckedBlock">, "status"> {
+    srcData: SwapBaseJson,
+    dstData: SwapBaseJson,
+    hops: HopJson[],
+    events: HopEventJson[],
+    srcAmount: string,
+    dstAmount?: string,
+    minDstAmount: string,
+    estDstAmount: string,
+    gasFee?: string,
+    estGasFee: string,
+    estGasUnits: string,
+    dstInitiatedBlock?: string,
+    dstLastCheckedBlock?: string,
+}
+
+export interface SwapQuoteData {
+    srcData: BaseData,
+    dstData: BaseData,
+    timestamp: number,
+    maxDstAmount: bigint,
+    minDuration: number,
+    quotes: SwapQuote[],
+}
+
+export const isValidQuoteData = (data: BaseData): data is ValidQuoteData => {
+    return !(!data.cell || !data.estAmount || data.estAmount === BigInt(0) || !data.minAmount || data.minAmount === BigInt(0))
+}
+
+export const isValidSwapQuote = (swap: Swap): swap is SwapQuote => {
+    return !(!swap.srcData.cell || !swap.estDstAmount || swap.estDstAmount === BigInt(0) || !swap.minDstAmount || swap.minDstAmount === BigInt(0)) && swap.hops.length > 0 && swap.hops.every((hop) => isValidHopQuote(hop))
+}
+
+export const isSwapHistory = (swap: Swap): swap is SwapHistory => {
+    if (!("amount" in swap.srcData) || !("amount" in swap.dstData) || swap.hops.length === 0 || !swap.hops.every((hop) => isHopHistory(hop)) || swap.events.length === 0 || !swap.events.every((event) => isEventHistory(event))) {
+        return false
+    }
+    return !(!swap.estDstAmount || swap.estDstAmount === BigInt(0) || !swap.minDstAmount || swap.minDstAmount === BigInt(0) || !swap.accountAddress || !swap.txHash || !swap.status)
+}
+
+export const isCompletedSwapHistory = (swap: Swap): swap is CompletedSwapHistory => {
+    return isSwapHistory(swap) && swap.status === SwapStatus.Success && !(!swap.dstAmount || swap.dstAmount === BigInt(0) || swap.duration === undefined || !swap.gasFee || swap.gasFee === BigInt(0) || !swap.dstTxHash || !swap.dstTimestamp)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// hops
+
+interface BaseHop<THopType = HopType, TBaseData = BaseData> {
+    srcData: TBaseData,
+    dstData: TBaseData,
+    type: THopType,
+    index: number,
+    estGasUnits?: bigint,
+
+    trade?: CellTrade,
+    encodedTrade?: Hex,
+    bridgePath?: BridgePath,
+    queryIndex?: number,
+
+    msgReceivedId?: Hex,
+    msgSentId?: Hex,
+    txHash?: Hash,
+    timestamp?: number,
+
+    initiatedBlock?: bigint,
+    lastCheckedBlock?: bigint,
+    isQueryInProgress?: boolean,
+
+    isError?: boolean,
+    isConfirmed?: boolean,
+    status?: SwapStatus,
+    error?: string,
+}
+type SwapHop = BaseHop<SwapHopType>
+type CrossChainHop = BaseHop<CrossChainHopType>
+
+type BaseHopQuote<THopType = HopType, TBaseData = QuoteData> = WithRequired<BaseHop<THopType, TBaseData>, "estGasUnits">
+type SwapHopQuote = BaseHopQuote<SwapHopType>
+type CrossChainHopQuote = BaseHopQuote<CrossChainHopType>
+
+type BaseValidHopQuote<THopType = HopType> = BaseHopQuote<THopType, ValidQuoteData>
+type ValidSwapHopQuote = WithRequired<BaseValidHopQuote<SwapHopType>, "trade" | "encodedTrade" | "queryIndex">
+type ValidCrossChainHopQuote = WithRequired<BaseValidHopQuote<CrossChainHopType>, "bridgePath">
+
+export type HopQuote = SwapHopQuote | CrossChainHopQuote
+export type ValidHopQuote = ValidSwapHopQuote | ValidCrossChainHopQuote
+export type HopHistory = WithRequired<BaseHop<HopType, HistoryBaseData>, "status">
+export type Hop = SwapHop | CrossChainHop | HopQuote | ValidHopQuote | HopHistory
+
+export interface HopJson extends WithRequired<Omit<HopHistory, "srcData" | "dstData" | "trade" | "bridgePath" | "initiatedBlock" | "lastCheckedBlock">, "status"> {
+    srcData: SwapBaseJson,
+    dstData: SwapBaseJson,
+    initiatedBlock?: string,
+    lastCheckedBlock?: string,
+}
+
+export interface HopGasUnitsData {
+    estBase: bigint,
+    estDefault: bigint,
+    recipientLimitBase: bigint,
+    requiredLimitBase: bigint,
+}
+
+export const isValidHopQuote = (hop: Hop): hop is ValidHopQuote => {
+    if (!("estGasUnits" in hop)) {
+        return false
+    }
+    if (!isValidQuoteData(hop.srcData) || !isValidQuoteData(hop.dstData) || !hop.estGasUnits || hop.estGasUnits === BigInt(0)) {
+        return false
+    }
+    if (isSwapHopType(hop.type) && (!hop.trade || !hop.encodedTrade || hop.encodedTrade === toHex("") || hop.queryIndex === undefined || hop.srcData.token.id === hop.dstData.token.id)) {
+        return false
+    }
+    if (isCrossChainHopType(hop.type) && (!hop.bridgePath || hop.srcData.chain.id === hop.dstData.chain.id)) {
+        return false
+    }
+    return true
+}
+
+export const isHopHistory = (hop: Hop): hop is HopHistory => {
+    return "amount" in hop.srcData && "amount" in hop.dstData && !!hop.status
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// queries
+
+export type HopApiQuery = URL
+export interface HopContractQuery {
+    chainId: ChainId,
+    address: Address,
+    abi: CellAbiType,
+    functionName: "route",
+    args: [bigint, Address, Address, Hex],
+}
+
+export interface HopQueryResult {
+    amount?: bigint,
+    encodedTrade?: Hex,
+    estGasUnits?: bigint,
+}
+
+export interface HopQueryData {
+    apiQuery?: HopApiQuery,
+    contractQuery?: HopContractQuery,
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// events
+
+interface BaseEvent<TBaseData = BaseData, TSwapType = SwapType> {
+    srcData: TBaseData,
+    dstData: TBaseData,
+    type: TSwapType,
+    index: number,
+    hopIndex: number,
+    adapter?: SwapAdapter,
+    adapterAddress?: Address,
+    bridge?: BridgeProvider,
+    isError?: boolean,
+    status?: SwapStatus,
+}
+export type SwapEvent = WithRequired<BaseEvent<BaseData, typeof SwapType.Swap>, "adapterAddress">
+export type TransferEvent = WithRequired<BaseEvent<BaseData, typeof SwapType.Transfer>, "bridge">
+export type HopEventHistory = WithRequired<BaseEvent<EventHistoryBaseData>, "status">
+export type HopEvent = SwapEvent | TransferEvent | HopEventHistory
+
+export interface HopEventJson extends Omit<HopEventHistory, "srcData" | "dstData"> {
+    srcData: EventBaseJson,
+    dstData: EventBaseJson,
+}
+
+export const isSwapEvent = (event: HopEvent): event is SwapEvent => {
+    return isSwapType(event.type) && !!event.adapterAddress
+}
+
+export const isTransferEvent = (event: HopEvent): event is TransferEvent => {
+    return isTransferType(event.type) && !!event.bridge
+}
+
+export const isEventHistory = (event: HopEvent): event is HopEventHistory => {
+    return "amount" in event.srcData && "amount" in event.dstData && !!event.status
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// function return types
+
+export type GetValidHopQuoteDataReturnData = Record<SwapId, ValidHopQuote[]>
+export type GetSwapQuoteDataReturnData = SwapQuoteData
+export type SwapQuoteReturnData = GetValidHopQuoteDataReturnData | GetSwapQuoteDataReturnData
+
+interface BaseGetSwapQuoteDataReturnType<TData = SwapQuoteReturnData> {
+    data?: TData,
+    error?: string,
+}
+export type GetValidHopQuoteDataReturnType = BaseGetSwapQuoteDataReturnType<GetValidHopQuoteDataReturnData>
+export type GetSwapQuoteDataReturnType = BaseGetSwapQuoteDataReturnType<GetSwapQuoteDataReturnData>

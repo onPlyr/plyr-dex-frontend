@@ -7,10 +7,11 @@ import { twMerge } from "tailwind-merge"
 
 import CloseIcon from "@/app/components/icons/CloseIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
+import InfoIcon from "@/app/components/icons/InfoIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import SuccessIcon from "@/app/components/icons/SuccessIcon"
 import Button from "@/app/components/ui/Button"
-import { DefaultNotificationRemoveDelayMs } from "@/app/config/notifications"
+import { DefaultNotificationRemoveDelay } from "@/app/config/notifications"
 import { iconSizes } from "@/app/config/styling"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { Notification, NotificationStatus } from "@/app/types/notifications"
@@ -30,13 +31,13 @@ interface NotificationHeaderProps extends React.ComponentPropsWithoutRef<"div"> 
 interface NotificationContentProps extends React.ComponentPropsWithoutRef<"div"> {
     notification: Notification,
     container: Element | DocumentFragment | null | undefined,
-    removeDelayMs?: number,
     portalProps?: NotificationPortalProps,
     animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
     iconProps?: NotificationIconProps,
     headerProps?: NotificationHeaderProps,
     closeProps?: React.ComponentPropsWithoutRef<"div">,
     bodyProps?: React.ComponentPropsWithoutRef<"div">,
+    actionProps?: React.ComponentPropsWithoutRef<"div">,
 }
 
 const defaultTransition: Transition = {
@@ -170,6 +171,8 @@ export const NotificationIcon = React.forwardRef<HTMLDivElement, NotificationIco
             <SuccessIcon highlight={true} />
         ) : status === NotificationStatus.Error ? (
             <ErrorIcon highlight={true} />
+        ) : status === NotificationStatus.Info ? (
+            <InfoIcon highlight={true} />
         ) : (
             <LoadingIcon highlight={true} />
         )}
@@ -186,7 +189,7 @@ export const NotificationHeader = React.forwardRef<HTMLDivElement, NotificationH
         ref={ref}
         className={twMerge(
             "flex flex-row flex-1 justify-start items-center font-bold",
-            status === NotificationStatus.Error ? "text-error-500" : status === NotificationStatus.Success ? "text-success-500" : "text-white",
+            status === NotificationStatus.Error ? "text-error-500" : status === NotificationStatus.Success ? "text-success-500" : status === NotificationStatus.Info ? "text-info-500" : "text-white",
             className,
         )}
         {...props}
@@ -206,6 +209,18 @@ export const NotificationBody = React.forwardRef<HTMLDivElement, React.Component
 ))
 NotificationBody.displayName = "NotificationBody"
 
+export const NotificationAction = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(({
+    className,
+    ...props
+}, ref) => (
+    <div
+        ref={ref}
+        className={twMerge("flex flex-col flex-1", className)}
+        {...props}
+    />
+))
+NotificationAction.displayName = "NotificationAction"
+
 export const NotificationContentAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
     initial = "initial",
     animate = "animate",
@@ -222,7 +237,7 @@ export const NotificationContentAnimation = React.forwardRef<React.ComponentRef<
         exit={exit}
         transition={transition}
         variants={variants}
-        className={twMerge("flex flex-row flex-1 gap-4", className)}
+        className={twMerge("flex flex-col flex-1 gap-4", className)}
         {...props}
     />
 ))
@@ -232,22 +247,22 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
     className,
     notification,
     container,
-    removeDelayMs,
     portalProps,
     animationProps,
     iconProps,
     headerProps,
     closeProps,
     bodyProps,
+    actionProps,
     ...props
 }, ref) => {
 
     const { removeNotification } = useNotifications()
-    const removeDelay = Math.abs(removeDelayMs ?? DefaultNotificationRemoveDelayMs)
+    const removeDelay = Math.abs(notification.removeDelayMs ?? DefaultNotificationRemoveDelay[notification.status])
 
     useEffect(() => {
 
-        const timeoutId = notification.status !== NotificationStatus.Pending ? setTimeout(() => {
+        const timeoutId = notification.status !== NotificationStatus.Pending && !notification.isManualDismiss ? setTimeout(() => {
             removeNotification(notification.id)
         }, removeDelay) : undefined
 
@@ -270,27 +285,34 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
                     key={notification.type}
                     {...animationProps}
                 >
-                    <NotificationIcon
-                        {...iconProps}
-                        status={notification.status}
-                    />
-                    <div className="flex flex-col flex-1 gap-1">
-                        <div className="flex flex-row flex-1 gap-4">
-                            <NotificationHeader
-                                {...headerProps}
-                                status={notification.status}
-                            >
-                                {notification.header}
-                            </NotificationHeader>
-                            <NotificationClose
-                                {...closeProps}
-                                onClick={removeNotification.bind(this, notification.id)}
-                            />
+                    <div className="flex flex-row flex-1 gap-4">
+                        <NotificationIcon
+                            {...iconProps}
+                            status={notification.status}
+                        />
+                        <div className="flex flex-col flex-1 gap-1">
+                            <div className="flex flex-row flex-1 gap-4">
+                                <NotificationHeader
+                                    {...headerProps}
+                                    status={notification.status}
+                                >
+                                    {notification.header}
+                                </NotificationHeader>
+                                <NotificationClose
+                                    {...closeProps}
+                                    onClick={removeNotification.bind(this, notification.id)}
+                                />
+                            </div>
+                            <NotificationBody {...bodyProps}>
+                                {notification.body}
+                            </NotificationBody>
                         </div>
-                        <NotificationBody {...bodyProps}>
-                            {notification.body}
-                        </NotificationBody>
                     </div>
+                    {notification.action && (
+                        <NotificationAction {...actionProps}>
+                            {notification.action}
+                        </NotificationAction>
+                    )}
                 </NotificationContentAnimation>
             </div>
         </NotificationPortal>

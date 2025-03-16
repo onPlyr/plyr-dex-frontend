@@ -1,3 +1,5 @@
+"use client"
+
 import { useCallback, useEffect, useState } from "react"
 
 import { getStorageItem, isStorageAvailable, setStorageItem } from "@/app/lib/storage"

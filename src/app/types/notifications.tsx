@@ -8,6 +8,7 @@ export const NotificationType = {
     Success: "success",
     Reverted: "reverted",
     Error: "error",
+    Info: "info",
 } as const
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
 
@@ -15,6 +16,7 @@ export const NotificationStatus = {
     Pending: "pending",
     Success: "success",
     Error: "error",
+    Info: "info",
 } as const
 export type NotificationStatus = (typeof NotificationStatus)[keyof typeof NotificationStatus]
 
@@ -23,8 +25,11 @@ export interface Notification {
     type: NotificationType,
     header: React.ReactNode,
     body: React.ReactNode,
+    action?: React.ReactNode,
     status: NotificationStatus,
     txHash?: Hash,
+    removeDelayMs?: number,
+    isManualDismiss?: boolean,
 }
 
 export interface NotificationTypeMsg {

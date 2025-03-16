@@ -3,7 +3,7 @@ import { createContext } from "react"
 import { Currency } from "@/app/config/numbers"
 import { defaultPreferences } from "@/app/config/preferences"
 import { maxSlippageBps, minSlippageBps } from "@/app/config/swaps"
-import { PreferenceType, UserPreferencesContextType } from "@/app/types/preferences"
+import { NetworkMode, PreferenceType, UserPreferencesContextType } from "@/app/types/preferences"
 
 export const PreferencesContext = createContext({
     preferences: defaultPreferences,
@@ -23,4 +23,8 @@ export const validateBoolean = (value?: boolean) => {
 
 export const validateCurrency = (value?: string) => {
     return value === undefined || (Object.values(Currency) as string[]).includes(value)
+}
+
+export const validateNetworkMode = (value?: string) => {
+    return value === undefined || (Object.values(NetworkMode) as string[]).includes(value)
 }

@@ -1,19 +1,18 @@
 import { Address, erc20Abi } from "viem"
 
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
-import { Chain } from "@/app/types/chains"
-import { Token } from "@/app/types/tokens"
-import { NotificationType } from "@/app/types/notifications"
 import { amountToLocale } from "@/app/lib/numbers"
-import { getRouteTypeLabel } from "@/app/lib/swaps"
-import { Route } from "@/app/types/swaps"
+import { Chain } from "@/app/types/chains"
+import { NotificationType } from "@/app/types/notifications"
+import { SwapQuote } from "@/app/types/swaps"
+import { Token } from "@/app/types/tokens"
 
 const useWriteApprove = ({
     chain,
     token,
     spenderAddress,
     amount,
-    route,
+    quote,
     callbacks,
     _enabled = true,
 }: {
@@ -21,13 +20,14 @@ const useWriteApprove = ({
     token?: Token,
     spenderAddress?: Address,
     amount?: bigint,
-    route?: Route,
+    quote?: SwapQuote,
     callbacks?: WriteTransactionCallbacks,
     _enabled?: boolean,
 }) => {
 
-    const routeType = route ? getRouteTypeLabel(route.type) : undefined
     const enabled = !(!_enabled || !chain || !token || token.isNative || !spenderAddress || !amount || amount === BigInt(0))
+    const routeTypeFormatted = quote ? ` for ${quote.type.toLowerCase()}` : ""
+    const formattedAmount = enabled ? `${amountToLocale(amount, token.decimals)} ${token.symbol}` : ""
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
@@ -43,16 +43,16 @@ const useWriteApprove = ({
         callbacks: callbacks,
         notifications: enabled ? {
             [NotificationType.Pending]: {
-                header: `Confirm ${routeType ? `${routeType} ` : ""}Approval`,
-                body: `Approve ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
+                header: `Approve ${formattedAmount}`,
+                body: `Confirm ${formattedAmount} approval${routeTypeFormatted}.`,
             },
             [NotificationType.Submitted]: {
-                header: `Confirming ${routeType ? `${routeType} ` : ""}Approval`,
-                body: `Approving ${amountToLocale(amount, token.decimals)} ${token.symbol}.`,
+                header: `Confirming Approval`,
+                body: `Approving ${formattedAmount}${routeTypeFormatted}.`,
             },
             [NotificationType.Success]: {
-                header: `${routeType ? `${routeType} ` : ""}Approval Complete`,
-                body: `Successfully approved ${amountToLocale(amount, token.decimals)} ${token.symbol}!`,
+                header: `Approval Confirmed!`,
+                body: `Successfully approved ${formattedAmount}${routeTypeFormatted}.`,
             },
         } : undefined,
         _enabled: enabled,

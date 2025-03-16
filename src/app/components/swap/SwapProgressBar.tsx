@@ -2,8 +2,7 @@ import { motion } from "motion/react"
 import React from "react"
 import { twMerge } from "tailwind-merge"
 
-import { SwapStatus } from "@/app/config/swaps"
-import { Swap } from "@/app/types/swaps"
+import { Swap, SwapStatus } from "@/app/types/swaps"
 
 interface SwapProgressBarProps extends React.ComponentPropsWithoutRef<typeof motion.div> {
     swap: Swap,
@@ -21,12 +20,12 @@ const SwapProgressBar = React.forwardRef<React.ComponentRef<typeof motion.div>, 
     return (
         <motion.div
             ref={ref}
-            className={twMerge("progress h-2", className)}
+            className={twMerge("h-2", swap.status === SwapStatus.Error ? "bg-error-500" : "progress", className)}
             initial={initial ?? {
                 width: 0,
             }}
             animate={animate ?? {
-                width: `${swap.status === SwapStatus.Success ? 100 : latestEventIndex !== -1 ? ((latestEventIndex > 0 ? latestEventIndex : 1) / swap.events.length) * 100 : 10}%`,
+                width: `${swap.status === SwapStatus.Success || swap.status === SwapStatus.Error ? 100 : latestEventIndex !== -1 ? ((latestEventIndex > 0 ? latestEventIndex : 1) / swap.events.length) * 100 : 10}%`,
             }}
             transition={transition ?? {
                 type: "spring",

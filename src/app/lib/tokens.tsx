@@ -1,9 +1,10 @@
 import { createContext } from "react"
 import { Address, isAddressEqual, parseUnits } from "viem"
 
-import { DefaultTokenSortType, Tokens } from "@/app/config/tokens"
-import { getChain } from "@/app/lib/chains"
+import { DefaultTokenSortType, TokenBridgePaths, Tokens } from "@/app/config/tokens"
+import { getChain, getFilteredChains } from "@/app/lib/chains"
 import { Chain } from "@/app/types/chains"
+import { NetworkMode } from "@/app/types/preferences"
 import { FavouriteTokenData, FavouriteTokensContextType, Token, TokenId, TokenSortType } from "@/app/types/tokens"
 
 export const FavouriteTokensContext = createContext({} as FavouriteTokensContextType)
@@ -91,7 +92,7 @@ export const getToken = (tokenId: TokenId, chain: Chain) => {
 export const getTokenByAddress = (address: Address, chain: Chain) => {
     return getTokens({
         ignoreSort: true,
-    }).find((token) => token.chainId === chain.id && (token.isNative && token.wrappedAddress ? isAddressEqual(address, token.wrappedAddress) : isAddressEqual(address, token.address)))
+    }).find((token) => token.chainId === chain.id && (isAddressEqual(address, token.address) || (token.isNative && token.wrappedAddress && isAddressEqual(address, token.wrappedAddress))))
 }
 
 export const getNativeToken = (chain: Chain) => {
@@ -113,15 +114,21 @@ export const getChainTokens = ({
 }
 
 export const getTokenByBridgeAddress = (bridgeAddress: Address, srcChain: Chain, dstChain: Chain) => {
-    return getTokens({
-        ignoreSort: true,
-    }).find((token) => token.chainId === dstChain.id && token.bridges?.[srcChain.id]?.address && isAddressEqual(bridgeAddress, token.bridges[srcChain.id]!.address))
+    // return getTokens({
+    //     ignoreSort: true,
+    // }).find((token) => token.chainId === dstChain.id && token.bridges?.[srcChain.id]?.address && isAddressEqual(bridgeAddress, token.bridges[srcChain.id]!.address))
+    return Object.values(TokenBridgePaths).flat().find((path) => path.srcData.chainId === srcChain.id && path.dstData.chainId === dstChain.id && isAddressEqual(path.dstData.address, bridgeAddress))?.dstData.token
 }
 
-export const filterTokens = (tokens: Token[], queryString?: string, selectedChain?: Chain, favouriteTokens?: FavouriteTokenData) => {
-
+export const filterTokens = (tokens: Token[], networkMode: NetworkMode, queryString?: string, selectedChain?: Chain, favouriteTokens?: FavouriteTokenData) => {
     let tokenResults = tokens.slice(0)
     let chainResults: Chain[] = []
+
+    // Apply testnet mode filter first
+    chainResults = getFilteredChains(networkMode)
+    tokenResults = tokenResults.filter(token => 
+        chainResults.some(chain => chain.id === token.chainId)
+    )
 
     const query = queryString?.trim().toLowerCase()
     if (query !== undefined && query.length !== 0) {

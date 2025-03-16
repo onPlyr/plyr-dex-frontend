@@ -2,7 +2,7 @@
 
 import "@/app/styles/globals.css"
 
-import { AnimatePresence, Variants } from "motion/react"
+import { Variants } from "motion/react"
 import { useRouter } from "next/navigation"
 import { use, useCallback, useEffect, useState } from "react"
 
@@ -16,7 +16,7 @@ import { Page } from "@/app/components/ui/Page"
 import SearchInput from "@/app/components/ui/SearchInput"
 import { SelectItemToggle } from "@/app/components/ui/SelectItemToggle"
 import { Tooltip } from "@/app/components/ui/Tooltip"
-import { SupportedChains } from "@/app/config/chains"
+import { defaultNetworkMode, SupportedChains } from "@/app/config/chains"
 import { SwapTab } from "@/app/config/pages"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useFavouriteTokens from "@/app/hooks/tokens/useFavouriteTokens"
@@ -24,6 +24,8 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import { filterTokens } from "@/app/lib/tokens"
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
+import { PreferenceType } from "@/app/types/preferences"
 
 interface Params {
     select: string,
@@ -59,9 +61,9 @@ const SwapSelectPage = ({
     const isDst = select === SelectOptions.dst
 
     const { data: tokenData } = useTokens()
-    const { srcToken, setSrcToken, dstToken, setDstToken } = useQuoteData()
+    const { swapRoute, setSwapRoute } = useQuoteData()
     const { favouriteTokens } = useFavouriteTokens()
-    const allChains = Object.values(SupportedChains).slice(0)
+    const allChains = Object.values(SupportedChains).filter((chain) => !chain.isDisabled).slice(0)
 
     const [tokens, setTokens] = useState(tokenData)
     const [chains, setChains] = useState(allChains)
@@ -73,22 +75,30 @@ const SwapSelectPage = ({
         router.push("/swap")
     }, [router])
 
-    const selectedToken = isDst ? dstToken : srcToken
+    const { srcData, dstData } = swapRoute
+    const selectedToken = isDst ? dstData.token : srcData.token
     const setSelectedToken = useCallback((token?: Token) => {
-        if (isDst) {
-            setDstToken(token)
-        }
-        else {
-            setSrcToken(token)
-        }
+        setSwapRoute({
+            srcToken: isDst ? undefined : token,
+            dstToken: isDst ? token : undefined
+        })
         selectOnClick()
-    }, [isDst, setSrcToken, setDstToken, selectOnClick])
+    }, [isDst, setSwapRoute, selectOnClick])
 
+    const { preferences } = usePreferences()
+    
     useEffect(() => {
-        const { tokenResults, chainResults } = filterTokens(tokenData, query, selectedFilterChain, favouriteTokens)
+        const { tokenResults, chainResults } = filterTokens(
+            tokenData, 
+            preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode,
+            query, 
+            selectedFilterChain, 
+            favouriteTokens,
+        )
+        
         setTokens(tokenResults)
         setChains(chainResults)
-    }, [tokenData, favouriteTokens, query, selectedFilterChain])
+    }, [tokenData, favouriteTokens, query, selectedFilterChain, preferences])
 
     const handleSearchInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value)
@@ -112,13 +122,16 @@ const SwapSelectPage = ({
                 <div className="flex flex-col flex-none gap-4 w-full h-fit">
                     {chains && chains.length !== 0 && (
                         <div className="flex flex-row flex-1 gap-y-2 justify-start items-start flex-wrap">
-                            <AnimatePresence>
+                            {/* <AnimatePresence mode="wait"> */}
                                 {chains?.map((chain, i) => {
                                     const isSelected = selectedFilterChain && selectedFilterChain.id === chain.id
                                     return (
                                         <Tooltip
-                                            key={chain.id}
-                                            trigger=<ScaleInOut className={i !== 0 ? "ms-2" : undefined}>
+                                            key={`${chain.id}`}
+                                            trigger=<ScaleInOut
+                                                key={`scale-${chain.id}`}
+                                                className={i !== 0 ? "ms-2" : undefined}
+                                            >
                                                 <SelectItemToggle
                                                     onClick={setSelectedFilterChain.bind(this, isSelected ? undefined : chain)}
                                                     isSelected={isSelected}
@@ -133,7 +146,7 @@ const SwapSelectPage = ({
                                         </Tooltip>
                                     )
                                 })}
-                            </AnimatePresence>
+                            {/* </AnimatePresence> */}
                         </div>
                     )}
                     <SearchInput
@@ -143,7 +156,7 @@ const SwapSelectPage = ({
                         placeholder="Search by name, symbol or address"
                     />
                     <div className="flex flex-col flex-1">
-                        <AnimatePresence>
+                        {/* <AnimatePresence mode="wait"> */}
                             {tokens && tokens.length > 0 ? tokens.map((token, i) => {
                                 const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
                                 return (
@@ -180,7 +193,7 @@ const SwapSelectPage = ({
                                     />
                                 </SlideInOut>
                             )}
-                        </AnimatePresence>
+                        {/* </AnimatePresence> */}
                     </div>
                 </div>
             </SlideInOut>

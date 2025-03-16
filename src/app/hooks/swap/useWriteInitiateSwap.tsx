@@ -1,64 +1,57 @@
-import { Address, zeroAddress } from "viem"
+import { zeroAddress } from "viem"
 
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
-import { getCellAbi } from "@/app/lib/cells"
-import { getRouteInstructions } from "@/app/lib/routes"
-import { getTxActionLabel } from "@/app/lib/txs"
-import { Chain } from "@/app/types/chains"
-import { NotificationType } from "@/app/types/notifications"
-import { Route, RouteType } from "@/app/types/swaps"
-import { TxAction, TxLabelType } from "@/app/types/txs"
+import { getCellAbi, getInitiateCellInstructions } from "@/app/lib/cells"
 import { amountToLocale } from "@/app/lib/numbers"
+import { getTxActionLabel } from "@/app/lib/txs"
+import { NotificationType } from "@/app/types/notifications"
+import { SwapQuote, SwapType } from "@/app/types/swaps"
+import { TxAction, TxLabelType } from "@/app/types/txs"
+import { useAccount } from "wagmi"
 
 const useWriteInitiateSwap = ({
-    connectedChain,
-    accountAddress,
-    destinationAddress,
-    route,
+    quote,
     callbacks,
-    _enabled = true,
 }: {
-    connectedChain?: Chain,
-    accountAddress?: Address,
-    destinationAddress?: Address,
-    route?: Route,
+    quote?: SwapQuote,
     callbacks?: WriteTransactionCallbacks,
-    _enabled?: boolean,
 }) => {
 
-    const abi = getCellAbi(route?.srcCell)
-    const instructions = getRouteInstructions((destinationAddress ? destinationAddress : accountAddress), route)
-    const enabled = !(!_enabled || !connectedChain || !accountAddress || !route || !abi || route.initiateTx || !instructions || connectedChain.id !== route.srcChain.id)
-    const action = route?.type === RouteType.Bridge ? TxAction.Transfer : TxAction.Swap
+    const { address: accountAddress } = useAccount()
+    const abi = getCellAbi(quote?.srcData.cell)
+    const instructions = getInitiateCellInstructions({
+        quote: quote,
+        accountAddress: accountAddress,
+    })
+    const { srcData, dstData } = quote ?? {}
+    // const enabled = !(!_enabled || !connectedChain || !accountAddress || !quote || !isValidSwapQuote(quote) || !srcData || !dstData || !abi || !instructions || connectedChain.id !== quote.srcData.chain.id)
+    const action = quote?.type === SwapType.Transfer ? TxAction.Transfer : TxAction.Swap
 
-    const { data: txHash, txReceipt, status, writeTransaction, isInProgress, refetch } = useWriteTransaction({
+    const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
-            chainId: route?.srcChain.id,
+            chainId: srcData?.chain.id,
             account: accountAddress,
-            address: route?.srcCell.address,
+            address: srcData?.cell.address,
             abi: abi,
             functionName: "initiate",
-            args: [route?.srcToken.address || zeroAddress, route?.srcAmount || BigInt(0), instructions!],
-            value: route?.srcToken.isNative ? route?.srcAmount : undefined,
-            query: {
-                enabled: enabled,
-            },
+            args: [srcData?.token.address || zeroAddress, quote?.srcAmount, instructions!],
+            value: srcData?.token.isNative ? quote?.srcAmount : undefined,
         },
         callbacks: callbacks,
-        notifications: enabled ? {
+        notifications: quote && srcData && dstData ? {
             [NotificationType.Pending]: {
                 header: `Confirm ${getTxActionLabel(action, TxLabelType.Default)}`,
-                body: `From ${route.type === RouteType.Bridge ? route.srcChain.name : amountToLocale(route.srcAmount, route.srcToken.decimals)} ${route.srcToken.symbol} to ${route.type === RouteType.Bridge ? route.dstChain.name : amountToLocale(route.dstAmount, route.dstToken.decimals)} ${route.dstToken.symbol}.`
+                body: `From ${quote.type === SwapType.Transfer ? srcData.chain.name : amountToLocale(quote.srcAmount, srcData.token.decimals)} ${srcData.token.symbol} to ${quote.type === SwapType.Transfer ? dstData.chain.name : amountToLocale(quote.minDstAmount, dstData.token.decimals)} ${dstData.token.symbol}.`,
             },
             [NotificationType.Submitted]: {
-                header: `${getTxActionLabel(action, TxLabelType.InProgress)} ${amountToLocale(route.srcAmount, route.srcToken.decimals)} ${route.srcToken.symbol}`,
-                body: `To ${route.type === RouteType.Bridge ? route.dstChain.name : amountToLocale(route.dstAmount, route.dstToken.decimals)} ${route.dstToken.symbol}.`,
+                header: `${getTxActionLabel(action, TxLabelType.InProgress)} ${amountToLocale(quote.srcAmount, srcData.token.decimals)} ${srcData.token.symbol}`,
+                body: `To ${quote.type === SwapType.Transfer ? dstData.chain.name : amountToLocale(quote.minDstAmount, dstData.token.decimals)} ${dstData.token.symbol}.`,
             },
             [NotificationType.Success]: {
                 ignore: true,
             },
         } : undefined,
-        _enabled: enabled,
+        notificationId: quote?.id,
     })
 
     return {
@@ -67,7 +60,6 @@ const useWriteInitiateSwap = ({
         txReceipt: txReceipt,
         status: status,
         isInProgress: isInProgress,
-        refetch: refetch,
     }
 }
 

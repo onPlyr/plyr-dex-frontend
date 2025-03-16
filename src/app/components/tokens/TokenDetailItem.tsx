@@ -6,9 +6,9 @@ import FavouriteTokenDetail from "@/app/components/tokens/FavouriteTokenDetail"
 import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { SelectItem } from "@/app/components/ui/SelectItem"
-import { NumberFormatType } from "@/app/config/numbers"
 import { imgSizes } from "@/app/config/styling"
 import { getChain } from "@/app/lib/chains"
+import { NumberFormatType } from "@/app/types/numbers"
 import { Token } from "@/app/types/tokens"
 
 export interface TokenDetailItemProps extends React.ComponentPropsWithoutRef<typeof SelectItem> {

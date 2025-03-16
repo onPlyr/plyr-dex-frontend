@@ -9,6 +9,7 @@ export enum PreferenceType {
     ExcludeChainIds = "excludeChainIds",
     Slippage = "slippage",
     Currency = "currency",
+    NetworkMode = "networkMode",
 }
 
 export interface UserPreferences {
@@ -18,6 +19,7 @@ export interface UserPreferences {
     [PreferenceType.ExcludeChainIds]?: ChainId[],
     [PreferenceType.Slippage]?: number,
     [PreferenceType.Currency]?: Currency,
+    [PreferenceType.NetworkMode]?: NetworkMode,
 }
 
 export type UserPreferencesContextType = {
@@ -25,4 +27,9 @@ export type UserPreferencesContextType = {
     setUserPreferences: (preferences: UserPreferences) => void,
     validatePreference: (key: PreferenceType, preferences: UserPreferences) => boolean,
     validateAllPreferences: (preferences: UserPreferences) => boolean,
+}
+
+export enum NetworkMode {
+    Mainnet = "mainnet",
+    Testnet = "testnet",
 }

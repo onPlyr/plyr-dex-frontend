@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -19,7 +19,7 @@ const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
     <input
         ref={ref}
         value={value}
-        onChange={disabled !== true ? handleInput?.bind(this) : undefined}
+        onChange={!disabled ? handleInput?.bind(this) : undefined}
         type={type}
         autoComplete={autoComplete}
         className={replaceClass ? className : twMerge("input", className)}

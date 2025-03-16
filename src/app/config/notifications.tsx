@@ -1,5 +1,12 @@
-import { NotificationType, NotificationTypeMsg } from "@/app/types/notifications"
-export const DefaultNotificationRemoveDelayMs = 4000 as const
+import { NotificationStatus, NotificationType, NotificationTypeMsg } from "@/app/types/notifications"
+
+export const DefaultNotificationRemoveDelay: Record<NotificationStatus, number> = {
+    [NotificationStatus.Pending]: 60000,
+    [NotificationStatus.Success]: 5000,
+    [NotificationStatus.Error]: 10000,
+    [NotificationStatus.Info]: 5000,
+} as const
+
 export const DefaultNotificationTypeMsg: Record<NotificationType, NotificationTypeMsg> = {
     [NotificationType.SimulateError]: {
         header: "Simulation Error",
@@ -28,5 +35,8 @@ export const DefaultNotificationTypeMsg: Record<NotificationType, NotificationTy
     [NotificationType.Error]: {
         header: "Error",
         body: "An unknown error occurred when executing your transaction and it may not have completed successfully.",
+    },
+    [NotificationType.Info]: {
+        header: "Info",
     },
 } as const

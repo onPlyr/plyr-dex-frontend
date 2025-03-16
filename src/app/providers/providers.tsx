@@ -13,13 +13,13 @@ import { hashFn } from "@wagmi/core/query"
 import { ThirdwebProvider } from "thirdweb/react";
 import { TooltipProvider } from "@/app/components/ui/Tooltip"
 import { wagmiConfig } from "@/app/config/wagmi"
+import ApiDataProvider from "@/app/providers/ApiDataProvider"
+import BlockDataProvider from "@/app/providers/BlockDataProvider"
 import FavouriteTokensProvider from "@/app/providers/FavouriteTokensProvider"
 import NotificationProvider from "@/app/providers/NotificationProvider"
 import PreferencesProvider from "@/app/providers/PreferencesProvider"
 import QuoteDataProvider from "@/app/providers/QuoteDataProvider"
-import SwapDataProvider from "@/app/providers/SwapDataProvider"
-import SwapStatusProvider from "@/app/providers/SwapStatusProvider"
-import ToastProvider from "@/app/providers/ToastProvider"
+import SwapHistoryProvider from "@/app/providers/SwapHistoryProvider"
 import TokenDataProvider from "@/app/providers/TokenDataProvider"
 
 const queryClient = new QueryClient({
@@ -32,34 +32,38 @@ const queryClient = new QueryClient({
     },
 })
 
+const ApiDataProviders = ({ children }: { children: ReactNode }) => (
+    <ApiDataProvider>
+        {children}
+    </ApiDataProvider>
+)
+
 const UiDataProviders = ({ children }: { children: ReactNode }) => (
     <TooltipProvider>
-        <ToastProvider>
-            <NotificationProvider>
-                {children}
-            </NotificationProvider>
-        </ToastProvider>
+        <NotificationProvider>
+            {children}
+        </NotificationProvider>
     </TooltipProvider>
 )
 
 const StoredDataProviders = ({ children }: { children: ReactNode }) => (
     <PreferencesProvider>
-        <SwapDataProvider>
-            <FavouriteTokensProvider>
-                {children}
-            </FavouriteTokensProvider>
-        </SwapDataProvider>
+        <FavouriteTokensProvider>
+            {children}
+        </FavouriteTokensProvider>
     </PreferencesProvider>
 )
 
 const QueryDataProviders = ({ children }: { children: ReactNode }) => (
-    <TokenDataProvider>
-        <QuoteDataProvider>
-            <SwapStatusProvider>
-                {children}
-            </SwapStatusProvider>
-        </QuoteDataProvider>
-    </TokenDataProvider>
+    <BlockDataProvider>
+        <TokenDataProvider>
+            <QuoteDataProvider>
+                <SwapHistoryProvider>
+                    {children}
+                </SwapHistoryProvider>
+            </QuoteDataProvider>
+        </TokenDataProvider>
+    </BlockDataProvider>
 )
 
 // todo: review provider nesting

@@ -13,19 +13,20 @@ import { TokenImage } from "@/app/components/images/TokenImage"
 import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Page } from "@/app/components/ui/Page"
-import { NumberFormatType } from "@/app/config/numbers"
+import { NumberFormatType } from "@/app/types/numbers"
 import { SwapTab } from "@/app/config/pages"
 import { imgSizes } from "@/app/config/styling"
-import { swapHistoryLocalStorageMsg } from "@/app/config/swaps"
-import useSwapData from "@/app/hooks/swap/useSwapData"
+import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import { timestampAgo } from "@/app/lib/datetime"
+import { useAccount } from "wagmi"
 
 const swapsPerPage = 10
 
 const HistoryPage = () => {
 
-    const { data: swapData } = useSwapData()
-    const pageSwaps = swapData.slice(0, swapsPerPage)
+    const { address: accountAddress } = useAccount()
+    const { getSwapHistories } = useSwapHistory()
+    const pageSwaps = getSwapHistories(accountAddress).slice(0, swapsPerPage)
 
     return (
         <Page
@@ -34,9 +35,9 @@ const HistoryPage = () => {
             backUrl="/swap"
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
-                {swapData.length > 0 ? pageSwaps.map((swap, i) => (
+                {pageSwaps.length > 0 ? pageSwaps.map((swap, i) => (
                     <SlideInOut
-                        key={`${swap.srcData.chain.id}-${swap.id}`}
+                        key={swap.id}
                         from="left"
                         to="right"
                         delays={{
@@ -45,7 +46,7 @@ const HistoryPage = () => {
                         }}
                     >
                         <Link
-                            href={`/swap/${swap.id}/${swap.srcData.chain.id}`}
+                            href={`/swap/${swap.txHash}/${swap.srcData.chain.id}`}
                             className="container flex flex-col flex-1 p-4 gap-4"
                         >
                             <div className="flex flex-row flex-1 gap-4">
@@ -72,7 +73,7 @@ const HistoryPage = () => {
                                     </div>
                                     {swap.dstData && (
                                         <div className="flex flex-row gap-2 items-center text-muted-500">
-                                            
+
                                             <ChainImageInline
                                                 chain={swap.dstData.chain}
                                                 size="xs"
@@ -105,7 +106,7 @@ const HistoryPage = () => {
                     </SlideInOut>
                 )}
                 <div className="flex flex-row flex-1 justify-center items-center font-bold text-muted-500 text-center">
-                    {swapHistoryLocalStorageMsg}
+                    Transaction history is saved locally and will be erased when you clear your browser cache.
                 </div>
             </div>
         </Page>
