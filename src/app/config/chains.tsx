@@ -98,8 +98,8 @@ export const wagmiChains = [
     avalancheFuji,
     teschain,
     plyrTau,
-    coqnet,
-    coqnetFuji,
+    // coqnet,
+    // coqnetFuji,
 ] as const
 
 // todo: avg block time needs updating / renaming as it's not used for that now
@@ -143,11 +143,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 // address: "0x5e30439FDD999686ccbb22a59bfedD05b6bFe1C3",
                 address: "0x6Abb82d940887a637948d6f223259499a4433E67",
             },
-            {
-                ...cellTypeDefinitions[CellType.Dexalot],
-                address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
-                // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
-            },
+            // {
+            //     ...cellTypeDefinitions[CellType.Dexalot],
+            //     address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
+            //     // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
+            // },
         ],
         blockchainId: "0x7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5",
         minGasPrice: BigInt(1),
@@ -170,12 +170,12 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 name: "LFJ V1",
                 platform: "lfj",
             },
-            {
-                address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
-                // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
-                name: "Dexalot",
-                platform: "dexalot",
-            },
+            // {
+            //     address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
+            //     // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
+            //     name: "Dexalot",
+            //     platform: "dexalot",
+            // },
         ],
         clientData: {
             maxQueryChunkSize: 1000,
@@ -245,45 +245,45 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryNumBatches: 10,
         },
     },
-    [coqnet.id]: {
-        ...coqnet,
-        icon: `${coqnet.id}.svg`,
-        iconBackground: "#ff6600",
-        cells: [
-            {
-                ...cellTypeDefinitions[CellType.HopOnly],
-                address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
-            },
-        ],
-        blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
-        minGasPrice: BigInt(25),
-        gasPriceExponent: 9,
-        avgBlockTimeMs: 500,
-        avgBlockTimeSampleRange: BigInt(10000),
-        adapters: [],
-        clientData: {
-            maxQueryChunkSize: 100,
-            maxQueryBatchSize: 10,
-            maxQueryNumBatches: 10,
-        },
-    },
-    [coqnetFuji.id]: {
-        ...coqnetFuji,
-        icon: `${coqnetFuji.id}.png`,
-        iconBackground: "#ff6600",
-        cells: [],
-        blockchainId: "0x1fbae9f07fdccb931e9de419b15690728296f4743f77588082b3e4425d6de54a",
-        minGasPrice: BigInt(25),
-        gasPriceExponent: 9,
-        avgBlockTimeMs: 500,
-        avgBlockTimeSampleRange: BigInt(10000),
-        adapters: [],
-        clientData: {
-            maxQueryChunkSize: 100,
-            maxQueryBatchSize: 10,
-            maxQueryNumBatches: 10,
-        },
-    },
+    // [coqnet.id]: {
+    //     ...coqnet,
+    //     icon: `${coqnet.id}.svg`,
+    //     iconBackground: "#ff6600",
+    //     cells: [
+    //         {
+    //             ...cellTypeDefinitions[CellType.HopOnly],
+    //             address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
+    //         },
+    //     ],
+    //     blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
+    //     minGasPrice: BigInt(25),
+    //     gasPriceExponent: 9,
+    //     avgBlockTimeMs: 500,
+    //     avgBlockTimeSampleRange: BigInt(10000),
+    //     adapters: [],
+    //     clientData: {
+    //         maxQueryChunkSize: 100,
+    //         maxQueryBatchSize: 10,
+    //         maxQueryNumBatches: 10,
+    //     },
+    // },
+    // [coqnetFuji.id]: {
+    //     ...coqnetFuji,
+    //     icon: `${coqnetFuji.id}.png`,
+    //     iconBackground: "#ff6600",
+    //     cells: [],
+    //     blockchainId: "0x1fbae9f07fdccb931e9de419b15690728296f4743f77588082b3e4425d6de54a",
+    //     minGasPrice: BigInt(25),
+    //     gasPriceExponent: 9,
+    //     avgBlockTimeMs: 500,
+    //     avgBlockTimeSampleRange: BigInt(10000),
+    //     adapters: [],
+    //     clientData: {
+    //         maxQueryChunkSize: 100,
+    //         maxQueryBatchSize: 10,
+    //         maxQueryNumBatches: 10,
+    //     },
+    // },
 } as const
 
 export const defaultNetworkMode = NetworkMode.Testnet
