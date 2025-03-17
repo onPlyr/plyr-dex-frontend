@@ -416,11 +416,7 @@ const ReviewSwapPage = () => {
             disabled={isInProgress}
         >
             {approveIsInProgress ? approveLabel : initiateIsInProgress ? initiateLabel : allowanceIsInProgress ? "Loading" : errorMsg ? errorMsg : isApprove ? approveLabel : initiateLabel}
-             {/*{isInProgress || !errorMsg ? isApprove ? approveLabel : initiateLabel : errorMsg}*/}
-             {/*{errorMsg ? errorMsg : isApprove ? "Approve" : quote ? SwapTypeLabel[quote.type] : "Swap"}*/}
-             {isInProgress && (
-                <LoadingIcon className={iconSizes.sm} />
-            )}
+            {isInProgress && <LoadingIcon className={iconSizes.sm} />}
         </Button>
     </>
 

@@ -45,7 +45,7 @@ import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQ
 
 interface SwapHistoryEventSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: Swap,
-    useSwapSlippageData: UseSwapSlippageReturnType,
+    useSwapSlippageData?: UseSwapSlippageReturnType,
     index?: number,
     animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
 }
@@ -432,18 +432,20 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                 icon=<SlippageIcon className={iconSizes.sm} />
                                                 label=<>
                                                     Max. slippage
-                                                    <Tooltip
-                                                        trigger=<Button
-                                                            label="Adjust slippage"
-                                                            className={twMerge("icon-btn transition hover:text-white", useSwapSlippageData.showSlippage ? "text-white" : undefined)}
-                                                            replaceClass={true}
-                                                            onClick={useSwapSlippageData.setShowSlippage.bind(this, !useSwapSlippageData.showSlippage)}
+                                                    {useSwapSlippageData && (
+                                                        <Tooltip
+                                                            trigger=<Button
+                                                                label="Adjust slippage"
+                                                                className={twMerge("icon-btn transition hover:text-white", useSwapSlippageData.showSlippage ? "text-white" : undefined)}
+                                                                replaceClass={true}
+                                                                onClick={useSwapSlippageData.setShowSlippage.bind(this, !useSwapSlippageData.showSlippage)}
+                                                            >
+                                                                <EditIcon className={iconSizes.xs} />
+                                                            </Button>
                                                         >
-                                                            <EditIcon className={iconSizes.xs} />
-                                                        </Button>
-                                                    >
-                                                        Adjust slippage
-                                                    </Tooltip>
+                                                            Adjust slippage
+                                                        </Tooltip>
+                                                    )}
                                                 </>
                                                 labelClass="gap-4"
                                                 value={bpsToPercent(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)}
