@@ -265,6 +265,7 @@ const ReviewSwapPage = () => {
             txHash: receipt.transactionHash,
             dstInitiatedBlock: initiatedBlockData[quote.dstData.chain.id]?.number ?? undefined,
             status: SwapStatus.Pending,
+            plyrId: quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? plyrId : undefined,
         }
 
         setSwapHistory(swap)
