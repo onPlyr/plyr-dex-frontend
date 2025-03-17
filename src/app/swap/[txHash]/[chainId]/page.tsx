@@ -299,6 +299,7 @@ const SwapDetailPage = ({
                         msg={swap.error ?? `An unknown error was encountered confirming your ${SwapTypeLabel[swap.type]}.`}
                     />
                 )}
+                {/*@ts-ignore*/}
                 <SwapHistoryEventSummary swap={swap} />
             </div>
         </Page>
