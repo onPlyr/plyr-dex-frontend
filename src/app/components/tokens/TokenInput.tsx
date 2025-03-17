@@ -200,13 +200,17 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
             <div className="flex flex-row flex-1 gap-4">
                 <div className="flex flex-row flex-1 justify-between items-center">
                     {chain && (
-                        <div className="flex flex-row flex-1 justify-start items-center gap-2 font-bold text-muted-500">
+                        <Link
+                            href={selectUrl}
+                            className="flex flex-row flex-none justify-start items-center gap-2 font-bold text-muted-500"
+                            prefetch={true}
+                        >
                             <ChainImageInline
                                 chain={chain}
                                 size="xs"
                             />
                             {chain.name}
-                        </div>
+                        </Link>
                     )}
                     <CurrencyAmount
                         amountFormatted="0"
