@@ -187,18 +187,17 @@ const SwapDetailPage = ({
 
     // Logic to add to Depositlog //
     useEffect(() => {
-        //console.log('swap', swap)
+        console.log('swap', swap)
         if (swap && swap.status === SwapStatus.Success && plyrId && swap.events.length > 0) {
-
             // get last event dst token //
-            const lastEventDstToken = swap.events[swap.events.length - 1]
+            //const lastEventDstToken = swap.events[swap.events.length - 1]
 
-            if (lastEventDstToken && lastEventDstToken.dstData && lastEventDstToken.dstData.amount) {
+            if (swap.dstData && swap.dstData.token.id && swap.dstAmount) {
 
-                addDepositLog(plyrId, lastEventDstToken.dstData.token.id, toTokens(lastEventDstToken.dstData.amount, lastEventDstToken.dstData.token.decimals), txHash)
+                addDepositLog(plyrId, swap.dstData.token.id, toTokens(swap.dstAmount, swap.dstData.token.decimals), txHash)
 
                 // remove plyrId from search params
-                router.replace(`/swap/${swap.id}/${swap.srcData.chain.id}`)
+                router.replace(`/swap/${txHash}/${swap.srcData.chain.id}`)
             }
         }
     }, [swap?.status, plyrId])

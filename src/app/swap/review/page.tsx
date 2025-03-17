@@ -273,7 +273,7 @@ const ReviewSwapPage = () => {
         refetchAllowance()
         setSrcAmountInput("")
 
-        router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}`)
+        router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}${quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? `?plyrId=${plyrId}` : ""}`)
 
     }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, initiatedBlockData, setInitiateSwapData])
 
