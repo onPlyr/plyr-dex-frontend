@@ -4,7 +4,6 @@ import { createContext, useCallback, useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 import { readContract } from "@wagmi/core"
 
-import { defaultSlippageBps } from "@/app/config/swaps"
 import { wagmiConfig } from "@/app/config/wagmi"
 import useApiTokenData from "@/app/hooks/apis/useApiTokenData"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
@@ -15,7 +14,7 @@ import { getParsedError } from "@/app/lib/utils"
 import { ApiFirmQuoteResultData, ApiProvider, ApiResult, ApiRoute, ApiRouteType, ApiTokenPairData, ApiTokenPairName } from "@/app/types/apis"
 import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { ChainId } from "@/app/types/chains"
-import { PreferenceType } from "@/app/types/preferences"
+import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
 import { SwapQuote } from "@/app/types/swaps"
 import { TokenId } from "@/app/types/tokens"
 
@@ -58,7 +57,7 @@ const ApiDataProvider = ({
     const { address: accountAddress } = useAccount()
     const { preferences } = usePreferences()
     const apiTokenData = useApiTokenData()
-    const slippage = BigInt(preferences[PreferenceType.Slippage] || defaultSlippageBps)
+    const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
 
     const [cellRouteData, setCellRouteData] = useState<CellRouteData>()
     useEffect(() => {

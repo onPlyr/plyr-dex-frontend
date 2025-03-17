@@ -27,7 +27,7 @@ import ExternalLink from "@/app/components/ui/ExternalLink"
 import { TabContent, TabIndicator, TabsContainer, TabsList, TabTrigger } from "@/app/components/ui/Tabs"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes, imgSizes } from "@/app/config/styling"
-import { defaultSlippageBps, SwapQuoteConfig } from "@/app/config/swaps"
+import { SwapQuoteConfig } from "@/app/config/swaps"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { getBlockExplorerLink } from "@/app/lib/chains"
 import { formatDuration } from "@/app/lib/datetime"
@@ -36,7 +36,7 @@ import { toShort } from "@/app/lib/strings"
 import { getHopEventPlatformData } from "@/app/lib/swaps"
 import { getStatusLabel } from "@/app/lib/utils"
 import { NumberFormatType } from "@/app/types/numbers"
-import { PreferenceType } from "@/app/types/preferences"
+import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
 import { StyleDirection } from "@/app/types/styling"
 import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQuote, Swap, SwapAction, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
@@ -426,13 +426,13 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                             <SwapParameter
                                                 icon=<SlippageIcon className={iconSizes.sm} />
                                                 label="Max. slippage"
-                                                value={`${bpsToPercent(preferences[PreferenceType.Slippage] ?? defaultSlippageBps)}`}
+                                                value={bpsToPercent(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)}
                                                 valueClass="font-mono text-base"
                                             />
                                             <SwapParameter
                                                 icon=<TesseractIcon className={iconSizes.sm} />
                                                 label="Fee"
-                                                value={SwapQuoteConfig.TesseractFee ? `${bpsToPercent(SwapQuoteConfig.TesseractFee)}` : "FREE"}
+                                                value={SwapQuoteConfig.TesseractFee ? bpsToPercent(SwapQuoteConfig.TesseractFee) : "FREE"}
                                                 valueClass={twMerge("font-mono text-base", !SwapQuoteConfig.TesseractFee ? "text-success-500" : undefined)}
                                             />
                                         </>)}

@@ -3,7 +3,7 @@ import { Address, formatUnits, isAddressEqual } from "viem"
 import { readContracts } from "@wagmi/core"
 import { v4 as uuidv4 } from "uuid"
 
-import { defaultSlippageBps, durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteConfig } from "@/app/config/swaps"
+import { durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteConfig } from "@/app/config/swaps"
 import { wagmiConfig } from "@/app/config/wagmi"
 import { getApiUrl } from "@/app/lib/apis"
 import { getBridgePathHops } from "@/app/lib/bridges"
@@ -18,8 +18,12 @@ import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/a
 import { BridgeProvider } from "@/app/types/bridges"
 import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
+import { SlippageConfig } from "@/app/types/preferences"
+ import {
+     GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
+     isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType
+ } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
-import { GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction, isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType } from "@/app/types/swaps"
 
 export const generateSwapId = (): SwapId => {
     return uuidv4()
@@ -193,7 +197,7 @@ export const getSwapQuoteData = async ({
     const swapQuotes: SwapQuote[] = []
     const timestamp = new Date().getTime()
     const maxHops = getMaxHops(maxNumHops)
-    const slippageBps = cellRouteData?.[CellRouteDataParameter.SlippageBips] ?? BigInt(defaultSlippageBps)
+    const slippageBps = cellRouteData?.[CellRouteDataParameter.SlippageBips] ?? BigInt(SlippageConfig.DefaultBps)
 
     if (!isValidSwapRoute(route)) {
         return swapQuoteData

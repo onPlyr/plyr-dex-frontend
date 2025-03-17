@@ -1,8 +1,9 @@
 import { defaultCurrency } from "@/app/config/numbers"
-import { defaultSlippageBps } from "@/app/config/swaps"
-import { PreferenceType, UserPreferences } from "@/app/types/preferences"
+import { defaultNetworkMode } from "@/app/config/chains"
+import { PreferenceType, SlippageConfig, UserPreferences } from "@/app/types/preferences"
 
-export const defaultPreferences: UserPreferences = {
-    [PreferenceType.Slippage]: defaultSlippageBps,
+export const DefaultUserPreferences: Required<UserPreferences> = {
+    [PreferenceType.Slippage]: SlippageConfig.DefaultBps,
     [PreferenceType.Currency]: defaultCurrency,
-}
+    [PreferenceType.NetworkMode]: defaultNetworkMode,
+} as const

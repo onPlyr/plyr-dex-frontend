@@ -1,5 +1,4 @@
 import { UserPreferences } from "@/app/types/preferences"
-import { SwapJson } from "@/app/types/swaps"
 import { FavouriteTokenData } from "@/app/types/tokens"
 
 export enum StorageType {
@@ -11,14 +10,14 @@ export enum StorageDataKey {
     Preferences = "preferences",
     // SwapSelection = "swap-selection",
     FavouriteTokens = "favourite-tokens",
-    SwapData = "swap-data",
+    // SwapData = "swap-data",
 }
 
 export interface StorageDataType {
     [StorageDataKey.Preferences]: UserPreferences,
     // [StorageDataKey.SwapSelection]: SelectedSwapData,
     [StorageDataKey.FavouriteTokens]: FavouriteTokenData,
-    [StorageDataKey.SwapData]: SwapJson[],
+    // [StorageDataKey.SwapData]: SwapJson[],
 }
 
 export const CustomStorageEventName = {
@@ -31,5 +30,6 @@ export type CustomStorageEvent = StorageEvent
 export const StorageKey = {
     SwapHistory: "swap-history",
     SwapRoute: "swap-route",
+    UserPreferences: "app-preferences",
 } as const
 export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey]

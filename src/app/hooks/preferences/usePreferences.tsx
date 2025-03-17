@@ -1,6 +1,6 @@
 import { useContext } from "react"
 
-import { PreferencesContext } from "@/app/lib/preferences"
+import { PreferencesContext } from "@/app/providers/PreferencesProvider"
 
 const usePreferences = () => {
     return useContext(PreferencesContext)

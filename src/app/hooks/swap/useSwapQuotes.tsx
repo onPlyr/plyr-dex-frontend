@@ -2,12 +2,11 @@ import { useCallback, useEffect, useState } from "react"
 import { QueryStatus } from "@tanstack/query-core"
 
 
-import { defaultSlippageBps } from "@/app/config/swaps"
 import useApiData from "@/app/hooks/apis/useApiData"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { getSwapQuoteData } from "@/app/lib/swaps"
 import { CellRouteData, CellRouteDataParameter } from "@/app/types/cells"
-import { PreferenceType } from "@/app/types/preferences"
+import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
 import { isValidSwapRoute, SwapQuoteData, SwapRoute } from "@/app/types/swaps"
 
 export interface UseSwapQuotesReturnType {
@@ -23,7 +22,7 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
 
     const { getApiTokenPair } = useApiData()
     const { preferences } = usePreferences()
-    const slippage = BigInt(preferences[PreferenceType.Slippage] || defaultSlippageBps)
+    const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
     const enabled = !(!route || !isValidSwapRoute(route))
 
     const [swapQuoteData, setSwapQuoteData] = useState<SwapQuoteData>()

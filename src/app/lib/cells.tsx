@@ -1,10 +1,11 @@
 import { AbiParameter, decodeAbiParameters, encodeAbiParameters, Hex, parseUnits, toHex, zeroAddress } from "viem"
 
 import { cellRouteDataParameters, cellTradeDataParameters, cellTradeParameters, CellTypeAbi } from "@/app/config/cells"
-import { defaultGasPriceExponent, defaultMinGasPrice, defaultSlippageBps, GasUnits, HopTypeGasUnits, YakSwapConfig } from "@/app/config/swaps"
+import { defaultGasPriceExponent, defaultMinGasPrice, GasUnits, HopTypeGasUnits, YakSwapConfig } from "@/app/config/swaps"
 import { isNativeBridge } from "@/app/types/bridges"
 import { Cell, CellHopAction, CellInstructions, CellRouteData, CellRouteDataParameter, CellTrade, CellTradeData, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
+import { SlippageConfig } from "@/app/types/preferences"
 import { isValidInitiateSwapQuote, SwapQuote } from "@/app/types/swaps"
 import { TeleporterFee } from "@/app/types/teleporter"
 
@@ -39,7 +40,7 @@ export const getCellRouteData = (chain?: Chain, cell?: Cell, routeData?: CellRou
     }
 
     const cellRouteData: CellRouteData = {
-        [CellRouteDataParameter.SlippageBips]: useSlippage ? (routeData?.[CellRouteDataParameter.SlippageBips] ?? BigInt(defaultSlippageBps)) : BigInt(0),
+        [CellRouteDataParameter.SlippageBips]: useSlippage ? (routeData?.[CellRouteDataParameter.SlippageBips] ?? BigInt(SlippageConfig.DefaultBps)) : BigInt(0),
     }
     if (cell.routeDataParams?.includes(CellRouteDataParameter.MaxSteps)) {
         cellRouteData[CellRouteDataParameter.MaxSteps] = routeData?.[CellRouteDataParameter.MaxSteps] ?? BigInt(YakSwapConfig.DefaultMaxSteps)

@@ -8,17 +8,6 @@ import { NetworkMode } from "@/app/types/preferences"
 export const defaultMinGasPrice = BigInt(25)
 export const defaultGasPriceExponent = 9
 
-export const defaultSlippageBps = 10
-export const slippageBpsOptions = [
-    defaultSlippageBps,
-    50,
-    100,
-]
-export const defaultSlippagePercent = (defaultSlippageBps / 100).toString()
-export const slippagePercentOptions = slippageBpsOptions.map((num) => (num / 100).toString())
-
-export const minSlippageBps = 0
-export const maxSlippageBps = 10000
 
 export const durationEstimateNumConfirmations = 3
 
