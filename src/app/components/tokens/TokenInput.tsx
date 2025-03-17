@@ -5,7 +5,7 @@ import { twMerge } from "tailwind-merge"
 import { formatUnits } from "viem"
 
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
-import WalletIcon from "@/app/components/icons/WalletIcon"
+import AccountIcon from "@/app/components/icons/AccountIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
 import Button from "@/app/components/ui/Button"
@@ -102,7 +102,7 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                             type={NumberFormatType.Precise}
                             className="justify-end font-bold text-end text-muted-500"
                         />
-                        <WalletIcon className={twMerge("text-muted-500", iconSizes.xs)} />
+                        <AccountIcon className={twMerge("text-muted-500", iconSizes.xs)} />
                         {!isDst && (
                             <TokenInputPercentButtons
                                 route={route}

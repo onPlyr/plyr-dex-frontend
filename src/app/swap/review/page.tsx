@@ -2,16 +2,19 @@
 
 import "@/app/styles/globals.css"
 
+import { AnimatePresence } from "motion/react"
 import { useRouter } from "next/navigation"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { useCallback, useEffect, useState } from "react"
 import { TransactionReceipt } from "viem"
-import { useAccount } from "wagmi"
+import { serialize, useAccount } from "wagmi"
 
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
+import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
 import SwapQuoteExpiryTimer from "@/app/components/swapQuotes/SwapQuoteExpiryTimer"
 import SwapQuotePreviewSummary from "@/app/components/swapQuotes/SwapQuotePreviewSummary"
+//import SwapRecipientInput from "@/app/components/swapQuotes/SwapRecipientInput"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
@@ -21,6 +24,7 @@ import useApiData from "@/app/hooks/apis/useApiData"
 import useBlockData from "@/app/hooks/blocks/useBlockData"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
+import useSwapRecipient from "@/app/hooks/swap/useSwapRecipient"
 import useWriteInitiateSwap from "@/app/hooks/swap/useWriteInitiateSwap"
 import useReadAllowance from "@/app/hooks/tokens/useReadAllowance"
 import useTokens from "@/app/hooks/tokens/useTokens"
@@ -30,7 +34,7 @@ import { amountToLocale } from "@/app/lib/numbers"
 import { getInitiateSwapError } from "@/app/lib/swaps"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
-import { InitiateSwapAction, isValidQuoteData, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
+import { InitiateSwapAction, isValidInitiateSwapQuote, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
@@ -153,10 +157,35 @@ const ReviewSwapPage = () => {
     }, [accountAddress])
 
 
+    // Set Quote of recipient address
+    useEffect(() => {
+        setQuote((prev) => (prev && {
+            ...prev,
+            recipientAddress: destinationAddress as `0x${string}` || undefined,
+        }))
+    }, [destinationAddress])
+
+
     const [quote, setQuote] = useState(selectedQuote)
-    const isValidQuote = quote && isValidSwapQuote(quote)
     const [isConfirmQuote, setIsConfirmQuote] = useState(!quote?.isConfirmed)
     const [initiatedBlockData, setInitiatedBlockData] = useState(latestBlocks)
+    // const useSwapRecipientData = useSwapRecipient({
+    //     swap: quote,
+    //     setSwap: setQuote,
+    // })
+
+    useEffect(() => {
+        if (quote) {
+            quote.accountAddress = accountAddress
+            if (!quote.recipientAddress) {
+                quote.recipientAddress = accountAddress
+            }
+            setQuote(quote)
+        }
+    }, [quote, accountAddress])
+
+    const isValidQuote = quote && isValidSwapQuote(quote)
+    const isValidInitiate = isValidQuote && isValidInitiateSwapQuote(quote)
 
     // todo: add message / 404 / notification on redirect
     useEffect(() => {
@@ -213,15 +242,13 @@ const ReviewSwapPage = () => {
     const initiateOnSettled = useCallback((receipt?: TransactionReceipt) => {
 
         // todo: testing, may need updating, eg. error message
-        if (!enabled || !receipt || !isValidQuoteData(quote.srcData) || !isValidQuoteData(quote.dstData)) {
+        if (!enabled || !receipt || !isValidInitiate) {
             return
         }
 
         // todo: should probably be put in a function somewhere
         const swap: SwapHistory = {
             ...quote,
-            srcData: quote.srcData,
-            dstData: quote.dstData,
             hops: quote.hops.map((hop) => ({
                 ...hop,
                 initiatedBlock: initiatedBlockData[hop.srcData.chain.id]?.number ?? undefined,
@@ -245,7 +272,7 @@ const ReviewSwapPage = () => {
 
         router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}`)
 
-    }, [enabled, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, initiatedBlockData, setInitiateSwapData])
+    }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, initiatedBlockData, setInitiateSwapData])
 
     const { write: writeInitiate, isInProgress: initiateIsInProgress } = useWriteInitiateSwap({
         quote: quote,
@@ -313,11 +340,11 @@ const ReviewSwapPage = () => {
 
         if (isConnectError || !isConnected) {
             openConnectModal?.()
-           
+
         }
 
-        else if (!enabled || errorMsg) {
-            
+        else if (!enabled || !isValidInitiate || errorMsg) {
+
             setNotification({
                 id: quote?.id ?? "initiate-disabled",
                 type: NotificationType.Error,
@@ -330,26 +357,40 @@ const ReviewSwapPage = () => {
         else {
             (isApprove ? writeApprove : isConfirmQuote ? confirmQuote : writeInitiate)()
         }
-        
 
-    }, [enabled, quote, errorMsg, isConfirmQuote, isConnected, isConnectError, isApprove, openConnectModal, setNotification, writeInitiate, confirmQuote, writeApprove])
+
+    }, [enabled, isValidInitiate, quote, errorMsg, isConfirmQuote, isConnected, isConnectError, isApprove, openConnectModal, setNotification, writeInitiate, confirmQuote, writeApprove])
 
     const pageHeader = quote && <div className="relative flex flex-row flex-1 gap-4 justify-center items-center">
         <div className="flex flex-row flex-none justify-center items-center">
-            Review {SwapTypeLabel[quote.type]}
+            {/* Review {SwapTypeLabel[quote.type]} (recipient: {quote.recipientAddress ? "yes" : "no"} / acc: {quote.accountAddress ? "yes" : "no"} / valid initiate: {serialize(isValidInitiate)}) */}
         </div>
-        <Tooltip
-            trigger=<Button
-                label="Refresh"
-                className="icon-btn absolute end-0"
-                replaceClass={true}
-                onClick={useSwapQuotesData.refetch.bind(this)}
+        <div className="flex flex-row flex-none gap-4 absolute end-0 justify-end items-center">
+            {/* <Tooltip
+                trigger=<Button
+                    label="Recipient"
+                    className="icon-btn"
+                    replaceClass={true}
+                    onClick={useSwapRecipientData.setShowRecipient.bind(this, !useSwapRecipientData.showRecipient)}
+                >
+                    <RecipientIcon className={iconSizes.sm} />
+                </Button>
             >
-                <SwapQuoteExpiryTimer />
-            </Button>
-        >
-            Refresh in {formatDuration(quoteExpiry)}
-        </Tooltip>
+                Send to a different address
+            </Tooltip> */}
+            <Tooltip
+                trigger=<Button
+                    label="Refresh"
+                    className="icon-btn"
+                    replaceClass={true}
+                    onClick={useSwapQuotesData.refetch.bind(this)}
+                >
+                    <SwapQuoteExpiryTimer />
+                </Button>
+            >
+                Refresh in {formatDuration(quoteExpiry)}
+            </Tooltip>
+        </div>
     </div>
 
     const pageFooter = <>
@@ -388,82 +429,89 @@ const ReviewSwapPage = () => {
                     </div>
                 </div>
 
-                
+
                 {quote && <SwapHistoryEventSummary swap={quote} />}
 
                 {/* Destination Address */}
-                {/* <div className="container flex flex-col flex-1 p-4 gap-4">
+                <div className="container flex flex-col flex-1 p-4 gap-4">
                     <div className="flex flex-row flex-1 gap-4">
                         <div>Destination Address</div>
-                        <div className="font-bold text-right">{destinationAddress ? shortenAddress(destinationAddress) : 'Please select a destination address'}</div>
+                        <div className="font-bold text-right">{quote?.recipientAddress ? shortenAddress(quote?.recipientAddress) : 'Please select a destination address'}</div>
                     </div>
-                    
-                </div> */}
-                {/* <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
+
+                </div>
+                <div className="flex flex-col md:flex-row flex-1 justify-center items-center gap-2 md:gap-4">
+                    <div onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (approveIsInProgress || initiateIsInProgress) return;
+                        setDestinationAddress(accountAddress as `0x${string}` || undefined)
+                    }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === quote?.recipientAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
+                        <div className="flex flex-col flex-1 justify-center items-start gap-0">
+                            <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
+                            <div className="text-sm md:text-base">{accountAddress && shortenAddress(accountAddress)}</div>
+                        </div>
+                    </div>
+                    {
+                        (quote?.dstData.token.chainId.toString() === '62831' || quote?.dstData.token.chainId.toString() === '16180') &&
                         <div onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
+                            //alert(mirrorAddress)
                             if (approveIsInProgress || initiateIsInProgress) return;
-                            setDestinationAddress(accountAddress as `0x${string}` || undefined)
-                        }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === destinationAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                            <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
-                            <div className="flex flex-col flex-1 justify-center items-start gap-0">
-                                <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
-                                <div className="text-sm md:text-base">{accountAddress && shortenAddress(accountAddress)}</div>
-                            </div>
-                        </div>
-                        {
-                            (quote?.dstData.token.chainId.toString() === '62831' || quote?.dstData.token.chainId.toString() === '16180') &&
-                            <div onClick={(e) => {
+                            setDestinationAddress(mirrorAddress as `0x${string}` || undefined)
+                        }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${quote?.recipientAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                            <button onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 if (approveIsInProgress || initiateIsInProgress) return;
-                                setDestinationAddress(mirrorAddress as `0x${string}` || undefined)
-                            }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${destinationAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                                <button onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
+                                getUserInfo(accountAddress || '', true)
+                            }} className="absolute top-2 right-3">
+                                <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                            </button>
+                            {
+                                !isEditingPlyrId && <button onClick={() => {
                                     if (approveIsInProgress || initiateIsInProgress) return;
-                                    getUserInfo(accountAddress || '', true)
-                                }} className="absolute top-2 right-3">
-                                    <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                                    setIsEditingPlyrId(true)
+                                }} className="absolute top-2 right-10">
+                                    <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
                                 </button>
-                                {
-                                    !isEditingPlyrId && <button onClick={() => {
-                                        if (approveIsInProgress || initiateIsInProgress) return;
-                                        setIsEditingPlyrId(true)
-                                    }} className="absolute top-2 right-10">
-                                        <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
-                                    </button>
-                                }
-                                {
-                                    plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
-                                }
-                                {
-                                    !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
-                                }
-                                <div className=" flex flex-col flex-1 justify-center items-start gap-0">
+                            }
+                            {
+                                plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
+                            }
+                            {
+                                !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
+                            }
+                            <div className=" flex flex-col flex-1 justify-center items-start gap-0">
 
-                                    {
+                                {
 
-                                        isEditingPlyrId ? <>
-                                            <form onSubmit={(e) => { e.preventDefault(); setIsEditingPlyrId(false); getUserInfo(plyrId?.trim()?.toUpperCase() || '', true); }}>
-                                                <input autoFocus={true} className="bg-transparent uppercase text-lg border-b border-white text-white focus:outline-none" type="text" value={plyrId} onChange={(e) => setPlyrId(e.target.value)} onBlur={(e) => { setIsEditingPlyrId(false); getUserInfo(e.target.value.trim().toUpperCase(), true); }} />
-                                            </form>
-                                        </> :
-                                            <>
-                                                <div className="font-bold text-[10px] md:text-xs">PLYR[ID]</div>
-                                                <div className="text-sm md:text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
+                                    isEditingPlyrId ? <>
+                                        <form onSubmit={(e) => { e.preventDefault(); setIsEditingPlyrId(false); getUserInfo(plyrId?.trim()?.toUpperCase() || '', true); }}>
+                                            <input autoFocus={true} className="bg-transparent uppercase text-lg border-b border-white text-white focus:outline-none" type="text" value={plyrId} onChange={(e) => setPlyrId(e.target.value)} onBlur={(e) => { setIsEditingPlyrId(false); getUserInfo(e.target.value.trim().toUpperCase(), true); }} />
+                                        </form>
+                                    </> :
+                                        <>
+                                            <div className="font-bold text-[10px] md:text-xs">PLYR[ID]</div>
+                                            <div className="text-sm md:text-base">{plyrId ? plyrId.toUpperCase() : 'NOT FOUND'}
 
-                                                   
-                                                </div>
-                                            </>
-                                    }
-                                </div>
+
+                                            </div>
+                                        </>
+                                }
                             </div>
-                        }
-                    </div> */}
+                        </div>
+                    }
+                </div>
             </div>
+
+            {/* <AnimatePresence mode="wait">
+                {quote && useSwapRecipientData.showRecipient && (
+                    <SwapRecipientInput useSwapRecipientData={useSwapRecipientData} />
+                )}
+            </AnimatePresence> */}
         </Page>
     )
 }

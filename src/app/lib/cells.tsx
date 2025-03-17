@@ -1,11 +1,11 @@
-import { AbiParameter, Address, decodeAbiParameters, encodeAbiParameters, Hex, parseUnits, toHex, zeroAddress } from "viem"
+import { AbiParameter, decodeAbiParameters, encodeAbiParameters, Hex, parseUnits, toHex, zeroAddress } from "viem"
 
 import { cellRouteDataParameters, cellTradeDataParameters, cellTradeParameters, CellTypeAbi } from "@/app/config/cells"
 import { defaultGasPriceExponent, defaultMinGasPrice, defaultSlippageBps, GasUnits, HopTypeGasUnits, YakSwapConfig } from "@/app/config/swaps"
 import { isNativeBridge } from "@/app/types/bridges"
 import { Cell, CellHopAction, CellInstructions, CellRouteData, CellRouteDataParameter, CellTrade, CellTradeData, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
-import { isValidSwapQuote, SwapQuote } from "@/app/types/swaps"
+import { isValidInitiateSwapQuote, SwapQuote } from "@/app/types/swaps"
 import { TeleporterFee } from "@/app/types/teleporter"
 
 export const getChainCanSwap = (chain?: Chain) => {
@@ -135,20 +135,14 @@ export const getEncodedCellTrade = (cell?: Cell, trade?: CellTrade, tradeParams?
     return encodeAbiParameters(params, [args])
 }
 
-export const getInitiateCellInstructions = ({
-    quote,
-    accountAddress,
-}: {
-    quote?: SwapQuote,
-    accountAddress?: Address,
-}) => {
+export const getInitiateCellInstructions = (quote?: SwapQuote) => {
 
-    if (!quote || !isValidSwapQuote(quote) || !accountAddress) {
+    if (!quote || !isValidInitiateSwapQuote(quote)) {
         return
     }
 
     const instructions: CellInstructions = {
-        receiver: accountAddress,
+        receiver: quote.recipientAddress,
         payableReceiver: !!quote.dstData.token.isNative,
         rollbackTeleporterFee: TeleporterFee.Rollback,
         rollbackGasLimit: GasUnits.Est,

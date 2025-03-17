@@ -103,7 +103,7 @@ export const PageFooter = React.forwardRef<React.ComponentRef<typeof ScaleInOut>
 }, ref) => (
     <ScaleInOut
         ref={ref}
-        className={twMerge("flex flex-col flex-1 p-4 gap-4 sm:px-0 page-width z-[125]", className)}
+        className={twMerge("flex flex-col flex-1 p-4 gap-4 sm:px-0 page-width ", className)} //z-[125]
         fadeInOut={true}
         {...props}
     />
@@ -204,7 +204,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
             </ScrollArea>
             <AnimatePresence mode="wait">
                 {(error || warning || info) && (
-                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width z-[125]", footer ? "pb-0" : undefined)}>
+                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width ", footer ? "pb-0" : undefined)}>{/*z-[125]*/}
                         {error && (
                             <PageMessage
                                 data={error}

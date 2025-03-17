@@ -1,4 +1,5 @@
 import { zeroAddress } from "viem"
+import { useAccount } from "wagmi"
 
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { getCellAbi, getInitiateCellInstructions } from "@/app/lib/cells"
@@ -7,7 +8,6 @@ import { getTxActionLabel } from "@/app/lib/txs"
 import { NotificationType } from "@/app/types/notifications"
 import { SwapQuote, SwapType } from "@/app/types/swaps"
 import { TxAction, TxLabelType } from "@/app/types/txs"
-import { useAccount } from "wagmi"
 
 const useWriteInitiateSwap = ({
     quote,
@@ -19,12 +19,8 @@ const useWriteInitiateSwap = ({
 
     const { address: accountAddress } = useAccount()
     const abi = getCellAbi(quote?.srcData.cell)
-    const instructions = getInitiateCellInstructions({
-        quote: quote,
-        accountAddress: accountAddress,
-    })
+    const instructions = getInitiateCellInstructions(quote)
     const { srcData, dstData } = quote ?? {}
-    // const enabled = !(!_enabled || !connectedChain || !accountAddress || !quote || !isValidSwapQuote(quote) || !srcData || !dstData || !abi || !instructions || connectedChain.id !== quote.srcData.chain.id)
     const action = quote?.type === SwapType.Transfer ? TxAction.Transfer : TxAction.Swap
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({

@@ -53,7 +53,7 @@ export const amountToLocale = (amount: bigint, decimals: number, type?: NumberFo
 }
 
 export const bpsToPercent = (bps: number | bigint) => {
-    return NumberFormat[NumberFormatType.Bps].format(BigInt(bps) / BigInt(100))
+    return NumberFormat[NumberFormatType.Bps].format(Number(bps) / 100 / 100)
 }
 
 export const getExchangeRate = ({

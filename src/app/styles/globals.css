@@ -191,7 +191,7 @@
         @apply container rounded-[36px] focus:bg-layout-200/15 focus:border-layout-600 focus-within:bg-layout-200/15 focus-within:border-layout-600 active:bg-layout-200/15 active:border-layout-600;
         @apply data-[error=true]:text-error-600 data-[error=true]:hover:text-error-500 data-[error=true]:focus:text-error-500 data-[error=true]:focus-within:text-error-500 data-[error=true]:active:text-error-500;
         @apply data-[error=true]:border-error-600 data-[error=true]:hover:border-error-500 data-[error=true]:focus:border-error-500 data-[error=true]:focus-within:border-error-500 data-[error=true]:active:border-error-500;
-        
+        @apply data-[success=true]:border-success-600 data-[success=true]:hover:border-success-500 data-[success=true]:focus:border-success-500 data-[success=true]:focus-within:border-success-500 data-[success=true]:active:border-success-500;
     }
     .popover-container {
         @apply rounded transition popover-bg-colour backdrop-blur-sm;
@@ -235,7 +235,13 @@
     }
 
 
-
+    .form-btn {
+        @apply clear-bg clear-border-outline flex flex-row flex-1 px-3 py-2 gap-4 justify-center items-center rounded transition font-bold text-nowrap;
+        @apply container hover:border-1 active:border-1;
+        @apply data-[success=true]:border-success-500 data-[success=true]:hover:border-success-400 data-[success=true]:active:border-success-400;
+        @apply data-[error=true]:container-error;
+        @apply disabled:cursor-not-allowed;
+    }
 
     .input {
         @apply clear-bg clear-border-outline;

@@ -411,9 +411,10 @@ const SwapHistoryProvider = ({
                         logs: receipt.logs,
                         eventName: "Transfer",
                         args: {
-                            to: swap.accountAddress,
+                            // to: swap.accountAddress,
+                            to: swap.recipientAddress,
                         },
-                    }).findLast((log) => isAddressEqual(log.args.to, swap.accountAddress))
+                    }).at(-1)
 
                     const transferToken = transferLog && getTokenByAddress(transferLog.address, hop.srcData.chain)
                     const nativeToken = !transferToken && getNativeToken(hop.srcData.chain)
@@ -791,7 +792,8 @@ const SwapHistoryProvider = ({
                         logs: receipt.logs,
                         eventName: "TokensWithdrawn",
                         args: {
-                            recipient: swap.accountAddress,
+                            // recipient: swap.accountAddress,
+                            recipient: swap.recipientAddress,
                         },
                     }).at(0)?.args.amount
                 }
@@ -802,9 +804,10 @@ const SwapHistoryProvider = ({
                         logs: receipt.logs,
                         eventName: "Transfer",
                         args: {
-                            to: swap.accountAddress,
+                            // to: swap.accountAddress,
+                            to: swap.recipientAddress,
                         },
-                    }).findLast((log) => isAddressEqual(log.args.to, swap.accountAddress))?.args.value
+                    }).at(-1)?.args.value
                 }
 
                 if (!swap.dstAmount) {

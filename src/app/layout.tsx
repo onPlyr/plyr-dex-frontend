@@ -68,29 +68,6 @@ export const metadata: Metadata = {
     },
 }
 
-// const Header = () => (
-//     <header className="fixed flex flex-row flex-1 gap-6 w-full h-16 justify-between z-[125] transition container-bg-no-hover container-border-b">
-//         <div className="flex flex-row flex-1 w-full h-full px-4 py-3 justify-start items-center">
-//             <div className="flex flex-row flex-1 h-full relative">
-//                 <Image
-//                     src={logoBrand}
-//                     alt="Tesseract"
-//                     style={{
-//                         objectFit: "contain",
-//                         objectPosition: "left center",
-//                     }}
-//                     sizes="256px, 512px"
-//                     quality={100}
-//                     fill={true}
-//                     priority={true}
-//                 />
-//             </div>
-//         </div>
-//         <div className="flex flex-row flex-none pe-4 justify-end items-center text-end">
-//             <AccountDetailButton />
-//         </div>
-//     </header>
-// )
 
 const RootLayout = ({
     children,

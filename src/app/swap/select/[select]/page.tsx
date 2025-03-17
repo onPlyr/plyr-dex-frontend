@@ -2,7 +2,7 @@
 
 import "@/app/styles/globals.css"
 
-import { AnimatePresence, LayoutGroup, motion, Transition, Variants } from "motion/react"
+import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import { useRouter } from "next/navigation"
 import React, { use, useCallback, useEffect, useState } from "react"
 

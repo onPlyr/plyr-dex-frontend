@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { QueryStatus } from "@tanstack/query-core"
-import { useAccount } from "wagmi"
+
 
 import { defaultSlippageBps } from "@/app/config/swaps"
 import useApiData from "@/app/hooks/apis/useApiData"
@@ -20,7 +20,7 @@ export interface UseSwapQuotesReturnType {
 
 const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
 
-    const { address: accountAddress } = useAccount()
+
     const { getApiTokenPair } = useApiData()
     const { preferences } = usePreferences()
     const slippage = BigInt(preferences[PreferenceType.Slippage] || defaultSlippageBps)
@@ -78,7 +78,7 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
             setErrorMsg(errorMsg)
         }
 
-    }, [enabled, route, accountAddress, getApiTokenPair, cellRouteData, setSwapQuoteData, setIsInProgress, setQueryStatus, setErrorMsg])
+    }, [enabled, route, getApiTokenPair, cellRouteData, setSwapQuoteData, setIsInProgress, setQueryStatus, setErrorMsg])
 
     useEffect(() => {
         setSwapQuoteData(undefined)
