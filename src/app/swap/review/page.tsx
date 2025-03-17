@@ -14,7 +14,7 @@ import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
 import SwapQuoteExpiryTimer from "@/app/components/swapQuotes/SwapQuoteExpiryTimer"
 import SwapQuotePreviewSummary from "@/app/components/swapQuotes/SwapQuotePreviewSummary"
-//import SwapRecipientInput from "@/app/components/swapQuotes/SwapRecipientInput"
+import SwapSlippageInput from "@/app/components/swapQuotes/SwapSlippageInput"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
@@ -22,9 +22,11 @@ import { SwapTab } from "@/app/config/pages"
 import { iconSizes } from "@/app/config/styling"
 import useApiData from "@/app/hooks/apis/useApiData"
 import useBlockData from "@/app/hooks/blocks/useBlockData"
+import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import useSwapRecipient from "@/app/hooks/swap/useSwapRecipient"
+import useSwapSlippage from "@/app/hooks/swap/useSwapSlippage"
 import useWriteInitiateSwap from "@/app/hooks/swap/useWriteInitiateSwap"
 import useReadAllowance from "@/app/hooks/tokens/useReadAllowance"
 import useTokens from "@/app/hooks/tokens/useTokens"
@@ -32,9 +34,10 @@ import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
 import { formatDuration } from "@/app/lib/datetime"
 import { amountToLocale } from "@/app/lib/numbers"
 import { getInitiateSwapError } from "@/app/lib/swaps"
-import useNotifications from "@/app/hooks/notifications/useNotifications"
+import { getTxActionLabel } from "@/app/lib/txs"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
-import { InitiateSwapAction, isValidInitiateSwapQuote, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
+import { InitiateSwapAction, isTransferType, isValidInitiateSwapQuote, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
+ import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
@@ -174,6 +177,11 @@ const ReviewSwapPage = () => {
     //     setSwap: setQuote,
     // })
 
+    const useSwapSlippageData = useSwapSlippage({
+        swap: quote,
+        setSwap: setQuote,
+    })
+
     useEffect(() => {
         if (quote) {
             quote.accountAddress = accountAddress
@@ -184,6 +192,7 @@ const ReviewSwapPage = () => {
         }
     }, [quote, accountAddress])
 
+    const { srcData, dstData } = quote ?? {}
     const isValidQuote = quote && isValidSwapQuote(quote)
     const isValidInitiate = isValidQuote && isValidInitiateSwapQuote(quote)
 
@@ -219,15 +228,9 @@ const ReviewSwapPage = () => {
         setInitiatedBlockData(latestBlocks)
     }, [quote?.id])
 
-    const { srcData, dstData } = quote ?? {}
-    const { errorMsg, isConnectError } = getInitiateSwapError({
-        action: InitiateSwapAction.Initiate,
-        isConnected: isConnected,
-        selectedQuote: quote,
-        srcToken: getTokenData(srcData?.token.id, srcData?.chain.id),
-    })
 
-    const { data: allowance, refetch: refetchAllowance } = useReadAllowance({
+
+    const { data: allowance, refetch: refetchAllowance, isInProgress: allowanceIsInProgress } = useReadAllowance({
         chain: srcData?.chain,
         token: srcData?.token,
         accountAddress: accountAddress,
@@ -336,6 +339,18 @@ const ReviewSwapPage = () => {
         _enabled: isApprove,
     })
 
+    const isInProgress = allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
+     const { errorMsg, isConnectError } = getInitiateSwapError({
+         action: InitiateSwapAction.Initiate,
+         isConnected: isConnected,
+         srcToken: getTokenData(srcData?.token.id, srcData?.chain.id),
+         selectedQuote: quote,
+         isInProgress: isInProgress,
+     })
+     const approveLabel = getTxActionLabel(TxAction.Approve, approveIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
+     const initiateLabel = getTxActionLabel(quote && isTransferType(quote.type) ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
+ 
+
     const handleInitiate = useCallback(() => {
 
         if (isConnectError || !isConnected) {
@@ -397,10 +412,12 @@ const ReviewSwapPage = () => {
         <Button
             className="gradient-btn"
             onClick={handleInitiate.bind(this)}
-            disabled={approveIsInProgress || initiateIsInProgress}
+            disabled={isInProgress}
         >
-            {errorMsg ? errorMsg : isApprove ? "Approve" : quote ? SwapTypeLabel[quote.type] : "Swap"}
-            {(approveIsInProgress || initiateIsInProgress) && (
+            {approveIsInProgress ? approveLabel : initiateIsInProgress ? initiateLabel : allowanceIsInProgress ? "Loading" : errorMsg ? errorMsg : isApprove ? approveLabel : initiateLabel}
+             {/*{isInProgress || !errorMsg ? isApprove ? approveLabel : initiateLabel : errorMsg}*/}
+             {/*{errorMsg ? errorMsg : isApprove ? "Approve" : quote ? SwapTypeLabel[quote.type] : "Swap"}*/}
+             {isInProgress && (
                 <LoadingIcon className={iconSizes.sm} />
             )}
         </Button>
@@ -430,7 +447,12 @@ const ReviewSwapPage = () => {
                 </div>
 
 
-                {quote && <SwapHistoryEventSummary swap={quote} />}
+                {quote && (
+                    <SwapHistoryEventSummary
+                        swap={quote}
+                        useSwapSlippageData={useSwapSlippageData}
+                    />
+                )}
 
                 {/* Destination Address */}
                 <div className="container flex flex-col flex-1 p-4 gap-4">
@@ -512,6 +534,11 @@ const ReviewSwapPage = () => {
                     <SwapRecipientInput useSwapRecipientData={useSwapRecipientData} />
                 )}
             </AnimatePresence> */}
+            <AnimatePresence mode="wait">
+                {quote && useSwapSlippageData.showSlippage && (
+                    <SwapSlippageInput useSwapSlippageData={useSwapSlippageData} />
+                )}
+            </AnimatePresence>
         </Page>
     )
 }

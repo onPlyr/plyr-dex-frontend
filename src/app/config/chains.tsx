@@ -283,6 +283,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryBatchSize: 10,
             maxQueryNumBatches: 10,
         },
+        isDisabled: true,
     },
 } as const
 

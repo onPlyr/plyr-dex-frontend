@@ -164,7 +164,7 @@ export const getInitiateSwapError = ({
         else if (selectedQuote.srcAmount === BigInt(0)) {
             msg = "Enter Amount"
         }
-        else if (!srcToken?.balance || srcToken.balance < selectedQuote.srcAmount) {
+        else if (!isInProgress && (!srcToken?.balance || srcToken.balance < selectedQuote.srcAmount)) {
             msg = "Insufficient Balance"
         }
     }

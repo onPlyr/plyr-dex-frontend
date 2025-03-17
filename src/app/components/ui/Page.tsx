@@ -13,10 +13,11 @@ import InfoIcon from "@/app/components/icons/InfoIcon"
 import WarningIcon from "@/app/components/icons/WarningIcon"
 import Button from "@/app/components/ui/Button"
 import ScrollArea from "@/app/components/ui/ScrollArea"
+import { defaultNetworkMode } from "@/app/config/chains"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { NetworkMode, PreferenceType } from "@/app/types/preferences"
-import { defaultNetworkMode } from "@/app/config/chains"
+
 
 export interface PageMsgData {
     header: React.ReactNode,

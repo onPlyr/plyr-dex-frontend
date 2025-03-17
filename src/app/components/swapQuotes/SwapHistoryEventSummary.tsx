@@ -8,6 +8,7 @@ import ApproxEqualIcon from "@/app/components/icons/ApproxEqualIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import ConfettiIcon from "@/app/components/icons/ConfettiIcon"
 import DurationIcon from "@/app/components/icons/DurationIcon"
+import EditIcon from "@/app/components/icons/EditIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import ExchangeRateIcon from "@/app/components/icons/ExchangeRateIcon"
 import ReceiveIcon from "@/app/components/icons/ReceiveIcon"
@@ -22,6 +23,7 @@ import { PlatformImage } from "@/app/components/images/PlatformImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
 import SwapParameter from "@/app/components/swap/SwapParameter"
 import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
+import Button from "@/app/components/ui/Button"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { TabContent, TabIndicator, TabsContainer, TabsList, TabTrigger } from "@/app/components/ui/Tabs"
@@ -29,6 +31,7 @@ import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes, imgSizes } from "@/app/config/styling"
 import { SwapQuoteConfig } from "@/app/config/swaps"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
+import { UseSwapSlippageReturnType } from "@/app/hooks/swap/useSwapSlippage"
 import { getBlockExplorerLink } from "@/app/lib/chains"
 import { formatDuration } from "@/app/lib/datetime"
 import { bpsToPercent, getExchangeRate } from "@/app/lib/numbers"
@@ -42,6 +45,7 @@ import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQ
 
 interface SwapHistoryEventSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: Swap,
+    useSwapSlippageData: UseSwapSlippageReturnType,
     index?: number,
     animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
 }
@@ -91,6 +95,7 @@ SwapEventAnimation.displayName = "SwapEventAnimation"
 const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEventSummaryProps>(({
     className,
     swap,
+    useSwapSlippageData,
     index,
     animationProps,
     ...props
@@ -425,7 +430,22 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                             )}
                                             <SwapParameter
                                                 icon=<SlippageIcon className={iconSizes.sm} />
-                                                label="Max. slippage"
+                                                label=<>
+                                                    Max. slippage
+                                                    <Tooltip
+                                                        trigger=<Button
+                                                            label="Adjust slippage"
+                                                            className={twMerge("icon-btn transition hover:text-white", useSwapSlippageData.showSlippage ? "text-white" : undefined)}
+                                                            replaceClass={true}
+                                                            onClick={useSwapSlippageData.setShowSlippage.bind(this, !useSwapSlippageData.showSlippage)}
+                                                        >
+                                                            <EditIcon className={iconSizes.xs} />
+                                                        </Button>
+                                                    >
+                                                        Adjust slippage
+                                                    </Tooltip>
+                                                </>
+                                                labelClass="gap-4"
                                                 value={bpsToPercent(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)}
                                                 valueClass="font-mono text-base"
                                             />

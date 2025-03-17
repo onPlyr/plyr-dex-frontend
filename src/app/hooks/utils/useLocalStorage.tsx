@@ -9,7 +9,7 @@ declare global {
     }
 }
 
-const isAvailable = !(typeof window === "undefined")
+const isAvailable = typeof window !== "undefined"
 
 interface UseLocalStorageOptions<T> {
     serializer?: (value: T) => string,

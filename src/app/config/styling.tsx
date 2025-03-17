@@ -15,3 +15,8 @@ export const iconSizes: Record<StyleSize, string> = {
     lg: "w-8 h-8",
     xl: "w-10 h-10",
 }
+
+export const MediaQueries = {
+    XsBreakpoint: "(min-width: 480px)",
+    SmBreakpoint: "(min-width: 640px)",
+} as const
