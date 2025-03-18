@@ -16,8 +16,9 @@ import ScrollArea from "@/app/components/ui/ScrollArea"
 import { defaultNetworkMode } from "@/app/config/chains"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
+import MainnetMessage from "@/app/components/messages/MainnetMessage"
+import TestnetMessage from "@/app/components/messages/TestnetMessage"
 import { NetworkMode, PreferenceType } from "@/app/types/preferences"
-
 
 export interface PageMsgData {
     header: React.ReactNode,
@@ -41,6 +42,10 @@ interface PageProps extends React.ComponentPropsWithoutRef<"div"> {
     error?: PageMsgData,
     warning?: PageMsgData,
     info?: PageMsgData,
+    hideNetworkMsg?: boolean,
+    pageWidth?: string,
+    isContainerPage?: boolean,
+    isNestedPage?: boolean,
 }
 
 interface PageHeaderProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -104,7 +109,7 @@ export const PageFooter = React.forwardRef<React.ComponentRef<typeof ScaleInOut>
 }, ref) => (
     <ScaleInOut
         ref={ref}
-        className={twMerge("flex flex-col flex-1 p-4 gap-4 sm:px-0 page-width ", className)} //z-[125]
+        className={twMerge("flex flex-col flex-1 p-4 gap-4 sm:px-0 page-width z-[125]", className)}
         fadeInOut={true}
         {...props}
     />
@@ -162,6 +167,10 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
     error,
     info,
     warning,
+    hideNetworkMsg = false,
+    pageWidth,
+    isContainerPage = false,
+    isNestedPage = false,
     ...props
 }, ref) => {
     const { preferences } = usePreferences()
@@ -178,15 +187,22 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                 <div
                     ref={ref}
                     className={twMerge(
-                        "flex flex-col flex-none pt-16 sm:pt-20 w-full min-h-fit max-h-fit h-fit justify-start items-center",
+                        "flex flex-col flex-none w-full min-h-fit max-h-fit h-fit justify-start items-center",
                         footer ? undefined : "pb-4",
+                        isContainerPage ? "pb-0" : undefined,
+                        isNestedPage ? "py-0" : "pt-16 sm:pt-20",
                         className,
                     )}
                     {...props}
                 >
-                    <div className={twMerge("flex flex-col flex-none page-width min-h-fit max-h-fit items-start overflow-auto", header ? undefined : "pt-4")}>
+                    <div className={twMerge(
+                        "flex flex-col flex-none min-h-fit max-h-fit items-start overflow-auto",
+                        header ? undefined : "pt-4",
+                        isContainerPage ? "pt-0" : undefined,
+                        pageWidth || "page-width",
+                    )}>
                         <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full overflow-hidden">
-                           
+                            {/* {!hideNetworkMsg && (networkMode === NetworkMode.Mainnet ? <MainnetMessage /> : <TestnetMessage />)} */}
                             {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
                                 <PageHeader
                                     backUrl={backUrl}
@@ -205,7 +221,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
             </ScrollArea>
             <AnimatePresence mode="wait">
                 {(error || warning || info) && (
-                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width ", footer ? "pb-0" : undefined)}>{/*z-[125]*/}
+                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width z-[125]", footer ? "pb-0" : undefined)}>
                         {error && (
                             <PageMessage
                                 data={error}

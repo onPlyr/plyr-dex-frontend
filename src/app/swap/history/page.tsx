@@ -14,10 +14,10 @@ import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Page } from "@/app/components/ui/Page"
 import { NumberFormatType } from "@/app/types/numbers"
-import { SwapTab } from "@/app/config/pages"
 import { imgSizes } from "@/app/config/styling"
 import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import { timestampAgo } from "@/app/lib/datetime"
+import { PageType } from "@/app/types/navigation"
 import { useAccount } from "wagmi"
 
 const swapsPerPage = 10
@@ -30,7 +30,7 @@ const HistoryPage = () => {
 
     return (
         <Page
-            key={SwapTab.Transactions}
+            key={PageType.SwapHistoryList}
             header="Transactions"
             backUrl="/swap"
         >

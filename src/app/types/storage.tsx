@@ -31,5 +31,6 @@ export const StorageKey = {
     SwapHistory: "swap-history",
     SwapRoute: "swap-route",
     UserPreferences: "app-preferences",
+    ShowIntro: "show-intro",
 } as const
 export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey]

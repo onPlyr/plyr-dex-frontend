@@ -18,7 +18,6 @@ import SwapSlippageInput from "@/app/components/swapQuotes/SwapSlippageInput"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
-import { SwapTab } from "@/app/config/pages"
 import { iconSizes } from "@/app/config/styling"
 import useApiData from "@/app/hooks/apis/useApiData"
 import useBlockData from "@/app/hooks/blocks/useBlockData"
@@ -35,9 +34,10 @@ import { formatDuration } from "@/app/lib/datetime"
 import { amountToLocale } from "@/app/lib/numbers"
 import { getInitiateSwapError } from "@/app/lib/swaps"
 import { getTxActionLabel } from "@/app/lib/txs"
+import { PageType } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { InitiateSwapAction, isTransferType, isValidInitiateSwapQuote, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
- import { TxAction, TxLabelType } from "@/app/types/txs"
+import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
@@ -341,16 +341,16 @@ const ReviewSwapPage = () => {
     })
 
     const isInProgress = allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
-     const { errorMsg, isConnectError } = getInitiateSwapError({
-         action: InitiateSwapAction.Initiate,
-         isConnected: isConnected,
-         srcToken: getTokenData(srcData?.token.id, srcData?.chain.id),
-         selectedQuote: quote,
-         isInProgress: isInProgress,
-     })
-     const approveLabel = getTxActionLabel(TxAction.Approve, approveIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
-     const initiateLabel = getTxActionLabel(quote && isTransferType(quote.type) ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
- 
+    const { errorMsg, isConnectError } = getInitiateSwapError({
+        action: InitiateSwapAction.Initiate,
+        isConnected: isConnected,
+        srcToken: getTokenData(srcData?.token.id, srcData?.chain.id),
+        selectedQuote: quote,
+        isInProgress: isInProgress,
+    })
+    const approveLabel = getTxActionLabel(TxAction.Approve, approveIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
+    const initiateLabel = getTxActionLabel(quote && isTransferType(quote.type) ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
+
 
     const handleInitiate = useCallback(() => {
 
@@ -423,7 +423,7 @@ const ReviewSwapPage = () => {
     // todo: display message / redirect if no route, handle properly
     return (
         <Page
-            key={SwapTab.Review}
+            key={PageType.Review}
             header={pageHeader}
             footer={pageFooter}
             backUrl="/swap"

@@ -11,8 +11,8 @@ import SlideInOut from "@/app/components/animations/SlideInOut"
 import { defaultAnimations as slideInOutAnimations } from "@/app/components/animations/SlideInOut"
 import SwapQuotePreview from "@/app/components/swapQuotes/SwapQuotePreview"
 import { Page } from "@/app/components/ui/Page"
-import { SwapTab } from "@/app/config/pages"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
+import { PageType } from "@/app/types/navigation"
 
 const routeAnimations: Variants = {
     initial: {
@@ -42,7 +42,7 @@ const RoutesPage = () => {
 
     return (
         <Page
-            key={SwapTab.Routes}
+            key={PageType.Routes}
             header="Route Details"
             backUrl="/swap"
         >

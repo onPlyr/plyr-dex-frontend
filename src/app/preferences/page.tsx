@@ -11,12 +11,12 @@ import { Page } from "@/app/components/ui/Page"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import { getNetworkModeLabel } from "@/app/config/chains"
 import { Currency } from "@/app/config/numbers"
-import { SwapTab } from "@/app/config/pages"
 import { DefaultUserPreferences } from "@/app/config/preferences"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useDebounce from "@/app/hooks/utils/useDebounce"
 import { getCurrencyLabel } from "@/app/lib/numbers"
+import { PageType } from "@/app/types/navigation"
 import { NetworkMode, PreferenceType, SlippageConfig } from "@/app/types/preferences"
 
 type ErrorData = {
@@ -98,7 +98,7 @@ const PreferencesPage = () => {
 
     return (
         <Page
-            key={SwapTab.Preferences}
+            key={PageType.Preferences}
             header="My Preferences"
             backUrl="/swap"
         >

@@ -15,7 +15,6 @@ import SearchInput from "@/app/components/ui/SearchInput"
 import { SelectItemToggle } from "@/app/components/ui/SelectItemToggle"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { defaultNetworkMode, SupportedChains } from "@/app/config/chains"
-import { SwapTab } from "@/app/config/pages"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useFavouriteTokens from "@/app/hooks/tokens/useFavouriteTokens"
 import useTokens from "@/app/hooks/tokens/useTokens"
@@ -23,6 +22,7 @@ import { filterTokens } from "@/app/lib/tokens"
 import { Chain } from "@/app/types/chains"
 import { Token } from "@/app/types/tokens"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
+import { PageType } from "@/app/types/navigation"
 import { PreferenceType } from "@/app/types/preferences"
 
 interface Params {
@@ -206,16 +206,16 @@ const SwapSelectPage = ({
     }, [isDst, setSwapRoute, selectOnClick])
 
     const { preferences } = usePreferences()
-    
+
     useEffect(() => {
         const { tokenResults, chainResults } = filterTokens(
-            tokenData, 
+            tokenData,
             preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode,
-            query, 
-            selectedFilterChain, 
+            query,
+            selectedFilterChain,
             favouriteTokens,
         )
-        
+
         setTokens(tokenResults)
         setChains(chainResults)
     }, [tokenData, favouriteTokens, query, selectedFilterChain, preferences])
@@ -230,12 +230,12 @@ const SwapSelectPage = ({
 
     return (
         <Page
-            key={isDst ? SwapTab.SelectDst : SwapTab.SelectSrc}
+            key={isDst ? PageType.SelectDst : PageType.SelectSrc}
             header="Select Token"
             backUrl="/swap"
         >
             <SlideInOut
-                key={isDst ? SwapTab.SelectDst : SwapTab.SelectSrc}
+                key={isDst ? PageType.SelectDst : PageType.SelectSrc}
                 from="right"
                 to="right"
             >
@@ -243,29 +243,29 @@ const SwapSelectPage = ({
                     {chains && chains.length !== 0 && (
                         <div className="flex flex-row flex-1 gap-y-2 justify-start items-start flex-wrap">
                             {/* <AnimatePresence mode="wait"> */}
-                                {chains?.map((chain, i) => {
-                                    const isSelected = selectedFilterChain && selectedFilterChain.id === chain.id
-                                    return (
-                                        <Tooltip
-                                            key={`${chain.id}`}
-                                            trigger=<ScaleInOut
-                                                key={`scale-${chain.id}`}
-                                                className={i !== 0 ? "ms-2" : undefined}
-                                            >
-                                                <SelectItemToggle
-                                                    onClick={setSelectedFilterChain.bind(this, isSelected ? undefined : chain)}
-                                                    isSelected={isSelected}
-                                                    className="container-select px-3 py-2 rounded-lg before:rounded-lg"
-                                                    replaceClass={true}
-                                                >
-                                                    <ChainImage chain={chain} size="xs" />
-                                                </SelectItemToggle>
-                                            </ScaleInOut>
+                            {chains?.map((chain, i) => {
+                                const isSelected = selectedFilterChain && selectedFilterChain.id === chain.id
+                                return (
+                                    <Tooltip
+                                        key={`${chain.id}`}
+                                        trigger=<ScaleInOut
+                                            key={`scale-${chain.id}`}
+                                            className={i !== 0 ? "ms-2" : undefined}
                                         >
-                                            {chain.name}
-                                        </Tooltip>
-                                    )
-                                })}
+                                            <SelectItemToggle
+                                                onClick={setSelectedFilterChain.bind(this, isSelected ? undefined : chain)}
+                                                isSelected={isSelected}
+                                                className="container-select px-3 py-2 rounded-lg before:rounded-lg"
+                                                replaceClass={true}
+                                            >
+                                                <ChainImage chain={chain} size="xs" />
+                                            </SelectItemToggle>
+                                        </ScaleInOut>
+                                    >
+                                        {chain.name}
+                                    </Tooltip>
+                                )
+                            })}
                             {/* </AnimatePresence> */}
                         </div>
                     )}

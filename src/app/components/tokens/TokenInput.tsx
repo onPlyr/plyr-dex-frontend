@@ -29,6 +29,7 @@ export interface TokenInputProps extends React.ComponentPropsWithoutRef<"div"> {
     value?: string,
     setValue?: (value: string) => void,
     isDst?: boolean,
+    isDisabled?: boolean,
 }
 
 export interface TokenInputPercentButtonsProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -114,6 +115,7 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     value,
     setValue,
     isDst = false,
+    isDisabled = false,
     ...props
 }, ref) => {
 
@@ -192,7 +194,7 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                             className="p-0 m-0 text-end text-2xl truncate"
                             value={value}
                             setValue={setValue}
-                            disabled={!chain || !token}
+                            disabled={isDisabled || !chain || !token}
                         />
                     )}
                 </div>

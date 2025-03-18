@@ -28,13 +28,13 @@ import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { NumberFormatType } from "@/app/types/numbers"
-import { SwapTab } from "@/app/config/pages"
 import { iconSizes } from "@/app/config/styling"
 import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import { getChain } from "@/app/lib/chains"
 import { formatDuration } from "@/app/lib/datetime"
 import { getPercentDifferenceFormatted } from "@/app/lib/numbers"
 import { getStatusLabel } from "@/app/lib/utils"
+import { PageType } from "@/app/types/navigation"
 import { CompletedSwapHistory, isCompletedSwapHistory, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
 import { useSearchParams } from 'next/navigation'
@@ -205,7 +205,7 @@ const SwapDetailPage = ({
     // todo: add suspense / loading state
     return swap && (
         <Page
-            key={SwapTab.Transactions}
+            key={PageType.SwapHistoryDetail}
             header=<div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
                 {SwapTypeLabel[swap.type]} to {swap.dstData.chain.name}
                 <ChainImageInline
