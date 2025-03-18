@@ -35,7 +35,7 @@ import { formatDuration } from "@/app/lib/datetime"
 import { getPercentDifferenceFormatted } from "@/app/lib/numbers"
 import { getStatusLabel } from "@/app/lib/utils"
 import { PageType } from "@/app/types/navigation"
-import { CompletedSwapHistory, isCompletedSwapHistory, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
+import { CompletedSwapHistory, isCompletedSwapHistory, isSameChainSwap, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
 import { useSearchParams } from 'next/navigation'
 import { toTokens } from "thirdweb/utils"
@@ -74,15 +74,6 @@ const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut
                     {SwapTypeLabel[swap.type]} {getStatusLabel(swap.status)}!
                 </div>
                 <div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
-                    {/*<Tooltip
-                        trigger=<ChainImageInline
-                            chain={swap.srcData.chain}
-                            size="xs"
-                            className="absolute end-0"
-                        />
-                    >
-                        {swap.srcData.chain.name}
-                    </Tooltip>*/}
                     You {SwapActionLabel[swap.type].sent.toLowerCase()}
                     <DecimalAmount
                         amount={swap.srcAmount}
@@ -97,15 +88,6 @@ const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut
                     />
                 </div>
                 <div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
-                    {/*<Tooltip
-                        trigger=<ChainImageInline
-                            chain={swap.dstData.chain}
-                            size="xs"
-                            className="absolute end-0"
-                        />
-                    >
-                        {swap.dstData.chain.name}
-                    </Tooltip>*/}
                     You {SwapActionLabel[swap.type].received.toLowerCase()}
                     <DecimalAmount
                         amount={swap.dstAmount}
@@ -207,7 +189,7 @@ const SwapDetailPage = ({
         <Page
             key={PageType.SwapHistoryDetail}
             header=<div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
-                {SwapTypeLabel[swap.type]} to {swap.dstData.chain.name}
+                {SwapTypeLabel[swap.type]} {isSameChainSwap(swap) ? "on" : "to"} {swap.dstData.chain.name}
                 <ChainImageInline
                     chain={swap.dstData.chain}
                     size="xs"

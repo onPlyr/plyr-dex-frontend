@@ -164,7 +164,6 @@ interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent 
     events: TEvent[],
     accountAddress?: Address,
     recipientAddress?: Address,
-    plyrId?: string,
     srcAmount: bigint,
     dstAmount?: bigint,
     minDstAmount?: bigint,
@@ -186,7 +185,6 @@ interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent 
     error?: string,
 }
 export type SwapQuote = WithRequired<BaseSwap<QuoteData, BaseData, ValidHopQuote>, "estDstAmount" | "minDstAmount">
-// export type InitiateSwapQuote = WithRequired<SwapQuote, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount">
 export type InitiateSwapQuote = WithRequired<BaseSwap<ValidQuoteData, ValidQuoteData, ValidHopQuote>, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount">
 export type BaseSwapHistory = WithRequired<BaseSwap<HistoryBaseData, HistoryBaseData, HopHistory, HopEventHistory>, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount" | "txHash" | "status">
 export type CompletedSwapHistory = WithRequired<BaseSwapHistory, "dstAmount" | "duration" | "gasFee" | "dstTxHash" | "dstTimestamp">
@@ -239,6 +237,10 @@ export const isSwapHistory = (swap: Swap): swap is SwapHistory => {
 
 export const isCompletedSwapHistory = (swap: Swap): swap is CompletedSwapHistory => {
     return isSwapHistory(swap) && swap.status === SwapStatus.Success && !(!swap.dstAmount || swap.dstAmount === BigInt(0) || swap.duration === undefined || !swap.gasFee || swap.gasFee === BigInt(0) || !swap.dstTxHash || !swap.dstTimestamp)
+}
+
+export const isSameChainSwap = (swap: Swap) => {
+    return swap.srcData.chain.id === swap.dstData.chain.id && swap.hops.every((hop) => hop.srcData.chain.id === hop.dstData.chain.id)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
