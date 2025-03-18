@@ -14,6 +14,11 @@ const nextConfig = {
     async redirects() {
         return [
             { source: '/', destination: '/swap', permanent: false },
+            {
+                source: "/intro",
+                destination: "/swap?intro=true",
+                permanent: false,
+              },
         ]
     },
 };

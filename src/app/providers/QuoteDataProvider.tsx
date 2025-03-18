@@ -106,7 +106,10 @@ const QuoteDataProvider = ({
 
         setSwapRouteState((prev) => {
 
-            if (isSwitchTokens) {
+            const srcIsDst = srcToken && srcToken.id === prev.dstData.token?.id && srcToken.chainId === prev.dstData.chain?.id
+            const dstIsSrc = dstToken && dstToken.id === prev.srcData.token?.id && dstToken.chainId === prev.srcData.chain?.id
+
+            if (isSwitchTokens || srcIsDst || dstIsSrc) {
                 return {
                     srcData: {
                         chain: prev.dstData.chain,
@@ -120,31 +123,19 @@ const QuoteDataProvider = ({
                 }
             }
 
-            let srcDataToken = srcToken ?? prev.srcData.token
-            let dstDataToken = dstToken ?? prev.dstData.token
-
-            if (srcDataToken && dstDataToken && srcDataToken.id === dstDataToken.id && srcDataToken.chainId === dstDataToken.chainId) {
-                if (srcToken) {
-                    dstDataToken = undefined
-                }
-                else if (dstToken) {
-                    srcDataToken = undefined
-                }
-                else {
-                    srcDataToken = undefined
-                    dstDataToken = undefined
-                }
-            }
+            const useSrcToken = srcToken ? getTokenData(srcToken?.id, srcToken?.chainId) : prev.srcData.token
+            const useSrcAmount = srcAmount ? srcAmount : useSrcToken && useSrcToken.id === prev.srcData.token?.id ? prev.srcData.amount : BigInt(0)
+            const useDstToken = dstToken ? getTokenData(dstToken?.id, dstToken?.chainId) : prev.dstData.token
 
             return {
                 srcData: {
-                    chain: (srcDataToken && getChain(srcDataToken.chainId)) ?? prev.srcData.chain,
-                    token: (srcDataToken && getTokenData(srcDataToken.id, srcDataToken.chainId)) ?? prev.srcData.token,
-                    amount: srcAmount ?? (prev.srcData.token && srcDataToken && prev.srcData.token.id === srcDataToken.id ? prev.srcData.amount : BigInt(0)),
+                    chain: useSrcToken && getChain(useSrcToken.chainId),
+                    token: useSrcToken,
+                    amount: useSrcAmount,
                 },
                 dstData: {
-                    chain: (dstDataToken && getChain(dstDataToken.chainId)) ?? prev.dstData.chain,
-                    token: (dstDataToken && getTokenData(dstDataToken.id, dstDataToken.chainId)) ?? prev.dstData.token,
+                    chain: useDstToken && getChain(useDstToken.chainId),
+                    token: useDstToken,
                 },
             }
         })
