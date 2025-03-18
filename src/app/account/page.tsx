@@ -15,7 +15,6 @@ import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { Page } from "@/app/components/ui/Page"
 import { defaultCurrency } from "@/app/config/numbers"
-import { SwapTab } from "@/app/config/pages"
 import { iconSizes } from "@/app/config/styling"
 import useReadAvvyName from "@/app/hooks/avvy/useReadAvvyName"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
@@ -24,6 +23,7 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { sortTokens } from "@/app/lib/tokens"
+import { PageType } from "@/app/types/navigation"
 import { PreferenceType } from "@/app/types/preferences"
 import { TokenSortType } from "@/app/types/tokens"
 
@@ -55,7 +55,7 @@ const AccountPage = () => {
 
     return (
         <Page
-            key={SwapTab.Account}
+            key={PageType.Account}
             header="My Account"
             backUrl="/swap"
         >
