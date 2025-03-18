@@ -294,6 +294,7 @@ const SwapPage = () => {
                                         route={swapRoute}
                                         value={srcAmountInput}
                                         setValue={setSrcAmountInput}
+                                        isDisabled={isShowIntro}
                                     />
                                     <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
                                         <Tooltip
@@ -313,6 +314,7 @@ const SwapPage = () => {
                                         route={swapRoute}
                                         value={selectedQuote ? formatUnits(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals) : undefined}
                                         isDst={true}
+                                        isDisabled={isShowIntro}
                                     />
                                     <UnwrapNativeToken />
                                     <AnimatePresence mode="wait">

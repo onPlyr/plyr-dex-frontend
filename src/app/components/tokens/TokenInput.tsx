@@ -2,7 +2,7 @@
 
 import { AnimateNumber } from "motion-plus/react"
 import Link from "next/link"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 import { formatUnits } from "viem"
 
@@ -194,6 +194,7 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                             className="p-0 m-0 text-end text-2xl truncate"
                             value={value}
                             setValue={setValue}
+                            autoFocus={!isDisabled}
                             disabled={isDisabled || !chain || !token}
                         />
                     )}
