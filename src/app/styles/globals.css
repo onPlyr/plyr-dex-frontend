@@ -32,18 +32,23 @@
     .clear-bg {
         @apply bg-transparent hover:bg-transparent group-hover:bg-transparent active:bg-transparent focus:bg-transparent focus-within:bg-transparent;
     }
+
     .clear-border-outline {
         @apply border-0 hover:border-0 active:border-0 focus:border-0 focus-within:border-0 outline-none hover:outline-none active:outline-none focus:outline-none focus-within:outline-none;
     }
+
     .gradient-border-base {
         @apply relative rounded transition p-[3px];
     }
+
     .gradient-glow-base {
         @apply absolute -inset-3 -z-50 blur-xl opacity-50;
     }
+
     .gradient-brand-bg {
         @apply bg-brand-gradient supports-[color:oklch(0_0_0)]:bg-brand-gradient-oklch;
     }
+
     .gradient-brand-conic-bg {
         @apply bg-brand-gradient-conic supports-[color:oklch(0_0_0)]:bg-brand-gradient-conic-oklch;
     }
@@ -53,9 +58,11 @@
     .gradient-btn {
         @apply rounded-[36px] bg-gradient-btn hover:bg-gradient-btn;
     }
+
     .icon-btn {
         @apply clear-bg clear-border-outline transition;
     }
+
     .toast-action-btn {
         @apply gradient-btn px-2 py-1 h-fit;
         @apply rounded-lg;
@@ -66,24 +73,31 @@
     .container-bg-hover {
         @apply bg-layout-200/15;
     }
+
     .container-bg {
         @apply bg-layout-200/10 hover:container-bg-hover;
     }
+
     .container-bg-no-hover {
         @apply bg-layout-200/10;
     }
+
     .container-border-hover {
         @apply border-layout-600;
     }
+
     .container-border {
         @apply border-1 border-layout-700 hover:container-border-hover;
     }
+
     .container-border-light {
         @apply border-1 border-layout-500 hover:border-layout-400;
     }
+
     .container-border-b {
         @apply border-b-1 border-layout-700;
     }
+
     .container-border-as-bg {
         @apply bg-layout-700 hover:bg-layout-600;
     }
@@ -95,9 +109,11 @@
     .gradient-border-bg {
         background: var(--color-brand-green);
     }
+
     .gradient-border-bg-oklch {
         background: var(--color-brand-green);
     }
+
     .gradient-border-mask {
         mask: linear-gradient(#000 0 0) exclude, linear-gradient(#000 0 0) content-box;
     }
@@ -109,30 +125,39 @@
     .animate-fade-in-out {
         @apply data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0;
     }
+
     .animate-fade-zoom-slide-in {
         @apply data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%];
     }
+
     .animate-fade-zoom-slide-out {
         @apply data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%];
     }
+
     .animate-fade-zoom-slide-in-out {
         @apply animate-fade-zoom-slide-in animate-fade-zoom-slide-out;
     }
+
     .animate-fade-zoom-in-out {
         @apply animate-fade-in-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95;
     }
+
     .animate-slide-in-out-base {
         @apply data-[state=open]:animate-in data-[state=open]:duration-300 data-[state=closed]:animate-out data-[state=closed]:duration-300;
     }
+
     .animate-slide-in-out-left {
         @apply animate-slide-in-out-base data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left;
     }
+
     .animate-slide-in-out-right {
         @apply animate-slide-in-out-base data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right;
     }
+
     .animate-slide-in-out-top {
         @apply animate-slide-in-out-base data-[state=open]:slide-in-from-top data-[state=closed]:slide-out-to-top;
     }
+
     .animate-slide-in-out-bottom {
         @apply animate-slide-in-out-base data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom;
     }
@@ -140,9 +165,11 @@
     .animate-tab-base {
         @apply data-[state=active]:animate-in data-[state=active]:duration-300 data-[state=inactive]:animate-out data-[state=inactive]:duration-300;
     }
+
     .animate-tab-slide-in-out-left {
         @apply animate-tab-base data-[state=active]:slide-in-from-left data-[state=inactive]:slide-out-to-left;
     }
+
     .animate-tab-slide-in-out-right {
         @apply animate-tab-base data-[state=active]:slide-in-from-right data-[state=inactive]:slide-out-to-right;
     }
@@ -157,6 +184,7 @@
     .gradient-border-rounded {
         @apply relative rounded-[36px] transition container-bg;
     }
+
     .gradient-border-rounded:before {
         @apply gradient-border-mask content-[""] absolute -z-[1] inset-0 border-2 border-transparent rounded-[36px] transition;
         @apply data-[selected=true]:gradient-border-bg data-[selected=true]:animate-rotate data-[selected=true]:running data-[selected=false]:container-border-as-bg data-[selected=false]:paused data-[selected=true]:supports-[color:oklch(0_0_0)]:gradient-border-bg-oklch;
@@ -166,40 +194,50 @@
     .container {
         @apply rounded-[36px] transition container-bg container-border p-4;
     }
+
     .container-select {
         @apply gradient-border-rounded data-[disabled=false]:cursor-pointer data-[disabled=true]:cursor-auto;
     }
+
     .container-select-transparent {
         @apply container-select bg-transparent backdrop-blur-none data-[selected=true]:container-bg data-[selected=true]:backdrop-blur-sm hover:backdrop-blur-sm;
     }
+
     .container-select-transparent:before {
         @apply bg-transparent data-[selected=false]:bg-transparent;
     }
+
     .container-error {
         @apply container border-error-600 hover:border-error-500;
     }
+
     .container-success {
         @apply container bg-success-950 hover:bg-success-900 border-success-500 hover:border-success-400;
     }
+
     .container-btn {
         @apply container rounded-[36px] px-4 py-3 gap-3 flex flex-row flex-none w-fit justify-center items-center rounded-lg font-bold text-xs uppercase text-muted-300;
         @apply hover:text-white focus:text-white focus-within:text-white active:text-white;
         @apply hover:container-bg-hover focus:container-bg-hover focus-within:container-bg-hover active:container-bg-hover data-[selected=true]:container-bg-hover;
         @apply hover:container-border-hover focus:container-border-hover focus-within:container-border-hover active:container-border-hover data-[selected=true]:container-border-hover;
     }
+
     .input-container {
         @apply container rounded-[36px] focus:bg-layout-200/15 focus:border-layout-600 focus-within:bg-layout-200/15 focus-within:border-layout-600 active:bg-layout-200/15 active:border-layout-600;
         @apply data-[error=true]:text-error-600 data-[error=true]:hover:text-error-500 data-[error=true]:focus:text-error-500 data-[error=true]:focus-within:text-error-500 data-[error=true]:active:text-error-500;
         @apply data-[error=true]:border-error-600 data-[error=true]:hover:border-error-500 data-[error=true]:focus:border-error-500 data-[error=true]:focus-within:border-error-500 data-[error=true]:active:border-error-500;
         @apply data-[success=true]:border-success-600 data-[success=true]:hover:border-success-500 data-[success=true]:focus:border-success-500 data-[success=true]:focus-within:border-success-500 data-[success=true]:active:border-success-500;
     }
+
     .popover-container {
         @apply rounded transition popover-bg-colour backdrop-blur-sm;
     }
+
     .popover-container:before {
         @apply gradient-border-mask content-[""] absolute -z-[1] inset-0 border-1 border-transparent rounded transition;
         @apply gradient-border-bg animate-rotate running supports-[color:oklch(0_0_0)]:gradient-border-bg-oklch;
     }
+
     .tooltip-container {
         @apply px-3 py-2 rounded-lg transition bg-layout-950/75 hover:bg-layout-950/85;
     }
@@ -207,14 +245,17 @@
     .tab-list {
         @apply flex flex-row flex-1 gap-4 justify-center items-center;
     }
+
     .tab-nav {
         @apply flex flex-col sm:flex-row flex-1 p-4 gap-x-4 gap-y-2 h-full justify-center items-center transition font-bold text-white hover:text-link-500;
     }
+
     .tab {
         @apply flex flex-row flex-1 justify-center items-center px-4 py-3 rounded font-bold transition;
         @apply bg-white/10 hover:bg-white/15 active:bg-white/15 focus:bg-white/15 focus-within:bg-white/15;
         @apply relative flex flex-row flex-1 p-2 gap-1 justify-center items-center;
     }
+
     .tab-indicator {
         @apply gradient-btn w-full h-full absolute start-0 top-0 -z-[1] border-2 border-transparent overflow-hidden bg-clip-content group-hover:bg-[position:100%_50%];
     }
@@ -230,6 +271,7 @@
     .label {
         @apply flex flex-row flex-none px-2 py-1 gap-3 h-fit justify-center items-center rounded-lg transition font-bold text-xs text-nowrap uppercase container-bg container-border-light;
     }
+
     .swap-label {
         @apply flex flex-row flex-none px-2 py-1 w-fit justify-center items-center rounded-full font-bold;
     }
@@ -238,9 +280,8 @@
     .form-btn {
         @apply clear-bg clear-border-outline flex flex-row flex-1 px-3 py-2 gap-4 justify-center items-center rounded transition font-bold text-nowrap;
         @apply container hover:border-1 active:border-1;
-        @apply data-[success=true]:border-success-500 data-[success=true]:hover:border-success-400 data-[success=true]:active:border-success-400;
-        @apply data-[error=true]:container-error;
-        @apply disabled:cursor-not-allowed;
+        @apply data-[success=true]:gradient-btn data-[success=true]:text-black;
+        @apply disabled:cursor-not-allowed disabled:text-muted-500;
     }
 
     .input {
@@ -266,6 +307,7 @@
         @apply hover:bg-select-800/75 active:bg-select-800/75 focus:bg-select-800/75 focus-within:bg-select-800/75 data-[selected=true]:bg-select-800 data-[selected=true]:hover:bg-select-800;
         @apply data-[disabled=true]:cursor-not-allowed;
     }
+
     .select-item-toggle {
         @apply select-item btn;
         @apply inline-flex flex-initial flex-nowrap text-nowrap w-fit ps-3 pe-4 py-2 gap-3 justify-center rounded-full text-sm bg-white/10;
@@ -274,7 +316,8 @@
 }
 
 :root {
-    --background: #111113; /* layout/darkZinc 900 */
+    --background: #111113;
+    /* layout/darkZinc 900 */
     --foreground: #ffffff;
 }
 

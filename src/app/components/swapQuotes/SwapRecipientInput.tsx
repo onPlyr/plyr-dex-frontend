@@ -53,8 +53,8 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
 }, ref) => {
 
     const { address: accountAddress } = useAccount()
-    const { recipient, recipientInput, setRecipientInput, showRecipient, isInProgress, isError, msg, setSwapRecipient } = useSwapRecipientData
-    const enabled = !(!recipient || isInProgress || isError)
+    const { recipient, recipientInput, setRecipientInput, showRecipient, isInProgress, isError, msg, setSwapRecipient, cancelInput } = useSwapRecipientData
+    const isValid = !(!recipient || isInProgress || isError)
 
     const handleRecipientInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setRecipientInput(event.target.value)
@@ -89,7 +89,7 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
                 <div
                     className="input-container flex flex-row flex-1 px-3 py-2 gap-4"
                     data-error={isError}
-                    // data-success={enabled}
+                    data-success={isValid}
                 >
                     <TextInput
                         value={recipientInput}
@@ -112,16 +112,25 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
                         Use connected account
                     </Tooltip>
                 </div>
-                <Button
-                    className="form-btn"
-                    replaceClass={true}
-                    onClick={enabled ? setSwapRecipient.bind(this) : undefined}
-                    disabled={!enabled}
-                    data-success={enabled}
-                >
-                    {msg}
-                    {isInProgress && <LoadingIcon className={iconSizes.xs} />}
-                </Button>
+                <div className="flex flex-row flex-1 gap-4">
+                    <Button
+                        className="form-btn"
+                        replaceClass={true}
+                        onClick={cancelInput.bind(this)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="form-btn"
+                        replaceClass={true}
+                        onClick={isValid ? setSwapRecipient.bind(this) : undefined}
+                        data-success={isValid}
+                        disabled={!isValid}
+                    >
+                        {msg}
+                        {isInProgress && <LoadingIcon className={iconSizes.xs} />}
+                    </Button>
+                </div>
             </div>
         </motion.div>
     )

@@ -18,6 +18,7 @@ export interface UseSwapSlippageReturnType {
     setShowSlippage: Dispatch<SetStateAction<boolean>>,
     isValid: boolean,
     setSwapSlippage: () => void,
+    cancelInput: () => void,
 }
 
 const useSwapSlippage = ({
@@ -53,6 +54,7 @@ const useSwapSlippage = ({
 
     useEffect(() => {
         if (swap && isRefetchTriggered && !useSwapQuotesData.isInProgress) {
+
             setNotification({
                 id: "slippage-changed",
                 type: selectedQuote ? NotificationType.Success : NotificationType.Error,
@@ -60,6 +62,11 @@ const useSwapSlippage = ({
                 body: `${selectedQuote ? "Best quote selected" : "No quotes found"} using updated max. slippage tolerance of ${bpsToPercent(slippageBps)}`,
                 status: selectedQuote ? NotificationStatus.Success : NotificationStatus.Error,
             })
+
+            if (selectedQuote && swap.recipientAddress) {
+                selectedQuote.recipientAddress = swap.recipientAddress
+            }
+
             setSwap(selectedQuote)
             setIsRefetchTriggered(false)
         }
@@ -81,6 +88,11 @@ const useSwapSlippage = ({
         }
     }, [setPreference, useSwapQuotesData, setNotification, slippageBps, setShowSlippage, isValid, setIsRefetchTriggered])
 
+    const cancelInput = useCallback(() => {
+        setSlippageInput("")
+        setShowSlippage(false)
+    }, [setSlippageInput, setShowSlippage])
+
     return {
         slippageInput,
         slippageBps,
@@ -89,6 +101,7 @@ const useSwapSlippage = ({
         setShowSlippage,
         isValid,
         setSwapSlippage,
+        cancelInput,
     }
 }
 

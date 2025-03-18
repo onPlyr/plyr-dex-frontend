@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import React, { useCallback, useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"
+import { isAddressEqual } from "viem"
 
 import ApproxEqualIcon from "@/app/components/icons/ApproxEqualIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
@@ -12,6 +13,7 @@ import EditIcon from "@/app/components/icons/EditIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import ExchangeRateIcon from "@/app/components/icons/ExchangeRateIcon"
 import ReceiveIcon from "@/app/components/icons/ReceiveIcon"
+import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import SendIcon from "@/app/components/icons/SendIcon"
 import SlippageIcon from "@/app/components/icons/SlippageIcon"
 import SpeedIcon from "@/app/components/icons/SpeedIcon"
@@ -31,6 +33,7 @@ import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes, imgSizes } from "@/app/config/styling"
 import { SwapQuoteConfig } from "@/app/config/swaps"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
+import { UseSwapRecipientReturnType } from "@/app/hooks/swap/useSwapRecipient"
 import { UseSwapSlippageReturnType } from "@/app/hooks/swap/useSwapSlippage"
 import { getBlockExplorerLink } from "@/app/lib/chains"
 import { formatDuration } from "@/app/lib/datetime"
@@ -45,6 +48,7 @@ import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQ
 
 interface SwapHistoryEventSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: Swap,
+    useSwapRecipientData?: UseSwapRecipientReturnType,
     useSwapSlippageData?: UseSwapSlippageReturnType,
     index?: number,
     animationProps?: React.ComponentPropsWithoutRef<typeof motion.div>,
@@ -95,6 +99,7 @@ SwapEventAnimation.displayName = "SwapEventAnimation"
 const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEventSummaryProps>(({
     className,
     swap,
+    useSwapRecipientData,
     useSwapSlippageData,
     index,
     animationProps,
@@ -451,6 +456,31 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                 value={bpsToPercent(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)}
                                                 valueClass="font-mono text-base"
                                             />
+                                            {/* {swap.accountAddress && swap.recipientAddress && !isAddressEqual(swap.accountAddress, swap.recipientAddress) && (
+                                                <SwapParameter
+                                                    icon=<RecipientIcon className={iconSizes.sm} />
+                                                    label=<>
+                                                        Recipient
+                                                        {useSwapRecipientData && (
+                                                            <Tooltip
+                                                                trigger=<Button
+                                                                    label="Adjust slippage"
+                                                                    className={twMerge("icon-btn transition hover:text-white", useSwapRecipientData.showRecipient ? "text-white" : undefined)}
+                                                                    replaceClass={true}
+                                                                    onClick={useSwapRecipientData.setShowRecipient.bind(this, !useSwapRecipientData.showRecipient)}
+                                                                >
+                                                                    <EditIcon className={iconSizes.xs} />
+                                                                </Button>
+                                                            >
+                                                                Send to a different address
+                                                            </Tooltip>
+                                                        )}
+                                                    </>
+                                                    labelClass="gap-4"
+                                                    value={toShort(swap.recipientAddress)}
+                                                    valueClass="font-mono text-base"
+                                                />
+                                            )} */}
                                             <SwapParameter
                                                 icon=<TesseractIcon className={iconSizes.sm} />
                                                 label="Fee"

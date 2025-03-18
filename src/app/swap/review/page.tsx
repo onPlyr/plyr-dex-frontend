@@ -172,10 +172,10 @@ const ReviewSwapPage = () => {
     const [quote, setQuote] = useState(selectedQuote)
     const [isConfirmQuote, setIsConfirmQuote] = useState(!quote?.isConfirmed)
     const [initiatedBlockData, setInitiatedBlockData] = useState(latestBlocks)
-    // const useSwapRecipientData = useSwapRecipient({
-    //     swap: quote,
-    //     setSwap: setQuote,
-    // })
+    const useSwapRecipientData = useSwapRecipient({
+        swap: quote,
+        setSwap: setQuote,
+    })
 
     const useSwapSlippageData = useSwapSlippage({
         swap: quote,
@@ -286,6 +286,9 @@ const ReviewSwapPage = () => {
     })
 
     const switchQuote = useCallback((newQuote: SwapQuote) => {
+        if (quote?.recipientAddress) {
+            newQuote.recipientAddress = quote.recipientAddress
+        }
         setQuote(newQuote)
         removeNotification(quote?.id)
     }, [quote, setQuote, removeNotification])
@@ -447,6 +450,7 @@ const ReviewSwapPage = () => {
                 {quote && (
                     <SwapHistoryEventSummary
                         swap={quote}
+                        useSwapRecipientData={useSwapRecipientData}
                         useSwapSlippageData={useSwapSlippageData}
                     />
                 )}
