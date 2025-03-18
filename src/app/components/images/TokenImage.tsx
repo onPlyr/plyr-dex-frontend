@@ -25,7 +25,7 @@ export const TokenImage = React.forwardRef<HTMLDivElement, TokenImageProps>(({
         className={twMerge("relative block rounded-full bg-select-950 aspect-square overflow-hidden", (size && imgSizes[size]) || imgSizes.default, className)}
         {...props}
     >
-        {token ? (
+        {token?.icon ? (
             <Image
                 src={src || `/tokens/logos/${token.icon}`}
                 alt={token.symbol}

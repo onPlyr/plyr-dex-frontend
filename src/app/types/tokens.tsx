@@ -17,8 +17,8 @@ interface BaseTokenData {
     readonly symbol: string,
     readonly name: string,
     readonly decimals: number,
-    readonly icon: TokenIcon,
-    readonly iconBackground: TokenIconBackground,
+    readonly icon?: TokenIcon,
+    readonly iconBackground?: TokenIconBackground,
     readonly bridges?: TokenBridge[],
 }
 

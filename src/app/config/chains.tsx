@@ -125,6 +125,129 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryBatchSize: 10,
             maxQueryNumBatches: 10,
         },
+        adapters: [
+            {
+                address: "0x3614657EDc3cb90BA420E5f4F61679777e4974E3",
+                name: "Pangolin",
+                platform: "pangolin",
+            },
+            {
+                address: "0xDB66686Ac8bEA67400CF9E5DD6c8849575B90148",
+                name: "LFJ",
+                platform: "lfj",
+            },
+            {
+                address: "0x6A68F261F8976559259d74A3494C19Ee2bDE0e4F",
+                name: "LFJ Liquidity Book",
+                platform: "lfj",
+            },
+            {
+                address: "0xd8F5aBA3Ee8E3B27633E06b43f459f5bCE516Ab6",
+                name: "LFJ Liquidity Book",
+                platform: "lfj",
+            },
+            {
+                address: "0x29deCcD2f4Fdb046D24585d01B1DcDFb902ACAcD",
+                name: "Uniswap",
+                platform: "uniswap",
+            },
+            {
+                address: "0xd0f6e66113A6D6Cca238371948F4Ce2893D62881",
+                name: "Curve",
+                platform: "curve",
+            },
+            {
+                address: "0x7F8B47Ff174Eaf96960a050B220a907dFa3feD5b",
+                name: "GMX",
+                platform: "gmx",
+            },
+            {
+                address: "0x5d6fCD3108E016912Fa3448636e378B116167104",
+                name: "GMX",
+                platform: "gmx",
+            },
+            {
+                address: "0x97d26D7fc0895e3456b2146585848b466cfbb1cf",
+                name: "Pharaoh",
+                platform: "pharaoh",
+            },
+            {
+                address: "0xFE163f7DB6674ae3Fed3f148B19483ca516565Fd",
+                name: "Geode",
+                platform: "geode",
+            },
+            {
+                address: "0x3f314530a4964acCA1f20dad2D35275C23Ed7F5d",
+                name: "Sushi",
+                platform: "sushi",
+            },
+            {
+                address: "0xaFb5aE9934266a131F44F2A80c783d6a827A3d1a",
+                name: "Synapse",
+                platform: "synapse",
+            },
+            {
+                address: "0x491dc06178CAF5b962DB53576a8A1456a8476232",
+                name: "Curve",
+                platform: "curve",
+            },
+            {
+                address: "0x5083fC22c18771609fA661fc6304a611613A6068",
+                name: "Curve",
+                platform: "curve",
+            },
+            {
+                address: "0x77fc17D927eBcEaEA2c4704BaB1AEebB0547ea42",
+                name: "Curve",
+                platform: "curve",
+            },
+            {
+                address: "0x22c62c9E409B97F1f9caA5Ca5433074914d73c3e",
+                name: "Curve",
+                platform: "curve",
+            },
+            {
+                address: "0x3EeA1f1fFCA00c69bA5a99E362D9A7d4e3902B3c",
+                name: "Curve",
+                platform: "curve",
+            },
+            {
+                address: "0x3B9645B2432374d9B3Fa766b95D5A793D7241190",
+                name: "WOOFi",
+                platform: "woofi",
+            },
+            {
+                address: "0x7De32C76309aeB1025CBA3384caBe36326603046",
+                name: "Wombat",
+                platform: "wombat",
+            },
+            {
+                address: "0x2F6ca0a98CF8f7D407E98993fD576f70F0FAA80B",
+                name: "BENQI",
+                platform: "benqi",
+            },
+            {
+                address: "0x79632b8194a1Ce048e5d9b0e282E9eE2d4579c20",
+                name: "GoGoPool",
+                platform: "gogopool",
+            },
+            // todo: check if the below is needed
+            {
+                address: "0x5C4d23fd18Fc4128f77426F42237acFcE618D0b1",
+                name: "WAVAX",
+                platform: "wrappedavax",
+            },
+            {
+                address: "0xA05A3ebE5D0Ab59E449Fe34014f51948cb9F31dF",
+                name: "Pharaoh",
+                platform: "pharaoh",
+            },
+            {
+                address: "0x214617987145Ef7c5462870362FdCAe9cacdf3C8",
+                name: "LFJ Token Mill",
+                platform: "lfj",
+            },
+        ],
     },
     [avalancheFuji.id]: {
         ...avalancheFuji,

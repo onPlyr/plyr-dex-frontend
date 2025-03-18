@@ -124,7 +124,7 @@ const QuoteDataProvider = ({
             }
 
             const useSrcToken = srcToken ? getTokenData(srcToken?.id, srcToken?.chainId) : prev.srcData.token
-            const useSrcAmount = srcAmount ? srcAmount : useSrcToken && useSrcToken.id === prev.srcData.token?.id ? prev.srcData.amount : BigInt(0)
+            const useSrcAmount = srcAmount ?? (useSrcToken && useSrcToken.id === prev.srcData.token?.id ? prev.srcData.amount : BigInt(0))
             const useDstToken = dstToken ? getTokenData(dstToken?.id, dstToken?.chainId) : prev.dstData.token
 
             return {

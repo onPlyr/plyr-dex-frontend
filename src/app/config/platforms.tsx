@@ -24,7 +24,7 @@ const basePlatforms: Platform[] = [
     },
     {
         id: "uniswap",
-        name: "PLYR[SWAP]",
+        name: "Uniswap",
         icon: "square.svg",
         img: {
             square: "square.svg",
@@ -33,6 +33,98 @@ const basePlatforms: Platform[] = [
             brand: "brand.svg",
             brandDark: "brand-dark.svg",
             brandLight: "brand-light.svg",
+        },
+    },
+    {
+        id: "dexalot",
+        name: "Dexalot",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            brand: "brand.svg",
+        },
+    },
+    {
+        id: "plyr",
+        name: "PLYR",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            brand: "brand.svg",
+        },
+    },
+    {
+        id: "benqi",
+        name: "BENQI",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            brand: "brand.svg",
+        },
+    },
+    {
+        id: "benqi-savax",
+        name: "sAVAX",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            squareDark: "square-dark.svg",
+            squareLight: "square-light.svg",
+        },
+    },
+    {
+        id: "curve",
+        name: "Curve",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            squareLight: "square-light.svg",
+        },
+    },
+    {
+        id: "gmx",
+        name: "GMX",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            brand: "brand.svg",
+        },
+    },
+    {
+        id: "sushi",
+        name: "Sushi",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+        },
+    },
+    {
+        id: "synapse",
+        name: "Synapse",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+        },
+    },
+    {
+        id: "wombat",
+        name: "Wombat",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            squareDark: "square-dark.svg",
+            brand: "brand.svg",
+            brandDark: "brand-dark.svg",
+        },
+    },
+    {
+        id: "woofi",
+        name: "WOOFi",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+            squareDark: "square-dark.svg",
+            brand: "brand.svg",
         },
     },
 ] as const

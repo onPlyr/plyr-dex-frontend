@@ -11,7 +11,7 @@ import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeDat
 import { MathBigInt } from "@/app/lib/numbers"
 import { getPlatform } from "@/app/lib/platforms"
 import { toShort } from "@/app/lib/strings"
-import { getToken, getTokenByAddress } from "@/app/lib/tokens"
+import { getToken, getTokenByAddress, getUnsupportedToken } from "@/app/lib/tokens"
 import { getParsedError } from "@/app/lib/utils"
 import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
 import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/apis"
@@ -19,10 +19,10 @@ import { BridgeProvider } from "@/app/types/bridges"
 import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
 import { SlippageConfig } from "@/app/types/preferences"
- import {
-     GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
-     isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType
- } from "@/app/types/swaps"
+import {
+    GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
+    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType
+} from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
 
 export const generateSwapId = (): SwapId => {
@@ -725,11 +725,12 @@ export const getHopEventData = ({
         } = hop.trade ?? {}
 
         const tradeDstAmount = amountOut || minAmountOut || hop.dstData.estAmount
-        const tradeDstToken = tokenOut && getTokenByAddress(tokenOut, hop.srcData.chain)
+        const tradeDstToken = tokenOut && (getTokenByAddress(tokenOut, hop.srcData.chain) ?? getUnsupportedToken(tokenOut, hop.srcData.chain))
+        const prevHop = hops.at(hop.index - 1)
 
         let prevDstToken: Token | undefined = hop.srcData.token
         let prevDstAmount = hop.srcData.estAmount
-        let isPrevSwap = hopIndex === 0 ? false : isSwapHopType(hops[hopIndex - 1].type)
+        let isPrevSwap = !!prevHop && isSwapHopType(prevHop.type)
 
         if (isSwapHopType(hop.type) && hop.srcData.cell) {
 
@@ -739,8 +740,8 @@ export const getHopEventData = ({
 
                     const adapterAddress = adapterAddresses?.[i] || hop.srcData.cell.address
                     const adapter = getSwapAdapter(hop.srcData.chain, adapterAddress)
-                    const eventSrcToken = getTokenByAddress(tradePath[i], hop.srcData.chain)
-                    const eventDstToken = getTokenByAddress(tradePath[i + 1], hop.srcData.chain)
+                    const eventSrcToken = getTokenByAddress(tradePath[i], hop.srcData.chain) ?? getUnsupportedToken(tradePath[i], hop.srcData.chain)
+                    const eventDstToken = getTokenByAddress(tradePath[i + 1], hop.srcData.chain) ?? getUnsupportedToken(tradePath[i + 1], hop.srcData.chain)
                     const eventDstAmount = i === tradePath.length - 2 ? tradeDstAmount : undefined
 
                     if (eventSrcToken && eventDstToken) {

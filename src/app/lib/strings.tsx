@@ -1,5 +1,5 @@
 export const slugify = (str: string) => {
-    return str.replace(/[^0-9a-z-]/gi, "-").replace(/[-]+/g, "-").toLowerCase()
+    return str.replace(/[^0-9a-z-]/gi, "-").replace(/[-]+/g, "-").toLowerCase() as Lowercase<string>
 }
 
 export const toShort = (str: string, charsStart?: number, charsEnd?: number) => {

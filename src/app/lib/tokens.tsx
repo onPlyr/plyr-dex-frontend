@@ -6,6 +6,7 @@ import { getChain, getFilteredChains } from "@/app/lib/chains"
 import { Chain } from "@/app/types/chains"
 import { NetworkMode } from "@/app/types/preferences"
 import { FavouriteTokenData, FavouriteTokensContextType, Token, TokenId, TokenSortType } from "@/app/types/tokens"
+import { slugify, toShort } from "./strings"
 
 export const FavouriteTokensContext = createContext({} as FavouriteTokensContextType)
 
@@ -148,5 +149,28 @@ export const filterTokens = (tokens: Token[], networkMode: NetworkMode, queryStr
     return {
         tokenResults,
         chainResults,
+    }
+}
+
+export const getUnsupportedToken = (address: Address, chain: Chain, tokenData?: Partial<Token>): Token => {
+
+    const symbol = tokenData?.symbol ?? address.slice(-4)
+    const name = tokenData?.name ?? toShort(address)
+
+    return {
+        id: slugify(`${chain.id}-${address}`),
+        symbol: symbol,
+        name: name,
+        decimals: 18,
+        address: address,
+        chainId: chain.id,
+        filters: {
+            symbol: symbol.toLowerCase() as Lowercase<string>,
+            name: name.toLowerCase() as Lowercase<string>,
+            address: address.toLowerCase() as Lowercase<string>,
+            chain: chain.name.toLowerCase() as Lowercase<string>,
+            chainId: chain.id.toString() as Lowercase<string>,
+        },
+        ...tokenData,
     }
 }
