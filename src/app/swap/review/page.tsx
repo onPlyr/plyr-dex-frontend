@@ -22,6 +22,7 @@ import useApiData from "@/app/hooks/apis/useApiData"
 import useBlockData from "@/app/hooks/blocks/useBlockData"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
+import useAlternativeSwapQuote from "@/app/hooks/swap/useAlternativeSwapQuote"
 import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import useSwapRecipient from "@/app/hooks/swap/useSwapRecipient"
 import useSwapSlippage from "@/app/hooks/swap/useSwapSlippage"
@@ -30,7 +31,6 @@ import useReadAllowance from "@/app/hooks/tokens/useReadAllowance"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
 import { formatDuration } from "@/app/lib/datetime"
-import { amountToLocale } from "@/app/lib/numbers"
 import { getInitiateSwapError } from "@/app/lib/swaps"
 import { getTxActionLabel } from "@/app/lib/txs"
 import { PageType } from "@/app/types/navigation"
@@ -181,6 +181,11 @@ const ReviewSwapPage = () => {
         setSwap: setQuote,
     })
 
+    useAlternativeSwapQuote({
+        quote: quote,
+        setQuote: setQuote,
+    })
+
     useEffect(() => {
         if (quote) {
             quote.accountAddress = accountAddress
@@ -195,6 +200,7 @@ const ReviewSwapPage = () => {
     const isValidQuote = quote && isValidSwapQuote(quote)
     const isValidInitiate = isValidQuote && isValidInitiateSwapQuote(quote)
 
+        // todo: check if review quote has expired, add time limit (eg. 5 mins) and prevent swapping before refreshing or force auto update to prevent stale quotes
     // todo: add message / 404 / notification on redirect
     useEffect(() => {
         if (!isValidQuote) {
@@ -202,31 +208,10 @@ const ReviewSwapPage = () => {
         }
     }, [isValidQuote])
 
-    // todo: check if review quote has expired, add time limit (eg. 5 mins) and prevent swapping before refreshing or force auto update to prevent stale quotes
-    useEffect(() => {
-        if (quote && selectedQuote && selectedQuote.estDstAmount > quote.estDstAmount) {
-            setNotification({
-                id: quote.id,
-                type: NotificationType.Info,
-                header: `${amountToLocale(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals)} ${selectedQuote.dstData.token.symbol} Route Found`,
-                body: `An alternative route has been found with an increased estimated return of ${amountToLocale(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals)} ${selectedQuote.dstData.token.symbol}`,
-                action: <Button
-                    className="btn gradient-btn px-3 py-2"
-                    onClick={switchQuote.bind(this, selectedQuote)}
-                >
-                    Switch Route
-                </Button>,
-                status: NotificationStatus.Info,
-                isManualDismiss: true,
-            })
-        }
-    }, [quote, selectedQuote])
-
     useEffect(() => {
         setIsConfirmQuote(!quote?.isConfirmed)
         setInitiatedBlockData(latestBlocks)
     }, [quote?.id])
-
 
 
     const { data: allowance, refetch: refetchAllowance, isInProgress: allowanceIsInProgress } = useReadAllowance({
@@ -236,7 +221,6 @@ const ReviewSwapPage = () => {
         spenderAddress: srcData?.cell.address,
         _enabled: isConnected,
     })
-
 
     const enabled = isConnected && !(!accountAddress || !isValidQuote || !srcData || !dstData)
     const isApprove = enabled && !srcData.token.isNative && (!allowance || allowance < quote.srcAmount)

@@ -10,7 +10,7 @@ const useInterval = (callback: () => void, intervalMs?: number) => {
 
     useEffect(() => {
 
-        if (intervalMs === undefined) {
+        if (!intervalMs) {
             return
         }
 

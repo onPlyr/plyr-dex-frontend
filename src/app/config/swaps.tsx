@@ -33,6 +33,7 @@ export const SwapQuoteConfig = {
     DefaultMaxHops: 3,
     QuoteValidMs: 60000,
     TesseractFee: 0,
+    AlternativeQuoteSwitchDelayMs: 5000,
 } as const
 
 export const YakSwapConfig = {
