@@ -1,9 +1,9 @@
-import * as React from "react"
+import { Percent } from "@phosphor-icons/react"
+import React from "react"
 
 import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
-import { ChartIcon, ChartIconVariant } from "@/app/components/icons/ChartIcon"
 
-const SlippageIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconProps>(({
+const SlippageIcon = React.forwardRef<React.ComponentRef<typeof BaseIcon>, BaseIconProps>(({
     children,
     ...props
 }, ref) => {
@@ -12,7 +12,7 @@ const SlippageIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIco
             ref={ref}
             {...props}
         >
-            {children ?? <ChartIcon variant={ChartIconVariant.TrendDown} />}
+            {children ?? <Percent />}
         </BaseIcon>
     )
 

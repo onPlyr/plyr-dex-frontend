@@ -10,7 +10,6 @@ import { TransactionReceipt } from "viem"
 import { serialize, useAccount } from "wagmi"
 
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
-import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
 import SwapQuoteExpiryTimer from "@/app/components/swapQuotes/SwapQuoteExpiryTimer"
 import SwapQuotePreviewSummary from "@/app/components/swapQuotes/SwapQuotePreviewSummary"
@@ -385,18 +384,6 @@ const ReviewSwapPage = () => {
             {/* Review {SwapTypeLabel[quote.type]} (recipient: {quote.recipientAddress ? "yes" : "no"} / acc: {quote.accountAddress ? "yes" : "no"} / valid initiate: {serialize(isValidInitiate)}) */}
         </div>
         <div className="flex flex-row flex-none gap-4 absolute end-0 justify-end items-center">
-            {/* <Tooltip
-                trigger=<Button
-                    label="Recipient"
-                    className="icon-btn"
-                    replaceClass={true}
-                    onClick={useSwapRecipientData.setShowRecipient.bind(this, !useSwapRecipientData.showRecipient)}
-                >
-                    <RecipientIcon className={iconSizes.sm} />
-                </Button>
-            >
-                Send to a different address
-            </Tooltip> */}
             <Tooltip
                 trigger=<Button
                     label="Refresh"

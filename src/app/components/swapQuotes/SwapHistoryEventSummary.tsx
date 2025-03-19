@@ -3,7 +3,6 @@
 import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import React, { useCallback, useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"
-import { isAddressEqual } from "viem"
 
 import ApproxEqualIcon from "@/app/components/icons/ApproxEqualIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
@@ -456,31 +455,29 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                 value={bpsToPercent(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)}
                                                 valueClass="font-mono text-base"
                                             />
-                                            {/* {swap.accountAddress && swap.recipientAddress && !isAddressEqual(swap.accountAddress, swap.recipientAddress) && (
-                                                <SwapParameter
-                                                    icon=<RecipientIcon className={iconSizes.sm} />
-                                                    label=<>
-                                                        Recipient
-                                                        {useSwapRecipientData && (
-                                                            <Tooltip
-                                                                trigger=<Button
-                                                                    label="Adjust slippage"
-                                                                    className={twMerge("icon-btn transition hover:text-white", useSwapRecipientData.showRecipient ? "text-white" : undefined)}
-                                                                    replaceClass={true}
-                                                                    onClick={useSwapRecipientData.setShowRecipient.bind(this, !useSwapRecipientData.showRecipient)}
-                                                                >
-                                                                    <EditIcon className={iconSizes.xs} />
-                                                                </Button>
+                                            {/* <SwapParameter
+                                                icon=<RecipientIcon className={iconSizes.sm} />
+                                                label=<>
+                                                    Recipient
+                                                    {useSwapRecipientData && (
+                                                        <Tooltip
+                                                            trigger=<Button
+                                                                label="Adjust slippage"
+                                                                className={twMerge("icon-btn transition hover:text-white", useSwapRecipientData.showRecipient ? "text-white" : undefined)}
+                                                                replaceClass={true}
+                                                                onClick={useSwapRecipientData.setShowRecipient.bind(this, !useSwapRecipientData.showRecipient)}
                                                             >
-                                                                Send to a different address
-                                                            </Tooltip>
-                                                        )}
-                                                    </>
-                                                    labelClass="gap-4"
-                                                    value={toShort(swap.recipientAddress)}
-                                                    valueClass="font-mono text-base"
-                                                />
-                                            )} */}
+                                                                <EditIcon className={iconSizes.xs} />
+                                                            </Button>
+                                                        >
+                                                            Send to a different address
+                                                        </Tooltip>
+                                                    )}
+                                                </>
+                                                labelClass="gap-4"
+                                                value={swap.recipientAddress ? toShort(swap.recipientAddress) : "0x..."}
+                                                valueClass={twMerge("font-mono text-base", !swap.recipientAddress ? "text-muted-500" : undefined)}
+                                            /> */}
                                             <SwapParameter
                                                 icon=<TesseractIcon className={iconSizes.sm} />
                                                 label="Fee"

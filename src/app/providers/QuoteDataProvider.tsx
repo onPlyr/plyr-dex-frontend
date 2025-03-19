@@ -10,6 +10,7 @@ import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useSwapQuotes, { UseSwapQuotesReturnType } from "@/app/hooks/swap/useSwapQuotes"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useDebounce from "@/app/hooks/utils/useDebounce"
+import useEventListener from "@/app/hooks/utils/useEventListener"
 import useInterval from "@/app/hooks/utils/useInterval"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
 import { getChain } from "@/app/lib/chains"
@@ -160,7 +161,7 @@ const QuoteDataProvider = ({
     const srcAmountDebounced = useDebounce(srcAmountInput)
     useEffect(() => {
         setSwapRoute({
-            srcAmount: parseUnits(srcAmountDebounced.replace(",", "."), swapRoute.srcData.token?.decimals || 18),
+            srcAmount: srcAmountDebounced ? parseUnits(srcAmountDebounced.replace(",", "."), swapRoute.srcData.token?.decimals || 18) : BigInt(0),
         })
     }, [srcAmountDebounced])
 
@@ -239,6 +240,10 @@ const QuoteDataProvider = ({
         setQuoteExpiry(SwapQuoteConfig.QuoteValidMs - 1000)
         setQuoteExpiryInterval(selectedQuote ? 1000 : undefined)
     }, [selectedQuote?.id])
+
+    useEventListener("beforeunload", () => setSwapRoute({
+        srcAmount: BigInt(0),
+    }))
 
     const context: QuoteDataContextType = {
         swapRoute: swapRoute,

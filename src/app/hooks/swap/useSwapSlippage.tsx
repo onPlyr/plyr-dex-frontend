@@ -89,9 +89,9 @@ const useSwapSlippage = ({
     }, [setPreference, useSwapQuotesData, setNotification, slippageBps, setShowSlippage, isValid, setIsRefetchTriggered])
 
     const cancelInput = useCallback(() => {
-        setSlippageInput("")
+        setSlippageInput((slippageBps / 100).toString())
         setShowSlippage(false)
-    }, [setSlippageInput, setShowSlippage])
+    }, [slippageBps, setSlippageInput, setShowSlippage])
 
     return {
         slippageInput,
