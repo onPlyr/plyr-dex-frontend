@@ -10,6 +10,7 @@ import AccountIcon from "@/app/components/icons/AccountIcon"
 import DisconnectIcon from "@/app/components/icons/DisconnectIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import MenuIcon from "@/app/components/icons/MenuIcon"
+import SocialIcon from "@/app/components/icons/SocialIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
 import { TxIcon } from "@/app/components/icons/TxIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
@@ -17,14 +18,14 @@ import Button from "@/app/components/ui/Button"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import Popover from "@/app/components/ui/Popover"
-import { socialLinks } from "@/app/config/navigation"
-import { NumberFormatType } from "@/app/types/numbers"
 import { iconSizes } from "@/app/config/styling"
 import useReadAvvyName from "@/app/hooks/avvy/useReadAvvyName"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { getNativeToken } from "@/app/lib/tokens"
+import { SocialLink } from "@/app/types/navigation"
+import { NumberFormatType } from "@/app/types/numbers"
 
 const AccountDetailButton = () => {
 
@@ -49,7 +50,7 @@ const AccountDetailButton = () => {
         setMenuOpenState(open)
     }, [setMenuOpenState])
 
-    const numItems = 4 + socialLinks.length
+    const numItems = 4 + Object.keys(SocialLink).length
 
     const onClickMenu = useCallback(() => {
         setMenuOpen(false)
@@ -147,18 +148,19 @@ const AccountDetailButton = () => {
                                 >
                                     My Preferences
                                 </AccountMenuItem>
-                                {socialLinks.map((link, i) => (
+                                {Object.entries(SocialLink).map(([type, data], i) => (
                                     <AccountMenuItem
-                                        key={link.id}
-                                        icon=<div className={iconSizes.sm}>
-                                            {link.icon}
-                                        </div>
+                                        key={type}
+                                        icon=<SocialIcon
+                                            socialData={data}
+                                            iconSize="sm"
+                                        />
                                         onClick={onClickMenu.bind(this)}
-                                        externalUrl={link.href}
+                                        externalUrl={data.href}
                                         idx={4 + i}
                                         numItems={numItems}
                                     >
-                                        {link.name}
+                                        {data.name}
                                     </AccountMenuItem>
                                 ))}
                             </Popover>

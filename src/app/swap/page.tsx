@@ -15,6 +15,7 @@ import ArrowIcon from "@/app/components/icons/ArrowIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import RouteIcon from "@/app/components/icons/RouteIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
+import SocialIcon from "@/app/components/icons/SocialIcon"
 import { TxIcon } from "@/app/components/icons/TxIcon"
 import { ReviewRouteButton } from "@/app/components/routes/ReviewRouteButton"
 
@@ -26,7 +27,6 @@ import Button from "@/app/components/ui/Button"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
-import { socialLinks } from "@/app/config/navigation"
 import { iconSizes } from "@/app/config/styling"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
@@ -34,7 +34,7 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
 import { formatDuration } from "@/app/lib/datetime"
 import { getInitiateSwapError } from "@/app/lib/swaps"
-import { PageType } from "@/app/types/navigation"
+import { PageType, SocialLink } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { StorageKey } from "@/app/types/storage"
 import { StyleDirection, StyleToggleDirection } from "@/app/types/styling"
@@ -95,7 +95,7 @@ const SwapPage = () => {
         key: StorageKey.ShowIntro,
         initialValue: isShowIntro,
     })
-   
+
     useEffect(() => {
         if (isShowIntro) {
             setShowIntro(true)
@@ -220,6 +220,8 @@ const SwapPage = () => {
                         exit="initial"
                         transition={defaultIntroTransition}
                         whileHover={showIntro ? "hover" : undefined}
+                        whileTap={showIntro ? "hover" : undefined}
+                        whileFocus={showIntro ? "hover" : undefined}
                         variants={{
                             initial: {
                                 paddingTop: 0,
@@ -287,6 +289,7 @@ const SwapPage = () => {
                                     queryStatus={useSwapQuotesData.status}
                                     onClick={onClickReview.bind(this)}
                                 />}
+                                hideNetworkMsg={showIntro}
                                 isNestedPage={true}
                             >
                                 <div className="flex flex-col flex-none gap-4 w-full h-fit overflow-hidden">
@@ -381,29 +384,23 @@ const SwapPage = () => {
                                     >
                                         Start Swapping
                                     </Button>
-                                    <ExternalLink
-                                        href={"https://docs.tesseract.finance/"}
-                                        className="container p-4 w-fit"
-                                        replaceClass={true}
-                                        hideIcon={true}
-                                    >
-                                        Documentation
-                                    </ExternalLink>
                                 </div>
-                                
-                                <div className="flex flex-row flex-1 gap-4 justify-center items-center">
-                                    {socialLinks.map((link) => (
+
+                                <div className="flex flex-row flex-1 flex-wrap gap-4 justify-center items-center">
+                                    {Object.entries(SocialLink).map(([type, data]) => (
                                         <ExternalLink
-                                            key={link.id}
-                                            href={link.href}
+                                            key={type}
+                                            href={data.href}
                                             className="contents"
                                             replaceClass={true}
                                             hideIcon={true}
                                         >
                                             <motion.div
-                                                className="flex flex-row max-h-14 h-14 justify-center items-center rounded-full bg-white text-black"
+                                                className="flex flex-row flex-none justify-center items-center rounded-full bg-white text-black"
                                                 initial="initial"
                                                 whileHover="hover"
+                                                whileTap="hover"
+                                                whileFocus="hover"
                                                 transition={{
                                                     type: "spring",
                                                     duration: 0.5,
@@ -420,7 +417,10 @@ const SwapPage = () => {
                                                     },
                                                 }}
                                             >
-                                                {link.icon}
+                                                <SocialIcon
+                                                    socialData={data}
+                                                    iconSize="lg"
+                                                />
                                                 <motion.div
                                                     className="font-bold text-nowrap"
                                                     transition={{
@@ -440,7 +440,7 @@ const SwapPage = () => {
                                                         },
                                                     }}
                                                 >
-                                                    {link.name}
+                                                    {data.name}
                                                 </motion.div>
                                             </motion.div>
                                         </ExternalLink>
