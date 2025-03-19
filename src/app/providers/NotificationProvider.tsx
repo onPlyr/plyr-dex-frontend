@@ -44,7 +44,7 @@ const NotificationProvider = ({
     }) => {
 
         const byId = id ? notificationData[id] : undefined
-        const byTxHash = txHash && !byId ? Object.values(notificationData).find((data) => data.txHash && data.txHash === txHash) : undefined
+        const byTxHash = txHash && !byId ? Object.values(notificationData).find((data) => data.txHash && data.txHash.toLowerCase() === txHash.toLowerCase()) : undefined
 
         return byId ?? byTxHash
 

@@ -318,7 +318,6 @@ const ReviewSwapPage = () => {
         token: srcData?.token,
         spenderAddress: srcData?.cell?.address,
         amount: quote?.srcAmount,
-        quote: quote,
         callbacks: {
             onSettled: approveOnSettled,
             onSuccess: (isConfirmQuote ? confirmQuote : writeInitiate),

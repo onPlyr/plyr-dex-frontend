@@ -1,18 +1,30 @@
 import { Address, erc20Abi } from "viem"
 
+import { ApproveNotificationType, NotificationBody, NotificationHeader } from "@/app/components/notifications/Approve"
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
-import { amountToLocale } from "@/app/lib/numbers"
 import { Chain } from "@/app/types/chains"
 import { NotificationType } from "@/app/types/notifications"
-import { SwapQuote } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
+
+const getNotificationData = (token: Token, amount: bigint, type: ApproveNotificationType) => {
+    return {
+        header: <NotificationHeader
+            token={token}
+            type={type}
+        />,
+        body: <NotificationBody
+            token={token}
+            amount={amount}
+            type={type}
+        />,
+    }
+}
 
 const useWriteApprove = ({
     chain,
     token,
     spenderAddress,
     amount,
-    quote,
     callbacks,
     _enabled = true,
 }: {
@@ -20,15 +32,11 @@ const useWriteApprove = ({
     token?: Token,
     spenderAddress?: Address,
     amount?: bigint,
-    quote?: SwapQuote,
     callbacks?: WriteTransactionCallbacks,
     _enabled?: boolean,
 }) => {
 
     const enabled = !(!_enabled || !chain || !token || token.isNative || !spenderAddress || !amount || amount === BigInt(0))
-    const routeTypeFormatted = quote ? ` for ${quote.type.toLowerCase()}` : ""
-    const formattedAmount = enabled ? `${amountToLocale(amount, token.decimals)} ${token.symbol}` : ""
-
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
             chainId: chain?.id,
@@ -42,18 +50,9 @@ const useWriteApprove = ({
         },
         callbacks: callbacks,
         notifications: enabled ? {
-            [NotificationType.Pending]: {
-                header: `Approve ${formattedAmount}`,
-                body: `Confirm ${formattedAmount} approval${routeTypeFormatted}.`,
-            },
-            [NotificationType.Submitted]: {
-                header: `Confirming Approval`,
-                body: `Approving ${formattedAmount}${routeTypeFormatted}.`,
-            },
-            [NotificationType.Success]: {
-                header: `Approval Confirmed!`,
-                body: `Successfully approved ${formattedAmount}${routeTypeFormatted}.`,
-            },
+            [NotificationType.Pending]: getNotificationData(token, amount, NotificationType.Pending),
+            [NotificationType.Submitted]: getNotificationData(token, amount, NotificationType.Submitted),
+            [NotificationType.Success]: getNotificationData(token, amount, NotificationType.Success),
         } : undefined,
         _enabled: enabled,
     })

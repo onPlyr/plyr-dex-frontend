@@ -1,13 +1,11 @@
 import { zeroAddress } from "viem"
 import { useAccount } from "wagmi"
 
+import { NotificationBody, NotificationHeader } from "@/app/components/notifications/SwapHistory"
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { getCellAbi, getInitiateCellInstructions } from "@/app/lib/cells"
-import { amountToLocale } from "@/app/lib/numbers"
-import { getTxActionLabel } from "@/app/lib/txs"
 import { NotificationType } from "@/app/types/notifications"
-import { SwapQuote, SwapType } from "@/app/types/swaps"
-import { TxAction, TxLabelType } from "@/app/types/txs"
+import { SwapQuote } from "@/app/types/swaps"
 
 const useWriteInitiateSwap = ({
     quote,
@@ -20,28 +18,29 @@ const useWriteInitiateSwap = ({
     const { address: accountAddress } = useAccount()
     const abi = getCellAbi(quote?.srcData.cell)
     const instructions = getInitiateCellInstructions(quote)
-    const { srcData, dstData } = quote ?? {}
-    const action = quote?.type === SwapType.Transfer ? TxAction.Transfer : TxAction.Swap
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
-            chainId: srcData?.chain.id,
+            chainId: quote?.srcData.chain.id,
             account: accountAddress,
-            address: srcData?.cell.address,
+            address: quote?.srcData.cell.address,
             abi: abi,
             functionName: "initiate",
-            args: [srcData?.token.address || zeroAddress, quote?.srcAmount, instructions!],
-            value: srcData?.token.isNative ? quote?.srcAmount : undefined,
+            args: [quote?.srcData.token.address || zeroAddress, quote?.srcAmount, instructions!],
+            value: quote?.srcData.token.isNative ? quote?.srcAmount : undefined,
         },
         callbacks: callbacks,
-        notifications: quote && srcData && dstData ? {
+        notifications: quote ? {
             [NotificationType.Pending]: {
-                header: `Confirm ${getTxActionLabel(action, TxLabelType.Default)}`,
-                body: `From ${quote.type === SwapType.Transfer ? srcData.chain.name : amountToLocale(quote.srcAmount, srcData.token.decimals)} ${srcData.token.symbol} to ${quote.type === SwapType.Transfer ? dstData.chain.name : amountToLocale(quote.minDstAmount, dstData.token.decimals)} ${dstData.token.symbol}.`,
+                header: <NotificationHeader swap={quote} />,
+                body: <NotificationBody
+                    swap={quote}
+                    isInitiate={true}
+                />,
             },
             [NotificationType.Submitted]: {
-                header: `${getTxActionLabel(action, TxLabelType.InProgress)} ${amountToLocale(quote.srcAmount, srcData.token.decimals)} ${srcData.token.symbol}`,
-                body: `To ${quote.type === SwapType.Transfer ? dstData.chain.name : amountToLocale(quote.minDstAmount, dstData.token.decimals)} ${dstData.token.symbol}.`,
+                header: <NotificationHeader swap={quote} />,
+                body: <NotificationBody swap={quote} />,
             },
             [NotificationType.Success]: {
                 ignore: true,

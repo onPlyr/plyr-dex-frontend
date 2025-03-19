@@ -397,12 +397,12 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                 label={`Duration${durationDiff ? " (vs. estimate)" : ""}`}
                                                 value={swap.duration !== undefined ? (<>
                                                     {formatDuration(swap.duration)}
-                                                    {durationDiff && (
+                                                    {durationDiff ? (
                                                         <span className="inline-flex flex-row gap-2 items-center text-success-500">
                                                             ({formatDuration(durationDiff)} faster)
                                                             <SpeedIcon className={iconSizes.sm} />
                                                         </span>
-                                                    )}
+                                                     ) : undefined}
                                                 </>) : swap.status === SwapStatus.Error ? "Error" : "Pending"}
                                                 valueClass={twMerge("gap-2 font-mono text-base", swap.status === SwapStatus.Error && "text-error-500")}
                                             />

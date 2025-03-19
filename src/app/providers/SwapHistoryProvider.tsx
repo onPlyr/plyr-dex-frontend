@@ -10,6 +10,7 @@ import { yakAdapterAbi } from "@/app/abis/adapters/yakAdapter"
 import { dexalotRfqAbi } from "@/app/abis/dexalot/dexalotRfq"
 import { teleporterMessengerAbi } from "@/app/abis/teleporter/messenger"
 import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
+import { NotificationBody, NotificationHeader } from "@/app/components/notifications/SwapHistory"
 import { wagmiConfig } from "@/app/config/wagmi"
 import useBlockData from "@/app/hooks/blocks/useBlockData"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
@@ -18,15 +19,15 @@ import useLocalStorage from "@/app/hooks/utils/useLocalStorage"
 import { getBridgePaths } from "@/app/lib/bridges"
 import { getCellAbi } from "@/app/lib/cells"
 import { getChain, getChainByBlockchainId } from "@/app/lib/chains"
-import { amountToLocale, MathBigInt } from "@/app/lib/numbers"
+import { MathBigInt } from "@/app/lib/numbers"
 import { getSwapAdapter, getSwapHopStatus, getSwapStatus } from "@/app/lib/swaps"
 import { getTeleporterMessengerAddress } from "@/app/lib/teleporter"
 import { getNativeToken, getToken, getTokenByAddress, getTokenByBridgeAddress } from "@/app/lib/tokens"
-import { getMutatedObject, getParsedError, getStatusLabel } from "@/app/lib/utils"
+import { getMutatedObject, getParsedError } from "@/app/lib/utils"
 import { BridgeProvider, BridgeTypeAbi } from "@/app/types/bridges"
 import { CellType } from "@/app/types/cells"
-import { EventBaseJson, HopHistory, isCrossChainHopType, isTransferType, SwapBaseJson, SwapHistory, SwapJson, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
-import { NotificationType } from "@/app/types/notifications"
+import { EventBaseJson, HopHistory, isCrossChainHopType, isTransferType, SwapBaseJson, SwapHistory, SwapJson, SwapStatus } from "@/app/types/swaps"
+import { Notification, NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { StorageKey } from "@/app/types/storage"
 
 type GetSwapHistoryFunction = (txHash?: Hash) => SwapHistory | undefined
@@ -221,7 +222,7 @@ const SwapHistoryProvider = ({
         name: "ReceiveCrossChainMessage",
     })
 
-    const { getNotification, setNotification } = useNotifications()
+    const { data: notificationData, setNotification } = useNotifications()
     const { latestBlocks, getLatestBlock } = useBlockData()
     const { refetch: refetchTokens } = useTokens()
 
@@ -237,6 +238,15 @@ const SwapHistoryProvider = ({
 
     const [swapHistories, setSwapHistories] = useState<SwapHistory[]>([])
     const [pendingSwapTxHashes, setPendingSwapTxHashes] = useState<Hash[]>([])
+    const [pendingSwapNotifications, setPendingSwapNotifications] = useState<Notification[]>([])
+
+    const getSwapHistory: GetSwapHistoryFunction = useCallback((txHash) => {
+        return txHash && swapHistoryData[txHash]
+    }, [swapHistoryData])
+
+    const getSwapHistories: GetSwapHistoriesFunction = useCallback((accountAddress) => {
+        return accountAddress ? swapHistories.filter((swap) => isAddressEqual(swap.accountAddress, accountAddress)) : swapHistories
+    }, [swapHistories])
 
     useEffect(() => {
         setSwapHistories(Object.values(swapHistoryData))
@@ -247,12 +257,24 @@ const SwapHistoryProvider = ({
         refetchTokens()
     }, [pendingSwapTxHashes])
 
-    const getSwapHistory: GetSwapHistoryFunction = useCallback((txHash) => {
-        return txHash && swapHistoryData[txHash]
-    }, [swapHistoryData])
+    useEffect(() => {
+        setPendingSwapNotifications(Object.values(notificationData).filter((notification) => notification.txHash && notification.status === NotificationStatus.Pending))
+    }, [notificationData])
 
-    const getSwapHistories: GetSwapHistoriesFunction = useCallback((accountAddress) => {
-        return accountAddress ? swapHistories.filter((swap) => isAddressEqual(swap.accountAddress, accountAddress)) : swapHistories
+    useEffect(() => {
+        pendingSwapNotifications.forEach((notification) => {
+            const swap = getSwapHistory(notification.txHash)
+            if (swap) {
+                setNotification({
+                    id: notification?.id ?? swap.id,
+                    type: swap.status === SwapStatus.Success ? NotificationType.Success : swap.status === SwapStatus.Error ? NotificationType.Error : NotificationType.Pending,
+                    header: <NotificationHeader swap={swap} />,
+                    body: <NotificationBody swap={swap} />,
+                    status: swap.status,
+                    txHash: swap.txHash,
+                })
+            }
+        })
     }, [swapHistories])
 
     const setSwapHistory: SetSwapHistoryFunction = useCallback((swap, error) => {
@@ -274,34 +296,12 @@ const SwapHistoryProvider = ({
             swap.duration = swap.dstTimestamp - firstHop.timestamp
         }
 
-        const notification = getNotification({
-            txHash: swap.txHash,
-        })
-        if (notification) {
+        setSwapHistoryData((prev) => ({
+            ...prev,
+            [swap.txHash]: swap,
+        }))
 
-            // todo: notification content should be able to be passed from useWriteInitiateSwap / useWriteTransaction, being replaced with poor content here
-            setNotification({
-                id: swap.id,
-                type: swap.status === SwapStatus.Success ? NotificationType.Success : swap.status === SwapStatus.Error ? NotificationType.Error : NotificationType.Submitted,
-                header: `${SwapTypeLabel[swap.type]} ${getStatusLabel(swap.status)}`,
-                body: <>
-                    {swap.status === SwapStatus.Success ? (<>
-                        {swap.dstAmount && amountToLocale(swap.dstAmount, swap.dstData.token.decimals)} {swap.dstData.token.symbol} received on {swap.dstData.chain.name}!
-                    </>) : swap.status === SwapStatus.Error ? error || "Unable to fetch transaction data." : `${SwapTypeLabel[swap.type]} in progress.`}
-                </>,
-                status: swap.status,
-                txHash: swap.txHash,
-            })
-        }
-
-        setSwapHistoryData((prev) => {
-            return {
-                ...prev,
-                [swap.txHash]: swap,
-            }
-        })
-
-    }, [setSwapHistoryData, getNotification, setNotification])
+    }, [setSwapHistoryData])
 
     const setHopHistoryLogData = useCallback((swap: SwapHistory, hop: HopHistory, receipt: TransactionReceipt) => {
 
@@ -792,7 +792,6 @@ const SwapHistoryProvider = ({
                         logs: receipt.logs,
                         eventName: "TokensWithdrawn",
                         args: {
-                            // recipient: swap.accountAddress,
                             recipient: swap.recipientAddress,
                         },
                     }).at(0)?.args.amount
@@ -804,7 +803,6 @@ const SwapHistoryProvider = ({
                         logs: receipt.logs,
                         eventName: "Transfer",
                         args: {
-                            // to: swap.accountAddress,
                             to: swap.recipientAddress,
                         },
                     }).at(-1)?.args.value
