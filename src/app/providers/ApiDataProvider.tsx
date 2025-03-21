@@ -17,6 +17,7 @@ import { ChainId } from "@/app/types/chains"
 import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
 import { SwapQuote } from "@/app/types/swaps"
 import { TokenId } from "@/app/types/tokens"
+import useTokens from "../hooks/tokens/useTokens"
 
 export type GetApiTokenDataFunction = (provider: ApiProvider, chainId: ChainId) => ApiTokenPairData | undefined
 export type GetApiTokenPairFunction = ({
@@ -58,6 +59,8 @@ const ApiDataProvider = ({
     const { preferences } = usePreferences()
     const apiTokenData = useApiTokenData()
     const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
+
+    const { getToken } = useTokens()
 
     const [cellRouteData, setCellRouteData] = useState<CellRouteData>()
     useEffect(() => {
@@ -153,6 +156,7 @@ const ApiDataProvider = ({
                         hop: hop,
                         getApiTokenPair: getApiTokenPair,
                         cellRouteData: cellRouteData,
+                        getToken: getToken,
                     })
 
                     if (!contractQuery) {
