@@ -1,7 +1,5 @@
 "use client"
 
-import "@/app/styles/globals.css"
-
 import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import { useRouter } from "next/navigation"
 import React, { use, useCallback, useEffect, useState } from "react"
@@ -208,16 +206,16 @@ const SwapSelectPage = ({
     }, [isDst, setSwapRoute, selectOnClick])
 
     const { preferences } = usePreferences()
-
+    
     useEffect(() => {
         const { tokenResults, chainResults } = filterTokens(
-            allTokens,
+            allTokens, 
             preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode,
-            query,
-            selectedFilterChain,
+            query, 
+            selectedFilterChain, 
             favouriteTokens,
         )
-
+        
         setTokens(tokenResults)
         setChains(chainResults)
     }, [allTokens, favouriteTokens, query, selectedFilterChain, preferences])
@@ -233,6 +231,7 @@ const SwapSelectPage = ({
     const useAddTokenData = useAddToken({
         addressInput: query,
         setAddressInput: setQuery,
+        onSuccess: setSelectedToken,
     })
 
     return (
@@ -250,29 +249,29 @@ const SwapSelectPage = ({
                     {chains && chains.length !== 0 && (
                         <div className="flex flex-row flex-1 gap-y-2 justify-start items-start flex-wrap">
                             {/* <AnimatePresence mode="wait"> */}
-                            {chains?.map((chain, i) => {
-                                const isSelected = selectedFilterChain && selectedFilterChain.id === chain.id
-                                return (
-                                    <Tooltip
-                                        key={`${chain.id}`}
-                                        trigger=<ScaleInOut
-                                            key={`scale-${chain.id}`}
-                                            className={i !== 0 ? "ms-2" : undefined}
-                                        >
-                                            <SelectItemToggle
-                                                onClick={setSelectedFilterChain.bind(this, isSelected ? undefined : chain)}
-                                                isSelected={isSelected}
-                                                className="container-select px-3 py-2 rounded-lg before:rounded-lg"
-                                                replaceClass={true}
+                                {chains?.map((chain, i) => {
+                                    const isSelected = selectedFilterChain && selectedFilterChain.id === chain.id
+                                    return (
+                                        <Tooltip
+                                            key={`${chain.id}`}
+                                            trigger=<ScaleInOut
+                                                key={`scale-${chain.id}`}
+                                                className={i !== 0 ? "ms-2" : undefined}
                                             >
-                                                <ChainImage chain={chain} size="xs" />
-                                            </SelectItemToggle>
-                                        </ScaleInOut>
-                                    >
-                                        {chain.name}
-                                    </Tooltip>
-                                )
-                            })}
+                                                <SelectItemToggle
+                                                    onClick={setSelectedFilterChain.bind(this, isSelected ? undefined : chain)}
+                                                    isSelected={isSelected}
+                                                    className="container-select px-3 py-2 rounded-lg before:rounded-lg"
+                                                    replaceClass={true}
+                                                >
+                                                    <ChainImage chain={chain} size="xs" />
+                                                </SelectItemToggle>
+                                            </ScaleInOut>
+                                        >
+                                            {chain.name}
+                                        </Tooltip>
+                                    )
+                                })}
                             {/* </AnimatePresence> */}
                         </div>
                     )}
@@ -280,7 +279,7 @@ const SwapSelectPage = ({
                         value={query}
                         clearValue={clearQuery}
                         handleInput={handleSearchInput}
-                        placeholder="Search by name, symbol or address"
+                        placeholder="Search for token or paste address"
                         isDataSuccess={tokens.length === 0 && useAddTokenData.addressStatus.isSuccess && !!useAddTokenData.address}
                         isDataError={tokens.length === 0 && useAddTokenData.addressStatus.isError}
                     />

@@ -194,7 +194,7 @@ const CustomTokenInput = React.forwardRef<React.ComponentRef<typeof motion.div>,
                     </div>
                 </div>
                 <div className="flex flex-row flex-1">
-                    No token matching your query was found. Please enter a valid address and confirm the details below if you would like to add a custom token.
+                    Please ensure the address is valid and confirm the details below to add a custom token.
                 </div>
             </>) : (<>
                 <div className="flex flex-row flex-1 justify-start items-center gap-4">

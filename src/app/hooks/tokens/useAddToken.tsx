@@ -46,9 +46,13 @@ export interface UseAddTokenReturnType {
 const useAddToken = ({
     addressInput,
     setAddressInput,
+    onSuccess,
+    onError,
 }: {
     addressInput?: string,
     setAddressInput: (value?: string) => void,
+    onSuccess?: (token?: Token) => void,
+    onError?: (token?: Token) => void,
 }): UseAddTokenReturnType => {
 
     const { getToken, setCustomToken, getCustomTokenData } = useTokens()
@@ -114,10 +118,11 @@ const useAddToken = ({
             setNotification({
                 id: "add-token-error",
                 type: NotificationType.Error,
-                header: "Error Adding Token",
-                body: selectedResultStatus.msg || "Unknown error.",
+                header: `Add ${selectedResult?.token?.symbol ?? "Token"} Error`,
+                body: selectedResultStatus.msg || "An unknown error occurred.",
                 status: NotificationStatus.Error,
             })
+            onError?.(selectedResult?.token)
             return
         }
 
@@ -125,12 +130,13 @@ const useAddToken = ({
         setNotification({
             id: selectedResult.token.id,
             type: NotificationType.Success,
-            header: `${selectedResult.token.symbol} Added`,
-            body: `Successfully added ${selectedResult.token.symbol} on ${selectedResult.chain.name}`,
+            header: `Added ${selectedResult.token.symbol}`,
+            body: `${selectedResult.token.symbol} was successfully added on ${selectedResult.chain.name}.`,
             status: NotificationStatus.Success,
         })
+        onSuccess?.(selectedResult.token)
 
-    }, [setCustomToken, setNotification, selectedResult, selectedResultStatus])
+    }, [onSuccess, onError, setCustomToken, setNotification, selectedResult, selectedResultStatus])
 
     const getCustomTokenQueryResults = useCallback(async () => {
 

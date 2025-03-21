@@ -150,7 +150,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
     const switchExchangeRate = useCallback((isInverse: boolean) => {
         setExchangeRate(isInverse ? exchangeRateData.inverseRate : exchangeRateData.exchangeRate)
         setIsInverseExchangeRate(isInverse)
-    }, [swap, exchangeRateData, setExchangeRate, setIsInverseExchangeRate])
+    }, [exchangeRateData, setExchangeRate, setIsInverseExchangeRate])
 
     return swap.events.length > 0 && (
         <div
