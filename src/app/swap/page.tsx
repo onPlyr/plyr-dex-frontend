@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import { AnimatePresence, motion, Transition } from "motion/react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -7,16 +9,14 @@ import React, { useCallback, useEffect } from "react"
 import { formatUnits } from "viem"
 import { useAccount } from "wagmi"
 
-import "@/app/styles/globals.css"
 
-import SlideInOut from "@/app/components/animations/SlideInOut"
 import AccountIcon from "@/app/components/icons/AccountIcon"
 import ArrowIcon from "@/app/components/icons/ArrowIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
+import HistoryIcon from "@/app/components/icons/HistoryIcon"
 import RouteIcon from "@/app/components/icons/RouteIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
 import SocialIcon from "@/app/components/icons/SocialIcon"
-import { TxIcon } from "@/app/components/icons/TxIcon"
 import { ReviewRouteButton } from "@/app/components/routes/ReviewRouteButton"
 
 import { UnwrapNativeToken } from "@/app/components/swap/UnwrapNativeToken"
@@ -153,7 +153,7 @@ const SwapPage = () => {
             <Tooltip
                 trigger=<Button
                     label="My Account"
-                    className="icon-btn transition hover:rotate-[360deg]"
+                    className="icon-btn transition hover:-rotate-[360deg]"
                     replaceClass={true}
                 >
                     <Link href="/account">
@@ -166,11 +166,11 @@ const SwapPage = () => {
             <Tooltip
                 trigger=<Button
                     label="My Transactions"
-                    className="icon-btn transition hover:rotate-[360deg]"
+                    className="icon-btn transition hover:rotate-[360deg] text-brand-green"
                     replaceClass={true}
                 >
                     <Link href="/swap/history">
-                        <TxIcon className={`${iconSizes.sm} text-brand-green`} />
+                        <HistoryIcon className={`${iconSizes.sm} text-brand-green`} />
                     </Link>
                 </Button>
             >
@@ -183,7 +183,7 @@ const SwapPage = () => {
                     replaceClass={true}
                 >
                     <Link href="/preferences">
-                        <SettingsIcon className={iconSizes.sm} />
+                        <SettingsIcon className={`${iconSizes.sm} text-brand-green`} />
                     </Link>
                 </Button>
             >

@@ -14,7 +14,6 @@ import useEventListener from "@/app/hooks/utils/useEventListener"
 import useInterval from "@/app/hooks/utils/useInterval"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
 import { getChain } from "@/app/lib/chains"
-import { getNativeToken } from "@/app/lib/tokens"
 import { StorageKey } from "@/app/types/storage"
 import { SwapQuote, SwapRoute, SwapRouteJson } from "@/app/types/swaps"
 import { Token } from "@/app/types/tokens"
@@ -53,7 +52,7 @@ const QuoteDataProvider = ({
     children: React.ReactNode,
 }) => {
 
-    const { data: tokens, getTokenData } = useTokens()
+    const { tokens, getToken, getNativeToken } = useTokens()
     const { preferences } = usePreferences()
     const networkMode = preferences.networkMode ?? defaultNetworkMode
 
@@ -61,12 +60,14 @@ const QuoteDataProvider = ({
         return JSON.stringify({
             srcData: {
                 chain: route.srcData.chain?.id,
-                token: route.srcData.token?.id,
+                tokenAddress: route.srcData.token?.address,
+                tokenId: route.srcData.token?.id,
                 amount: route.srcData.amount?.toString(),
             },
             dstData: {
                 chain: route.dstData.chain?.id,
-                token: route.dstData.token?.id,
+                tokenAddress: route.dstData.token?.address,
+                tokenId: route.dstData.token?.id,
             },
         } as SwapRouteJson)
     }, [])
@@ -76,15 +77,23 @@ const QuoteDataProvider = ({
         return {
             srcData: {
                 chain: route.srcData.chain && getChain(route.srcData.chain),
-                token: getTokenData(route.srcData.token, route.srcData.chain),
+                token: route.srcData.tokenAddress && route.srcData.chain && getToken({
+                    id: route.srcData.tokenId,
+                    address: route.srcData.tokenAddress,
+                    chainId: route.srcData.chain,
+                }),
                 amount: route.srcData.amount ? BigInt(route.srcData.amount) : undefined,
             },
             dstData: {
                 chain: route.dstData.chain && getChain(route.dstData.chain),
-                token: getTokenData(route.dstData.token, route.dstData.chain),
+                token: route.dstData.tokenAddress && route.dstData.chain && getToken({
+                    id: route.dstData.tokenId,
+                    address: route.dstData.tokenAddress,
+                    chainId: route.dstData.chain,
+                }),
             },
         }
-    }, [getTokenData])
+    }, [getToken])
 
     const [swapRoute, setSwapRouteState] = useSessionStorage({
         key: StorageKey.SwapRoute,
@@ -124,9 +133,18 @@ const QuoteDataProvider = ({
                 }
             }
 
-            const useSrcToken = srcToken ? getTokenData(srcToken?.id, srcToken?.chainId) : prev.srcData.token
+            const useSrcToken = srcToken ? getToken({
+                id: srcToken.id,
+                address: srcToken.address,
+                chainId: srcToken.chainId,
+            }) : prev.srcData.token
             const useSrcAmount = srcAmount ?? (useSrcToken && useSrcToken.id === prev.srcData.token?.id ? prev.srcData.amount : BigInt(0))
-            const useDstToken = dstToken ? getTokenData(dstToken?.id, dstToken?.chainId) : prev.dstData.token
+
+            const useDstToken = dstToken ? getToken({
+                id: dstToken.id,
+                address: dstToken.address,
+                chainId: dstToken.chainId,
+            }) : prev.dstData.token
 
             return {
                 srcData: {
@@ -141,7 +159,7 @@ const QuoteDataProvider = ({
             }
         })
 
-    }, [setSwapRouteState, getTokenData])
+    }, [setSwapRouteState, getToken])
 
     const useSwapQuotesData = useSwapQuotes(swapRoute)
     const [selectedQuote, setSelectedQuoteState] = useState<SwapQuote>()
@@ -182,9 +200,9 @@ const QuoteDataProvider = ({
         if (!swapRoute.srcData.token || !swapRoute.dstData.token) {
             setSrcAmountInput("")
             setSwapRoute({
-                srcToken: swapRoute.srcData.token ?? getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain),
+                srcToken: swapRoute.srcData.token ?? getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain.id),
                 srcAmount: BigInt(0),
-                dstToken: swapRoute.dstData.token ?? getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain),
+                dstToken: swapRoute.dstData.token ?? getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain.id),
             })
         }
     }, [])
@@ -192,9 +210,9 @@ const QuoteDataProvider = ({
     useEffect(() => {
         setSrcAmountInput("")
         setSwapRoute({
-            srcToken: getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain),
+            srcToken: getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain.id),
             srcAmount: BigInt(0),
-            dstToken: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain),
+            dstToken: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain.id),
         })
     }, [networkMode])
 

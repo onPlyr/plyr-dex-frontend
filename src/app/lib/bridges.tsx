@@ -2,11 +2,10 @@ import { TokenBridgePaths } from "@/app/config/tokens"
 import { getChainCanSwap } from "@/app/lib/cells"
 import { getChain } from "@/app/lib/chains"
 import { generateSwapId, getHopTypeEstGasUnits, getMinAmount } from "@/app/lib/swaps"
-import { getToken } from "@/app/lib/tokens"
 import { BridgePath, BridgePathHopData } from "@/app/types/bridges"
 import { Chain } from "@/app/types/chains"
 import { Hop, HopType, isSwapHopType, isValidSwapRoute, SwapRoute } from "@/app/types/swaps"
-import { Token } from "@/app/types/tokens"
+import { GetSupportedTokenFunction, Token } from "@/app/types/tokens"
 
 export const getBridgePaths = ({
     token,
@@ -24,10 +23,12 @@ export const getBridgePathHops = ({
     route,
     maxHops,
     slippageBps,
+    getSupportedToken,
 }: {
     route: SwapRoute,
     maxHops: number,
     slippageBps?: bigint,
+    getSupportedToken: GetSupportedTokenFunction,
 }) => {
 
     if (!isValidSwapRoute(route)) {
@@ -68,6 +69,7 @@ export const getBridgePathHops = ({
                     hopIndex: hopIndex,
                     slippageBps: slippageBps,
                     maxHops: maxHops,
+                    getSupportedToken: getSupportedToken,
                 })
 
                 if (!hopData?.hop) {
@@ -157,6 +159,7 @@ export const getBridgePathHop = ({
     hopIndex,
     slippageBps,
     maxHops,
+    getSupportedToken,
 }: {
     route: SwapRoute,
     path: BridgePath,
@@ -164,6 +167,7 @@ export const getBridgePathHop = ({
     hopIndex: number,
     slippageBps?: bigint,
     maxHops: number,
+    getSupportedToken: GetSupportedTokenFunction,
 }) => {
 
     if (!isValidSwapRoute(route) || (hopIndex > 0 && !prevHop)) {
@@ -183,7 +187,11 @@ export const getBridgePathHop = ({
     }
 
     const prevDstToken = hopIndex === 0 ? srcData.token : prevHop?.dstData.token
-    const hopSrcToken = prevDstToken && getToken(prevDstToken.id, hopSrcChain)
+    const hopSrcToken = prevDstToken && getSupportedToken({
+        id: prevDstToken.id,
+        chainId: hopSrcChain.id,
+    })
+
     if (!prevDstToken || !hopSrcToken) {
         return
     }

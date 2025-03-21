@@ -6,13 +6,14 @@ import { twMerge } from "tailwind-merge"
 
 import ApproxEqualIcon from "@/app/components/icons/ApproxEqualIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
+import CoinsIcon from "@/app/components/icons/CoinsIcon"
 import ConfettiIcon from "@/app/components/icons/ConfettiIcon"
 import DurationIcon from "@/app/components/icons/DurationIcon"
 import EditIcon from "@/app/components/icons/EditIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import ExchangeRateIcon from "@/app/components/icons/ExchangeRateIcon"
 import ReceiveIcon from "@/app/components/icons/ReceiveIcon"
-import RecipientIcon from "@/app/components/icons/RecipientIcon"
+//import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import SendIcon from "@/app/components/icons/SendIcon"
 import SlippageIcon from "@/app/components/icons/SlippageIcon"
 import SpeedIcon from "@/app/components/icons/SpeedIcon"
@@ -376,8 +377,8 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                         />
                                         {isHistory && dstAmountDiff && dstAmountDiff > BigInt(0) && (
                                             <SwapParameter
-                                                label="vs. estimate"
-                                                labelClass="text-muted-500"
+                                                icon=<CoinsIcon className={iconSizes.sm} />
+                                                label="Amount extra"
                                                 value=<>
                                                     <DecimalAmount
                                                         amount={dstAmountDiff}
@@ -402,7 +403,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                             ({formatDuration(durationDiff)} faster)
                                                             <SpeedIcon className={iconSizes.sm} />
                                                         </span>
-                                                     ) : undefined}
+                                                    ) : undefined}
                                                 </>) : swap.status === SwapStatus.Error ? "Error" : "Pending"}
                                                 valueClass={twMerge("gap-2 font-mono text-base", swap.status === SwapStatus.Error && "text-error-500")}
                                             />

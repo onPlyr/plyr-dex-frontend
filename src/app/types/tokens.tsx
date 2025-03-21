@@ -4,8 +4,9 @@ import { ApiProvider } from "@/app/types/apis"
 import { TokenBridge } from "@/app/types/bridges"
 import { ChainId } from "@/app/types/chains"
 import { IconFormat } from "@/app/types/styling"
+import { WithRequired } from "@/app/types/utils"
 
-type TokenIcon = `${string}.${IconFormat}`
+export type TokenIcon = `${string}.${IconFormat}`
 type TokenIconBackground = `#${string}`
 
 // note: must be unique
@@ -38,8 +39,10 @@ interface TokenChainData {
     readonly isNative?: boolean,
     readonly wrappedAddress?: Address,
     readonly wrappedToken?: string,
-    readonly isHidden?: boolean,
     readonly canBridge?: boolean,
+    readonly isDisabled?: boolean,
+    readonly isCustomToken?: boolean,
+    isUnconfirmed?: boolean,
 }
 
 export interface TokenFilterData {
@@ -67,6 +70,7 @@ export interface Token extends BaseTokenData, TokenChainData, TokenBalance {
     readonly chainId: ChainId,
     readonly filters: TokenFilterData,
 }
+export type TokenJson = Omit<Token, "icon" | "iconBackground" | "bridges" | "displaySymbol" | "displayName" | "displayIcon" | "displayIconBackground" | "apiData">
 
 export enum TokenSortType {
     BalanceValue,
@@ -84,3 +88,10 @@ export type FavouriteTokensContextType = {
     favouriteTokens: FavouriteTokenData,
     toggleFavouriteToken: (token: Token, favourites: FavouriteTokenData) => void,
 }
+
+export type GetTokenFunctionArgs = WithRequired<Partial<Token>, "address" | "chainId">
+export type GetSupportedTokenFunctionArgs = WithRequired<Partial<GetTokenFunctionArgs>, "id" | "chainId">
+export type GetTokenFunction = (data: GetTokenFunctionArgs) => Token
+export type GetTokenFunctionAsync = (data: GetTokenFunctionArgs) => Promise<Token | undefined>
+export type GetSupportedTokenFunction = (data: GetSupportedTokenFunctionArgs) => Token | undefined
+export type GetNativeTokenFunction = (chainId?: ChainId) => Token | undefined

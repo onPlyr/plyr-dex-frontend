@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
 import { QueryStatus } from "@tanstack/query-core"
 
-
 import useApiData from "@/app/hooks/apis/useApiData"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import { getSwapQuoteData } from "@/app/lib/swaps"
 import { CellRouteData, CellRouteDataParameter } from "@/app/types/cells"
 import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
@@ -19,7 +19,7 @@ export interface UseSwapQuotesReturnType {
 
 const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
 
-
+    const { getToken, getSupportedToken } = useTokens()
     const { getApiTokenPair } = useApiData()
     const { preferences } = usePreferences()
     const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
@@ -57,6 +57,8 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
                 route: route,
                 getApiTokenPair: getApiTokenPair,
                 cellRouteData: cellRouteData,
+                getToken: getToken,
+                getSupportedToken: getSupportedToken,
             })
 
             if (error || !data) {
@@ -77,7 +79,7 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
             setErrorMsg(errorMsg)
         }
 
-    }, [enabled, route, getApiTokenPair, cellRouteData, setSwapQuoteData, setIsInProgress, setQueryStatus, setErrorMsg])
+    }, [enabled, route, getToken, getSupportedToken, getApiTokenPair, cellRouteData, setSwapQuoteData, setIsInProgress, setQueryStatus, setErrorMsg])
 
     useEffect(() => {
         setSwapQuoteData(undefined)

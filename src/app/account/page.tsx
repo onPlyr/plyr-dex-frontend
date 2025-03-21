@@ -36,7 +36,7 @@ const AccountPage = () => {
     })
 
     const { preferences } = usePreferences()
-    const { data: tokenData } = useTokens()
+    const { tokens: tokenData } = useTokens()
     const { favouriteTokens } = useFavouriteTokens()
     const tokens = sortTokens(tokenData.filter((token) => token.balance && token.balance > 0), TokenSortType.BalanceValue, favouriteTokens)
     // const totalValue = tokens.reduce((sum, token) => token.value ? sum + token.value : sum, BigInt(0))

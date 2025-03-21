@@ -22,7 +22,7 @@ import { getChain, getChainByBlockchainId } from "@/app/lib/chains"
 import { MathBigInt } from "@/app/lib/numbers"
 import { getSwapAdapter, getSwapHopStatus, getSwapStatus } from "@/app/lib/swaps"
 import { getTeleporterMessengerAddress } from "@/app/lib/teleporter"
-import { getNativeToken, getToken, getTokenByAddress, getTokenByBridgeAddress } from "@/app/lib/tokens"
+import { getTokenByBridgeAddress } from "@/app/lib/tokens"
 import { getMutatedObject, getParsedError } from "@/app/lib/utils"
 import { BridgeProvider, BridgeTypeAbi } from "@/app/types/bridges"
 import { CellType } from "@/app/types/cells"
@@ -49,167 +49,6 @@ type SwapHistoryJson = Record<Hash, SwapJson>
 
 export const SwapHistoryContext = createContext({} as SwapHistoryContextType)
 
-const getSwapHistoryToJson = (swap: SwapHistory): SwapJson => {
-    return {
-        ...swap,
-        srcData: {
-            chain: swap.srcData.chain.id,
-            token: swap.srcData.token.id,
-            cell: swap.srcData.cell?.address,
-            estAmount: swap.srcData.estAmount.toString(),
-            minAmount: swap.srcData.minAmount.toString(),
-            amount: swap.srcData.amount?.toString(),
-        },
-        dstData: {
-            chain: swap.dstData.chain.id,
-            token: swap.dstData.token.id,
-            cell: swap.dstData.cell?.address,
-            estAmount: swap.dstData.estAmount.toString(),
-            minAmount: swap.dstData.minAmount.toString(),
-            amount: swap.dstData.amount?.toString(),
-        },
-        hops: swap.hops.map((hop) => ({
-            srcData: {
-                chain: hop.srcData.chain.id,
-                token: hop.srcData.token.id,
-                cell: hop.srcData.cell?.address,
-                estAmount: hop.srcData.estAmount.toString(),
-                minAmount: hop.srcData.minAmount.toString(),
-                amount: hop.srcData.amount?.toString(),
-            },
-            dstData: {
-                chain: hop.dstData.chain.id,
-                token: hop.dstData.token.id,
-                cell: hop.dstData.cell?.address,
-                estAmount: hop.dstData.estAmount.toString(),
-                minAmount: hop.dstData.minAmount.toString(),
-                amount: hop.dstData.amount?.toString(),
-            },
-            type: hop.type,
-            index: hop.index,
-            msgReceivedId: hop.msgReceivedId,
-            msgSentId: hop.msgSentId,
-            txHash: hop.txHash,
-            initiatedBlock: hop.initiatedBlock?.toString(),
-            lastCheckedBlock: hop.lastCheckedBlock?.toString(),
-            isQueryInProgress: hop.isQueryInProgress,
-            timestamp: hop.timestamp,
-            status: hop.status,
-        })),
-        events: swap.events.map((event) => ({
-            ...event,
-            srcData: {
-                chain: event.srcData.chain.id,
-                token: event.srcData.token.id,
-                cell: event.srcData.cell?.address,
-                estAmount: event.srcData.estAmount?.toString(),
-                minAmount: event.srcData.minAmount?.toString(),
-                amount: event.srcData.amount?.toString(),
-            },
-            dstData: {
-                chain: event.dstData.chain.id,
-                token: event.dstData.token.id,
-                cell: event.dstData.cell?.address,
-                estAmount: event.dstData.estAmount?.toString(),
-                minAmount: event.dstData.minAmount?.toString(),
-                amount: event.dstData.amount?.toString(),
-            },
-        })),
-        srcAmount: swap.srcAmount.toString(),
-        dstAmount: swap.dstAmount?.toString(),
-        minDstAmount: swap.minDstAmount.toString(),
-        estDstAmount: swap.estDstAmount.toString(),
-        gasFee: swap.gasFee?.toString(),
-        estGasFee: swap.estGasFee.toString(),
-        estGasUnits: swap.estGasUnits.toString(),
-        dstInitiatedBlock: swap.dstInitiatedBlock?.toString(),
-        dstLastCheckedBlock: swap.dstLastCheckedBlock?.toString(),
-    }
-}
-
-const getBaseDataFromJson = (data: SwapBaseJson) => {
-    const chain = getChain(data.chain)!
-    return {
-        chain: chain,
-        token: chain && getToken(data.token, chain)!,
-        cell: chain?.cells.find((cell) => data.cell && isAddressEqual(cell.address, data.cell)),
-    }
-}
-
-const getBaseEventDataFromJson = (data: EventBaseJson) => {
-    const chain = getChain(data.chain)!
-    return {
-        chain: chain,
-        token: chain && getToken(data.token, chain)!,
-        cell: chain?.cells.find((cell) => data.cell && isAddressEqual(cell.address, data.cell)),
-    }
-}
-
-const getSwapHistoryFromJson = (swap: SwapJson): SwapHistory => {
-    return {
-        ...swap,
-        srcData: {
-            ...getBaseDataFromJson(swap.srcData),
-            estAmount: BigInt(swap.srcData.estAmount),
-            minAmount: BigInt(swap.srcData.minAmount),
-            amount: swap.srcData.amount ? BigInt(swap.srcData.amount) : undefined,
-        },
-        dstData: {
-            ...getBaseDataFromJson(swap.dstData),
-            estAmount: BigInt(swap.dstData.estAmount),
-            minAmount: BigInt(swap.dstData.minAmount),
-            amount: swap.dstData.amount ? BigInt(swap.dstData.amount) : undefined,
-        },
-        type: swap.type,
-        hops: swap.hops.map((hop) => ({
-            ...hop,
-            srcData: {
-                ...getBaseDataFromJson(hop.srcData),
-                estAmount: BigInt(hop.srcData.estAmount),
-                minAmount: BigInt(hop.srcData.minAmount),
-                amount: hop.srcData.amount ? BigInt(hop.srcData.amount) : undefined,
-            },
-            dstData: {
-                ...getBaseDataFromJson(hop.dstData),
-                estAmount: BigInt(hop.dstData.estAmount),
-                minAmount: BigInt(hop.dstData.minAmount),
-                amount: hop.dstData.amount ? BigInt(hop.dstData.amount) : undefined,
-            },
-            initiatedBlock: hop.initiatedBlock ? BigInt(hop.initiatedBlock) : undefined,
-            lastCheckedBlock: hop.lastCheckedBlock ? BigInt(hop.lastCheckedBlock) : undefined,
-        })),
-        events: swap.events.map((event) => ({
-            ...event,
-            srcData: {
-                ...getBaseEventDataFromJson(event.srcData),
-                estAmount: event.srcData.estAmount ? BigInt(event.srcData.estAmount) : undefined,
-                minAmount: event.srcData.minAmount ? BigInt(event.srcData.minAmount) : undefined,
-                amount: event.srcData.amount ? BigInt(event.srcData.amount) : undefined,
-            },
-            dstData: {
-                ...getBaseEventDataFromJson(event.dstData),
-                estAmount: event.dstData.estAmount ? BigInt(event.dstData.estAmount) : undefined,
-                minAmount: event.dstData.minAmount ? BigInt(event.dstData.minAmount) : undefined,
-                amount: event.dstData.amount ? BigInt(event.dstData.amount) : undefined,
-            },
-        })),
-        srcAmount: BigInt(swap.srcAmount),
-        dstAmount: swap.dstAmount ? BigInt(swap.dstAmount) : undefined,
-        minDstAmount: BigInt(swap.minDstAmount),
-        estDstAmount: BigInt(swap.estDstAmount),
-        gasFee: swap.gasFee ? BigInt(swap.gasFee) : undefined,
-        estGasFee: BigInt(swap.estGasFee),
-        estGasUnits: BigInt(swap.estGasUnits),
-        dstInitiatedBlock: swap.dstInitiatedBlock ? BigInt(swap.dstInitiatedBlock) : undefined,
-        dstLastCheckedBlock: swap.dstLastCheckedBlock ? BigInt(swap.dstLastCheckedBlock) : undefined,
-        isConfirmed: true,
-    }
-}
-
-const sortSwapData = (a: [string, SwapHistory | SwapJson], b: [string, SwapHistory | SwapJson]) => a[1].timestamp && b[1].timestamp ? b[1].timestamp - a[1].timestamp : 0
-const swapDataSerializer = (value: SwapHistoryData) => JSON.stringify(getMutatedObject(value, getSwapHistoryToJson, sortSwapData))
-const swapDataDeserializer = (value: string): SwapHistoryData => getMutatedObject(JSON.parse(value) as SwapHistoryJson, getSwapHistoryFromJson, sortSwapData)
-
 const SwapHistoryProvider = ({
     children,
 }: {
@@ -224,12 +63,192 @@ const SwapHistoryProvider = ({
 
     const { data: notificationData, setNotification } = useNotifications()
     const { latestBlocks, getLatestBlock } = useBlockData()
-    const { refetch: refetchTokens } = useTokens()
+    const { getToken, getNativeToken, refetch: refetchTokens } = useTokens()
 
-    const initialData: SwapHistoryData = {}
+    const getSwapHistoryToJson = useCallback((swap: SwapHistory): SwapJson => {
+        return {
+            ...swap,
+            srcData: {
+                chain: swap.srcData.chain.id,
+                tokenAddress: swap.srcData.token.address,
+                tokenId: swap.srcData.token.id,
+                cell: swap.srcData.cell?.address,
+                estAmount: swap.srcData.estAmount.toString(),
+                minAmount: swap.srcData.minAmount.toString(),
+                amount: swap.srcData.amount?.toString(),
+            },
+            dstData: {
+                chain: swap.dstData.chain.id,
+                tokenAddress: swap.dstData.token.address,
+                tokenId: swap.dstData.token.id,
+                cell: swap.dstData.cell?.address,
+                estAmount: swap.dstData.estAmount.toString(),
+                minAmount: swap.dstData.minAmount.toString(),
+                amount: swap.dstData.amount?.toString(),
+            },
+            hops: swap.hops.map((hop) => ({
+                srcData: {
+                    chain: hop.srcData.chain.id,
+                    tokenAddress: hop.srcData.token.address,
+                    tokenId: hop.srcData.token.id,
+                    cell: hop.srcData.cell?.address,
+                    estAmount: hop.srcData.estAmount.toString(),
+                    minAmount: hop.srcData.minAmount.toString(),
+                    amount: hop.srcData.amount?.toString(),
+                },
+                dstData: {
+                    chain: hop.dstData.chain.id,
+                    tokenAddress: hop.dstData.token.address,
+                    tokenId: hop.dstData.token.id,
+                    cell: hop.dstData.cell?.address,
+                    estAmount: hop.dstData.estAmount.toString(),
+                    minAmount: hop.dstData.minAmount.toString(),
+                    amount: hop.dstData.amount?.toString(),
+                },
+                type: hop.type,
+                index: hop.index,
+                msgReceivedId: hop.msgReceivedId,
+                msgSentId: hop.msgSentId,
+                txHash: hop.txHash,
+                initiatedBlock: hop.initiatedBlock?.toString(),
+                lastCheckedBlock: hop.lastCheckedBlock?.toString(),
+                isQueryInProgress: hop.isQueryInProgress,
+                timestamp: hop.timestamp,
+                status: hop.status,
+            })),
+            events: swap.events.map((event) => ({
+                ...event,
+                srcData: {
+                    chain: event.srcData.chain.id,
+                    tokenAddress: event.srcData.token.address,
+                    tokenId: event.srcData.token.id,
+                    cell: event.srcData.cell?.address,
+                    estAmount: event.srcData.estAmount?.toString(),
+                    minAmount: event.srcData.minAmount?.toString(),
+                    amount: event.srcData.amount?.toString(),
+                },
+                dstData: {
+                    chain: event.dstData.chain.id,
+                    tokenAddress: event.dstData.token.address,
+                    tokenId: event.dstData.token.id,
+                    cell: event.dstData.cell?.address,
+                    estAmount: event.dstData.estAmount?.toString(),
+                    minAmount: event.dstData.minAmount?.toString(),
+                    amount: event.dstData.amount?.toString(),
+                },
+            })),
+            srcAmount: swap.srcAmount.toString(),
+            dstAmount: swap.dstAmount?.toString(),
+            minDstAmount: swap.minDstAmount.toString(),
+            estDstAmount: swap.estDstAmount.toString(),
+            gasFee: swap.gasFee?.toString(),
+            estGasFee: swap.estGasFee.toString(),
+            estGasUnits: swap.estGasUnits.toString(),
+            dstInitiatedBlock: swap.dstInitiatedBlock?.toString(),
+            dstLastCheckedBlock: swap.dstLastCheckedBlock?.toString(),
+        }
+    }, [])
+
+    const getBaseDataFromJson = useCallback((data: SwapBaseJson) => {
+        const chain = getChain(data.chain)!
+        return {
+            chain: chain,
+            token: getToken({
+                id: data.tokenId,
+                address: data.tokenAddress,
+                chainId: data.chain,
+            }),
+            cell: chain.cells.find((cell) => data.cell && isAddressEqual(cell.address, data.cell)),
+        }
+    }, [getToken])
+
+    const getBaseEventDataFromJson = useCallback((data: EventBaseJson) => {
+        const chain = getChain(data.chain)!
+        return {
+            chain: chain,
+            token: getToken({
+                id: data.tokenId,
+                address: data.tokenAddress,
+                chainId: data.chain,
+            }),
+            cell: chain.cells.find((cell) => data.cell && isAddressEqual(cell.address, data.cell)),
+        }
+    }, [getToken])
+
+    const getSwapHistoryFromJson = useCallback((swap: SwapJson): SwapHistory => {
+        return {
+            ...swap,
+            srcData: {
+                ...getBaseDataFromJson(swap.srcData),
+                estAmount: BigInt(swap.srcData.estAmount),
+                minAmount: BigInt(swap.srcData.minAmount),
+                amount: swap.srcData.amount ? BigInt(swap.srcData.amount) : undefined,
+            },
+            dstData: {
+                ...getBaseDataFromJson(swap.dstData),
+                estAmount: BigInt(swap.dstData.estAmount),
+                minAmount: BigInt(swap.dstData.minAmount),
+                amount: swap.dstData.amount ? BigInt(swap.dstData.amount) : undefined,
+            },
+            type: swap.type,
+            hops: swap.hops.map((hop) => ({
+                ...hop,
+                srcData: {
+                    ...getBaseDataFromJson(hop.srcData),
+                    estAmount: BigInt(hop.srcData.estAmount),
+                    minAmount: BigInt(hop.srcData.minAmount),
+                    amount: hop.srcData.amount ? BigInt(hop.srcData.amount) : undefined,
+                },
+                dstData: {
+                    ...getBaseDataFromJson(hop.dstData),
+                    estAmount: BigInt(hop.dstData.estAmount),
+                    minAmount: BigInt(hop.dstData.minAmount),
+                    amount: hop.dstData.amount ? BigInt(hop.dstData.amount) : undefined,
+                },
+                initiatedBlock: hop.initiatedBlock ? BigInt(hop.initiatedBlock) : undefined,
+                lastCheckedBlock: hop.lastCheckedBlock ? BigInt(hop.lastCheckedBlock) : undefined,
+            })),
+            events: swap.events.map((event) => ({
+                ...event,
+                srcData: {
+                    ...getBaseEventDataFromJson(event.srcData),
+                    estAmount: event.srcData.estAmount ? BigInt(event.srcData.estAmount) : undefined,
+                    minAmount: event.srcData.minAmount ? BigInt(event.srcData.minAmount) : undefined,
+                    amount: event.srcData.amount ? BigInt(event.srcData.amount) : undefined,
+                },
+                dstData: {
+                    ...getBaseEventDataFromJson(event.dstData),
+                    estAmount: event.dstData.estAmount ? BigInt(event.dstData.estAmount) : undefined,
+                    minAmount: event.dstData.minAmount ? BigInt(event.dstData.minAmount) : undefined,
+                    amount: event.dstData.amount ? BigInt(event.dstData.amount) : undefined,
+                },
+            })),
+            srcAmount: BigInt(swap.srcAmount),
+            dstAmount: swap.dstAmount ? BigInt(swap.dstAmount) : undefined,
+            minDstAmount: BigInt(swap.minDstAmount),
+            estDstAmount: BigInt(swap.estDstAmount),
+            gasFee: swap.gasFee ? BigInt(swap.gasFee) : undefined,
+            estGasFee: BigInt(swap.estGasFee),
+            estGasUnits: BigInt(swap.estGasUnits),
+            dstInitiatedBlock: swap.dstInitiatedBlock ? BigInt(swap.dstInitiatedBlock) : undefined,
+            dstLastCheckedBlock: swap.dstLastCheckedBlock ? BigInt(swap.dstLastCheckedBlock) : undefined,
+            isConfirmed: true,
+        }
+    }, [getBaseDataFromJson, getBaseEventDataFromJson])
+
+    const sortSwapData = (a: [string, SwapHistory | SwapJson], b: [string, SwapHistory | SwapJson]) => a[1].timestamp && b[1].timestamp ? b[1].timestamp - a[1].timestamp : 0
+
+    const swapDataSerializer = useCallback((value: SwapHistoryData) => {
+        return JSON.stringify(getMutatedObject(value, getSwapHistoryToJson, sortSwapData))
+    }, [getSwapHistoryToJson])
+
+    const swapDataDeserializer = useCallback((value: string): SwapHistoryData => {
+        return getMutatedObject(JSON.parse(value) as SwapHistoryJson, getSwapHistoryFromJson, sortSwapData)
+    }, [getSwapHistoryFromJson])
+
     const [swapHistoryData, setSwapHistoryData] = useLocalStorage({
         key: StorageKey.SwapHistory,
-        initialValue: initialData,
+        initialValue: {} as SwapHistoryData,
         options: {
             serializer: swapDataSerializer,
             deserializer: swapDataDeserializer,
@@ -416,8 +435,11 @@ const SwapHistoryProvider = ({
                         },
                     }).at(-1)
 
-                    const transferToken = transferLog && getTokenByAddress(transferLog.address, hop.srcData.chain)
-                    const nativeToken = !transferToken && getNativeToken(hop.srcData.chain)
+                    const transferToken = transferLog && getToken({
+                        address: transferLog.address,
+                        chainId: hop.srcData.chain.id,
+                    })
+                    const nativeToken = transferToken?.isNative && getNativeToken(hop.srcData.chain.id)
                     const token = transferToken ?? nativeToken
 
                     if (!token) {
@@ -445,7 +467,7 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [])
+    }, [getToken, getNativeToken])
 
     const setHopEventData = useCallback((swap: SwapHistory, hop: HopHistory, receipt: TransactionReceipt) => {
 
@@ -643,7 +665,10 @@ const SwapHistoryProvider = ({
             }
 
             const { token: srcTokenAddress, amount: srcAmount } = initiatedLog.args
-            const srcToken = getTokenByAddress(srcTokenAddress, chain)
+            const srcToken = getToken({
+                address: srcTokenAddress,
+                chainId: chain.id,
+            })
             if (!srcToken || srcToken.id !== swap.srcData.token.id) {
                 throw new Error(srcToken ? `Swap Source Token (${swap.srcData.token.id}) Doesn't Match Logs (${srcToken.id})` : `Unsupported Token (${srcTokenAddress})`)
             }
@@ -688,7 +713,7 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [setSwapHistory, setHopHistoryLogData, setHopEventData])
+    }, [getToken, setSwapHistory, setHopHistoryLogData, setHopEventData])
 
     const setSwapDstTxData = useCallback(async (swap: SwapHistory, blockNumber: bigint) => {
 

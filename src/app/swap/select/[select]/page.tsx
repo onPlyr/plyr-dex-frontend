@@ -9,6 +9,7 @@ import React, { use, useCallback, useEffect, useState } from "react"
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import { ChainImage } from "@/app/components/images/ChainImage"
+import CustomTokenInput from "@/app/components/tokens/CustomTokenInput"
 import { TokenDetailItem } from "@/app/components/tokens/TokenDetailItem"
 import { Page } from "@/app/components/ui/Page"
 import SearchInput from "@/app/components/ui/SearchInput"
@@ -16,6 +17,7 @@ import { SelectItemToggle } from "@/app/components/ui/SelectItemToggle"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { defaultNetworkMode, SupportedChains } from "@/app/config/chains"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
+import useAddToken from "@/app/hooks/tokens/useAddToken"
 import useFavouriteTokens from "@/app/hooks/tokens/useFavouriteTokens"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { filterTokens } from "@/app/lib/tokens"
@@ -88,14 +90,14 @@ const TokenAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, R
                         ...variants.animate,
                         transition: {
                             ...transition,
-                            delay: custom.index * defaultDelay,
+                            delay: custom ? custom.index * defaultDelay : undefined,
                         },
                     },
                     exit: {
                         ...variants.exit,
                         transition: {
                             ...transition,
-                            delay: (custom.numItems - custom.index - 1) * defaultDelay,
+                            delay: custom ? (custom.numItems - custom.index - 1) * defaultDelay : undefined,
                         },
                     },
                 }}
@@ -180,12 +182,12 @@ const SwapSelectPage = ({
     const { select } = use(params)
     const isDst = select === SelectOptions.dst
 
-    const { data: tokenData } = useTokens()
+    const { tokens: allTokens } = useTokens()
     const { swapRoute, setSwapRoute } = useQuoteData()
     const { favouriteTokens } = useFavouriteTokens()
     const allChains = Object.values(SupportedChains).filter((chain) => !chain.isDisabled).slice(0)
 
-    const [tokens, setTokens] = useState(tokenData)
+    const [tokens, setTokens] = useState(allTokens)
     const [chains, setChains] = useState(allChains)
     const [selectedFilterChain, setSelectedFilterChain] = useState<Chain>()
     const [query, setQuery] = useState<string>()
@@ -209,7 +211,7 @@ const SwapSelectPage = ({
 
     useEffect(() => {
         const { tokenResults, chainResults } = filterTokens(
-            tokenData,
+            allTokens,
             preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode,
             query,
             selectedFilterChain,
@@ -218,7 +220,7 @@ const SwapSelectPage = ({
 
         setTokens(tokenResults)
         setChains(chainResults)
-    }, [tokenData, favouriteTokens, query, selectedFilterChain, preferences])
+    }, [allTokens, favouriteTokens, query, selectedFilterChain, preferences])
 
     const handleSearchInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value)
@@ -227,6 +229,11 @@ const SwapSelectPage = ({
     const clearQuery = useCallback(() => {
         setQuery(undefined)
     }, [setQuery])
+
+    const useAddTokenData = useAddToken({
+        addressInput: query,
+        setAddressInput: setQuery,
+    })
 
     return (
         <Page
@@ -274,10 +281,12 @@ const SwapSelectPage = ({
                         clearValue={clearQuery}
                         handleInput={handleSearchInput}
                         placeholder="Search by name, symbol or address"
+                        isDataSuccess={tokens.length === 0 && useAddTokenData.addressStatus.isSuccess && !!useAddTokenData.address}
+                        isDataError={tokens.length === 0 && useAddTokenData.addressStatus.isError}
                     />
                     <div className="flex flex-col flex-1 overflow-hidden">
                         <AnimatePresence>
-                            {tokens && tokens.length > 0 && tokens.map((token, i) => {
+                            {tokens.length > 0 ? tokens.map((token, i) => {
                                 const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
                                 return (
                                     <TokenAnimation
@@ -296,7 +305,13 @@ const SwapSelectPage = ({
                                         />
                                     </TokenAnimation>
                                 )
-                            })}
+                            }) : (
+                                <CustomTokenInput
+                                    key="not-found"
+                                    useAddTokenData={useAddTokenData}
+                                    showNotFoundMsg={true}
+                                />
+                            )}
                         </AnimatePresence>
                     </div>
                 </div>

@@ -8,11 +8,11 @@ import AccountMenuItem from "@/app/components/account/AccountMenuItem"
 import ConnectButton from "@/app/components/account/ConnectButton"
 import AccountIcon from "@/app/components/icons/AccountIcon"
 import DisconnectIcon from "@/app/components/icons/DisconnectIcon"
+import HistoryIcon from "@/app/components/icons/HistoryIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import MenuIcon from "@/app/components/icons/MenuIcon"
 import SocialIcon from "@/app/components/icons/SocialIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
-import { TxIcon } from "@/app/components/icons/TxIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import Button from "@/app/components/ui/Button"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
@@ -23,7 +23,6 @@ import useReadAvvyName from "@/app/hooks/avvy/useReadAvvyName"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
-import { getNativeToken } from "@/app/lib/tokens"
 import { SocialLink } from "@/app/types/navigation"
 import { NumberFormatType } from "@/app/types/numbers"
 
@@ -34,11 +33,11 @@ const AccountDetailButton = () => {
         accountAddress: accountAddress,
     })
     const { disconnect } = useDisconnect()
+    const { getNativeToken } = useTokens()
 
     const connectedChain = connectedChainId ? getChain(connectedChainId) : undefined
-    const nativeToken = connectedChain ? getNativeToken(connectedChain) : undefined
-    const { getTokenData } = useTokens()
-    const nativeData = getTokenData(nativeToken?.id, connectedChain?.id)
+    const nativeToken = connectedChain && getNativeToken(connectedChain.id)
+
     const shortAddress = accountAddress ? toShort(accountAddress) : undefined
     const explorerUrl = getBlockExplorerLink({
         chain: connectedChain,
@@ -100,10 +99,10 @@ const AccountDetailButton = () => {
                                             ) : shortAddress}
                                         </div>
                                         <div className="flex flex-row flex-1 font-mono font-bold text-muted-500">
-                                            {nativeData?.balance ? (
+                                            {nativeToken?.balance ? (
                                                 <DecimalAmount
-                                                    amount={nativeData.balance}
-                                                    symbol={nativeData.symbol}
+                                                    amount={nativeToken.balance}
+                                                    symbol={nativeToken.symbol}
                                                     token={nativeToken}
                                                     type={NumberFormatType.Precise}
                                                 />
@@ -131,7 +130,7 @@ const AccountDetailButton = () => {
                                     My Account
                                 </AccountMenuItem>
                                 <AccountMenuItem
-                                    icon=<TxIcon className={iconSizes.sm} />
+                                    icon=<HistoryIcon className={iconSizes.sm} />
                                     onClick={onClickMenu.bind(this)}
                                     url="/swap/history"
                                     idx={2}

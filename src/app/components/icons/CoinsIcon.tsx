@@ -1,9 +1,9 @@
 import { Coins } from "@phosphor-icons/react"
-import * as React from "react"
+import React from "react"
 
 import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
 
-const CoinsIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconProps>(({
+const CoinsIcon = React.forwardRef<React.ComponentRef<typeof BaseIcon>, BaseIconProps>(({
     children,
     ...props
 }, ref) => (

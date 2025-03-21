@@ -11,7 +11,6 @@ import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeDat
 import { MathBigInt } from "@/app/lib/numbers"
 import { getPlatform } from "@/app/lib/platforms"
 import { toShort } from "@/app/lib/strings"
-import { getToken, getTokenByAddress, getUnsupportedToken } from "@/app/lib/tokens"
 import { getParsedError } from "@/app/lib/utils"
 import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
 import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/apis"
@@ -23,14 +22,18 @@ import {
     GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
     isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType
 } from "@/app/types/swaps"
-import { Token } from "@/app/types/tokens"
+import { GetSupportedTokenFunction, GetTokenFunction, Token } from "@/app/types/tokens"
 
 export const generateSwapId = (): SwapId => {
     return uuidv4()
 }
 
-export const getSwapQuoteTokenAddress = (chain: Chain, token: Token) => {
-    const swapQuoteToken = chain.id === token.chainId ? token : getToken(token.id, chain)
+export const getSwapQuoteTokenAddress = (chain: Chain, token: Token, getToken: GetTokenFunction) => {
+    const swapQuoteToken = chain.id === token.chainId ? token : getToken({
+        id: token.id,
+        address: token.address,
+        chainId: chain.id,
+    })
     return swapQuoteToken?.isNative && swapQuoteToken.wrappedAddress ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
 }
 
@@ -186,11 +189,15 @@ export const getSwapQuoteData = async ({
     getApiTokenPair,
     maxNumHops,
     cellRouteData,
+    getToken,
+    getSupportedToken,
 }: {
     route: SwapRoute,
     getApiTokenPair: GetApiTokenPairFunction,
     maxNumHops?: number,
     cellRouteData?: CellRouteData,
+    getToken: GetTokenFunction,
+    getSupportedToken: GetSupportedTokenFunction,
 }): Promise<GetSwapQuoteDataReturnType> => {
 
     const swapQuoteData: GetSwapQuoteDataReturnType = {}
@@ -209,6 +216,7 @@ export const getSwapQuoteData = async ({
             route: route,
             maxHops: maxHops,
             slippageBps: slippageBps,
+            getSupportedToken: getSupportedToken,
         })
         const { data: validHopData, error: quoteError } = await getValidHopQuoteData({
             hopData: initialHopData,
@@ -216,6 +224,7 @@ export const getSwapQuoteData = async ({
             maxHops: maxHops,
             slippageBps: slippageBps,
             cellRouteData: cellRouteData,
+            getToken: getToken,
         })
 
         if (quoteError || !validHopData) {
@@ -232,6 +241,7 @@ export const getSwapQuoteData = async ({
             const events = getHopEventData({
                 hops: hops,
                 slippageBps: slippageBps,
+                getToken: getToken,
             })
 
             const quote: SwapQuote = {
@@ -305,10 +315,12 @@ export const getInitialHopQuoteData = ({
     route,
     maxHops,
     slippageBps,
+    getSupportedToken,
 }: {
     route: SwapRoute,
     maxHops: number,
     slippageBps?: bigint,
+    getSupportedToken: GetSupportedTokenFunction,
 }) => {
 
     const hopData: Record<SwapId, HopQuote[]> = {}
@@ -346,6 +358,7 @@ export const getInitialHopQuoteData = ({
         route: route,
         maxHops: maxHops,
         slippageBps: slippageBps,
+        getSupportedToken: getSupportedToken,
     })
 
     if (!bridgePathHops || bridgePathHops.length === 0) {
@@ -402,12 +415,14 @@ export const getValidHopQuoteData = async ({
     maxHops,
     slippageBps,
     cellRouteData,
+    getToken,
 }: {
     hopData: Record<SwapId, HopQuote[]>,
     getApiTokenPair: GetApiTokenPairFunction,
     maxHops: number,
     slippageBps?: bigint,
     cellRouteData?: CellRouteData,
+    getToken: GetTokenFunction,
 }): Promise<GetValidHopQuoteDataReturnType> => {
 
     const quoteIds = Object.keys(hopData)
@@ -457,6 +472,7 @@ export const getValidHopQuoteData = async ({
                     hop: hop,
                     getApiTokenPair: getApiTokenPair,
                     cellRouteData: cellRouteData,
+                    getToken: getToken,
                 })
 
                 if (hop.srcData.cell.apiData && apiQuery) {
@@ -515,7 +531,7 @@ export const getValidHopQuoteData = async ({
 
                 if (srcData.cell.apiData) {
 
-                    const dstSwapTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token)
+                    const dstSwapTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token, getToken)
                     const { amount: dstAmount } = apiData[hop.queryIndex]
                     if (!dstSwapTokenAddress || !dstAmount || dstAmount === BigInt(0)) {
                         hop.isError = true
@@ -598,10 +614,12 @@ export const getHopQueryData = ({
     hop,
     getApiTokenPair,
     cellRouteData,
+    getToken,
 }: {
     hop: Hop,
     getApiTokenPair: GetApiTokenPairFunction,
     cellRouteData?: CellRouteData,
+    getToken: GetTokenFunction,
 }) => {
 
     const queryData: HopQueryData = {}
@@ -646,8 +664,8 @@ export const getHopQueryData = ({
     else {
 
         const abi = getCellAbi(srcData.cell)
-        const srcTokenAddress = getSwapQuoteTokenAddress(srcData.chain, srcData.token)
-        const dstTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token)
+        const srcTokenAddress = getSwapQuoteTokenAddress(srcData.chain, srcData.token, getToken)
+        const dstTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token, getToken)
         const routeData = getEncodedCellRouteData(srcData.chain, srcData.cell, cellRouteData, false)
 
         if (!abi || !srcTokenAddress || !dstTokenAddress || !routeData) {
@@ -706,9 +724,11 @@ export const getHopQueryResults = async ({
 export const getHopEventData = ({
     hops,
     slippageBps,
+    getToken,
 }: {
     hops: Hop[],
     slippageBps?: bigint,
+    getToken: GetTokenFunction,
 }) => {
 
     const events: HopEvent[] = []
@@ -725,7 +745,10 @@ export const getHopEventData = ({
         } = hop.trade ?? {}
 
         const tradeDstAmount = amountOut || minAmountOut || hop.dstData.estAmount
-        const tradeDstToken = tokenOut && (getTokenByAddress(tokenOut, hop.srcData.chain) ?? getUnsupportedToken(tokenOut, hop.srcData.chain))
+        const tradeDstToken = tokenOut && getToken({
+            address: tokenOut,
+            chainId: hop.srcData.chain.id,
+        })
         const prevHop = hops.at(hop.index - 1)
 
         let prevDstToken: Token | undefined = hop.srcData.token
@@ -740,8 +763,14 @@ export const getHopEventData = ({
 
                     const adapterAddress = adapterAddresses?.[i] || hop.srcData.cell.address
                     const adapter = getSwapAdapter(hop.srcData.chain, adapterAddress)
-                    const eventSrcToken = getTokenByAddress(tradePath[i], hop.srcData.chain) ?? getUnsupportedToken(tradePath[i], hop.srcData.chain)
-                    const eventDstToken = getTokenByAddress(tradePath[i + 1], hop.srcData.chain) ?? getUnsupportedToken(tradePath[i + 1], hop.srcData.chain)
+                    const eventSrcToken = getToken({
+                        address: tradePath[i],
+                        chainId: hop.srcData.chain.id,
+                    })
+                    const eventDstToken = getToken({
+                        address: tradePath[i + 1],
+                        chainId: hop.srcData.chain.id,
+                    })
                     const eventDstAmount = i === tradePath.length - 2 ? tradeDstAmount : undefined
 
                     if (eventSrcToken && eventDstToken) {

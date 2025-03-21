@@ -32,5 +32,6 @@ export const StorageKey = {
     SwapRoute: "swap-route",
     UserPreferences: "app-preferences",
     ShowIntro: "show-intro",
+    CustomTokens: "custom-tokens",
 } as const
 export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey]

@@ -114,13 +114,14 @@ export type BaseData = SwapBaseData | QuoteData | ValidQuoteData | HistoryBaseDa
 
 export interface SwapBaseJson {
     chain: ChainId,
-    token: TokenId,
+    tokenAddress: Address,
+    tokenId?: TokenId,
     cell?: Address,
     estAmount: string,
     minAmount: string,
     amount?: string,
 }
-export type EventBaseJson = WithRequired<Partial<SwapBaseJson>, "chain" | "token">
+export type EventBaseJson = WithRequired<Partial<SwapBaseJson>, "chain" | "tokenAddress">
 export type BaseJson = SwapBaseJson | EventBaseJson
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +140,8 @@ export type SwapRoute = BaseSwapRoute | ValidSwapRoute
 
 export interface SwapRouteBaseJson {
     chain?: ChainId,
-    token?: TokenId,
+    tokenAddress?: Address,
+    tokenId?: TokenId,
     amount?: string,
 }
 export interface SwapRouteJson {

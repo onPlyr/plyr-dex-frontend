@@ -10,25 +10,33 @@ import { iconSizes } from "@/app/config/styling"
 
 interface SearchInputProps extends React.ComponentPropsWithoutRef<typeof TextInput> {
     clearValue?: () => void,
+    isDataError?: boolean,
+    isDataSuccess?: boolean,
 }
 
 const SearchInput = React.forwardRef<React.ComponentRef<typeof TextInput>, SearchInputProps>(({
     className,
     handleInput,
     clearValue,
+    isDataError,
+    isDataSuccess,
     disabled,
     ...props
 }, ref) => {
     const hasValue = props.value !== undefined && props.value.toString().trim().length !== 0
     return (
-        <div className="input-container flex flex-row flex-1 p-4 gap-4 justify-start items-center">
+        <div
+            className={twMerge("input-container flex flex-row flex-1 p-4 gap-4 justify-start items-center", className)}
+            data-success={isDataSuccess}
+            data-error={isDataError}
+        >
             <div className="flex flex-row flex-none justify-center items-center text-muted-400">
                 <SearchIcon className={iconSizes.sm} />
             </div>
             <TextInput
                 ref={ref}
-                className={twMerge("p-0 m-0", className)}
-                onChange={disabled ? undefined : handleInput?.bind(this)}
+                className="p-0 m-0"
+                onChange={!disabled ? handleInput?.bind(this) : undefined}
                 inputMode="search"
                 disabled={disabled}
                 {...props}

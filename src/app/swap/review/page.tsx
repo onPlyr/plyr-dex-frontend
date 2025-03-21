@@ -44,7 +44,7 @@ import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
 const ReviewSwapPage = () => {
 
     const { address: accountAddress, isConnected } = useAccount()
-    const { getTokenData, refetch: refetchTokens } = useTokens()
+    const { getToken, refetch: refetchTokens } = useTokens()
     const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
     const { getFirmQuote } = useApiData()
     const { latestBlocks } = useBlockData()
@@ -326,10 +326,15 @@ const ReviewSwapPage = () => {
     })
 
     const isInProgress = allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
+    
     const { errorMsg, isConnectError } = getInitiateSwapError({
         action: InitiateSwapAction.Initiate,
         isConnected: isConnected,
-        srcToken: getTokenData(srcData?.token.id, srcData?.chain.id),
+        srcToken: getToken({
+            id: srcData?.token.id,
+            /*@ts-ignore*/
+            chainId: srcData?.chain.id,
+        }),
         selectedQuote: quote,
         isInProgress: isInProgress,
     })
