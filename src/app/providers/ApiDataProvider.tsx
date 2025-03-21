@@ -57,10 +57,9 @@ const ApiDataProvider = ({
 
     const { address: accountAddress } = useAccount()
     const { preferences } = usePreferences()
+    const { getToken } = useTokens()
     const apiTokenData = useApiTokenData()
     const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
-
-    const { getToken } = useTokens()
 
     const [cellRouteData, setCellRouteData] = useState<CellRouteData>()
     useEffect(() => {
@@ -218,7 +217,7 @@ const ApiDataProvider = ({
             }
         }
 
-    }, [accountAddress, cellRouteData, getApiTokenPair, slippage])
+    }, [accountAddress, getToken, cellRouteData, getApiTokenPair, slippage])
 
     const context: ApiDataContextType = {
         getApiTokenData: getApiTokenData,

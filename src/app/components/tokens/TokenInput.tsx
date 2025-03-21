@@ -5,9 +5,11 @@ import Link from "next/link"
 import React from "react"
 import { twMerge } from "tailwind-merge"
 import { formatUnits } from "viem"
+import { useAccount } from "wagmi"
 
 import AccountIcon from "@/app/components/icons/AccountIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
+import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
 import Button from "@/app/components/ui/Button"
@@ -17,6 +19,7 @@ import { DecimalInput } from "@/app/components/ui/DecimalInput"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes, MediaQueries } from "@/app/config/styling"
 import { TokenInputPercentOptions } from "@/app/config/swaps"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import useMediaQuery from "@/app/hooks/utils/useMediaQuery"
 import { getSwapRouteEstGasFee } from "@/app/lib/swaps"
 import { AnimatedNumberFormatOptions, NumberFormatOptions, NumberFormatType } from "@/app/types/numbers"
@@ -99,9 +102,11 @@ const TokenSelectDetail = React.forwardRef<React.ComponentRef<typeof Link>, Toke
             token={token}
             size={imgSize}
         />
-        <div className="flex flex-row flex-none font-bold">
-            {token?.symbol ?? "Select Token"}
-        </div>
+        {token && (
+            <div className="flex flex-row flex-none font-bold">
+                {token.symbol}
+            </div>
+        )}
         <ChevronIcon
             direction={StyleDirection.Down}
             className={twMerge("transition text-muted-500 group-hover:text-white", iconSizes.xs)}
@@ -119,6 +124,9 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     ...props
 }, ref) => {
 
+    const { address: accountAddress, isDisconnected } = useAccount()
+    const { useBalancesData } = useTokens()
+    const { isInProgress: balancesIsInProgress } = useBalancesData
     const { chain, token } = isDst ? route.dstData : route.srcData
     const selectUrl = `/swap/select/${isDst ? "to" : "from"}`
 
@@ -141,29 +149,34 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                     />
                 </div>
                 <div className="flex flex-row flex-1 gap-2 justify-end items-center">
-                    <Tooltip
-                        trigger=<div className="flex flex-row flex-none gap-2 items-center">
-                            {xsBreakpoint && (
-                                <DecimalAmount
-                                    amountFormatted={token?.balanceFormatted}
-                                    symbol={smBreakpoint ? token?.symbol : undefined}
-                                    token={token}
-                                    type={smBreakpoint ? NumberFormatType.Precise : undefined}
-                                    className="justify-end font-bold text-end text-muted-500"
-                                />
-                            )}
-                            <AccountIcon className={twMerge("text-muted-500", iconSizes.xs)} />
-                        </div>
-                    >
-                        Wallet balance:&nbsp;
-                        <DecimalAmount
-                            amountFormatted={token?.balanceFormatted}
-                            symbol={token?.symbol}
-                            token={token}
-                            type={NumberFormatType.Precise}
-                            className="font-bold"
-                        />
-                    </Tooltip>
+                    {accountAddress && !isDisconnected && token && (
+                        <Tooltip
+                            trigger=<div className="flex flex-row flex-none gap-2 items-center text-muted-500">
+                                {xsBreakpoint && (
+                                    <DecimalAmount
+                                        amountFormatted={token?.balanceFormatted}
+                                        symbol={smBreakpoint ? token?.symbol : undefined}
+                                        token={token}
+                                        type={smBreakpoint ? NumberFormatType.Precise : undefined}
+                                        emptyValue="0"
+                                        className="justify-end font-bold text-end"
+                                    />
+                                )}
+                                {balancesIsInProgress ? <LoadingIcon className={iconSizes.xs} /> : <AccountIcon className={iconSizes.xs} />}
+                            </div>
+                        >
+                            Wallet balance:&nbsp;
+                            <DecimalAmount
+                                amount={token.balance}
+                                amountFormatted={token.balanceFormatted}
+                                symbol={token.symbol}
+                                token={token}
+                                type={NumberFormatType.Precise}
+                                emptyValue="0"
+                                className="font-bold"
+                            />
+                        </Tooltip>
+                    )}
                     {!isDst && (
                         <TokenInputPercentButtons
                             route={route}
@@ -194,6 +207,7 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                             className="p-0 m-0 text-end text-2xl truncate"
                             value={value}
                             setValue={setValue}
+                            decimals={token?.decimals}
                             autoFocus={!isDisabled}
                             disabled={isDisabled || !chain || !token}
                         />
@@ -202,19 +216,19 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
             </div>
             <div className="flex flex-row flex-1 gap-4">
                 <div className="flex flex-row flex-1 justify-between items-center">
-                    {chain && (
-                        <Link
-                            href={selectUrl}
-                            className="flex flex-row flex-none justify-start items-center gap-2 font-bold text-muted-500"
-                            prefetch={true}
-                        >
+                    <Link
+                        href={selectUrl}
+                        className="flex flex-row flex-none justify-start items-center gap-2 font-bold text-muted-500"
+                        prefetch={true}
+                    >
+                        {chain ? (<>
                             <ChainImageInline
                                 chain={chain}
                                 size="xs"
                             />
                             {chain.name}
-                        </Link>
-                    )}
+                        </>) : "Select token"}
+                    </Link>
                     <CurrencyAmount
                         amountFormatted="0"
                         className="justify-end text-end text-muted-500"

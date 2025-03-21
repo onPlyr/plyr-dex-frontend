@@ -6,7 +6,7 @@ import { readContracts } from "@wagmi/core"
 
 import { Tokens } from "@/app/config/tokens"
 import { wagmiConfig } from "@/app/config/wagmi"
-import useBalances from "@/app/hooks/tokens/useBalances"
+import useBalances, { UseBalancesReturnType } from "@/app/hooks/tokens/useBalances"
 import useLocalStorage from "@/app/hooks/utils/useLocalStorage"
 import { getChain } from "@/app/lib/chains"
 import { slugify, toShort } from "@/app/lib/strings"
@@ -24,6 +24,7 @@ export interface UnconfirmedTokenData {
 
 interface TokenDataContextType {
     tokens: Token[],
+    useBalancesData: UseBalancesReturnType,
     getToken: GetTokenFunction,
     getSupportedToken: GetSupportedTokenFunction,
     getNativeToken: GetNativeTokenFunction,
@@ -93,10 +94,11 @@ const TokenDataProvider = ({
         },
     })
 
-    const { tokens, refetch } = useBalances({
+    const useBalancesData = useBalances({
         supportedTokens: supportedTokens,
         customTokens: customTokens,
     })
+    const { tokens, refetch } = useBalancesData
 
     const [unconfirmedTokenData, setUnconfirmedTokenData] = useState<UnconfirmedTokenData>({})
     const [isConfirmInProgress, setIsConfirmInProgress] = useState(false)
@@ -236,6 +238,7 @@ const TokenDataProvider = ({
 
     const context: TokenDataContextType = {
         tokens: tokens,
+        useBalancesData: useBalancesData,
         getToken: getToken,
         getSupportedToken: getSupportedToken,
         getNativeToken: getNativeToken,

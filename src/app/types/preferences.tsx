@@ -6,10 +6,17 @@ export const NetworkMode = {
 } as const
 export type NetworkMode = (typeof NetworkMode)[keyof typeof NetworkMode]
 
+export const TokenSortType = {
+    Value: "value",
+    Symbol: "symbol",
+} as const
+export type TokenSortType = (typeof TokenSortType)[keyof typeof TokenSortType]
+
 export const PreferenceType = {
     Slippage: "slippage",
     Currency: "currency",
     NetworkMode: "networkMode",
+    TokenSortType: "tokenSortType",
 } as const
 export type PreferenceType = (typeof PreferenceType)[keyof typeof PreferenceType]
 
@@ -20,6 +27,7 @@ export interface UserPreferences {
     [PreferenceType.Slippage]?: number,
     [PreferenceType.Currency]?: Currency,
     [PreferenceType.NetworkMode]?: NetworkMode,
+    [PreferenceType.TokenSortType]?: TokenSortType,
 }
 
 export const SlippageConfig = {
@@ -57,6 +65,10 @@ export const isValidNetworkModePreference = (mode: string): mode is NetworkMode 
     return Object.values(NetworkMode).includes(mode as NetworkMode)
 }
 
+export const isValidTokenSortTypePreference = (type: string): type is TokenSortType => {
+    return Object.values(TokenSortType).includes(type as TokenSortType)
+}
+
 export const isValidPreference = (key: PreferenceType, value: UserPreferenceValueType): value is UserPreferenceType => {
     if (key === PreferenceType.Slippage && isValidSlippagePreference(value as number)) {
         return true
@@ -65,6 +77,9 @@ export const isValidPreference = (key: PreferenceType, value: UserPreferenceValu
         return true
     }
     else if (key === PreferenceType.NetworkMode && isValidNetworkModePreference(value as string)) {
+        return true
+    }
+    else if (key === PreferenceType.TokenSortType && isValidTokenSortTypePreference(value as string)) {
         return true
     }
     return false
