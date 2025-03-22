@@ -19,7 +19,7 @@ import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes } from "@/app/config/styling"
 import useApiData from "@/app/hooks/apis/useApiData"
-import useBlockData from "@/app/hooks/blocks/useBlockData"
+import useLatestBlocks from "@/app/hooks/blocks/useLatestBlocks"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useAlternativeSwapQuote from "@/app/hooks/swap/useAlternativeSwapQuote"
@@ -31,7 +31,7 @@ import useReadAllowance from "@/app/hooks/tokens/useReadAllowance"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
 import { formatDuration } from "@/app/lib/datetime"
-import { getInitiateSwapError } from "@/app/lib/swaps"
+import { getInitiateSwapError, getSwapChainIds } from "@/app/lib/swaps"
 import { getTxActionLabel } from "@/app/lib/txs"
 import { PageType } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
@@ -40,6 +40,7 @@ import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
+import { ChainId } from "@/app/types/chains"
 
 const ReviewSwapPage = () => {
 
@@ -47,11 +48,47 @@ const ReviewSwapPage = () => {
     const { getToken, refetch: refetchTokens } = useTokens()
     const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
     const { getFirmQuote } = useApiData()
-    const { latestBlocks } = useBlockData()
     const { setSrcAmountInput, useSwapQuotesData, selectedQuote, quoteExpiry } = useQuoteData()
     const { setNotification, removeNotification } = useNotifications()
     const { openConnectModal } = useConnectModal()
     const router = useRouter()
+
+    const [quote, setQuote] = useState(selectedQuote)
+    const [isConfirmQuote, setIsConfirmQuote] = useState(!quote?.isConfirmed)
+    const useSwapRecipientData = useSwapRecipient({
+        swap: quote,
+        setSwap: setQuote,
+    })
+
+    const useSwapSlippageData = useSwapSlippage({
+        swap: quote,
+        setSwap: setQuote,
+    })
+
+    const [quoteChainIds, setQuoteChainIds] = useState<ChainId[]>([])
+     const { getLatestBlock } = useLatestBlocks({
+         chainIds: quoteChainIds,
+         isWatch: false,
+     })
+
+    useAlternativeSwapQuote({
+        quote: quote,
+        setQuote: setQuote,
+    })
+
+    useEffect(() => {
+        setQuoteChainIds(quote ? getSwapChainIds(quote) : [])
+    }, [quote?.id])
+
+    useEffect(() => {
+        if (quote) {
+            quote.accountAddress = accountAddress
+            if (!quote.recipientAddress) {
+                quote.recipientAddress = accountAddress
+            }
+            setQuote(quote)
+        }
+    }, [quote, accountAddress])
 
     // Mirror Address //
     const [plyrId, setPlyrId] = useState<string | undefined>(undefined)
@@ -167,35 +204,6 @@ const ReviewSwapPage = () => {
         }))
     }, [destinationAddress])
 
-
-    const [quote, setQuote] = useState(selectedQuote)
-    const [isConfirmQuote, setIsConfirmQuote] = useState(!quote?.isConfirmed)
-    const [initiatedBlockData, setInitiatedBlockData] = useState(latestBlocks)
-    const useSwapRecipientData = useSwapRecipient({
-        swap: quote,
-        setSwap: setQuote,
-    })
-
-    const useSwapSlippageData = useSwapSlippage({
-        swap: quote,
-        setSwap: setQuote,
-    })
-
-    useAlternativeSwapQuote({
-        quote: quote,
-        setQuote: setQuote,
-    })
-
-    useEffect(() => {
-        if (quote) {
-            quote.accountAddress = accountAddress
-            if (!quote.recipientAddress) {
-                quote.recipientAddress = accountAddress
-            }
-            setQuote(quote)
-        }
-    }, [quote, accountAddress])
-
     const { srcData, dstData } = quote ?? {}
     const isValidQuote = quote && isValidSwapQuote(quote)
     const isValidInitiate = isValidQuote && isValidInitiateSwapQuote(quote)
@@ -210,7 +218,6 @@ const ReviewSwapPage = () => {
 
     useEffect(() => {
         setIsConfirmQuote(!quote?.isConfirmed)
-        setInitiatedBlockData(latestBlocks)
     }, [quote?.id])
 
 
@@ -237,7 +244,7 @@ const ReviewSwapPage = () => {
             ...quote,
             hops: quote.hops.map((hop) => ({
                 ...hop,
-                initiatedBlock: initiatedBlockData[hop.srcData.chain.id]?.number ?? undefined,
+                initiatedBlock: getLatestBlock(hop.srcData.chain.id)?.number ?? undefined,
                 status: SwapStatus.Pending,
             })),
             events: quote.events.map((event) => ({
@@ -246,7 +253,7 @@ const ReviewSwapPage = () => {
             })),
             accountAddress: accountAddress,
             txHash: receipt.transactionHash,
-            dstInitiatedBlock: initiatedBlockData[quote.dstData.chain.id]?.number ?? undefined,
+            dstInitiatedBlock: getLatestBlock(quote.dstData.chain.id)?.number ?? undefined,
             status: SwapStatus.Pending,
             plyrId: quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? plyrId : undefined,
         }
@@ -259,7 +266,7 @@ const ReviewSwapPage = () => {
 
         router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}${quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? `?plyrId=${plyrId}` : ""}`)
 
-    }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, initiatedBlockData, setInitiateSwapData])
+    }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, getLatestBlock, setInitiateSwapData])
 
     const { write: writeInitiate, isInProgress: initiateIsInProgress } = useWriteInitiateSwap({
         quote: quote,

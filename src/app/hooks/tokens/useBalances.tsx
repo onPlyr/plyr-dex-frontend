@@ -123,17 +123,16 @@ const useBalances = ({
     }, [supportedTokens, customTokens, accountAddress, setTokens, networkMode, isAccountConnected, isInProgress, setIsInProgress, setErrorMsg])
 
     useEffect(() => {
-        console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>> getTokenBalances isAccountConnected: ${isAccountConnected ? "yes" : "NO"}`)
         if (!isInProgress) {
             getTokenBalances()
         }
     }, [supportedTokens, customTokens, accountAddress, networkMode, isAccountConnected])
 
-    useEffect(() => console.log("CHANGED: isAccountConnected"), [isAccountConnected])
-    useEffect(() => console.log("CHANGED: supportedTokens"), [supportedTokens])
-    useEffect(() => console.log("CHANGED: customTokens"), [customTokens])
-    useEffect(() => console.log("CHANGED: accountAddress"), [accountAddress])
-    useEffect(() => console.log("CHANGED: networkMode"), [networkMode])
+    useEffect(() => console.log("useBalances CHANGED: isAccountConnected"), [isAccountConnected])
+    useEffect(() => console.log("useBalances CHANGED: supportedTokens"), [supportedTokens])
+    useEffect(() => console.log("useBalances CHANGED: customTokens"), [customTokens])
+    useEffect(() => console.log("useBalances CHANGED: accountAddress"), [accountAddress])
+    useEffect(() => console.log("useBalances CHANGED: networkMode"), [networkMode])
 
     return {
         tokens: tokens,

@@ -101,6 +101,18 @@ export const getSwapRouteEstGasFee = (route: SwapRoute) => {
     return isValidSwapRoute(route) ? BigInt(SwapQuoteConfig.MaxHops) * (GasUnits.Est + GasUnits.Buffer + (BigInt(2) * GasUnits.Buffer)) * route.srcData.chain.minGasPrice : undefined
 }
 
+export const getSwapChainIds = (swap: Swap, status?: SwapStatus) => {
+ 
+    const hops = status ? swap.hops.filter((hop) => hop.status === status) : swap.hops
+    const hopChainIds = hops.map((hop) => [hop.srcData.chain.id, hop.dstData.chain.id]).flat()
+    const swapChainIds = !status || swap.status === status ? [swap.dstData.chain.id] : []
+
+    return [...new Set([
+        ...hopChainIds,
+        ...swapChainIds,
+    ])]
+}
+
 export const getInitiateSwapError = ({
     action,
     isConnected,

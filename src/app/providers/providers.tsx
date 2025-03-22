@@ -14,7 +14,6 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { TooltipProvider } from "@/app/components/ui/Tooltip"
 import { wagmiConfig } from "@/app/config/wagmi"
 import ApiDataProvider from "@/app/providers/ApiDataProvider"
-import BlockDataProvider from "@/app/providers/BlockDataProvider"
 import FavouriteTokensProvider from "@/app/providers/FavouriteTokensProvider"
 import NotificationProvider from "@/app/providers/NotificationProvider"
 import PreferencesProvider from "@/app/providers/PreferencesProvider"
@@ -55,15 +54,13 @@ const StoredDataProviders = ({ children }: { children: ReactNode }) => (
 )
 
 const QueryDataProviders = ({ children }: { children: ReactNode }) => (
-    <BlockDataProvider>
-        <TokenDataProvider>
-            <QuoteDataProvider>
-                <SwapHistoryProvider>
-                    {children}
-                </SwapHistoryProvider>
-            </QuoteDataProvider>
-        </TokenDataProvider>
-    </BlockDataProvider>
+    <TokenDataProvider>
+        <QuoteDataProvider>
+            <SwapHistoryProvider>
+                {children}
+            </SwapHistoryProvider>
+        </QuoteDataProvider>
+    </TokenDataProvider>
 )
 
 // todo: review provider nesting

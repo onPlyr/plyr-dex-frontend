@@ -23,7 +23,7 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
     const { getApiTokenPair } = useApiData()
     const { preferences } = usePreferences()
     const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
-    const enabled = !(!route || !isValidSwapRoute(route))
+    const enabled = !!route && isValidSwapRoute(route)
 
     const [swapQuoteData, setSwapQuoteData] = useState<SwapQuoteData>()
     const [cellRouteData, setCellRouteData] = useState<CellRouteData>()
@@ -87,6 +87,9 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
             getSwapQuotes()
         }
     }, [enabled, route])
+
+    useEffect(() => console.log("useSwapQuotes CHANGED: enabled"), [enabled])
+    useEffect(() => console.log("useSwapQuotes CHANGED: route"), [route])
 
     return {
         data: swapQuoteData,
