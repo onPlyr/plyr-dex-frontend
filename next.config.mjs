@@ -13,7 +13,7 @@ const nextConfig = {
     // redirect / to /swap
     async redirects() {
         return [
-            { source: '/', destination: '/swap', permanent: false },
+            { source: '/', destination: '/intro', permanent: false },
             {
                 source: "/intro",
                 destination: "/swap?intro=true",
