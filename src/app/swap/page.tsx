@@ -283,7 +283,7 @@ const SwapPage = () => {
                                 isNestedPage={true}
                             >
                                 <div className="flex flex-col flex-none gap-4 w-full h-fit overflow-hidden">
-                                    <TokenInput
+                                <TokenInput
                                         key="src"
                                         route={swapRoute}
                                         value={srcAmountInput}
@@ -310,7 +310,7 @@ const SwapPage = () => {
                                         key="dst"
                                         route={swapRoute}
                                         value={selectedQuote ? formatUnits(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals) : undefined}
-                                        amount={swapRoute.srcData.amount}
+                                        amount={selectedQuote?.estDstAmount}
                                         isDst={true}
                                         isDisabled={isShowIntro}
                                     />
