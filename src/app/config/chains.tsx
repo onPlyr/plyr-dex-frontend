@@ -112,8 +112,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                // address: "0x961BC362b0a77781612E6dC4F5E02DFa85C9504d",
-                address: "0x1B7939f10d678F6186539406e54e0284bAAe4A6E", // fees + source id
+                address: "0x29B8791C0a87B7180970EF756137E08A123BFF03",
             },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
@@ -255,23 +254,15 @@ export const SupportedChains: Record<ChainId, Chain> = {
         icon: `${avalancheFuji.id}.png`,
         iconBackground: "#ff394a",
         cells: [
-            // {
-            //     ...cellTypeDefinitions[CellType.YakSwap],
-            //     address: "0x605E3f6239066f350C6497241d2cA285061dd095",
-            // },
-            // todo: tbc, needs testing with new initiated event
-            // event Initiated(address indexed sender, address indexed token, uint256 amount, bytes instructions)
-            // abi: https://gist.github.com/midnight-commit/df2a17af93fec774e4bbd717f9a4e9cd
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                // address: "0x5e30439FDD999686ccbb22a59bfedD05b6bFe1C3",
-                address: "0x6Abb82d940887a637948d6f223259499a4433E67",
+                address: "0x104483e25b2B4F413f08fcb718426a72d06e48a1",
             },
-            // {
-            //     ...cellTypeDefinitions[CellType.Dexalot],
-            //     address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
-            //     // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
-            // },
+            {
+                ...cellTypeDefinitions[CellType.Dexalot],
+                address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
+                // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
+            },
         ],
         blockchainId: "0x7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5",
         minGasPrice: BigInt(1),
@@ -376,8 +367,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.HopOnly],
-                // address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
-                address: "0x1553804c340ac418797A701e330578593C78A91E", // fees + source id
+                address: "0x3fCF1765aa2EfBd6916511000Fb11A2971804BFF",
             },
         ],
         blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",

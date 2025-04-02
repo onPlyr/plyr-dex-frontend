@@ -1015,43 +1015,6 @@ export const uniV2CellAbi = [
     },
     {
         "type": "event",
-        "name": "FeesPaid",
-        "inputs": [
-            {
-                "name": "sender",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "collector",
-                "type": "address",
-                "indexed": true,
-                "internalType": "address"
-            },
-            {
-                "name": "nativeFeeAmount",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            },
-            {
-                "name": "baseFeeToken",
-                "type": "address",
-                "indexed": false,
-                "internalType": "address"
-            },
-            {
-                "name": "baseFeeAmount",
-                "type": "uint256",
-                "indexed": false,
-                "internalType": "uint256"
-            }
-        ],
-        "anonymous": false
-    },
-    {
-        "type": "event",
         "name": "FixedFeeUpdated",
         "inputs": [
             {
@@ -1093,9 +1056,15 @@ export const uniV2CellAbi = [
                 "internalType": "uint256"
             },
             {
-                "name": "sender",
+                "name": "origin",
                 "type": "address",
                 "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "sender",
+                "type": "address",
+                "indexed": false,
                 "internalType": "address"
             },
             {
@@ -1112,6 +1081,18 @@ export const uniV2CellAbi = [
             },
             {
                 "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "nativeFeeAmount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "baseFeeAmount",
                 "type": "uint256",
                 "indexed": false,
                 "internalType": "uint256"
