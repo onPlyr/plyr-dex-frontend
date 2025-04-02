@@ -1,9 +1,9 @@
 import React from "react"
 
-import { Currency } from "@/app/config/numbers"
 import { DefaultUserPreferences } from "@/app/config/preferences"
 import { TokenPriceConfig } from "@/app/config/prices"
 import { currencyToLocale } from "@/app/lib/numbers"
+import { Currency } from "@/app/types/currency"
 import { PreferenceType } from "@/app/types/preferences"
 
 interface CurrencyAmountProps extends React.ComponentPropsWithoutRef<"div"> {

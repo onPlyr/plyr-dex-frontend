@@ -2,12 +2,12 @@ import { useCallback, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { formatUnits, parseUnits } from "viem"
 
-import { Currency } from "@/app/config/numbers"
 import { TokenPriceConfig } from "@/app/config/prices"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { PriceResponse } from "@/app/lib/prices/types"
 import { getInitialTokenAmountDataMap } from "@/app/lib/tokens"
 import { getParsedError } from "@/app/lib/utils"
+import { Currency } from "@/app/types/currency"
 import { PreferenceType } from "@/app/types/preferences"
 import { GetTokenAmountFunction, GetTokenAmountValueFunction, isValidTokenAmount, Token, TokenAmount, TokenAmountDataMap, TokenUid } from "@/app/types/tokens"
 
@@ -32,7 +32,7 @@ interface FetchPricesParameters {
 }
 
 const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiIdPrefix, separator: string = ":") => {
-    return (token.isCustomToken ? token.uid : `${prefix}${separator}${token.id}`).toLowerCase()
+    return (token.priceId ? `${prefix}${separator}${token.priceId}` : token.uid).toLowerCase()
 }
 
 const fetchPrices = async ({

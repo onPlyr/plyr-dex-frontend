@@ -16,6 +16,7 @@ export type TokenUid = `${ChainId}:${Address}`
 interface BaseTokenData {
     readonly id: TokenId,
     readonly symbol: string,
+    readonly priceId?: TokenId, // override id used for price queries, defaults to uid if unset
     readonly name: string,
     readonly decimals: number,
     readonly icon?: TokenIcon,
@@ -29,6 +30,7 @@ export interface TokenApiData {
 }
 
 interface TokenChainData {
+    readonly priceId?: TokenId,
     readonly address: Address,
     readonly displaySymbol?: string,
     readonly displayName?: string,

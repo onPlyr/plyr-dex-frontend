@@ -3,7 +3,7 @@ import * as React from "react"
 
 import { BaseIcon } from "@/app/components/icons/BaseIcon"
 import CoinsIcon from "@/app/components/icons/CoinsIcon"
-import { Currency } from "@/app/config/numbers"
+import { Currency } from "@/app/types/currency"
 
 export enum CurrencyIconVariant {
     Btc = "btc",

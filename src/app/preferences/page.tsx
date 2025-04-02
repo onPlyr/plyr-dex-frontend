@@ -10,12 +10,11 @@ import { DecimalInput } from "@/app/components/ui/DecimalInput"
 import { Page } from "@/app/components/ui/Page"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import { getNetworkModeLabel } from "@/app/config/chains"
-import { Currency } from "@/app/config/numbers"
-import { DefaultUserPreferences } from "@/app/config/preferences"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useDebounce from "@/app/hooks/utils/useDebounce"
 import { getCurrencyLabel } from "@/app/lib/numbers"
+import { Currency } from "@/app/types/currency"
 import { PageType } from "@/app/types/navigation"
 import { NetworkMode, PreferenceType, SlippageConfig } from "@/app/types/preferences"
 
@@ -51,13 +50,13 @@ PreferenceHeaderRow.displayName = "PreferenceHeaderRow"
 
 const PreferencesPage = () => {
 
-    const { preferences, setPreference } = usePreferences()
+    const { getPreference, setPreference } = usePreferences()
     const [errorMsgs, setErrorMsgs] = useState<ErrorData>({})
 
     ////////////////////////////////////////////////////////////////////////////////
     // slippage
 
-    const [slippageInput, setSlippageInput] = useState(((preferences[PreferenceType.Slippage] ?? DefaultUserPreferences[PreferenceType.Slippage]) / 100).toString())
+    const [slippageInput, setSlippageInput] = useState((getPreference(PreferenceType.Slippage) / 100).toString())
     const slippageInputDebounced = useDebounce(slippageInput)
 
     useEffect(() => {
@@ -75,7 +74,7 @@ const PreferencesPage = () => {
     ////////////////////////////////////////////////////////////////////////////////
     // currency
 
-    const currency = preferences[PreferenceType.Currency] ?? DefaultUserPreferences[PreferenceType.Currency]
+    const currency = getPreference(PreferenceType.Currency)
     const setCurrency = useCallback((data: Currency) => {
         const isValid = setPreference(PreferenceType.Currency, data)
         setErrorMsgs((prev) => ({
@@ -87,7 +86,7 @@ const PreferencesPage = () => {
     ////////////////////////////////////////////////////////////////////////////////
     // network mode
 
-    const networkMode = preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode]
+    const networkMode = getPreference(PreferenceType.NetworkMode)
     const setNetworkMode = useCallback((data: NetworkMode) => {
         const isValid = setPreference(PreferenceType.NetworkMode, data)
         setErrorMsgs((prev) => ({
@@ -127,7 +126,7 @@ const PreferencesPage = () => {
                             <DecimalInput
                                 setValue={setSlippageInput}
                                 value={slippageInput}
-                                placeholder={((preferences[PreferenceType.Slippage] ?? DefaultUserPreferences[PreferenceType.Slippage]) / 100).toString()}
+                                placeholder={(getPreference(PreferenceType.Slippage) / 100).toString()}
                                 maxLength={5}
                                 className="p-0 m-0"
                             />

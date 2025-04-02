@@ -34,6 +34,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "alot",
+        priceId: "alot",
         symbol: "ALOT",
         name: "Dexalot ",
         decimals: 18,
@@ -117,6 +118,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "avax",
+        priceId: "avax",
         symbol: "AVAX",
         name: "Native AVAX",
         decimals: 18,
@@ -220,6 +222,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "btcb",
+        priceId: "btc.avax",
         symbol: "BTC.b",
         name: "Bitcoin",
         decimals: 8,
@@ -233,7 +236,7 @@ const baseTokens: BaseToken[] = [
     {
         id: "cai",
         symbol: "CAI",
-        name: "Colony Avalanche Index",
+        name: "CAI",
         decimals: 18,
         icon: "cai.svg",
         chains: {
@@ -256,6 +259,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "coq",
+        priceId: "coq",
         symbol: "COQ",
         name: "COQ",
         decimals: 18,
@@ -296,6 +300,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "dai",
+        priceId: "dai.avax",
         symbol: "DAI.e",
         name: "DAI",
         decimals: 18,
@@ -308,6 +313,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "dexalot-btcb",
+        priceId: "dexalot-btcb",
         symbol: "BTC.b",
         name: "Dexalot BTC.b",
         decimals: 8,
@@ -325,6 +331,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "dexalot-usdc",
+        priceId: "dexalot-usdc",
         symbol: "USDC",
         name: "Dexalot USDC",
         decimals: 6,
@@ -342,6 +349,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "dexalot-usdt",
+        priceId: "dexalot-usdt",
         symbol: "USDt",
         name: "Dexalot USDt",
         decimals: 6,
@@ -527,6 +535,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "link",
+        priceId: "link.avax",
         symbol: "LINK.e",
         name: "Chainlink",
         decimals: 18,
@@ -775,6 +784,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "usdc",
+        priceId: "usdc.avax",
         symbol: "USDC",
         name: "Native USDC",
         decimals: 6,
@@ -826,6 +836,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "usdt",
+        priceId: "usdt.avax",
         symbol: "USDt",
         name: "Tether",
         decimals: 6,
@@ -862,6 +873,7 @@ const baseTokens: BaseToken[] = [
     },
     {
         id: "wethe",
+        priceId: "eth.avax",
         symbol: "WETH.e",
         name: "Wrapped ETH",
         decimals: 18,
@@ -937,7 +949,7 @@ const baseTokens: BaseToken[] = [
         symbol: "YAK",
         name: "YAK",
         decimals: 18,
-        icon: "yak.png",
+        icon: "yak.svg",
         chains: {
             [avalanche.id]: {
                 address: "0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7",
@@ -967,6 +979,7 @@ export const Tokens: Token[] = Object.values(SupportedChains).filter((chain) => 
     return {
         ...chainData,
         id: baseToken.id,
+        priceId: chainData.priceId || baseToken.priceId,
         uid: getTokenUid(chain.id, useAddress),
         symbol: chainData.displaySymbol ?? baseToken.symbol,
         name: chainData.displayName ?? baseToken.name,

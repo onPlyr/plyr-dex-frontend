@@ -12,7 +12,6 @@ import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { Page } from "@/app/components/ui/Page"
 import Skeleton from "@/app/components/ui/Skeleton"
-import { defaultCurrency } from "@/app/config/numbers"
 import { TokenPriceConfig } from "@/app/config/prices"
 import { iconSizes } from "@/app/config/styling"
 import useReadAvvyName from "@/app/hooks/avvy/useReadAvvyName"
@@ -33,8 +32,8 @@ const AccountPage = () => {
         accountAddress: accountAddress,
     })
 
-    const { preferences } = usePreferences()
-    const currency = preferences[PreferenceType.Currency] ?? defaultCurrency
+    const { getPreference } = usePreferences()
+    const currency = getPreference(PreferenceType.Currency)
     const { tokens, useBalancesData, useTokenPricesData } = useTokens()
     const { getBalance } = useBalancesData
     const { getAmountValue, isInProgress: priceIsInProgress } = useTokenPricesData
@@ -96,7 +95,10 @@ const AccountPage = () => {
                                 value={priceIsInProgress ? (
                                     <Skeleton className="h-6 w-24" />
                                 ) : (
-                                    <CurrencyAmount amountFormatted={totalValueFormatted} />
+                                    <CurrencyAmount
+                                        amountFormatted={totalValueFormatted}
+                                        currency={currency}
+                                    />
                                 )}
                                 valueClass="font-mono text-base"
                             />

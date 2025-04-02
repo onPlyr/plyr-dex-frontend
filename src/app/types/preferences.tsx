@@ -1,4 +1,4 @@
-import { Currency } from "@/app/config/numbers"
+import { Currency } from "@/app/types/currency"
 
 export const NetworkMode = {
     Mainnet: "mainnet",

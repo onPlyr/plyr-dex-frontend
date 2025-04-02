@@ -1,8 +1,8 @@
 import { formatUnits, parseUnits } from "viem"
 
-import { Currency, currencyFormats, currencyLabels, defaultCurrency } from "@/app/config/numbers"
 import { DefaultUserPreferences } from "@/app/config/preferences"
 import { TokenPriceConfig } from "@/app/config/prices"
+import { Currency, CurrencyFormat, CurrencyFormatLimit, CurrencyLabel, SmCurrencyFormat } from "@/app/types/currency"
 import { NumberFormat, NumberFormatType, NumberFormatTypeLimit } from "@/app/types/numbers"
 import { PreferenceType } from "@/app/types/preferences"
 import { Token } from "@/app/types/tokens"
@@ -94,8 +94,10 @@ export const getPercentDifferenceFormatted = (srcAmount: bigint, dstAmount: bigi
 ////////////////////////////////////////////////////////////////////////////////
 // currency
 
-export const getCurrencyLabel = (currency: Currency) => {
-    return currencyLabels[currency]
+export const getCurrencyLabel = (currency: Currency) => CurrencyLabel[currency]
+export const getCurrencyFormat = (currency: Currency, amount?: string) => {
+    const value = amount ? parseFloat(amount) : 0
+    return value < CurrencyFormatLimit.Default && value !== 0 ? SmCurrencyFormat[currency] : CurrencyFormat[currency]
 }
 
 export const currencyToLocale = ({
@@ -109,15 +111,8 @@ export const currencyToLocale = ({
     decimals?: number,
     currency?: Currency,
 }) => {
-
-    const useCurrency = currency ?? defaultCurrency
     const useAmount = amount !== undefined ? formatUnits(amount, decimals) : amountFormatted?.trim()
-
-    if (!useAmount) {
-        return ""
-    }
-
-    return currencyFormats[useCurrency].format(useAmount as Intl.StringNumericLiteral)
+    return useAmount ? getCurrencyFormat(currency, useAmount).format(useAmount as Intl.StringNumericLiteral) : ""
 }
 
 ////////////////////////////////////////////////////////////////////////////////
