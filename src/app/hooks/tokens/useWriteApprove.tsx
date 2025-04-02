@@ -4,7 +4,7 @@ import { ApproveNotificationType, NotificationBody, NotificationHeader } from "@
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { Chain } from "@/app/types/chains"
 import { NotificationType } from "@/app/types/notifications"
-import { Token } from "@/app/types/tokens"
+import { isNativeToken, Token } from "@/app/types/tokens"
 
 const getNotificationData = (token: Token, amount: bigint, type: ApproveNotificationType) => {
     return {
@@ -36,7 +36,7 @@ const useWriteApprove = ({
     _enabled?: boolean,
 }) => {
 
-    const enabled = !(!_enabled || !chain || !token || token.isNative || !spenderAddress || !amount || amount === BigInt(0))
+    const enabled = !(!_enabled || !chain || !token || isNativeToken(token) || !spenderAddress || !amount || amount === BigInt(0))
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
             chainId: chain?.id,

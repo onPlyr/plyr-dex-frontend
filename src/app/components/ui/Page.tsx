@@ -202,7 +202,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                         pageWidth || "page-width",
                     )}>
                         <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full overflow-hidden">
-                            {/* {!hideNetworkMsg && (networkMode === NetworkMode.Mainnet ? <MainnetMessage /> : <TestnetMessage />)} */}
+                            {!hideNetworkMsg && (networkMode === NetworkMode.Mainnet ? <MainnetMessage /> : <TestnetMessage />)}
                             {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
                                 <PageHeader
                                     backUrl={backUrl}

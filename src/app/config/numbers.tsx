@@ -37,3 +37,9 @@ export const currencyFormats: Record<Currency, Intl.NumberFormat> = {
     [Currency.Eur]: eurFormat,
     [Currency.Gbp]: gbpFormat,
 }
+
+// todo: implement properly
+export const CurrencyConfig = {
+    MinDisplayLimit: 0.01,
+    MinDisplayPrefix: "<",
+} as const

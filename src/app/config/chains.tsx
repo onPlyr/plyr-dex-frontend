@@ -112,7 +112,8 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                address: "0x961BC362b0a77781612E6dC4F5E02DFa85C9504d",
+                // address: "0x961BC362b0a77781612E6dC4F5E02DFa85C9504d",
+                address: "0x1B7939f10d678F6186539406e54e0284bAAe4A6E", // fees + source id
             },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
@@ -277,6 +278,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
         gasPriceExponent: 9,
         avgBlockTimeMs: 500,
         avgBlockTimeSampleRange: BigInt(100000),
+        clientData: {
+            maxQueryChunkSize: 1000,
+            maxQueryBatchSize: 10,
+            maxQueryNumBatches: 10,
+        },
         adapters: [
             {
                 address: "0xdF3d4b7032EB29599503a78FFD28C2906C6EAe4e",
@@ -293,18 +299,13 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 name: "LFJ V1",
                 platform: "lfj",
             },
-            // {
-            //     address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
-            //     // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
-            //     name: "Dexalot",
-            //     platform: "dexalot",
-            // },
+            {
+                address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
+                // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
+                name: "Dexalot",
+                platform: "dexalot",
+            },
         ],
-        clientData: {
-            maxQueryChunkSize: 1000,
-            maxQueryBatchSize: 10,
-            maxQueryNumBatches: 10,
-        },
     },
     [teschain.id]: {
         ...teschain,
@@ -321,6 +322,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
         gasPriceExponent: 9,
         avgBlockTimeMs: 500,
         avgBlockTimeSampleRange: BigInt(5000),
+        clientData: {
+            maxQueryChunkSize: 100,
+            maxQueryBatchSize: 10,
+            maxQueryNumBatches: 10,
+        },
         adapters: [
             {
                 address: "0x4C5b32F836017d4686FDB3A7eB129c8642A97495",
@@ -328,11 +334,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "uniswap",
             },
         ],
-        clientData: {
-            maxQueryChunkSize: 100,
-            maxQueryBatchSize: 10,
-            maxQueryNumBatches: 10,
-        },
         isDisabled: true,
     },
     [plyrTau.id]: {
@@ -350,6 +351,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
         gasPriceExponent: 9,
         avgBlockTimeMs: 500,
         avgBlockTimeSampleRange: BigInt(10000),
+        clientData: {
+            maxQueryChunkSize: 100,
+            maxQueryBatchSize: 10,
+            maxQueryNumBatches: 10,
+        },
         adapters: [
             {
                 address: "0xcC76c9F36193Ba61BF92020eAc5De177A6cE2E3A",
@@ -362,11 +368,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "plyr",
             },
         ],
-        clientData: {
-            maxQueryChunkSize: 100,
-            maxQueryBatchSize: 10,
-            maxQueryNumBatches: 10,
-        },
     },
     [coqnet.id]: {
         ...coqnet,
@@ -375,7 +376,8 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.HopOnly],
-                address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
+                // address: "0x04CfcA82fDf5F4210BC90f06C44EF25Bf743D556",
+                address: "0x1553804c340ac418797A701e330578593C78A91E", // fees + source id
             },
         ],
         blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
@@ -383,12 +385,12 @@ export const SupportedChains: Record<ChainId, Chain> = {
         gasPriceExponent: 9,
         avgBlockTimeMs: 500,
         avgBlockTimeSampleRange: BigInt(10000),
-        adapters: [],
         clientData: {
             maxQueryChunkSize: 100,
             maxQueryBatchSize: 10,
             maxQueryNumBatches: 10,
         },
+        adapters: [],
     },
     [coqnetFuji.id]: {
         ...coqnetFuji,
@@ -400,12 +402,12 @@ export const SupportedChains: Record<ChainId, Chain> = {
         gasPriceExponent: 9,
         avgBlockTimeMs: 500,
         avgBlockTimeSampleRange: BigInt(10000),
-        adapters: [],
         clientData: {
             maxQueryChunkSize: 100,
             maxQueryBatchSize: 10,
             maxQueryNumBatches: 10,
         },
+        adapters: [],
         isDisabled: true,
     },
 } as const

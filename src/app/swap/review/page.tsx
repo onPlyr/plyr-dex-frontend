@@ -16,7 +16,6 @@ import SwapQuotePreviewSummary from "@/app/components/swapQuotes/SwapQuotePrevie
 import SwapSlippageInput from "@/app/components/swapQuotes/SwapSlippageInput"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
-import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes } from "@/app/config/styling"
 import useApiData from "@/app/hooks/apis/useApiData"
 import useLatestBlocks from "@/app/hooks/blocks/useLatestBlocks"
@@ -30,25 +29,26 @@ import useWriteInitiateSwap from "@/app/hooks/swap/useWriteInitiateSwap"
 import useReadAllowance from "@/app/hooks/tokens/useReadAllowance"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
-import { formatDuration } from "@/app/lib/datetime"
-import { getInitiateSwapError, getSwapChainIds } from "@/app/lib/swaps"
+import { getInitiatedBlockNumber, getInitiateSwapError, getSwapChainIds } from "@/app/lib/swaps"
 import { getTxActionLabel } from "@/app/lib/txs"
+import { ChainId } from "@/app/types/chains"
 import { PageType } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { InitiateSwapAction, isTransferType, isValidInitiateSwapQuote, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
+import { isNativeToken } from "@/app/types/tokens"
 import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
-import { ChainId } from "@/app/types/chains"
 
 const ReviewSwapPage = () => {
 
     const { address: accountAddress, isConnected } = useAccount()
-    const { getToken, refetch: refetchTokens } = useTokens()
+    const { getNativeToken, useBalancesData, refetch: refetchTokens } = useTokens()
+    const { getBalance, isInProgress: balanceIsInProgress } = useBalancesData
     const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
     const { getFirmQuote } = useApiData()
-    const { setSrcAmountInput, useSwapQuotesData, selectedQuote, quoteExpiry } = useQuoteData()
+    const { setSrcAmountInput, useSwapQuotesData, selectedQuote } = useQuoteData()
     const { setNotification, removeNotification } = useNotifications()
     const { openConnectModal } = useConnectModal()
     const router = useRouter()
@@ -66,10 +66,10 @@ const ReviewSwapPage = () => {
     })
 
     const [quoteChainIds, setQuoteChainIds] = useState<ChainId[]>([])
-     const { getLatestBlock } = useLatestBlocks({
-         chainIds: quoteChainIds,
-         isWatch: false,
-     })
+    const { getLatestBlock } = useLatestBlocks({
+        chainIds: quoteChainIds,
+        isWatch: false,
+    })
 
     useAlternativeSwapQuote({
         quote: quote,
@@ -205,10 +205,12 @@ const ReviewSwapPage = () => {
     }, [destinationAddress])
 
     const { srcData, dstData } = quote ?? {}
+    const srcBalance = getBalance(srcData?.token)
+    const nativeBalance = isNativeToken(srcData?.token) ? srcBalance : getBalance(getNativeToken(srcData?.chain.id))
     const isValidQuote = quote && isValidSwapQuote(quote)
     const isValidInitiate = isValidQuote && isValidInitiateSwapQuote(quote)
 
-        // todo: check if review quote has expired, add time limit (eg. 5 mins) and prevent swapping before refreshing or force auto update to prevent stale quotes
+    // todo: check if review quote has expired, add time limit (eg. 5 mins) and prevent swapping before refreshing or force auto update to prevent stale quotes
     // todo: add message / 404 / notification on redirect
     useEffect(() => {
         if (!isValidQuote) {
@@ -230,7 +232,7 @@ const ReviewSwapPage = () => {
     })
 
     const enabled = isConnected && !(!accountAddress || !isValidQuote || !srcData || !dstData)
-    const isApprove = enabled && !srcData.token.isNative && (!allowance || allowance < quote.srcAmount)
+    const isApprove = enabled && !isNativeToken(srcData.token) && (!allowance || allowance < quote.srcAmount)
 
     const initiateOnSettled = useCallback((receipt?: TransactionReceipt) => {
 
@@ -244,7 +246,7 @@ const ReviewSwapPage = () => {
             ...quote,
             hops: quote.hops.map((hop) => ({
                 ...hop,
-                initiatedBlock: getLatestBlock(hop.srcData.chain.id)?.number ?? undefined,
+                initiatedBlock: getInitiatedBlockNumber(getLatestBlock(hop.srcData.chain.id)),
                 status: SwapStatus.Pending,
             })),
             events: quote.events.map((event) => ({
@@ -253,7 +255,7 @@ const ReviewSwapPage = () => {
             })),
             accountAddress: accountAddress,
             txHash: receipt.transactionHash,
-            dstInitiatedBlock: getLatestBlock(quote.dstData.chain.id)?.number ?? undefined,
+            dstInitiatedBlock: getInitiatedBlockNumber(getLatestBlock(quote.dstData.chain.id)),
             status: SwapStatus.Pending,
             plyrId: quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? plyrId : undefined,
         }
@@ -332,16 +334,16 @@ const ReviewSwapPage = () => {
         _enabled: isApprove,
     })
 
-    const isInProgress = allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
-    
+    const isInProgress = balanceIsInProgress || allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
+
+    console.log('srcBalance', srcBalance)
+
     const { errorMsg, isConnectError } = getInitiateSwapError({
         action: InitiateSwapAction.Initiate,
         isConnected: isConnected,
-        srcToken: getToken({
-            id: srcData?.token.id,
-            /*@ts-ignore*/
-            chainId: srcData?.chain.id,
-        }),
+        srcToken: srcData?.token,
+        srcBalance: srcBalance,
+        nativeBalance: nativeBalance,
         selectedQuote: quote,
         isInProgress: isInProgress,
     })
@@ -379,18 +381,7 @@ const ReviewSwapPage = () => {
             {/* Review {SwapTypeLabel[quote.type]} (recipient: {quote.recipientAddress ? "yes" : "no"} / acc: {quote.accountAddress ? "yes" : "no"} / valid initiate: {serialize(isValidInitiate)}) */}
         </div>
         <div className="flex flex-row flex-none gap-4 absolute end-0 justify-end items-center">
-            <Tooltip
-                trigger=<Button
-                    label="Refresh"
-                    className="icon-btn"
-                    replaceClass={true}
-                    onClick={useSwapQuotesData.refetch.bind(this)}
-                >
-                    <SwapQuoteExpiryTimer />
-                </Button>
-            >
-                Refresh in {formatDuration(quoteExpiry)}
-            </Tooltip>
+            <SwapQuoteExpiryTimer />
         </div>
     </div>
 
@@ -399,6 +390,7 @@ const ReviewSwapPage = () => {
             className="gradient-btn"
             onClick={handleInitiate.bind(this)}
             disabled={isInProgress}
+            isAnimated={true}
         >
             {approveIsInProgress ? approveLabel : initiateIsInProgress ? initiateLabel : allowanceIsInProgress ? "Loading" : errorMsg ? errorMsg : isApprove ? approveLabel : initiateLabel}
             {isInProgress && <LoadingIcon className={iconSizes.sm} />}

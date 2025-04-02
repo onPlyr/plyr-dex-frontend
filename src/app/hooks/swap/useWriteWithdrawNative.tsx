@@ -2,10 +2,10 @@ import { Address } from "viem"
 
 import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
-import { Chain } from "@/app/types/chains"
-import { Token } from "@/app/types/tokens"
-import { NotificationType } from "@/app/types/notifications"
 import { amountToLocale } from "@/app/lib/numbers"
+import { Chain } from "@/app/types/chains"
+import { isNativeToken, Token } from "@/app/types/tokens"
+import { NotificationType } from "@/app/types/notifications"
 
 const useWriteWithdrawNative = ({
     connectedChain,
@@ -23,7 +23,7 @@ const useWriteWithdrawNative = ({
     _enabled?: boolean,
 }) => {
 
-    const enabled = _enabled !== false && connectedChain !== undefined && accountAddress !== undefined && token !== undefined && token.isNative === true && token.wrappedAddress !== undefined && amount !== undefined && amount > BigInt(0) && connectedChain.id === token.chainId
+    const enabled = !(_enabled === false || !connectedChain || !accountAddress || !token || isNativeToken(token) || !token.wrappedAddress || !amount || amount === BigInt(0) || connectedChain.id !== token.chainId)
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {

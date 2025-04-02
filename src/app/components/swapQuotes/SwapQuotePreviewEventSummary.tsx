@@ -6,6 +6,7 @@ import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { PlatformImage } from "@/app/components/images/PlatformImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
 import { Tooltip } from "@/app/components/ui/Tooltip"
+import { Bold } from "@/app/components/ui/Typography"
 import { iconSizes } from "@/app/config/styling"
 import { getPlatform } from "@/app/lib/platforms"
 import { StyleDirection } from "@/app/types/styling"
@@ -53,7 +54,15 @@ const SwapQuotePreviewEventSummary = React.forwardRef<HTMLDivElement, SwapQuoteP
                             </div>
                         >
                             <div className="flex flex-row flex-1 items-center gap-2">
-                                {SwapTypeLabel[event.type]} {isSwapType(event.type) ? `from ${event.srcData.token.symbol} to ${event.dstData.token.symbol}` : `to ${event.dstData.chain.name}`} {platformName && `via ${platformName}`}
+                                {SwapTypeLabel[event.type]}&nbsp;
+                                {isSwapType(event.type) ? (<>
+                                    from <Bold>{event.srcData.token.symbol}</Bold> to <Bold>{event.dstData.token.symbol}</Bold>
+                                </>) : (<>
+                                    to <Bold>{event.dstData.chain.name}</Bold>
+                                </>)}
+                                {platformName && (<>
+                                    &nbsp;via <Bold>{platformName}</Bold>
+                                </>)}
                                 {platform && (
                                     <PlatformImage
                                         platform={platform}

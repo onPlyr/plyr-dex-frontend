@@ -1,12 +1,12 @@
 "use client"
 
 import { useConnectModal } from "@rainbow-me/rainbowkit"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import Button from "@/app/components/ui/Button"
 
-const ConnectButton = React.forwardRef<React.ElementRef<typeof Button>, React.ButtonHTMLAttributes<HTMLButtonElement>>(({
+const ConnectButton = React.forwardRef<React.ComponentRef<typeof Button>, React.ButtonHTMLAttributes<HTMLButtonElement>>(({
     className,
     disabled = false,
     ...props

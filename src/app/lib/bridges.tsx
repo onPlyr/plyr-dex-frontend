@@ -1,11 +1,14 @@
+import { Address } from "viem"
+
 import { TokenBridgePaths } from "@/app/config/tokens"
 import { getChainCanSwap } from "@/app/lib/cells"
 import { getChain } from "@/app/lib/chains"
 import { generateSwapId, getHopTypeEstGasUnits, getMinAmount } from "@/app/lib/swaps"
+import { isEqualAddress } from "@/app/lib/utils"
 import { BridgePath, BridgePathHopData } from "@/app/types/bridges"
-import { Chain } from "@/app/types/chains"
+import { Chain, ChainId } from "@/app/types/chains"
 import { Hop, HopType, isSwapHopType, isValidSwapRoute, SwapRoute } from "@/app/types/swaps"
-import { GetSupportedTokenFunction, Token } from "@/app/types/tokens"
+import { GetSupportedTokenByIdFunction, Token } from "@/app/types/tokens"
 
 export const getBridgePaths = ({
     token,
@@ -19,16 +22,18 @@ export const getBridgePaths = ({
     return (token ? TokenBridgePaths[token.id] : Object.values(TokenBridgePaths).flat()).filter((path) => (!srcChain || path.srcData.chainId === srcChain.id) && (!dstChain || path.dstData.chainId === dstChain.id))
 }
 
+export const getBridgePathByAddress = (address: Address, dstChainId: ChainId) => Object.values(TokenBridgePaths).flat().find((bridgePath) => bridgePath.dstData.chainId === dstChainId && isEqualAddress(address, bridgePath.dstData.address))
+
 export const getBridgePathHops = ({
     route,
     maxHops,
     slippageBps,
-    getSupportedToken,
+    getSupportedTokenById,
 }: {
     route: SwapRoute,
     maxHops: number,
     slippageBps?: bigint,
-    getSupportedToken: GetSupportedTokenFunction,
+    getSupportedTokenById: GetSupportedTokenByIdFunction,
 }) => {
 
     if (!isValidSwapRoute(route)) {
@@ -69,7 +74,7 @@ export const getBridgePathHops = ({
                     hopIndex: hopIndex,
                     slippageBps: slippageBps,
                     maxHops: maxHops,
-                    getSupportedToken: getSupportedToken,
+                    getSupportedTokenById: getSupportedTokenById,
                 })
 
                 if (!hopData?.hop) {
@@ -159,7 +164,7 @@ export const getBridgePathHop = ({
     hopIndex,
     slippageBps,
     maxHops,
-    getSupportedToken,
+    getSupportedTokenById,
 }: {
     route: SwapRoute,
     path: BridgePath,
@@ -167,7 +172,7 @@ export const getBridgePathHop = ({
     hopIndex: number,
     slippageBps?: bigint,
     maxHops: number,
-    getSupportedToken: GetSupportedTokenFunction,
+    getSupportedTokenById: GetSupportedTokenByIdFunction,
 }) => {
 
     if (!isValidSwapRoute(route) || (hopIndex > 0 && !prevHop)) {
@@ -187,7 +192,7 @@ export const getBridgePathHop = ({
     }
 
     const prevDstToken = hopIndex === 0 ? srcData.token : prevHop?.dstData.token
-    const hopSrcToken = prevDstToken && getSupportedToken({
+    const hopSrcToken = prevDstToken && getSupportedTokenById({
         id: prevDstToken.id,
         chainId: hopSrcChain.id,
     })
@@ -279,4 +284,8 @@ export const getBridgePathSwapAndTransferHop = ({
     }
 
     return hop
+}
+
+export const getTokenByBridgeAddress = (bridgeAddress: Address, srcChain: Chain, dstChain: Chain) => {
+    return Object.values(TokenBridgePaths).flat().find((path) => path.srcData.chainId === srcChain.id && path.dstData.chainId === dstChain.id && isEqualAddress(path.dstData.address, bridgeAddress))?.dstData.token
 }

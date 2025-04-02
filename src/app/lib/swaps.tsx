@@ -1,5 +1,5 @@
 import { QueryStatus } from "@tanstack/query-core"
-import { Address, formatUnits, isAddressEqual } from "viem"
+import { Address, Block, erc20Abi, formatUnits } from "viem"
 import { readContracts } from "@wagmi/core"
 import { v4 as uuidv4 } from "uuid"
 
@@ -7,34 +7,45 @@ import { durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteC
 import { wagmiConfig } from "@/app/config/wagmi"
 import { getApiUrl } from "@/app/lib/apis"
 import { getBridgePathHops } from "@/app/lib/bridges"
-import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getSwapCells } from "@/app/lib/cells"
+import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getQuoteCellInstructions, getSwapCells } from "@/app/lib/cells"
 import { MathBigInt } from "@/app/lib/numbers"
 import { getPlatform } from "@/app/lib/platforms"
 import { toShort } from "@/app/lib/strings"
-import { getParsedError } from "@/app/lib/utils"
+import { getTokenAddress, getTokenDataMap, getUnsupportedTokenData } from "@/app/lib/tokens"
+import { getParsedError, isEqualAddress } from "@/app/lib/utils"
 import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
 import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/apis"
 import { BridgeProvider } from "@/app/types/bridges"
-import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
+import { CellFeeType, CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
-import { SlippageConfig } from "@/app/types/preferences"
+import { NetworkMode, SlippageConfig } from "@/app/types/preferences"
 import {
-    GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
-    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidQuoteData, isValidSwapRoute, Swap, SwapId, SwapQuote, SwapQuoteData, SwapRoute, SwapStatus, SwapType
+    GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnData, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
+    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapId, SwapQuote,
+    SwapQuoteData, SwapRoute, SwapStatus, SwapType,
 } from "@/app/types/swaps"
-import { GetSupportedTokenFunction, GetTokenFunction, Token } from "@/app/types/tokens"
+import { GetNativeTokenFunction, GetSupportedTokenByIdFunction, GetTokenFunction, isNativeToken, isValidTokenAmount, Token, TokenAmount, TokenDataMap } from "@/app/types/tokens"
 
 export const generateSwapId = (): SwapId => {
     return uuidv4()
 }
 
-export const getSwapQuoteTokenAddress = (chain: Chain, token: Token, getToken: GetTokenFunction) => {
-    const swapQuoteToken = chain.id === token.chainId ? token : getToken({
-        id: token.id,
-        address: token.address,
-        chainId: chain.id,
+export const getInitiatedBlockNumber = (latestBlock?: Block) => {
+    return latestBlock?.number ? MathBigInt.max([latestBlock.number - SwapQuoteConfig.InitiatedBlockBuffer, BigInt(1)]) : undefined
+}
+
+export const getSwapQuoteTokenAddresses = (hop: Hop, getSupportedTokenById: GetSupportedTokenByIdFunction) => {
+
+    const srcToken = hop.srcData.token
+    const dstToken = hop.dstData.chain.id === hop.srcData.chain.id ? hop.dstData.token : getSupportedTokenById({
+        id: hop.dstData.token.id,
+        chainId: hop.srcData.chain.id,
     })
-    return swapQuoteToken?.isNative && swapQuoteToken.wrappedAddress ? swapQuoteToken.wrappedAddress : swapQuoteToken?.address
+
+    return {
+        srcTokenAddress: getTokenAddress(srcToken),
+        dstTokenAddress: dstToken && getTokenAddress(dstToken),
+    }
 }
 
 export const getMaxHops = (num?: number) => {
@@ -86,7 +97,7 @@ export const getSwapType = (hops: Hop[]) => {
 }
 
 export const getSwapAdapter = (chain: Chain, address?: Address) => {
-    return address && chain.adapters?.find((adapter) => isAddressEqual(address, adapter.address))
+    return address && chain.adapters?.find((adapter) => isEqualAddress(address, adapter.address))
 }
 
 export const getSwapHopStatus = (swap: Swap) => {
@@ -102,7 +113,7 @@ export const getSwapRouteEstGasFee = (route: SwapRoute) => {
 }
 
 export const getSwapChainIds = (swap: Swap, status?: SwapStatus) => {
- 
+
     const hops = status ? swap.hops.filter((hop) => hop.status === status) : swap.hops
     const hopChainIds = hops.map((hop) => [hop.srcData.chain.id, hop.dstData.chain.id]).flat()
     const swapChainIds = !status || swap.status === status ? [swap.dstData.chain.id] : []
@@ -113,12 +124,60 @@ export const getSwapChainIds = (swap: Swap, status?: SwapStatus) => {
     ])]
 }
 
+export const getSwapSrcAmount = (hop?: Hop, feeData?: SwapFeeData) => {
+    if (!hop || !isValidQuoteData(hop.srcData) || hop.index !== 0 || !feeData || !isValidSwapFeeData(feeData)) {
+        return
+    }
+    return hop.srcData.estAmount > feeData[CellFeeType.Base] ? hop.srcData.estAmount - feeData[CellFeeType.Base] : undefined
+}
+
+export const getInitiateSwapValue = (swap?: SwapQuote) => {
+    if (!swap || !isValidInitiateSwapQuote(swap)) {
+        return
+    }
+    return isNativeToken(swap.srcData.token) ? swap.srcAmount + swap.feeData[CellFeeType.FixedNative] : swap.feeData[CellFeeType.FixedNative]
+}
+
+export const getSwapNativeTokenAmount = (swap?: Swap) => {
+    if (!swap || !isValidSwapFeeData(swap.feeData)) {
+        return
+    }
+    else if (!isNativeToken(swap.srcData.token)) {
+        return swap.feeData[CellFeeType.FixedNative]
+    }
+    return swap.feeData[CellFeeType.FixedNative] + swap.srcAmount
+}
+
+export const getSwapFeeTokenData = (swap: Swap, getNativeToken: GetNativeTokenFunction) => {
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const displayFees = isValidSwapFeeData(swap.feeData) && Object.entries(swap.feeData).filter(([_, amount]) => amount > BigInt(0))
+    if (!displayFees || !displayFees.length) {
+        return
+    }
+
+    const nativeToken = getNativeToken(swap.srcData.chain.id)
+    const nativeTokenData = {
+        symbol: nativeToken?.symbol || swap.srcData.chain.nativeCurrency.symbol,
+        decimals: nativeToken?.decimals || swap.srcData.chain.nativeCurrency.decimals,
+    }
+
+    return displayFees.map(([type, amount]) => ({
+        type: type,
+        symbol: type === CellFeeType.FixedNative ? nativeTokenData.symbol : swap.srcData.token.symbol,
+        decimals: type === CellFeeType.FixedNative ? nativeTokenData.decimals : swap.srcData.token.decimals,
+        amount: amount,
+    }))
+}
+
 export const getInitiateSwapError = ({
     action,
     isConnected,
     srcChain,
     srcToken,
     srcAmount,
+    srcBalance,
+    nativeBalance,
     dstChain,
     dstToken,
     quoteData,
@@ -133,6 +192,8 @@ export const getInitiateSwapError = ({
     srcChain?: Chain,
     srcToken?: Token,
     srcAmount?: bigint,
+    srcBalance?: TokenAmount,
+    nativeBalance?: TokenAmount,
     dstChain?: Chain,
     dstToken?: Token,
     quoteData?: SwapQuoteData,
@@ -145,6 +206,8 @@ export const getInitiateSwapError = ({
 
     let msg: string | undefined = undefined
     let isConnectError = false
+
+    const nativeAmount = getSwapNativeTokenAmount(selectedQuote)
 
     if (action === InitiateSwapAction.Review) {
         if (!srcChain || !srcToken || !dstChain || !dstToken) {
@@ -163,7 +226,10 @@ export const getInitiateSwapError = ({
             msg = "Connect Wallet"
             isConnectError = true
         }
-        else if (selectedQuote && (!srcToken.balance || srcToken.balance < srcAmount)) {
+        else if (selectedQuote && nativeAmount === undefined) {
+            msg = "Invalid Fees"
+        }
+        else if (selectedQuote && (!isValidTokenAmount(srcBalance) || srcBalance.amount < srcAmount || !isValidTokenAmount(nativeBalance) || (nativeAmount !== undefined && nativeBalance.amount < nativeAmount))) {
             msg = "Insufficient Balance"
         }
     }
@@ -179,7 +245,10 @@ export const getInitiateSwapError = ({
         else if (selectedQuote.srcAmount === BigInt(0)) {
             msg = "Enter Amount"
         }
-        else if (!isInProgress && (!srcToken?.balance || srcToken.balance < selectedQuote.srcAmount)) {
+        else if (nativeAmount === undefined) {
+            msg = "Invalid Fees"
+        }
+        else if (!isInProgress && (!isValidTokenAmount(srcBalance) || srcBalance.amount < selectedQuote.srcAmount || !isValidTokenAmount(nativeBalance) || nativeBalance.amount < nativeAmount)) {
             msg = "Insufficient Balance"
         }
     }
@@ -202,14 +271,16 @@ export const getSwapQuoteData = async ({
     maxNumHops,
     cellRouteData,
     getToken,
-    getSupportedToken,
+    getSupportedTokenById,
+    networkMode,
 }: {
     route: SwapRoute,
     getApiTokenPair: GetApiTokenPairFunction,
     maxNumHops?: number,
     cellRouteData?: CellRouteData,
     getToken: GetTokenFunction,
-    getSupportedToken: GetSupportedTokenFunction,
+    getSupportedTokenById: GetSupportedTokenByIdFunction,
+    networkMode: NetworkMode,
 }): Promise<GetSwapQuoteDataReturnType> => {
 
     const swapQuoteData: GetSwapQuoteDataReturnType = {}
@@ -217,6 +288,7 @@ export const getSwapQuoteData = async ({
     const timestamp = new Date().getTime()
     const maxHops = getMaxHops(maxNumHops)
     const slippageBps = cellRouteData?.[CellRouteDataParameter.SlippageBips] ?? BigInt(SlippageConfig.DefaultBps)
+    const quoteTokens = getTokenDataMap([])
 
     if (!isValidSwapRoute(route)) {
         return swapQuoteData
@@ -228,25 +300,45 @@ export const getSwapQuoteData = async ({
             route: route,
             maxHops: maxHops,
             slippageBps: slippageBps,
-            getSupportedToken: getSupportedToken,
+            getSupportedTokenById: getSupportedTokenById,
         })
+
+        const feeData = await getQuoteFeeData({
+            route: route,
+            hopData: initialHopData,
+            networkMode: networkMode,
+        })
+
         const { data: validHopData, error: quoteError } = await getValidHopQuoteData({
             hopData: initialHopData,
+            feeData: feeData,
             getApiTokenPair: getApiTokenPair,
             maxHops: maxHops,
             slippageBps: slippageBps,
             cellRouteData: cellRouteData,
-            getToken: getToken,
+            getSupportedTokenById: getSupportedTokenById,
+            networkMode: networkMode,
         })
 
         if (quoteError || !validHopData) {
             throw new Error(quoteError || "getValidHopQuoteData returned no data")
         }
 
+        const { quoteTokenData } = await getUnconfirmedQuoteTokens({
+            quoteData: validHopData,
+            getToken: getToken,
+        })
+
+        if (quoteTokenData.size) {
+            quoteTokenData.forEach((token) => quoteTokens.set(token.uid, token))
+        }
+
         for (const [id, hops] of Object.entries(validHopData)) {
 
             const [firstHop, finalHop] = [hops.at(0), hops.at(-1)]
-            if (!firstHop || !finalHop) {
+            const swapFeeData = feeData.get(id)
+
+            if (!firstHop || !finalHop || !swapFeeData) {
                 continue
             }
 
@@ -254,6 +346,7 @@ export const getSwapQuoteData = async ({
                 hops: hops,
                 slippageBps: slippageBps,
                 getToken: getToken,
+                quoteTokens: quoteTokens,
             })
 
             const quote: SwapQuote = {
@@ -269,6 +362,7 @@ export const getSwapQuoteData = async ({
                 srcAmount: route.srcData.amount,
                 estDstAmount: finalHop.dstData.estAmount,
                 minDstAmount: finalHop.dstData.minAmount,
+                feeData: swapFeeData,
                 estDuration: getQuoteEstDuration(hops),
                 estGasUnits: getQuoteEstGasUnits(hops),
                 estGasFee: getQuoteEstGasFee(route.srcData.chain, hops),
@@ -282,6 +376,7 @@ export const getSwapQuoteData = async ({
 
     catch (err) {
         swapQuoteData.error = getParsedError(err)
+        console.debug(`getSwapQuoteData error: ${swapQuoteData.error}`)
     }
 
     finally {
@@ -301,11 +396,12 @@ export const getSwapQuoteData = async ({
                 maxDstAmount: MathBigInt.max(swapQuotes.map((quote) => quote.estDstAmount)),
                 minDuration: Math.min(...swapQuotes.map((quote) => quote.estDuration)),
                 quotes: swapQuotes,
+                quoteTokens: quoteTokens,
             }
         }
-
-        return swapQuoteData
     }
+
+    return swapQuoteData
 
     // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getSwapQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
     // console.log(`>>> ${formatUnits(route.srcData.amount, route.srcData.token.decimals)} ${route.srcData.token.symbol} (${route.srcData.chain.name}) -> ${route.dstData.token.symbol} (${route.dstData.chain.name})`)
@@ -327,12 +423,12 @@ export const getInitialHopQuoteData = ({
     route,
     maxHops,
     slippageBps,
-    getSupportedToken,
+    getSupportedTokenById,
 }: {
     route: SwapRoute,
     maxHops: number,
     slippageBps?: bigint,
-    getSupportedToken: GetSupportedTokenFunction,
+    getSupportedTokenById: GetSupportedTokenByIdFunction,
 }) => {
 
     const hopData: Record<SwapId, HopQuote[]> = {}
@@ -370,7 +466,7 @@ export const getInitialHopQuoteData = ({
         route: route,
         maxHops: maxHops,
         slippageBps: slippageBps,
-        getSupportedToken: getSupportedToken,
+        getSupportedTokenById: getSupportedTokenById,
     })
 
     if (!bridgePathHops || bridgePathHops.length === 0) {
@@ -421,32 +517,138 @@ export const getInitialHopQuoteData = ({
     return hopData
 }
 
+export const getQuoteFeeData = async ({
+    route,
+    hopData,
+    networkMode,
+}: {
+    route: SwapRoute,
+    hopData: Record<SwapId, HopQuote[]>,
+    networkMode: NetworkMode,
+}) => {
+
+    const isTestnet = networkMode === NetworkMode.Testnet
+    const quoteIds = Object.keys(hopData)
+    const quoteFeeData: Map<SwapId, SwapFeeData> = new Map(quoteIds.map((swapId) => [swapId, {
+        [CellFeeType.FixedNative]: isTestnet ? BigInt(0) : undefined,
+        [CellFeeType.Base]: isTestnet ? BigInt(0) : undefined,
+    }]))
+
+    if (!isValidSwapRoute(route) || !quoteFeeData.size || isTestnet) {
+        return quoteFeeData
+    }
+
+    try {
+
+        const queryData: Map<SwapId, SwapFeeQuery> = new Map([])
+
+        Object.entries(hopData).forEach(([swapId, hops]) => {
+
+            const cell = hops.find((hop) => hop.index === 0)?.srcData.cell
+            const abi = getCellAbi(cell, networkMode)
+            const instructions = cell && abi && getQuoteCellInstructions({
+                route: route,
+                cell: cell,
+                hops: hops,
+                networkMode: networkMode,
+            })
+
+            if (cell && abi && instructions) {
+                queryData.set(swapId, {
+                    chainId: route.srcData.chain.id,
+                    address: cell.address,
+                    abi: abi,
+                    functionName: "calculateFees",
+                    args: [instructions, route.srcData.amount],
+                })
+            }
+        })
+
+        const results = await readContracts(wagmiConfig, {
+            contracts: Array.from(queryData.values()),
+        })
+
+        Array.from(queryData.keys()).forEach((swapId, i) => quoteFeeData.set(swapId, {
+            [CellFeeType.FixedNative]: results.at(i)?.result?.[0],
+            [CellFeeType.Base]: results.at(i)?.result?.[1],
+        }))
+    }
+
+    catch (err) {
+        console.debug(`getValidHopQuoteData error: ${getParsedError(err)}`)
+    }
+
+    return quoteFeeData
+}
+
 export const getValidHopQuoteData = async ({
     hopData,
+    feeData,
     getApiTokenPair,
     maxHops,
     slippageBps,
     cellRouteData,
-    getToken,
+    getSupportedTokenById,
+    networkMode,
 }: {
     hopData: Record<SwapId, HopQuote[]>,
+    feeData: Map<SwapId, SwapFeeData>,
     getApiTokenPair: GetApiTokenPairFunction,
     maxHops: number,
     slippageBps?: bigint,
     cellRouteData?: CellRouteData,
-    getToken: GetTokenFunction,
+    getSupportedTokenById: GetSupportedTokenByIdFunction,
+    networkMode: NetworkMode,
 }): Promise<GetValidHopQuoteDataReturnType> => {
 
     const quoteIds = Object.keys(hopData)
     const hopQuoteData: GetValidHopQuoteDataReturnType = {}
 
-    if (quoteIds.length === 0) {
+    if (!quoteIds.length) {
         return hopQuoteData
     }
 
     try {
 
+        Object.entries(hopData).forEach(([swapId, hops]) => {
+
+            const firstHop = hops.find((hop) => hop.index === 0)
+            const hopFeeData = feeData.get(swapId)
+            const srcAmount = getSwapSrcAmount(firstHop, hopFeeData)
+
+            if (!firstHop || !hopFeeData || !srcAmount) {
+                if (firstHop) {
+                    firstHop.isError = true
+                }
+                return
+            }
+
+            firstHop.srcData.estAmount = srcAmount
+            firstHop.srcData.minAmount = srcAmount
+
+            if (!isSwapHopType(firstHop.type)) {
+                firstHop.dstData.estAmount = srcAmount
+                firstHop.dstData.minAmount = srcAmount
+            }
+
+            hops.filter((hop) => hop.index !== 0).forEach((hop) => {
+
+                const prevHop = hops.find((data) => data.index === hop.index - 1)
+                const isPrevSwap = prevHop && isSwapHopType(prevHop.type)
+
+                if (!prevHop) {
+                    hop.isError = true
+                    return
+                }
+
+                hop.srcData.estAmount = !isPrevSwap ? prevHop.dstData.estAmount : undefined
+                hop.srcData.minAmount = !isPrevSwap ? hop.srcData.estAmount : getMinAmount(hop.srcData.estAmount, slippageBps)
+            })
+        })
+
         for (let i = 0; i < maxHops; i++) {
+
+            // console.debug(`getValidHopQuoteData initial run i: ${i}`)
 
             const apiQueries: HopApiQuery[] = []
             const contractQueries: HopContractQuery[] = []
@@ -461,21 +663,28 @@ export const getValidHopQuoteData = async ({
                 const hop = hops.find((data) => data.index === i)
                 const prevHop = i > 0 ? hops.find((data) => data.index === i - 1) : undefined
 
+                // console.debug(`   >>> hop ${hop?.index}: ${hop?.srcData.token.symbol} (${hop?.srcData.chain.name}) -> ${hop?.dstData.token.symbol} (${hop?.dstData.chain.name})`)
+
                 if (!hop || hop.isError) {
+                    // console.debug(`      >>> return 1 - ERROR / !hop: ${serialize(!hop)} / hop.isError: ${serialize(!hop?.isError)}`)
                     continue
                 }
                 else if (prevHop && (prevHop.isError || !isValidHopQuote(prevHop))) {
+                    // console.debug(`      >>> return 2 - ERROR / prevHop.isError: ${serialize(prevHop.isError)} / !isValidHopQuote(prevHop): ${serialize(!isValidHopQuote(prevHop))}`)
                     hop.isError = true
                     continue
                 }
                 else if (isValidHopQuote(hop)) {
+                    // console.debug(`      >>> return 3 - OK / isValidHopQuote(hop): ${serialize(isValidHopQuote(hop))}`)
                     continue
                 }
                 else if (!isSwapHopType(hop.type) && !isValidQuoteData(hop.srcData)) {
+                    // console.debug(`      >>> return 4 - ERROR / !isSwapHopType(hop.type): ${serialize(!isSwapHopType(hop.type))} / !isValidQuoteData(hop.srcData): ${serialize(!isValidQuoteData(hop.srcData))}`)
                     hop.isError = true
                     continue
                 }
                 else if (!hop.srcData.cell || !hop.dstData.cell) {
+                    // console.debug(`      >>> return 5 - ERROR / !hop.srcData.cell: ${serialize(!hop.srcData.cell)} / !hop.dstData.cell: ${serialize(!hop.dstData.cell)}`)
                     hop.isError = true
                     continue
                 }
@@ -484,7 +693,8 @@ export const getValidHopQuoteData = async ({
                     hop: hop,
                     getApiTokenPair: getApiTokenPair,
                     cellRouteData: cellRouteData,
-                    getToken: getToken,
+                    getSupportedTokenById: getSupportedTokenById,
+                    networkMode: networkMode,
                 })
 
                 if (hop.srcData.cell.apiData && apiQuery) {
@@ -494,6 +704,7 @@ export const getValidHopQuoteData = async ({
                     hop.queryIndex = contractQueries.push(contractQuery) - 1
                 }
                 else {
+                    // console.debug(`      >>> return 6 - ERROR / hop.srcData.cell.apiData && apiQuery: ${serialize(hop.srcData.cell.apiData && apiQuery)} / contractQuery: ${serialize(contractQuery)}`)
                     hop.isError = true
                     continue
                 }
@@ -508,6 +719,8 @@ export const getValidHopQuoteData = async ({
                 throw new Error(hopQueryResultsError)
             }
 
+            // console.debug(`getValidHopQuoteData results run i: ${i}`)
+
             for (const id of quoteIds) {
 
                 const hops = hopData[id]
@@ -515,37 +728,47 @@ export const getValidHopQuoteData = async ({
                     continue
                 }
 
+                // console.debug(`>>> quote RESULTS START: ${id} / hops: ${hops.length}`)
+
                 const hop = hops.find((data) => data.index === i)
                 const prevHop = i > 0 ? hops.find((data) => data.index === i - 1) : undefined
                 const nextHop = i + 1 <= hops.length - 1 ? hops[i + 1] : undefined
 
+                // console.debug(`   >>> hop ${hop?.index}: ${hop?.srcData.token.symbol} (${hop?.srcData.chain.name}) -> ${hop?.dstData.token.symbol} (${hop?.dstData.chain.name}) / ${hop?.type}`)
+
                 if (!hop || hop.isError) {
+                    // console.debug(`      >>> return 7 - ERROR / !hop: ${serialize(!hop)} / hop.isError: ${serialize(hop?.isError)} / hop.error: ${serialize(hop?.error)}`)
                     continue
                 }
                 else if (prevHop && (prevHop.isError || !isValidHopQuote(prevHop))) {
+                    // console.debug(`      >>> return 8 - ERROR / prevHop.isError: ${serialize(prevHop.isError)} / !isValidHopQuote(prevHop): ${serialize(!isValidHopQuote(prevHop))} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
                 else if (isValidHopQuote(hop)) {
+                    // console.debug(`      >>> return 9 - OK / isValidHopQuote(hop): ${serialize(isValidHopQuote(hop))} / hop.error: ${serialize(hop?.error)}`)
                     setNextHopAmounts(hop, nextHop, slippageBps)
                     continue
                 }
                 else if (hop.queryIndex === undefined) {
+                    // console.debug(`      >>> return 10 - ERROR / hop.queryIndex === undefined: ${serialize(hop.queryIndex === undefined)} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
 
-                const { srcData, dstData } = hop
+                const { srcData } = hop
                 if (!isValidQuoteData(srcData)) {
+                    // console.debug(`      >>> return 11 - ERROR / !isValidQuoteData(srcData): ${serialize(!isValidQuoteData(srcData))} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
 
                 if (srcData.cell.apiData) {
 
-                    const dstSwapTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token, getToken)
+                    const { dstTokenAddress: dstSwapTokenAddress } = getSwapQuoteTokenAddresses(hop, getSupportedTokenById)
                     const { amount: dstAmount } = apiData[hop.queryIndex]
                     if (!dstSwapTokenAddress || !dstAmount || dstAmount === BigInt(0)) {
+                        // console.debug(`      >>> return 12 - ERROR / !dstSwapTokenAddress: ${serialize(!dstSwapTokenAddress)} / !dstAmount: ${serialize(!dstAmount)} / dstAmount === BigInt(0): ${serialize(dstAmount === BigInt(0))} / hop.error: ${serialize(hop?.error)}`)
                         hop.isError = true
                         continue
                     }
@@ -556,7 +779,7 @@ export const getValidHopQuoteData = async ({
                         [CellTradeParameter.AmountOut]: hop.dstData.estAmount,
                         [CellTradeParameter.MinAmountOut]: hop.dstData.minAmount,
                         [CellTradeParameter.Path]: [
-                            srcData.token.address,
+                            getTokenAddress(srcData.token),
                             dstSwapTokenAddress,
                         ],
                         [CellTradeParameter.Adapters]: [
@@ -577,6 +800,7 @@ export const getValidHopQuoteData = async ({
                     const trade = getDecodedCellTradeData(srcData.cell, encodedTrade)?.trade
                     const dstAmount = trade?.[CellTradeParameter.AmountOut] ?? trade?.[CellTradeParameter.MinAmountOut]
                     if (!encodedTrade || !trade || !dstAmount || dstAmount === BigInt(0)) {
+                        // console.debug(`      >>> return 13 - ERROR / !encodedTrade: ${serialize(!encodedTrade)} / !trade: ${serialize(!trade)} / !dstAmount: ${serialize(!dstAmount)} / dstAmount === BigInt(0): ${serialize(dstAmount === BigInt(0))} / hop.error: ${serialize(hop?.error)}`)
                         hop.isError = true
                         continue
                     }
@@ -589,6 +813,7 @@ export const getValidHopQuoteData = async ({
                 }
 
                 if (!isValidHopQuote(hop)) {
+                    // console.debug(`      >>> return 14 - ERROR / !isValidHopQuote(hop): ${serialize(!isValidHopQuote(hop))} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
@@ -602,6 +827,7 @@ export const getValidHopQuoteData = async ({
 
     catch (err) {
         hopQuoteData.error = getParsedError(err)
+        console.debug(`getValidHopQuoteData error: ${hopQuoteData.error}`)
     }
 
     finally {
@@ -619,6 +845,15 @@ export const getValidHopQuoteData = async ({
         }
     }
 
+    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getValidHopQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+    // Object.entries(hopQuoteData.data).forEach(([id, hops]) => {
+    //     console.log(`>>> path: ${id}`)
+    //     hops.forEach((data, i) => {
+    //         console.log(`   >>> hop ${i}: ${data.srcData.minAmount ? formatUnits(data.srcData.minAmount, data.srcData.token.decimals) : "n/a"} ${data.srcData.token.symbol} (${data.srcData.chain.name}) -> ${data.dstData.minAmount ? formatUnits(data.dstData.minAmount, data.dstData.token.decimals) : "n/a"} ${data.dstData.token.symbol} (${data.dstData.chain.name}) / type: ${data.type} / srcCell: ${data.srcData.cell?.type ?? "NO SRC CELL"} / dstCell: ${data.dstData.cell?.type ?? "NO CELL???????"}`)
+    //     })
+    // })
+    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getValidHopQuoteData END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
+
     return hopQuoteData
 }
 
@@ -626,16 +861,19 @@ export const getHopQueryData = ({
     hop,
     getApiTokenPair,
     cellRouteData,
-    getToken,
+    getSupportedTokenById,
+    networkMode,
 }: {
     hop: Hop,
     getApiTokenPair: GetApiTokenPairFunction,
     cellRouteData?: CellRouteData,
-    getToken: GetTokenFunction,
+    getSupportedTokenById: GetSupportedTokenByIdFunction,
+    networkMode: NetworkMode,
 }) => {
 
     const queryData: HopQueryData = {}
     const { srcData, dstData } = hop
+
     if (!isValidQuoteData(srcData)) {
         return queryData
     }
@@ -675,9 +913,8 @@ export const getHopQueryData = ({
 
     else {
 
-        const abi = getCellAbi(srcData.cell)
-        const srcTokenAddress = getSwapQuoteTokenAddress(srcData.chain, srcData.token, getToken)
-        const dstTokenAddress = getSwapQuoteTokenAddress(srcData.chain, dstData.token, getToken)
+        const abi = getCellAbi(srcData.cell, networkMode)
+        const { srcTokenAddress, dstTokenAddress } = getSwapQuoteTokenAddresses(hop, getSupportedTokenById)
         const routeData = getEncodedCellRouteData(srcData.chain, srcData.cell, cellRouteData, false)
 
         if (!abi || !srcTokenAddress || !dstTokenAddress || !routeData) {
@@ -724,6 +961,7 @@ export const getHopQueryResults = async ({
 
     catch (err) {
         error = `getHopQueryResults error: ${err}`
+        console.debug(`getHopQueryResults error: ${error}`)
     }
 
     return {
@@ -733,14 +971,114 @@ export const getHopQueryResults = async ({
     }
 }
 
+export const getUnconfirmedQuoteTokens = async ({
+    quoteData,
+    getToken,
+}: {
+    quoteData: GetValidHopQuoteDataReturnData,
+    getToken: GetTokenFunction,
+}) => {
+
+    let error: string | undefined = undefined
+    const unconfirmedTokenData = getTokenDataMap([])
+    const quoteTokenData = getTokenDataMap([])
+
+    try {
+
+        Object.values(quoteData).flat().forEach((hop) => {
+
+            const tokenAddresses = new Set([...hop.trade?.[CellTradeParameter.Path] ?? []])
+            if (hop.trade?.[CellTradeParameter.TokenOut]) {
+                tokenAddresses.add(hop.trade[CellTradeParameter.TokenOut])
+            }
+
+            tokenAddresses.forEach((address) => {
+                const token = getToken({
+                    address: address,
+                    chainId: hop.srcData.chain.id,
+                })
+                if (token.isUnconfirmed && !unconfirmedTokenData.has(token.uid)) {
+                    unconfirmedTokenData.set(token.uid, token)
+                }
+            })
+        })
+
+        if (unconfirmedTokenData.size) {
+
+            const baseSymbolQuery = {
+                abi: erc20Abi,
+                functionName: "symbol",
+            } as const
+
+            const baseNameQuery = {
+                abi: erc20Abi,
+                functionName: "name",
+            } as const
+
+            const baseDecimalsQuery = {
+                abi: erc20Abi,
+                functionName: "decimals",
+            } as const
+
+            const results = await readContracts(wagmiConfig, {
+                contracts: Array.from(unconfirmedTokenData.values()).map((token) => ([
+                    {
+                        ...baseSymbolQuery,
+                        chainId: token.chainId,
+                        address: token.address,
+                    },
+                    {
+                        ...baseNameQuery,
+                        chainId: token.chainId,
+                        address: token.address,
+                    },
+                    {
+                        ...baseDecimalsQuery,
+                        chainId: token.chainId,
+                        address: token.address,
+                    },
+                ])).flat(),
+            })
+
+            Array.from(unconfirmedTokenData.values()).forEach((token, i) => {
+
+                const resultsIndex = i * 3
+                const [symbolData, nameData, decimalsData] = results.slice(resultsIndex, resultsIndex + 3)
+
+                if (symbolData.result && nameData.result && decimalsData.result) {
+                    quoteTokenData.set(token.uid, getUnsupportedTokenData({
+                        ...token,
+                        symbol: symbolData.result as string,
+                        name: nameData.result as string,
+                        decimals: decimalsData.result as number,
+                        isUnconfirmed: false,
+                    }))
+                }
+            })
+        }
+    }
+
+    catch (err) {
+        error = getParsedError(err)
+        console.debug(`getUnconfirmedQuoteTokens error: ${error}`)
+    }
+
+    return {
+        quoteTokenData,
+        error,
+    }
+}
+
 export const getHopEventData = ({
     hops,
     slippageBps,
     getToken,
+    quoteTokens,
 }: {
     hops: Hop[],
     slippageBps?: bigint,
     getToken: GetTokenFunction,
+    quoteTokens: TokenDataMap,
 }) => {
 
     const events: HopEvent[] = []
@@ -757,10 +1095,11 @@ export const getHopEventData = ({
         } = hop.trade ?? {}
 
         const tradeDstAmount = amountOut || minAmountOut || hop.dstData.estAmount
-        const tradeDstToken = tokenOut && getToken({
+        const tradeDstTokenData = tokenOut && getToken({
             address: tokenOut,
             chainId: hop.srcData.chain.id,
         })
+        const tradeDstToken = (tradeDstTokenData?.isUnconfirmed && quoteTokens.get(tradeDstTokenData.uid)) || tradeDstTokenData
         const prevHop = hops.at(hop.index - 1)
 
         let prevDstToken: Token | undefined = hop.srcData.token
@@ -775,14 +1114,16 @@ export const getHopEventData = ({
 
                     const adapterAddress = adapterAddresses?.[i] || hop.srcData.cell.address
                     const adapter = getSwapAdapter(hop.srcData.chain, adapterAddress)
-                    const eventSrcToken = getToken({
+                    const eventSrcTokenData = getToken({
                         address: tradePath[i],
                         chainId: hop.srcData.chain.id,
                     })
-                    const eventDstToken = getToken({
+                    const eventSrcToken = (eventSrcTokenData.isUnconfirmed && quoteTokens.get(eventSrcTokenData.uid)) || eventSrcTokenData
+                    const eventDstTokenData = getToken({
                         address: tradePath[i + 1],
                         chainId: hop.srcData.chain.id,
                     })
+                    const eventDstToken = (eventDstTokenData.isUnconfirmed && quoteTokens.get(eventDstTokenData.uid)) || eventDstTokenData
                     const eventDstAmount = i === tradePath.length - 2 ? tradeDstAmount : undefined
 
                     if (eventSrcToken && eventDstToken) {

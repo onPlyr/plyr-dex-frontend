@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import React, { useCallback, useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"
+import { formatUnits } from "viem"
 
 import ApproxEqualIcon from "@/app/components/icons/ApproxEqualIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
@@ -13,7 +14,7 @@ import EditIcon from "@/app/components/icons/EditIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import ExchangeRateIcon from "@/app/components/icons/ExchangeRateIcon"
 import ReceiveIcon from "@/app/components/icons/ReceiveIcon"
-//import RecipientIcon from "@/app/components/icons/RecipientIcon"
+import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import SendIcon from "@/app/components/icons/SendIcon"
 import SlippageIcon from "@/app/components/icons/SlippageIcon"
 import SpeedIcon from "@/app/components/icons/SpeedIcon"
@@ -24,25 +25,27 @@ import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { PlatformImage } from "@/app/components/images/PlatformImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
 import SwapParameter from "@/app/components/swap/SwapParameter"
+import TokenBalance from "@/app/components/tokens/TokenBalance"
 import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import Button from "@/app/components/ui/Button"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { TabContent, TabIndicator, TabsContainer, TabsList, TabTrigger } from "@/app/components/ui/Tabs"
 import { Tooltip } from "@/app/components/ui/Tooltip"
+import { Bold } from "@/app/components/ui/Typography"
 import { iconSizes, imgSizes } from "@/app/config/styling"
-import { SwapQuoteConfig } from "@/app/config/swaps"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { UseSwapRecipientReturnType } from "@/app/hooks/swap/useSwapRecipient"
 import { UseSwapSlippageReturnType } from "@/app/hooks/swap/useSwapSlippage"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import { getBlockExplorerLink } from "@/app/lib/chains"
 import { formatDuration } from "@/app/lib/datetime"
 import { bpsToPercent, getExchangeRate } from "@/app/lib/numbers"
 import { toShort } from "@/app/lib/strings"
-import { getHopEventPlatformData } from "@/app/lib/swaps"
+import { getHopEventPlatformData, getSwapFeeTokenData } from "@/app/lib/swaps"
 import { getStatusLabel } from "@/app/lib/utils"
 import { NumberFormatType } from "@/app/types/numbers"
-import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
+import { PreferenceType } from "@/app/types/preferences"
 import { StyleDirection } from "@/app/types/styling"
 import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQuote, Swap, SwapAction, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
@@ -106,11 +109,13 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
     ...props
 }, ref) => {
 
-    const { preferences } = usePreferences()
+    const { getPreference } = usePreferences()
+    const { getNativeToken } = useTokens()
     const isHistory = isSwapHistory(swap)
     const isQuote = isValidSwapQuote(swap)
-    const dstAmountDiff = isHistory && swap.dstAmount && swap.dstAmount - swap.minDstAmount
-    const durationDiff = isHistory && swap.duration !== undefined && swap.estDuration - swap.duration
+    const dstAmountDiff = isHistory && swap.dstAmount && (swap.dstAmount > swap.minDstAmount ? swap.dstAmount - swap.minDstAmount : undefined)
+    const durationDiff = isHistory && swap.duration !== undefined && swap.estDuration > swap.duration ? swap.estDuration - swap.duration : undefined
+    const swapFees = getSwapFeeTokenData(swap, getNativeToken)
 
     const statusTab = 100
     const defaultTab = isQuote || swap.status === SwapStatus.Success || swap.status === SwapStatus.Error ? statusTab.toString() : "0"
@@ -128,14 +133,14 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
         }
     }, [swap.status, swap.events])
 
-    const swapSrcTxUrl = isHistory && getBlockExplorerLink({
+    const swapSrcTxUrl = isHistory ? getBlockExplorerLink({
         chain: swap.srcData.chain,
         tx: swap.txHash,
-    })
-    const swapDstTxUrl = isHistory && swap.dstTxHash && getBlockExplorerLink({
+    }) : undefined
+    const swapDstTxUrl = isHistory && swap.dstTxHash ? getBlockExplorerLink({
         chain: swap.dstData.chain,
         tx: swap.dstTxHash,
-    })
+    }) : undefined
 
     const exchangeRateData = getExchangeRate({
         srcToken: swap.srcData.token,
@@ -158,7 +163,6 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
             className={twMerge("flex flex-col flex-1 gap-4 overflow-hidden", className)}
             {...props}
         >
-
             <TabsContainer
                 value={eventTab}
                 onValueChange={(tab) => setEventTab(tab)}
@@ -190,8 +194,21 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                         </div>
                                     >
                                         <div className="flex flex-row flex-1 gap-2 items-center">
-                                            {`${SwapTypeLabel[event.type]} ${isSwapType(event.type) ? `from ${event.srcData.token.symbol} to ${event.dstData.token.symbol}` : `to ${event.dstData.chain.name}`} ${platformName && `via ${platformName}`}`}
-                                            {platform && <PlatformImage platform={platform} size="xs" />}
+                                            {SwapTypeLabel[event.type]}&nbsp;
+                                            {isSwapType(event.type) ? (<>
+                                                from <Bold>{event.srcData.token.symbol}</Bold> to <Bold>{event.dstData.token.symbol}</Bold>
+                                            </>) : (<>
+                                                to <Bold>{event.dstData.chain.name}</Bold>
+                                            </>)}
+                                            {platformName && (<>
+                                                &nbsp;via <Bold>{platformName}</Bold>
+                                            </>)}
+                                            {platform && (
+                                                <PlatformImage
+                                                    platform={platform}
+                                                    size="xs"
+                                                />
+                                            )}
                                         </div>
                                     </Tooltip>
                                     {eventHop && (eventHop.status === SwapStatus.Error || eventHop.error) && (
@@ -375,7 +392,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                             ) : swap.status === SwapStatus.Error ? "Error" : "Pending"}
                                             valueClass={twMerge("font-mono text-base", swap.status === SwapStatus.Error && "text-error-500")}
                                         />
-                                        {isHistory && dstAmountDiff && dstAmountDiff > BigInt(0) && (
+                                        {isHistory && dstAmountDiff && (
                                             <SwapParameter
                                                 icon=<CoinsIcon className={iconSizes.sm} />
                                                 label="Amount extra"
@@ -408,7 +425,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                 valueClass={twMerge("gap-2 font-mono text-base", swap.status === SwapStatus.Error && "text-error-500")}
                                             />
                                         </>) : (<>
-                                            {exchangeRate && (
+                                            {exchangeRate && exchangeRate > BigInt(0) ? (
                                                 <SwapParameter
                                                     icon=<ExchangeRateIcon className={iconSizes.sm} />
                                                     label="Exchange rate"
@@ -432,7 +449,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                         Switch to {(isInverseExchangeRate ? swap.srcData : swap.dstData).token.symbol} to {(isInverseExchangeRate ? swap.dstData : swap.srcData).token.symbol} rate
                                                     </Tooltip>
                                                 />
-                                            )}
+                                            ) : undefined}
                                             <SwapParameter
                                                 icon=<SlippageIcon className={iconSizes.sm} />
                                                 label=<>
@@ -453,7 +470,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                     )}
                                                 </>
                                                 labelClass="gap-4"
-                                                value={bpsToPercent(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)}
+                                                value={bpsToPercent(getPreference(PreferenceType.Slippage))}
                                                 valueClass="font-mono text-base"
                                             />
                                             {/* <SwapParameter
@@ -479,12 +496,22 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                 value={swap.recipientAddress ? toShort(swap.recipientAddress) : "0x..."}
                                                 valueClass={twMerge("font-mono text-base", !swap.recipientAddress ? "text-muted-500" : undefined)}
                                             /> */}
-                                            <SwapParameter
-                                                icon=<TesseractIcon className={iconSizes.sm} />
-                                                label="Fee"
-                                                value={SwapQuoteConfig.TesseractFee ? bpsToPercent(SwapQuoteConfig.TesseractFee) : "FREE"}
-                                                valueClass={twMerge("font-mono text-base", !SwapQuoteConfig.TesseractFee ? "text-success-500" : undefined)}
-                                            />
+                                            {swapFees?.map((data, i) => (
+                                                <SwapParameter
+                                                    key={data.type}
+                                                    icon={i === 0 && <TesseractIcon className={iconSizes.sm} />}
+                                                    label={i === 0 && "Protocol Fee"}
+                                                    value=<TokenBalance
+                                                        symbol={data.symbol}
+                                                        decimals={data.decimals}
+                                                        balance={{
+                                                            amount: data.amount,
+                                                            formatted: formatUnits(data.amount, data.decimals)
+                                                        }}
+                                                    />
+                                                    valueClass="font-mono text-base"
+                                                />
+                                            ))}
                                         </>)}
                                     </div>
                                 </div>

@@ -8,7 +8,6 @@ import { NetworkMode } from "@/app/types/preferences"
 export const defaultMinGasPrice = BigInt(25)
 export const defaultGasPriceExponent = 9
 
-
 export const durationEstimateNumConfirmations = 3
 
 export const TokenInputPercentOptions = [
@@ -22,18 +21,14 @@ export const TokenInputPercentOptions = [
     },
 ] as const
 
-export const RetrySwapStatus = {
-    MaxRetries: 3,
-    DefaultDelay: 1000,
-    MaxDelay: 2000,
-} as const
-
 export const SwapQuoteConfig = {
     MaxHops: 3,
     DefaultMaxHops: 3,
     QuoteValidMs: 60000,
-    TesseractFee: 0,
     AlternativeQuoteSwitchDelayMs: 5000,
+    InitiatedBlockBuffer: BigInt(10),
+    DefaultFixedNativeFee: 0.001,
+    DefaultBaseFeeBps: 10,
 } as const
 
 export const YakSwapConfig = {

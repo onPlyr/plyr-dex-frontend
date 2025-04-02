@@ -1,17 +1,24 @@
-import * as React from "react"
+"use client"
+
+import React from "react"
 import { twMerge } from "tailwind-merge"
+import { formatUnits, parseUnits } from "viem"
 
 import DurationIcon from "@/app/components/icons/DurationIcon"
 import GasIcon from "@/app/components/icons/GasIcon"
 import StepIcon from "@/app/components/icons/StepIcon"
 import { TokenImage } from "@/app/components/images/TokenImage"
+import TokenAmountValue, { InvalidTokenPriceTooltip } from "@/app/components/tokens/TokenAmountValue"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Tooltip } from "@/app/components/ui/Tooltip"
+import { Bold } from "@/app/components/ui/Typography"
 import { iconSizes } from "@/app/config/styling"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import { formatDuration } from "@/app/lib/datetime"
 import { getPercentDifferenceFormatted } from "@/app/lib/numbers"
 import { NumberFormatType } from "@/app/types/numbers"
 import { SwapQuote, SwapQuoteData, SwapType, SwapTypeLabel } from "@/app/types/swaps"
+import { isValidTokenAmount } from "@/app/types/tokens"
 
 interface SwapQuotePreviewSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     quote: SwapQuote,
@@ -35,6 +42,15 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
             eventTypeData.push([type, numEvents])
         }
     }
+    
+    const { getNativeToken, useTokenPricesData } = useTokens()
+    const { getAmountValue } = useTokenPricesData
+    const nativeToken = getNativeToken(quote.srcData.chain.id)
+    const gasFeeAmount = parseUnits(quote.estGasFee.toString(), quote.srcData.chain.gasPriceExponent)
+    const gasFeeValue = nativeToken && getAmountValue(nativeToken, {
+        amount: gasFeeAmount,
+        formatted: formatUnits(gasFeeAmount, nativeToken.decimals)
+    })
 
     return (
         <div
@@ -85,7 +101,9 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                                 {dstAmountDiff} {token.symbol}
                             </div>
                         >
-                            {isNegativeDiff && `This route is estimated to return ${dstAmountDiff} less ${token.symbol} then the highest quote found.`}
+                            {isNegativeDiff ? (<>
+                                Gives you <Bold>{dstAmountDiff}</Bold> less <Bold>{token.symbol}</Bold> than the best available quote.
+                            </>) : undefined}
                         </Tooltip>
                     ) : (
                         <Tooltip
@@ -93,7 +111,7 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                                 Best return
                             </div>
                         >
-                            This route is estimated to return the largest amount of {token.symbol} for your {token.symbol}.
+                            Gives you the most <Bold>{token.symbol}</Bold> for your <Bold>{quote.srcData.token.symbol}</Bold>.
                         </Tooltip>
                     )}
                     {quoteData && quote.estDuration === quoteData.minDuration && (
@@ -102,7 +120,7 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                                 Fastest
                             </div>
                         >
-                            This route is estimated to be completed in the shortest amount of time.
+                            Fastest possible route for your trade.
                         </Tooltip>
                     )}
                 </div>
@@ -111,11 +129,23 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                 <Tooltip
                     trigger=<div className="label flex-1">
                         <GasIcon className={iconSizes.sm} />
-                        <DecimalAmount
-                            amount={quote.estGasFee}
-                            symbol={quote.srcData.chain.nativeCurrency.symbol}
-                            decimals={quote.srcData.chain.gasPriceExponent}
-                        />
+                        <div className="flex flex-row items-center gap-2">
+                            {nativeToken && gasFeeValue && isValidTokenAmount(gasFeeValue) ? (
+                                <TokenAmountValue
+                                    className="text-white"
+                                    token={nativeToken}
+                                    amount={gasFeeValue}
+                                    isAmountValue={true}
+                                />
+                            ) : (
+                                <DecimalAmount
+                                    amount={quote.estGasFee}
+                                    symbol={quote.srcData.chain.nativeCurrency.symbol}
+                                    decimals={quote.srcData.chain.gasPriceExponent}
+                                />
+                            )}
+                            {!isValidTokenAmount(gasFeeValue) && <InvalidTokenPriceTooltip tokenSymbol={nativeToken?.symbol ?? quote.srcData.chain.nativeCurrency.symbol} />}
+                        </div>
                     </div>
                 >
                     <DecimalAmount
@@ -133,7 +163,7 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                         {formatDuration(quote.estDuration)}
                     </div>
                 >
-                    <span className="font-bold">{formatDuration(quote.estDuration)}</span>&nbsp;estimated time to completion.
+                    <Bold>{formatDuration(quote.estDuration)}</Bold> estimated time to completion.
                 </Tooltip>
                 <Tooltip
                     trigger=<div className="label flex-1 normal-case">
@@ -143,7 +173,7 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                 >
                     {eventTypeData.map(([type, count], i) => (
                         <div key={type}>
-                            {i === eventTypeData.length - 1 && (<>&nbsp;</>)}<span className="font-bold">{count} x {SwapTypeLabel[type]}</span>&nbsp;{i < eventTypeData.length - 1 ? "and" : `step${quote.events.length > 1 ? "s" : ""}.`}
+                            {i === eventTypeData.length - 1 && (<>&nbsp;</>)}<Bold>{count} x {SwapTypeLabel[type].toLowerCase()}</Bold>&nbsp;{i < eventTypeData.length - 1 ? "and" : `step${quote.events.length > 1 ? "s" : ""}.`}
                         </div>
                     ))}
                 </Tooltip>

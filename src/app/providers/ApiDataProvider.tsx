@@ -1,12 +1,13 @@
 "use client"
 
-import { createContext, useCallback, useEffect, useState } from "react"
+import { createContext, useCallback, useMemo } from "react"
 import { useAccount } from "wagmi"
 import { readContract } from "@wagmi/core"
 
 import { wagmiConfig } from "@/app/config/wagmi"
 import useApiTokenData from "@/app/hooks/apis/useApiTokenData"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import { getApiUrl } from "@/app/lib/apis"
 import { getDecodedCellTradeData } from "@/app/lib/cells"
 import { getHopQueryData, getHopTypeEstGasUnits, getMinAmount, getQuoteEstGasFee, getQuoteEstGasUnits, setNextHopAmounts } from "@/app/lib/swaps"
@@ -14,10 +15,9 @@ import { getParsedError } from "@/app/lib/utils"
 import { ApiFirmQuoteResultData, ApiProvider, ApiResult, ApiRoute, ApiRouteType, ApiTokenPairData, ApiTokenPairName } from "@/app/types/apis"
 import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { ChainId } from "@/app/types/chains"
-import { PreferenceType, SlippageConfig } from "@/app/types/preferences"
+import { PreferenceType } from "@/app/types/preferences"
 import { SwapQuote } from "@/app/types/swaps"
 import { TokenId } from "@/app/types/tokens"
-import useTokens from "../hooks/tokens/useTokens"
 
 export type GetApiTokenDataFunction = (provider: ApiProvider, chainId: ChainId) => ApiTokenPairData | undefined
 export type GetApiTokenPairFunction = ({
@@ -56,24 +56,14 @@ const ApiDataProvider = ({
 }) => {
 
     const { address: accountAddress } = useAccount()
-    const { preferences } = usePreferences()
-    const { getToken } = useTokens()
+    const { getPreference } = usePreferences()
+    const { getSupportedTokenById } = useTokens()
     const apiTokenData = useApiTokenData()
-    const slippage = BigInt(preferences[PreferenceType.Slippage] ?? SlippageConfig.DefaultBps)
+    const slippage = useMemo(() => BigInt(getPreference(PreferenceType.Slippage)), [getPreference])
+    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
+    const cellRouteData: CellRouteData = useMemo(() => ({ [CellRouteDataParameter.SlippageBips]: slippage }), [slippage])
 
-    const [cellRouteData, setCellRouteData] = useState<CellRouteData>()
-    useEffect(() => {
-        if (slippage) {
-            setCellRouteData({
-                [CellRouteDataParameter.SlippageBips]: slippage,
-            })
-        }
-    }, [slippage])
-
-    const getApiTokenData: GetApiTokenDataFunction = useCallback((provider, chainId) => {
-        return apiTokenData.data[provider]?.[chainId]
-    }, [apiTokenData.data])
-
+    const getApiTokenData: GetApiTokenDataFunction = useCallback((provider, chainId) => apiTokenData.data[provider]?.[chainId], [apiTokenData.data])
     const getApiTokenPair: GetApiTokenPairFunction = useCallback(({
         provider,
         chainId,
@@ -155,7 +145,8 @@ const ApiDataProvider = ({
                         hop: hop,
                         getApiTokenPair: getApiTokenPair,
                         cellRouteData: cellRouteData,
-                        getToken: getToken,
+                        getSupportedTokenById: getSupportedTokenById,
+                        networkMode: networkMode,
                     })
 
                     if (!contractQuery) {
@@ -217,7 +208,7 @@ const ApiDataProvider = ({
             }
         }
 
-    }, [accountAddress, getToken, cellRouteData, getApiTokenPair, slippage])
+    }, [accountAddress, getSupportedTokenById, cellRouteData, getApiTokenPair, slippage, networkMode])
 
     const context: ApiDataContextType = {
         getApiTokenData: getApiTokenData,

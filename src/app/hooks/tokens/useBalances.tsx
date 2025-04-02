@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Address, erc20Abi, formatUnits } from "viem"
 import { useAccount } from "wagmi"
-import { getBalance, readContracts } from "@wagmi/core"
+import { getBalance as wagmiGetBalance, readContracts } from "@wagmi/core"
 
-import { defaultNetworkMode } from "@/app/config/chains"
-// import { DefaultUserPreferences } from "@/app/config/preferences"
 import { wagmiConfig } from "@/app/config/wagmi"
-import usePreferences from "@/app/hooks/preferences/usePreferences"
-import { getFilteredChains } from "@/app/lib/chains"
 import { getParsedError } from "@/app/lib/utils"
+import { getErc20Tokens, getInitialTokenAmountDataMap, getNativeTokens } from "@/app/lib/tokens"
 import { ChainId } from "@/app/types/chains"
-import { PreferenceType } from "@/app/types/preferences"
-import { Token } from "@/app/types/tokens"
+import { GetTokenBalanceFunction, isNativeToken, Token, TokenAmountDataMap } from "@/app/types/tokens"
 
 export interface UseBalancesReturnType {
-    tokens: Token[],
+    balances: TokenAmountDataMap,
+    getBalance: GetTokenBalanceFunction,
+    isPending: boolean,
+    isFetching: boolean,
     isInProgress: boolean,
     error?: string,
     refetch: () => void,
@@ -28,117 +28,101 @@ interface TokenBalanceQuery {
     args: [Address],
 }
 
-const useBalances = ({
-    supportedTokens,
-    customTokens,
-}: {
-    supportedTokens: Token[],
-    customTokens: Token[],
-}): UseBalancesReturnType => {
+interface FetchBalancesParameters {
+    tokens: Token[],
+    accountAddress?: Address,
+    initialData: TokenAmountDataMap,
+}
 
-    const { address: accountAddress, isDisconnected } = useAccount()
-    const { preferences } = usePreferences()
-    const [tokens, setTokens] = useState([
-        ...supportedTokens,
-        ...customTokens,
-    ])
-    const [isInProgress, setIsInProgress] = useState(false)
-    const [errorMsg, setErrorMsg] = useState("")
-    const networkMode = preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode
-    // const sortType = preferences[PreferenceType.TokenSortType] ?? DefaultUserPreferences[PreferenceType.TokenSortType]
-    const isAccountConnected = !!accountAddress && !isDisconnected
+const fetchBalances = async ({
+    tokens,
+    accountAddress,
+    initialData,
+}: FetchBalancesParameters) => {
 
-    const getTokenBalances = useCallback(async () => {
+    const balances = new Map(initialData)
 
-        const tokens = [
-            ...supportedTokens,
-            ...customTokens,
-        ]
+    try {
 
-        let errorMsg = ""
+        if (!tokens.length || !accountAddress) {
+            return balances
+        }
 
-        try {
+        const nativeQueries = getNativeTokens(tokens).map((token) => wagmiGetBalance(wagmiConfig, {
+            chainId: token.chainId,
+            address: accountAddress,
+        }))
+        const erc20Queries: TokenBalanceQuery[] = getErc20Tokens(tokens).map((token) => ({
+            chainId: token.chainId,
+            address: token.address,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [accountAddress],
+        }))
 
-            if (isInProgress) {
-                return
+        const nativeResults = await Promise.allSettled(nativeQueries).then((results) => results.map((data) => data.status === "fulfilled" ? data.value.value : undefined))
+        const erc20Results = await readContracts(wagmiConfig, {
+            contracts: erc20Queries,
+        }).then((results) => results.map((data) => data.result))
+
+        let nativeIndex = 0
+        let tokenIndex = 0
+
+        for (const token of tokens) {
+
+            let balance: bigint | undefined = undefined
+
+            if (isNativeToken(token)) {
+                balance = nativeResults[nativeIndex]
+                nativeIndex++
             }
 
-            else if (!isAccountConnected) {
-                tokens.forEach((token) => {
-                    token.balance = undefined
-                    token.balanceFormatted = undefined
-                })
-                return
+            else {
+                balance = erc20Results[tokenIndex]
+                tokenIndex++
             }
 
-            setIsInProgress(true)
-
-            const queryTokens = getFilteredChains(networkMode).map((chain) => tokens.filter((token) => token.chainId === chain.id)).flat()
-            const nativeQueries = queryTokens.filter((token) => token.isNative).map((token) => getBalance(wagmiConfig, {
-                chainId: token.chainId,
-                address: accountAddress,
-            }))
-            const tokenQueries: TokenBalanceQuery[] = queryTokens.filter((token) => !token.isNative).map((token) => ({
-                chainId: token.chainId,
-                address: token.address,
-                abi: erc20Abi,
-                functionName: "balanceOf",
-                args: [accountAddress],
-            }))
-
-            const nativeResults = await Promise.allSettled(nativeQueries).then((results) => results.map((data) => data.status === "fulfilled" ? data.value.value : undefined))
-            const tokenResults = await readContracts(wagmiConfig, {
-                contracts: tokenQueries,
+            balances.set(token.uid, {
+                amount: balance,
+                formatted: balance !== undefined ? formatUnits(balance, token.decimals) : undefined,
             })
-
-            let nativeIndex = 0
-            let tokenIndex = 0
-
-            for (const token of queryTokens) {
-
-                if (token.isNative) {
-                    token.balance = nativeResults[nativeIndex]
-                    nativeIndex++
-                }
-
-                else {
-                    token.balance = tokenResults[tokenIndex].result
-                    tokenIndex++
-                }
-
-                token.balanceFormatted = token.balance ? formatUnits(token.balance, token.decimals) : undefined
-            }
         }
 
-        catch (err) {
-            errorMsg = getParsedError(err)
-        }
+        return balances
+    }
 
-        finally {
-            setTokens(tokens)
-            setErrorMsg(errorMsg)
-            setIsInProgress(false)
-        }
+    catch (err) {
+        throw new Error(getParsedError(err))
+    }
+}
 
-    }, [supportedTokens, customTokens, accountAddress, setTokens, networkMode, isAccountConnected, isInProgress, setIsInProgress, setErrorMsg])
+export const useBalances = (tokens: Token[]): UseBalancesReturnType => {
 
-    useEffect(() => {
-        if (!isInProgress) {
-            getTokenBalances()
-        }
-    }, [supportedTokens, customTokens, accountAddress, networkMode, isAccountConnected])
+    const { address: accountAddress } = useAccount()
+    const initialBalances = useMemo(() => getInitialTokenAmountDataMap(tokens), [tokens])
 
-    useEffect(() => console.log("useBalances CHANGED: isAccountConnected"), [isAccountConnected])
-    useEffect(() => console.log("useBalances CHANGED: supportedTokens"), [supportedTokens])
-    useEffect(() => console.log("useBalances CHANGED: customTokens"), [customTokens])
-    useEffect(() => console.log("useBalances CHANGED: accountAddress"), [accountAddress])
-    useEffect(() => console.log("useBalances CHANGED: networkMode"), [networkMode])
+    const { data, isPending, isFetching, error, refetch } = useQuery({
+        queryKey: ["balances", tokens, accountAddress],
+        queryFn: async () => fetchBalances({
+            tokens: tokens,
+            accountAddress: accountAddress,
+            initialData: initialBalances,
+        }),
+        // placeholderData: initialBalances,
+    })
+
+    const balances = useMemo(() => data ?? initialBalances, [initialBalances, data])
+    const errorMsg = useMemo(() => error ? getParsedError(error) : undefined, [error])
+    const getBalance = useCallback((token?: Token) => token && balances.get(token.uid), [balances])
 
     return {
-        tokens: tokens,
-        isInProgress: isInProgress,
+        balances: balances,
+        getBalance: getBalance,
+        isPending: isPending,
+        isFetching: isFetching,
+        isInProgress: isFetching,
         error: errorMsg,
-        refetch: getTokenBalances,
+        refetch: refetch,
     }
 }
 

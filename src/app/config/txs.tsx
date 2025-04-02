@@ -3,7 +3,7 @@ import { QueryStatus } from "@tanstack/react-query"
 
 export const TxStatusLabel: Record<QueryStatus, string> = {
     "error": "Error",
-    "success": "Complete",
+    "success": "Completed",
     "pending": "Pending",
 } as const
 

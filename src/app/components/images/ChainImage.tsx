@@ -50,7 +50,7 @@ export const ChainImageInline = React.forwardRef<HTMLDivElement, ChainImageProps
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge("relative block aspect-square rounded-lg overflow-hidden", (size && imgSizes[size]) || imgSizes.default, className)}
+        className={twMerge("relative block aspect-square rounded-lg bg-select-950 overflow-hidden", (size && imgSizes[size]) || imgSizes.default, className)}
         {...props}
     >
         <div className={twMerge("relative block m-1 aspect-square", innerClass)}>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Address, getAddress, isAddress } from "viem"
+import { Address, getAddress } from "viem"
 
 import { defaultNetworkMode } from "@/app/config/chains"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
@@ -7,7 +7,7 @@ import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useDebounce from "@/app/hooks/utils/useDebounce"
 import { getFilteredChains } from "@/app/lib/chains"
-import { getParsedError } from "@/app/lib/utils"
+import { getParsedError, isValidAddress } from "@/app/lib/utils"
 import { Chain, ChainId } from "@/app/types/chains"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { PreferenceType } from "@/app/types/preferences"
@@ -55,7 +55,7 @@ const useAddToken = ({
     onError?: (token?: Token) => void,
 }): UseAddTokenReturnType => {
 
-    const { getToken, setCustomToken, getCustomTokenData } = useTokens()
+    const { getToken, setCustomToken, getContractTokenData } = useTokens()
     const { setNotification } = useNotifications()
     const { preferences } = usePreferences()
     const allChains = getFilteredChains(preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode).filter((chain) => !chain.isDisabled)
@@ -99,7 +99,7 @@ const useAddToken = ({
     useEffect(() => {
 
         const isInProgress = !!addressInput && addressInput !== addressDebounced
-        const isValid = !isInProgress && !!addressDebounced && isAddress(addressDebounced, { strict: false })
+        const isValid = !isInProgress && isValidAddress(addressDebounced)
         const isError = !isInProgress && !!addressDebounced && !isValid
 
         setAddress(isValid ? getAddress(addressDebounced) : undefined)
@@ -162,7 +162,7 @@ const useAddToken = ({
                     address: address,
                     chainId: queryChain.id,
                 })
-                const token = tokenData.isUnconfirmed ? await getCustomTokenData(tokenData) : tokenData
+                const token = tokenData.isUnconfirmed ? await getContractTokenData(tokenData) : tokenData
 
                 results[queryChain.id] = {
                     chain: queryChain,
@@ -189,7 +189,7 @@ const useAddToken = ({
             })
         }
 
-    }, [getToken, getCustomTokenData, allChains, address, isTokenQueryEnabled, setTokenQueryResults, setTokenQueryStatus])
+    }, [getToken, getContractTokenData, allChains, address, isTokenQueryEnabled, setTokenQueryResults, setTokenQueryStatus])
 
     useEffect(() => {
         getCustomTokenQueryResults()

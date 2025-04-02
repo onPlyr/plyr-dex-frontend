@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, Transition, Variants } from "motion/react"
+import { AnimatePresence, motion, Transition, Variants } from "motion/react"
 import React, { useCallback } from "react"
 import { twMerge } from "tailwind-merge"
 import { useAccount } from "wagmi"
@@ -12,6 +12,7 @@ import RecipientIcon from "@/app/components/icons/RecipientIcon"
 import Button from "@/app/components/ui/Button"
 import TextInput from "@/app/components/ui/TextInput"
 import { Tooltip } from "@/app/components/ui/Tooltip"
+import { Bold } from "@/app/components/ui/Typography"
 import { iconSizes } from "@/app/config/styling"
 import { UseSwapRecipientReturnType } from "@/app/hooks/swap/useSwapRecipient"
 
@@ -47,13 +48,16 @@ const defaultVariants: Variants = {
 const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div>, SwapRecipientInputProps>(({
     className,
     useSwapRecipientData,
-    variants = defaultVariants,
+    initial = "initial",
+    animate = "animate",
+    exit = "exit",
     transition = defaultTransition,
+    variants = defaultVariants,
     ...props
 }, ref) => {
 
     const { address: accountAddress } = useAccount()
-    const { recipient, recipientInput, setRecipientInput, showRecipient, isInProgress, isError, msg, setSwapRecipient, cancelInput } = useSwapRecipientData
+    const { recipient, recipientInput, setRecipientInput, showRecipient, isInProgress, isError, msg, warningMsg, setSwapRecipient, cancelInput } = useSwapRecipientData
     const isValid = !(!recipient || isInProgress || isError)
 
     const handleRecipientInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,11 +68,11 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
         <motion.div
             ref={ref}
             className="overflow-hidden"
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={transition}
+            initial={initial}
+            animate={animate}
+            exit={exit}
             variants={variants}
+            transition={transition}
             {...props}
         >
             <div className={twMerge("container flex flex-col flex-1 p-4 mt-4 gap-4", className)}>
@@ -89,7 +93,8 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
                 <div
                     className="input-container flex flex-row flex-1 px-3 py-2 gap-4"
                     data-error={isError}
-                    data-success={isValid}
+                    data-success={isValid && !warningMsg}
+                    data-warning={!!warningMsg}
                 >
                     <TextInput
                         value={recipientInput}
@@ -112,6 +117,21 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
                         Use connected account
                     </Tooltip>
                 </div>
+                <AnimatePresence>
+                    {warningMsg && (
+                        <motion.div
+                            key={warningMsg}
+                            className="overflow-hidden text-warning-500"
+                            initial={initial}
+                            animate={animate}
+                            exit={exit}
+                            variants={variants}
+                            transition={transition}
+                        >
+                            <Bold>Warning:</Bold> {warningMsg}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
                 <div className="flex flex-row flex-1 gap-4">
                     <Button
                         className="form-btn"
@@ -125,9 +145,10 @@ const SwapRecipientInput = React.forwardRef<React.ComponentRef<typeof motion.div
                         replaceClass={true}
                         onClick={isValid ? setSwapRecipient.bind(this) : undefined}
                         data-success={isValid}
+                        isAnimated={true}
                         disabled={!isValid}
                     >
-                        {msg}
+                        {isInProgress ? "Validating recipient" : msg}
                         {isInProgress && <LoadingIcon className={iconSizes.xs} />}
                     </Button>
                 </div>

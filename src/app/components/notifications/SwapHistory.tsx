@@ -38,7 +38,7 @@ export const NotificationBody = React.forwardRef<HTMLDivElement, NotificationPro
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge("flex flex-col flex-1", className)}
+        className={twMerge("flex flex-col flex-1 gap-1", className)}
         {...props}
     >
         {swap.status === SwapStatus.Error ? swap.error || "Unable to fetch transaction data." : (<>

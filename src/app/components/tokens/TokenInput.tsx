@@ -4,7 +4,7 @@ import { AnimateNumber } from "motion-plus/react"
 import Link from "next/link"
 import React from "react"
 import { twMerge } from "tailwind-merge"
-import { formatUnits } from "viem"
+import { formatUnits, parseUnits } from "viem"
 import { useAccount } from "wagmi"
 
 import AccountIcon from "@/app/components/icons/AccountIcon"
@@ -12,25 +12,28 @@ import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
+import TokenAmountValue from "@/app/components/tokens/TokenAmountValue"
+import TokenBalance from "@/app/components/tokens/TokenBalance"
 import Button from "@/app/components/ui/Button"
-import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
-import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { DecimalInput } from "@/app/components/ui/DecimalInput"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes, MediaQueries } from "@/app/config/styling"
-import { TokenInputPercentOptions } from "@/app/config/swaps"
+import { SwapQuoteConfig, TokenInputPercentOptions } from "@/app/config/swaps"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useMediaQuery from "@/app/hooks/utils/useMediaQuery"
 import { getSwapRouteEstGasFee } from "@/app/lib/swaps"
+import { CellFeeType } from "@/app/types/cells"
 import { AnimatedNumberFormatOptions, NumberFormatOptions, NumberFormatType } from "@/app/types/numbers"
 import { StyleDirection, StyleSize } from "@/app/types/styling"
-import { SwapRoute } from "@/app/types/swaps"
-import { Token } from "@/app/types/tokens"
+import { SwapFeeData, SwapRoute } from "@/app/types/swaps"
+import { isNativeToken, isValidTokenAmount, Token, TokenAmount } from "@/app/types/tokens"
 
 export interface TokenInputProps extends React.ComponentPropsWithoutRef<"div"> {
     route: SwapRoute,
     value?: string,
     setValue?: (value: string) => void,
+    amount?: bigint,
+    feeData?: SwapFeeData,
     isDst?: boolean,
     isDisabled?: boolean,
 }
@@ -38,6 +41,8 @@ export interface TokenInputProps extends React.ComponentPropsWithoutRef<"div"> {
 export interface TokenInputPercentButtonsProps extends React.ComponentPropsWithoutRef<"div"> {
     route: SwapRoute,
     token?: Token,
+    balance?: TokenAmount,
+    feeData?: SwapFeeData,
     setValue?: (value: string) => void,
 }
 
@@ -46,10 +51,26 @@ export interface TokenSelectDetailProps extends React.ComponentPropsWithoutRef<t
     imgSize: StyleSize,
 }
 
+const getMinTokenAmountBuffer = (route: SwapRoute, percent: number, token?: Token, balance?: TokenAmount, feeData?: SwapFeeData) => {
+
+    if (percent !== 100 || !token || !isValidTokenAmount(balance)) {
+        return BigInt(0)
+    }
+
+    const isNative = isNativeToken(token)
+    const estGasFee = (isNative && getSwapRouteEstGasFee(route)) || BigInt(0)
+    const fixedFee = isNative ? feeData?.[CellFeeType.FixedNative] || parseUnits((route.srcData.chain?.defaultFixedNativeFee || SwapQuoteConfig.DefaultFixedNativeFee).toString(), token.decimals) : BigInt(0)
+    const baseFee = feeData?.[CellFeeType.Base] || (balance.amount * BigInt(SwapQuoteConfig.DefaultBaseFeeBps) / BigInt(10000))
+
+    return estGasFee + fixedFee + baseFee
+}
+
 const TokenInputPercentButtons = React.forwardRef<HTMLDivElement, TokenInputPercentButtonsProps>(({
     className,
     route,
     token,
+    balance,
+    feeData,
     setValue,
     ...props
 }, ref) => (
@@ -63,9 +84,10 @@ const TokenInputPercentButtons = React.forwardRef<HTMLDivElement, TokenInputPerc
     >
         {TokenInputPercentOptions.map((option) => {
 
-            const minRemainingAmount = option.percent === 100 && token?.isNative && getSwapRouteEstGasFee(route) || BigInt(0)
-            const amount = token?.balance && setValue && ((token.balance * BigInt(option.percent)) / BigInt(100)) - minRemainingAmount
-            const amountFormatted = amount && amount > BigInt(0) ? formatUnits(amount, token.decimals) : undefined
+            const minRemainingAmount = (option.percent === 100 && getMinTokenAmountBuffer(route, option.percent, token, balance, feeData)) || BigInt(0)
+            const percentageAmount = token && isValidTokenAmount(balance) && setValue && ((balance.amount * BigInt(option.percent)) / BigInt(100))
+            const amount = percentageAmount && percentageAmount > minRemainingAmount ? percentageAmount - minRemainingAmount : BigInt(0)
+            const amountFormatted = token && amount ? formatUnits(amount, token.decimals) : undefined
 
             return (
                 <Button
@@ -119,19 +141,21 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     route,
     value,
     setValue,
+    amount,
+    feeData,
     isDst = false,
     isDisabled = false,
     ...props
 }, ref) => {
 
     const { address: accountAddress, isDisconnected } = useAccount()
-    const { useBalancesData } = useTokens()
-    const { isInProgress: balancesIsInProgress } = useBalancesData
+    const { useBalancesData: { getBalance, isInProgress: balanceIsInProgress } } = useTokens()
     const { chain, token } = isDst ? route.dstData : route.srcData
-    const selectUrl = `/swap/select/${isDst ? "to" : "from"}`
 
+    const balance = getBalance(token)
     const xsBreakpoint = useMediaQuery(MediaQueries.XsBreakpoint)
     const smBreakpoint = useMediaQuery(MediaQueries.SmBreakpoint)
+    const selectUrl = `/swap/select/${isDst ? "to" : "from"}`
 
     return (
         <div
@@ -153,27 +177,21 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                         <Tooltip
                             trigger=<div className="flex flex-row flex-none gap-2 items-center text-muted-500">
                                 {xsBreakpoint && (
-                                    <DecimalAmount
-                                        amountFormatted={token?.balanceFormatted}
-                                        symbol={smBreakpoint ? token?.symbol : undefined}
+                                    <TokenBalance
+                                        className="justify-end text-end"
                                         token={token}
-                                        type={smBreakpoint ? NumberFormatType.Precise : undefined}
-                                        emptyValue="0"
-                                        className="justify-end font-bold text-end"
+                                        balance={balance}
+                                        hideSymbol={!smBreakpoint}
+                                        ignoreType={!smBreakpoint}
                                     />
                                 )}
-                                {balancesIsInProgress ? <LoadingIcon className={iconSizes.xs} /> : <AccountIcon className={iconSizes.xs} />}
+                                {balanceIsInProgress ? <LoadingIcon className={iconSizes.xs} /> : <AccountIcon className={iconSizes.xs} />}
                             </div>
                         >
                             Wallet balance:&nbsp;
-                            <DecimalAmount
-                                amount={token.balance}
-                                amountFormatted={token.balanceFormatted}
-                                symbol={token.symbol}
+                            <TokenBalance
                                 token={token}
-                                type={NumberFormatType.Precise}
-                                emptyValue="0"
-                                className="font-bold"
+                                balance={balance}
                             />
                         </Tooltip>
                     )}
@@ -181,6 +199,8 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                         <TokenInputPercentButtons
                             route={route}
                             token={token}
+                            balance={balance}
+                            feeData={feeData}
                             setValue={setValue}
                         />
                     )}
@@ -229,11 +249,21 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                             {chain.name}
                         </>) : "Select token"}
                     </Link>
-                    <CurrencyAmount
-                        amountFormatted="0"
-                        className="justify-end text-end text-muted-500"
-                    />
                 </div>
+                {token && (
+                    <div className="flex flex-row flex-1 gap-4 text-muted-500">
+                        <div className="flex flex-row flex-1 justify-end items-center gap-2">
+                            <TokenAmountValue
+                                token={token}
+                                amount={{
+                                    amount: amount,
+                                    formatted: value,
+                                }}
+                                isNoInputValue={!(value && parseFloat(value) > 0)}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 import { useAccount } from "wagmi"
 
@@ -15,7 +15,7 @@ export interface AddChainButtonProps extends React.ComponentPropsWithoutRef<type
     iconClass?: string,
 }
 
-export const AddChainButton = React.forwardRef<React.ElementRef<typeof Button>, AddChainButtonProps>(({
+export const AddChainButton = React.forwardRef<React.ComponentRef<typeof Button>, AddChainButtonProps>(({
     className,
     chain,
     iconClass,

@@ -1,7 +1,10 @@
 import { formatUnits, parseUnits } from "viem"
 
 import { Currency, currencyFormats, currencyLabels, defaultCurrency } from "@/app/config/numbers"
+import { DefaultUserPreferences } from "@/app/config/preferences"
+import { TokenPriceConfig } from "@/app/config/prices"
 import { NumberFormat, NumberFormatType, NumberFormatTypeLimit } from "@/app/types/numbers"
+import { PreferenceType } from "@/app/types/preferences"
 import { Token } from "@/app/types/tokens"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,17 +101,19 @@ export const getCurrencyLabel = (currency: Currency) => {
 export const currencyToLocale = ({
     amount,
     amountFormatted,
-    currency,
+    decimals = TokenPriceConfig.Decimals,
+    currency = DefaultUserPreferences[PreferenceType.Currency],
 }: {
     amount?: bigint,
     amountFormatted?: Intl.StringNumericLiteral,
+    decimals?: number,
     currency?: Currency,
 }) => {
 
     const useCurrency = currency ?? defaultCurrency
-    const useAmount = amount !== undefined ? amount.toString() : amountFormatted?.trim()
+    const useAmount = amount !== undefined ? formatUnits(amount, decimals) : amountFormatted?.trim()
 
-    if (useAmount === undefined || useAmount.length === 0) {
+    if (!useAmount) {
         return ""
     }
 

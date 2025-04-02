@@ -1,8 +1,9 @@
-import { Address, isAddress, isAddressEqual } from "viem"
+import { Address, isAddress } from "viem"
 
 import { ApiProviderData } from "@/app/config/apis"
 import { SupportedChains } from "@/app/config/chains"
 import { Tokens } from "@/app/config/tokens"
+import { isEqualAddress } from "@/app/lib/utils"
 import { ApiProvider, ApiRoute, ApiRouteType, ApiTokenPairName, BaseApiData } from "@/app/types/apis"
 
 export const getApiParamsData = ({
@@ -41,16 +42,16 @@ export const getApiParamsData = ({
     const pairString = searchParams.get("pair")
     const isBaseString = searchParams.get("isBase")
 
-    const cell = cellAddress && isAddress(cellAddress) ? chain.cells.find((cell) => isAddressEqual(cell.address, cellAddress)) : undefined
+    const cell = cellAddress && isAddress(cellAddress) ? chain.cells.find((cell) => isEqualAddress(cell.address, cellAddress)) : undefined
     const accountAddress = accountAddressString && isAddress(accountAddressString) ? accountAddressString as Address : undefined
 
     if ((cellAddress && !cell) || (accountAddressString && !accountAddress)) {
         return data
     }
 
-    const srcToken = srcTokenId ? Tokens.slice(0).find((token) => token.id === srcTokenId.toLowerCase() && token.chainId === chain.id) : undefined
+    const srcToken = srcTokenId ? Tokens.find((token) => token.id === srcTokenId.toLowerCase() && token.chainId === chain.id) : undefined
     const srcTokenData = provider && srcToken ? srcToken.apiData?.[provider] : undefined
-    const dstToken = dstTokenId ? Tokens.slice(0).find((token) => token.id === dstTokenId.toLowerCase() && chain.id) : undefined
+    const dstToken = dstTokenId ? Tokens.find((token) => token.id === dstTokenId.toLowerCase() && token.chainId === chain.id) : undefined
     const dstTokenData = provider && dstToken ? dstToken.apiData?.[provider] : undefined
 
     if ((srcToken && !srcTokenData) || (dstToken && !dstTokenData)) {

@@ -1,8 +1,17 @@
+import { config } from "process"
 import { getDefaultConfig } from "@rainbow-me/rainbowkit"
 import { metaMaskWallet, walletConnectWallet, rabbyWallet, coreWallet } from "@rainbow-me/rainbowkit/wallets"
+import { cookieStorage, createStorage } from "wagmi"
+
 import { clientTransports, wagmiChains } from "@/app/config/chains"
 
-const appName = "PLYR[SWAP]"
+declare module 'wagmi' {
+    interface Register {
+        config: typeof config
+    }
+}
+
+const appName = "Tesseract"
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || ""
 
 export const wagmiConfig = getDefaultConfig({
@@ -17,4 +26,7 @@ export const wagmiConfig = getDefaultConfig({
         },
     ],
     ssr: true,
+    storage: createStorage({
+        storage: cookieStorage,
+    })
 })

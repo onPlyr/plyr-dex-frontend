@@ -1,106 +1,64 @@
-import { createContext } from "react"
-import { Address, isAddressEqual, parseUnits } from "viem"
+import { Address, getAddress } from "viem"
 
-import { DefaultTokenSortType, TokenBridgePaths } from "@/app/config/tokens"
-import { getChain, getFilteredChains } from "@/app/lib/chains"
-import { Chain } from "@/app/types/chains"
-import { NetworkMode } from "@/app/types/preferences"
-import { FavouriteTokenData, FavouriteTokensContextType, Token, TokenSortType } from "@/app/types/tokens"
+import { slugify, toShort } from "@/app/lib/strings"
+import { ChainId } from "@/app/types/chains"
+import { GetTokenAddressFunctionArgs, GetTokenFilterDataFunctionArgs, GetTokenFunction, isNativeToken, Token, TokenAmount, TokenAmountDataMap, TokenDataMap, TokenFilterData, TokenUid } from "@/app/types/tokens"
 
-export const FavouriteTokensContext = createContext({} as FavouriteTokensContextType)
-
-export const getIsFavouriteToken = (token: Token, favouriteTokens?: FavouriteTokenData) => {
-    return favouriteTokens?.data?.[token.chainId]?.find((tokenId) => token.id === tokenId) !== undefined
+export const getTokenUid = (chainId: ChainId, address: Address): TokenUid => {
+    return `${chainId}:${getAddress(address)}`
 }
 
-export const sortIsFavouriteToken = (a: Token, b: Token, favouriteTokens?: FavouriteTokenData) => {
-    if (favouriteTokens && favouriteTokens.data) {
-        const aIsFavourite = getIsFavouriteToken(a, favouriteTokens)
-        const bIsFavourite = getIsFavouriteToken(b, favouriteTokens)
-        if (aIsFavourite && !bIsFavourite) {
-            return -1
-        }
-        else if (!aIsFavourite && bIsFavourite) {
-            return 1
-        }
-        return 0
-    }
-    return 0
+export const getTokenAddress = (token: GetTokenAddressFunctionArgs) => {
+    return getAddress(isNativeToken(token) ? token.wrappedAddress : token.address)
 }
 
-export const sortTokens = (tokens: Token[], sortType?: TokenSortType, favouriteTokens?: FavouriteTokenData) => {
-
-    const sortedTokens = tokens.slice(0)
-
-    if (sortedTokens.length > 1) {
-
-        const sortBy = sortType ?? DefaultTokenSortType
-
-        if (sortBy === TokenSortType.Symbol) {
-            sortedTokens.sort((a, b) => {
-                return sortIsFavouriteToken(a, b, favouriteTokens) || a.filters.symbol.localeCompare(b.filters.symbol) || a.filters.chain.localeCompare(b.filters.chain)
-            })
-        }
-
-        else if (sortBy === TokenSortType.Chain) {
-            sortedTokens.sort((a, b) => {
-                return sortIsFavouriteToken(a, b, favouriteTokens) || a.filters.chain.localeCompare(b.filters.chain) || a.filters.symbol.localeCompare(b.filters.symbol)
-            })
-        }
-
-        else if (sortBy === TokenSortType.BalanceValue) {
-            sortedTokens.sort((a, b) => {
-                if ((a.value && b.value && a.value > b.value) || (a.value && !b.value)) {
-                    return sortIsFavouriteToken(a, b, favouriteTokens) || -1
-                }
-                else if ((a.value && b.value && a.value < b.value) || (b.value && !a.value)) {
-                    return sortIsFavouriteToken(a, b, favouriteTokens) || 1
-                }
-                else if ((a.balanceFormatted && b.balanceFormatted && parseUnits(a.balanceFormatted, 18) > parseUnits(b.balanceFormatted, 18)) || (a.balance && !b.balance)) {
-                    return sortIsFavouriteToken(a, b, favouriteTokens) || -1
-                }
-                else if ((a.balanceFormatted && b.balanceFormatted && parseUnits(a.balanceFormatted, 18) < parseUnits(b.balanceFormatted, 18)) || (b.balance && !a.balance)) {
-                    return sortIsFavouriteToken(a, b, favouriteTokens) || 1
-                }
-                return sortIsFavouriteToken(a, b, favouriteTokens) || a.filters.symbol.localeCompare(b.filters.symbol)
-            })
-        }
+export const getTokenFilterData = (data: GetTokenFilterDataFunctionArgs): TokenFilterData => {
+    return {
+        symbol: data.symbol.toLowerCase() as Lowercase<string>,
+        name: data.name.toLowerCase() as Lowercase<string>,
+        address: data.address.toLowerCase() as Lowercase<string>,
     }
-
-    return sortedTokens
 }
 
-export const getTokenByBridgeAddress = (bridgeAddress: Address, srcChain: Chain, dstChain: Chain) => {
-    return Object.values(TokenBridgePaths).flat().find((path) => path.srcData.chainId === srcChain.id && path.dstData.chainId === dstChain.id && isAddressEqual(path.dstData.address, bridgeAddress))?.dstData.token
+export const getInitialTokenAmountDataMap = (tokens: Token[], initialData: TokenAmount = {}): TokenAmountDataMap => {
+    return new Map(tokens.map((token) => [token.uid, initialData]))
 }
 
-export const filterTokens = (tokens: Token[], networkMode: NetworkMode, queryString?: string, selectedChain?: Chain, favouriteTokens?: FavouriteTokenData) => {
-    let tokenResults = tokens.slice(0)
-    let chainResults: Chain[] = []
+export const getTokenDataMap = (tokens: Token[]): TokenDataMap => {
+    return new Map(tokens.map((token) => [token.uid, token]))
+}
 
-    // Apply testnet mode filter first
-    chainResults = getFilteredChains(networkMode)
-    tokenResults = tokenResults.filter(token => 
-        chainResults.some(chain => chain.id === token.chainId)
-    )
+export const getTokensFromDataMap = (dataMap: TokenDataMap) => {
+    return Array.from(dataMap.values())
+}
 
-    const query = queryString?.trim().toLowerCase()
-    if (query !== undefined && query.length !== 0) {
-        tokenResults = tokenResults.filter((item) => item.filters.name.includes(query) || item.filters.symbol.includes(query) || item.filters.address.includes(query))
-    }
+export const getNativeTokens = (tokens: Token[]) => tokens.filter((token) => isNativeToken(token))
+export const getErc20Tokens = (tokens: Token[]) => tokens.filter((token) => !isNativeToken(token))
 
-    chainResults = [...new Set(tokenResults.map((token) => token.chainId))].map((id) => getChain(id)).filter((chain) => chain !== undefined).sort((a, b) => {
-        return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-    })
+export const getUnsupportedTokenData: GetTokenFunction = (data) => {
 
-    if (selectedChain) {
-        tokenResults = tokenResults.filter((token) => token.chainId === selectedChain.id)
-    }
-
-    tokenResults = sortTokens(tokenResults, DefaultTokenSortType, favouriteTokens)
+    const address = getAddress(data.address)
+    const uid = getTokenUid(data.chainId, address)
+    const id = data.id || slugify(uid)
+    const symbol = data.symbol || address.slice(-4)
+    const name = data.name || toShort(address)
+    const decimals = data.decimals || 18
 
     return {
-        tokenResults,
-        chainResults,
+        ...data,
+        id: id,
+        uid: uid,
+        symbol: symbol,
+        name: name,
+        decimals: decimals,
+        address: address,
+        chainId: data.chainId,
+        filters: getTokenFilterData({
+            symbol: symbol,
+            name: name,
+            address: address,
+        }),
+        isCustomToken: true,
+        isUnconfirmed: data.isUnconfirmed || !data.symbol || !data.name || !data.decimals,
     }
 }

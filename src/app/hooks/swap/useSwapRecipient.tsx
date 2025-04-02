@@ -1,8 +1,11 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react"
-import { Address, isAddress } from "viem"
+import { Address, isHex } from "viem"
+import { getBalance, getBytecode } from "@wagmi/core"
 
-import { isValidSwapQuote, SwapQuote } from "@/app/types/swaps"
+import { wagmiConfig } from "@/app/config/wagmi"
 import useDebounce from "@/app/hooks/utils/useDebounce"
+import { getParsedError, isValidAddress } from "@/app/lib/utils"
+import { isValidSwapQuote, SwapQuote } from "@/app/types/swaps"
 
 export interface UseSwapRecipientReturnType {
     recipient?: Address,
@@ -13,8 +16,15 @@ export interface UseSwapRecipientReturnType {
     isInProgress: boolean,
     isError: boolean,
     msg: string,
+    warningMsg?: string,
     setSwapRecipient: () => void,
     cancelInput: () => void,
+}
+
+interface ValidateRecipientResult {
+    msg?: string,
+    address?: Address,
+    isValid: boolean,
 }
 
 const useSwapRecipient = ({
@@ -30,6 +40,7 @@ const useSwapRecipient = ({
     const [showRecipient, setShowRecipient] = useState(false)
 
     const recipientDebounced = useDebounce(recipientInput)
+    const [warningMsg, setWarningMsg] = useState<string>()
     const [isInProgress, setIsInProgress] = useState(false)
     const [isError, setIsError] = useState(false)
     const [msg, setMsg] = useState("Enter address")
@@ -39,22 +50,65 @@ const useSwapRecipient = ({
         setIsInProgress(value.trim().toLowerCase() !== recipientDebounced.toLowerCase())
     }, [setRecipientInputState, recipientDebounced, setIsInProgress])
 
-    useEffect(() => {
+    const validateRecipient = useCallback(async (recipientAddress?: string) => {
 
-        const isValid = recipientDebounced && isAddress(recipientDebounced, {
-            strict: false,
+        const warningMsgs: string[] = []
+        const result: ValidateRecipientResult = {
+            isValid: false,
+        }
+
+        try {
+
+            if (!recipientAddress || !isValidAddress(recipientAddress)) {
+                throw new Error(recipientAddress ? "Invalid address" : "Enter address")
+            }
+            else if (!swap || !isValidSwapQuote(swap)) {
+                throw new Error(swap ? "Invalid quote" : "Select quote")
+            }
+
+            const recipientBytecode = await getBytecode(wagmiConfig, {
+                chainId: swap.dstData.chain.id,
+                address: recipientAddress,
+            })
+
+            if (isHex(recipientBytecode)) {
+                warningMsgs.push("Recipient is a contract")
+            }
+
+            const { value: recipientBalance, symbol } = await getBalance(wagmiConfig, {
+                chainId: swap.dstData.chain.id,
+                address: recipientAddress,
+            })
+
+            if (recipientBalance === BigInt(0)) {
+                warningMsgs.push(`Recipient has no ${symbol} for gas`)
+            }
+
+            result.msg = warningMsgs.length ? `${warningMsgs.join(". ")}.` : undefined
+            result.address = recipientAddress
+            result.isValid = true
+        }
+
+        catch (err) {
+            result.msg = getParsedError(err)
+            result.isValid = false
+        }
+
+        return result
+
+    }, [swap])
+
+    useEffect(() => {
+        validateRecipient(recipientDebounced).then(({ msg, address, isValid }) => {
+            setMsg(isValid ? `Save${msg ? " anyway" : ""}` : (msg ?? "Invalid address"))
+            setRecipient(isValid ? address : undefined)
+            setIsError(Boolean(recipientDebounced && !isValid))
+            setIsInProgress(false)
+            if (isValid) {
+                setWarningMsg(msg)
+            }
         })
-        const isError = !!recipientDebounced && !isValid
-
-        setRecipient(isValid ? recipientDebounced : undefined)
-        setIsError(isError)
-        setIsInProgress(false)
-
     }, [recipientDebounced])
-
-    useEffect(() => {
-        setMsg(isInProgress ? "Validating address" : isError ? "Invalid address" : !recipientDebounced ? "Enter address" : "Save")
-    }, [recipientDebounced, isInProgress, isError])
 
     const setSwapRecipient = useCallback(() => {
         if (swap && isValidSwapQuote(swap)) {
@@ -80,6 +134,7 @@ const useSwapRecipient = ({
         isInProgress,
         isError,
         msg,
+        warningMsg,
         setSwapRecipient,
         cancelInput,
     }

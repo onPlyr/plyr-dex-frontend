@@ -16,6 +16,7 @@ export interface Chain extends RainbowKitChain {
     cells: Cell[],
     blockchainId: Hex,
     minGasPrice: bigint,
+    defaultFixedNativeFee?: number,
     gasPriceExponent: number,
     avgBlockTimeMs: number,
     avgBlockTimeSampleRange: bigint,

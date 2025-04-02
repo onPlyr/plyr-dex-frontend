@@ -128,3 +128,8 @@ export const getFilteredChains = (networkMode: NetworkMode) => {
         networkMode === NetworkMode.Testnet ? chain.testnet === true : chain.testnet !== true
     )
 }
+
+// returns as number rather than chain id to avoid triggering dependency array changes while watching blocks
+export const getNetworkModeChainIds = (networkMode: NetworkMode) => {
+    return getFilteredChains(networkMode).map((chain) => Number(chain.id))
+}

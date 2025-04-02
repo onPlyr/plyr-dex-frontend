@@ -2,7 +2,7 @@ import { Address, erc20Abi, formatUnits } from "viem"
 import { useReadContract } from "wagmi"
 
 import { Chain } from "@/app/types/chains"
-import { Token } from "@/app/types/tokens"
+import { isNativeToken, Token } from "@/app/types/tokens"
 
 const useReadAllowance = ({
     chain,
@@ -18,7 +18,7 @@ const useReadAllowance = ({
     _enabled?: boolean,
 }) => {
 
-    const enabled = !(!_enabled || !chain || !token || token.isNative || !accountAddress || !spenderAddress)
+    const enabled = !(!_enabled || !chain || !token || isNativeToken(token) || !accountAddress || !spenderAddress)
 
     const { data, status, isLoading, refetch } = useReadContract({
         chainId: chain?.id,

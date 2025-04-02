@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import WarningIcon from "@/app/components/icons/WarningIcon"
 
 export const MainnetMessage = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(({
     ...props
@@ -12,11 +11,8 @@ export const MainnetMessage = React.forwardRef<HTMLDivElement, React.ComponentPr
         data-selected={true}
         {...props}
     >
-        <div className="flex flex-row flex-1 flex-wrap text-warning-500">
-            Tesseract on mainnet is intended for development purposes only. You could lose your real funds. Continue at own risk.
-        </div>
-        <div className="flex flex-row flex-none items-center">
-            <WarningIcon className="text-warning-500 flex-none" />
+        <div className="flex flex-row flex-1 flex-wrap">
+            You are using Tesseract on mainnet with real funds.
         </div>
     </div>
 ))

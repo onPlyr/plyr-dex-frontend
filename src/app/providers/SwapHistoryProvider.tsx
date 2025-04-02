@@ -1,9 +1,8 @@
 "use client"
 
-import { createContext, useCallback, useEffect, useState } from "react"
-import { Address, Block, Client, erc20Abi, getAbiItem, Hash, isAddressEqual, parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
-import { getLogs } from "viem/actions"
-import { getBlock, getClient, getTransactionReceipt, serialize } from "@wagmi/core"
+import { createContext, useCallback, useEffect, useMemo, useState } from "react"
+import { Address, Block, erc20Abi, Hash, Hex, parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
+import { getBlock, getTransactionReceipt } from "@wagmi/core"
 
 import { uniV2AdapterAbi } from "@/app/abis/adapters/uniV2Adapter"
 import { yakAdapterAbi } from "@/app/abis/adapters/yakAdapter"
@@ -12,44 +11,139 @@ import { teleporterMessengerAbi } from "@/app/abis/teleporter/messenger"
 import { nativeDepositWithdrawAbi } from "@/app/abis/tokens/native"
 import { NotificationBody, NotificationHeader } from "@/app/components/notifications/SwapHistory"
 import { wagmiConfig } from "@/app/config/wagmi"
-import useLatestBlocks from "@/app/hooks/blocks/useLatestBlocks"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
+import useWatchSwapEvents, { EventQueryMap, getSwapEventQueryMap, isDstTxEventQueryResult, isHopEventQueryResult } from "@/app/hooks/swap/useWatchSwapEvents"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useLocalStorage from "@/app/hooks/utils/useLocalStorage"
-import { getBridgePaths } from "@/app/lib/bridges"
+import { getBridgePathByAddress, getBridgePaths, getTokenByBridgeAddress } from "@/app/lib/bridges"
 import { getCellAbi } from "@/app/lib/cells"
-import { getChain, getChainByBlockchainId } from "@/app/lib/chains"
-import { MathBigInt } from "@/app/lib/numbers"
-import { getSwapAdapter, getSwapChainIds, getSwapHopStatus, getSwapStatus } from "@/app/lib/swaps"
-import { getTeleporterMessengerAddress } from "@/app/lib/teleporter"
-import { getTokenByBridgeAddress } from "@/app/lib/tokens"
-import { getMutatedObject, getParsedError } from "@/app/lib/utils"
+import { getChain, getChainByBlockchainId, getNetworkModeChainIds } from "@/app/lib/chains"
+import { getCellRoutedError, getCellRoutedLog } from "@/app/lib/events"
+import { getSwapAdapter, getSwapHopStatus, getSwapStatus } from "@/app/lib/swaps"
+import { getTokenAddress } from "@/app/lib/tokens"
+import { getParsedError, isEqualAddress } from "@/app/lib/utils"
 import { BridgeProvider, BridgeTypeAbi } from "@/app/types/bridges"
-import { CellType } from "@/app/types/cells"
-import { ChainId } from "@/app/types/chains"
-import { EventBaseJson, HopHistory, isCrossChainHopType, isTransferType, SwapBaseJson, SwapHistory, SwapJson, SwapStatus } from "@/app/types/swaps"
+import { CellFeeType, CellType } from "@/app/types/cells"
+import { BaseData, BaseJson, HopHistory, isCrossChainHopType, isTransferType, SwapFeeData, SwapFeeJson, SwapHistory, SwapJson, SwapStatus, ValidSwapFeeData } from "@/app/types/swaps"
 import { Notification, NotificationStatus, NotificationType } from "@/app/types/notifications"
+import { PreferenceType } from "@/app/types/preferences"
 import { StorageKey } from "@/app/types/storage"
-import { Token } from "@/app/types/tokens"
+import { GetTokenFunction, isNativeToken } from "@/app/types/tokens"
 
 type GetSwapHistoryFunction = (txHash?: Hash) => SwapHistory | undefined
 type GetSwapHistoriesFunction = (accountAddress?: Address) => SwapHistory[]
 type SetSwapHistoryFunction = (swap?: SwapHistory, error?: string) => void
 
+type SwapHistoryMap = Map<Hash, SwapHistory>
 interface SwapHistoryContextType {
-    data: SwapHistoryData,
+    data: SwapHistoryMap,
     swapHistories: SwapHistory[],
     getSwapHistory: GetSwapHistoryFunction,
     getSwapHistories: GetSwapHistoriesFunction,
     setSwapHistory: SetSwapHistoryFunction,
     setInitiateSwapData: (swap: SwapHistory, txReceipt?: TransactionReceipt) => void,
-    setSwapHopQueryData: (swap: SwapHistory, hopIndex: number, blockNumber: bigint) => void,
     refetchSwapHistory: (swap: SwapHistory) => void,
 }
-type SwapHistoryData = Record<Hash, SwapHistory>
-type SwapHistoryJson = Record<Hash, SwapJson>
 
 export const SwapHistoryContext = createContext({} as SwapHistoryContextType)
+
+const getSwapHistoriesFromMap = (data: SwapHistoryMap) => Array.from(data.values())
+const getSwapHistoryMap = (histories: SwapHistory[]): SwapHistoryMap => new Map(histories.map((swap) => [swap.txHash, swap]))
+
+const swapBaseDataToJson = (data: BaseData): BaseJson => ({
+    chain: data.chain.id,
+    tokenAddress: getTokenAddress(data.token),
+    cell: data.cell?.address,
+    estAmount: data.estAmount?.toString(),
+    minAmount: data.minAmount?.toString(),
+    amount: "amount" in data ? data.amount?.toString() : undefined,
+})
+
+const swapBaseJsonToData = (data: BaseJson, getToken: GetTokenFunction): BaseData => ({
+    chain: getChain(data.chain)!,
+    token: getToken({
+        address: data.tokenAddress,
+        chainId: data.chain,
+    }),
+    cell: data.cell && getChain(data.chain)?.cells.find((cell) => isEqualAddress(cell.address, data.cell)),
+    estAmount: data.estAmount ? BigInt(data.estAmount) : undefined,
+    minAmount: data.minAmount ? BigInt(data.minAmount) : undefined,
+    amount: data.amount ? BigInt(data.amount) : undefined,
+})
+
+const swapFeeDataToJson = (data: ValidSwapFeeData): SwapFeeJson => ({
+    [CellFeeType.FixedNative]: data[CellFeeType.FixedNative].toString(),
+    [CellFeeType.Base]: data[CellFeeType.Base].toString(),
+})
+
+const swapFeeJsonToData = (data: SwapFeeJson): SwapFeeData => ({
+    [CellFeeType.FixedNative]: BigInt(data[CellFeeType.FixedNative]),
+    [CellFeeType.Base]: BigInt(data[CellFeeType.Base].toString()),
+})
+
+const swapHistorySerializer = (data: SwapHistoryMap) => JSON.stringify(
+    getSwapHistoriesFromMap(data).map((swap) => ({
+        ...swap,
+        srcData: swapBaseDataToJson(swap.srcData),
+        dstData: swapBaseDataToJson(swap.dstData),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        hops: swap.hops.map(({ trade, bridgePath, ...hop }) => ({
+            ...hop,
+            srcData: swapBaseDataToJson(hop.srcData),
+            dstData: swapBaseDataToJson(hop.dstData),
+            estGasUnits: hop.estGasUnits?.toString(),
+            initiatedBlock: hop.initiatedBlock?.toString(),
+            lastCheckedBlock: hop.lastCheckedBlock?.toString(),
+        })),
+        events: swap.events.map((event) => ({
+            ...event,
+            srcData: swapBaseDataToJson(event.srcData),
+            dstData: swapBaseDataToJson(event.dstData),
+        })),
+        srcAmount: swap.srcAmount.toString(),
+        dstAmount: swap.dstAmount?.toString(),
+        minDstAmount: swap.minDstAmount.toString(),
+        estDstAmount: swap.estDstAmount.toString(),
+        feeData: swapFeeDataToJson(swap.feeData),
+        gasFee: swap.gasFee?.toString(),
+        estGasFee: swap.estGasFee.toString(),
+        estGasUnits: swap.estGasUnits.toString(),
+        dstInitiatedBlock: swap.dstInitiatedBlock?.toString(),
+        dstLastCheckedBlock: swap.dstLastCheckedBlock?.toString(),
+    } as SwapJson)).sort((a, b) => b.timestamp - a.timestamp)
+)
+
+const swapHistoryDeserializerFunction = (data: string, getToken: GetTokenFunction) => getSwapHistoryMap(
+    (JSON.parse(data) as SwapJson[]).map((swap) => ({
+        ...swap,
+        srcData: swapBaseJsonToData(swap.srcData, getToken),
+        dstData: swapBaseJsonToData(swap.dstData, getToken),
+        hops: swap.hops.map((hop) => ({
+            ...hop,
+            srcData: swapBaseJsonToData(hop.srcData, getToken),
+            dstData: swapBaseJsonToData(hop.dstData, getToken),
+            initiatedBlock: hop.initiatedBlock ? BigInt(hop.initiatedBlock) : undefined,
+            lastCheckedBlock: hop.lastCheckedBlock ? BigInt(hop.lastCheckedBlock) : undefined,
+        })),
+        events: swap.events.map((event) => ({
+            ...event,
+            srcData: swapBaseJsonToData(event.srcData, getToken),
+            dstData: swapBaseJsonToData(event.dstData, getToken),
+        })),
+        srcAmount: BigInt(swap.srcAmount),
+        dstAmount: swap.dstAmount ? BigInt(swap.dstAmount) : undefined,
+        minDstAmount: BigInt(swap.minDstAmount),
+        estDstAmount: BigInt(swap.estDstAmount),
+        feeData: swapFeeJsonToData(swap.feeData),
+        gasFee: swap.gasFee ? BigInt(swap.gasFee) : undefined,
+        estGasFee: BigInt(swap.estGasFee),
+        estGasUnits: BigInt(swap.estGasUnits),
+        dstInitiatedBlock: swap.dstInitiatedBlock ? BigInt(swap.dstInitiatedBlock) : undefined,
+        dstLastCheckedBlock: swap.dstLastCheckedBlock ? BigInt(swap.dstLastCheckedBlock) : undefined,
+        isConfirmed: true,
+    }) as SwapHistory).sort((a, b) => b.timestamp - a.timestamp)
+)
 
 const SwapHistoryProvider = ({
     children,
@@ -57,272 +151,31 @@ const SwapHistoryProvider = ({
     children: React.ReactNode,
 }) => {
 
-    const messengerAddress = getTeleporterMessengerAddress()
-    const receivedMsgEvent = getAbiItem({
-        abi: teleporterMessengerAbi,
-        name: "ReceiveCrossChainMessage",
-    })
-
     const { data: notificationData, setNotification } = useNotifications()
-    const { tokens, getToken, getNativeToken, addUnconfirmedToken, refetch: refetchTokens } = useTokens()
+    const { getToken, getNativeToken, getSupportedTokenById, refetch: refetchTokens } = useTokens()
+    const { getPreference } = usePreferences()
+    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
+    const chainIds = useMemo(() => getNetworkModeChainIds(networkMode), [networkMode])
 
-    const [unconfirmedSwapTokenTxHashes, setUnconfirmedSwapTokenTxHashes] = useState<Hash[]>([])
-    const [unconfirmedSwapTokens, setUnconfirmedSwapTokens] = useState<Token[]>([])
-    const [isConfirmSwapTokenDataInProgress, setIsConfirmSwapTokenDataInProgress] = useState(false)
-
-    const addUnconfirmedSwapTokenData = useCallback((token: Token, txHash: Hash) => {
-
-        setUnconfirmedSwapTokens((prev) => ([
-            ...prev.filter((data) => !(data.chainId === token.chainId && data.id === token.id)),
-            token,
-        ]))
-
-        setUnconfirmedSwapTokenTxHashes((prev) => ([
-            ...prev.filter((hash) => hash !== txHash),
-            txHash,
-        ]))
-
-    }, [setUnconfirmedSwapTokenTxHashes, setUnconfirmedSwapTokens])
-
-    useEffect(() => {
-        unconfirmedSwapTokens.forEach((token) => addUnconfirmedToken(token))
-    }, [unconfirmedSwapTokens])
-
-    const getSwapHistoryToJson = useCallback((swap: SwapHistory): SwapJson => {
-        return {
-            ...swap,
-            srcData: {
-                chain: swap.srcData.chain.id,
-                tokenAddress: swap.srcData.token.address,
-                tokenId: swap.srcData.token.id,
-                cell: swap.srcData.cell?.address,
-                estAmount: swap.srcData.estAmount.toString(),
-                minAmount: swap.srcData.minAmount.toString(),
-                amount: swap.srcData.amount?.toString(),
-            },
-            dstData: {
-                chain: swap.dstData.chain.id,
-                tokenAddress: swap.dstData.token.address,
-                tokenId: swap.dstData.token.id,
-                cell: swap.dstData.cell?.address,
-                estAmount: swap.dstData.estAmount.toString(),
-                minAmount: swap.dstData.minAmount.toString(),
-                amount: swap.dstData.amount?.toString(),
-            },
-            hops: swap.hops.map((hop) => ({
-                srcData: {
-                    chain: hop.srcData.chain.id,
-                    tokenAddress: hop.srcData.token.address,
-                    tokenId: hop.srcData.token.id,
-                    cell: hop.srcData.cell?.address,
-                    estAmount: hop.srcData.estAmount.toString(),
-                    minAmount: hop.srcData.minAmount.toString(),
-                    amount: hop.srcData.amount?.toString(),
-                },
-                dstData: {
-                    chain: hop.dstData.chain.id,
-                    tokenAddress: hop.dstData.token.address,
-                    tokenId: hop.dstData.token.id,
-                    cell: hop.dstData.cell?.address,
-                    estAmount: hop.dstData.estAmount.toString(),
-                    minAmount: hop.dstData.minAmount.toString(),
-                    amount: hop.dstData.amount?.toString(),
-                },
-                type: hop.type,
-                index: hop.index,
-                msgReceivedId: hop.msgReceivedId,
-                msgSentId: hop.msgSentId,
-                txHash: hop.txHash,
-                initiatedBlock: hop.initiatedBlock?.toString(),
-                lastCheckedBlock: hop.lastCheckedBlock?.toString(),
-                isQueryInProgress: hop.isQueryInProgress,
-                timestamp: hop.timestamp,
-                status: hop.status,
-            })),
-            events: swap.events.map((event) => ({
-                ...event,
-                srcData: {
-                    chain: event.srcData.chain.id,
-                    tokenAddress: event.srcData.token.address,
-                    tokenId: event.srcData.token.id,
-                    cell: event.srcData.cell?.address,
-                    estAmount: event.srcData.estAmount?.toString(),
-                    minAmount: event.srcData.minAmount?.toString(),
-                    amount: event.srcData.amount?.toString(),
-                },
-                dstData: {
-                    chain: event.dstData.chain.id,
-                    tokenAddress: event.dstData.token.address,
-                    tokenId: event.dstData.token.id,
-                    cell: event.dstData.cell?.address,
-                    estAmount: event.dstData.estAmount?.toString(),
-                    minAmount: event.dstData.minAmount?.toString(),
-                    amount: event.dstData.amount?.toString(),
-                },
-            })),
-            srcAmount: swap.srcAmount.toString(),
-            dstAmount: swap.dstAmount?.toString(),
-            minDstAmount: swap.minDstAmount.toString(),
-            estDstAmount: swap.estDstAmount.toString(),
-            gasFee: swap.gasFee?.toString(),
-            estGasFee: swap.estGasFee.toString(),
-            estGasUnits: swap.estGasUnits.toString(),
-            dstInitiatedBlock: swap.dstInitiatedBlock?.toString(),
-            dstLastCheckedBlock: swap.dstLastCheckedBlock?.toString(),
-        }
-    }, [])
-
-    const getBaseDataFromJson = useCallback((data: SwapBaseJson, txHash: Hash) => {
-
-        const chain = getChain(data.chain)!
-        const token = getToken({
-            id: data.tokenId,
-            address: data.tokenAddress,
-            chainId: data.chain,
-        })
-
-        if (token.isUnconfirmed) {
-            addUnconfirmedSwapTokenData(token, txHash)
-        }
-
-        return {
-            chain: chain,
-            token: token,
-            cell: chain.cells.find((cell) => data.cell && isAddressEqual(cell.address, data.cell)),
-        }
-    }, [getToken, addUnconfirmedSwapTokenData])
-
-    const getBaseEventDataFromJson = useCallback((data: EventBaseJson, txHash: Hash) => {
-
-        const chain = getChain(data.chain)!
-        const token = getToken({
-            id: data.tokenId,
-            address: data.tokenAddress,
-            chainId: data.chain,
-        })
-
-        if (token.isUnconfirmed) {
-            addUnconfirmedSwapTokenData(token, txHash)
-        }
-
-        return {
-            chain: chain,
-            token: token,
-            cell: chain.cells.find((cell) => data.cell && isAddressEqual(cell.address, data.cell)),
-        }
-    }, [getToken, addUnconfirmedSwapTokenData])
-
-    const getSwapHistoryFromJson = useCallback((swap: SwapJson): SwapHistory => {
-        return {
-            ...swap,
-            srcData: {
-                ...getBaseDataFromJson(swap.srcData, swap.txHash),
-                estAmount: BigInt(swap.srcData.estAmount),
-                minAmount: BigInt(swap.srcData.minAmount),
-                amount: swap.srcData.amount ? BigInt(swap.srcData.amount) : undefined,
-            },
-            dstData: {
-                ...getBaseDataFromJson(swap.dstData, swap.txHash),
-                estAmount: BigInt(swap.dstData.estAmount),
-                minAmount: BigInt(swap.dstData.minAmount),
-                amount: swap.dstData.amount ? BigInt(swap.dstData.amount) : undefined,
-            },
-            type: swap.type,
-            hops: swap.hops.map((hop) => ({
-                ...hop,
-                srcData: {
-                    ...getBaseDataFromJson(hop.srcData, swap.txHash),
-                    estAmount: BigInt(hop.srcData.estAmount),
-                    minAmount: BigInt(hop.srcData.minAmount),
-                    amount: hop.srcData.amount ? BigInt(hop.srcData.amount) : undefined,
-                },
-                dstData: {
-                    ...getBaseDataFromJson(hop.dstData, swap.txHash),
-                    estAmount: BigInt(hop.dstData.estAmount),
-                    minAmount: BigInt(hop.dstData.minAmount),
-                    amount: hop.dstData.amount ? BigInt(hop.dstData.amount) : undefined,
-                },
-                initiatedBlock: hop.initiatedBlock ? BigInt(hop.initiatedBlock) : undefined,
-                lastCheckedBlock: hop.lastCheckedBlock ? BigInt(hop.lastCheckedBlock) : undefined,
-            })),
-            events: swap.events.map((event) => ({
-                ...event,
-                srcData: {
-                    ...getBaseEventDataFromJson(event.srcData, swap.txHash),
-                    estAmount: event.srcData.estAmount ? BigInt(event.srcData.estAmount) : undefined,
-                    minAmount: event.srcData.minAmount ? BigInt(event.srcData.minAmount) : undefined,
-                    amount: event.srcData.amount ? BigInt(event.srcData.amount) : undefined,
-                },
-                dstData: {
-                    ...getBaseEventDataFromJson(event.dstData, swap.txHash),
-                    estAmount: event.dstData.estAmount ? BigInt(event.dstData.estAmount) : undefined,
-                    minAmount: event.dstData.minAmount ? BigInt(event.dstData.minAmount) : undefined,
-                    amount: event.dstData.amount ? BigInt(event.dstData.amount) : undefined,
-                },
-            })),
-            srcAmount: BigInt(swap.srcAmount),
-            dstAmount: swap.dstAmount ? BigInt(swap.dstAmount) : undefined,
-            minDstAmount: BigInt(swap.minDstAmount),
-            estDstAmount: BigInt(swap.estDstAmount),
-            gasFee: swap.gasFee ? BigInt(swap.gasFee) : undefined,
-            estGasFee: BigInt(swap.estGasFee),
-            estGasUnits: BigInt(swap.estGasUnits),
-            dstInitiatedBlock: swap.dstInitiatedBlock ? BigInt(swap.dstInitiatedBlock) : undefined,
-            dstLastCheckedBlock: swap.dstLastCheckedBlock ? BigInt(swap.dstLastCheckedBlock) : undefined,
-            isConfirmed: true,
-        }
-    }, [getBaseDataFromJson, getBaseEventDataFromJson])
-
-    const sortSwapData = (a: [string, SwapHistory | SwapJson], b: [string, SwapHistory | SwapJson]) => a[1].timestamp && b[1].timestamp ? b[1].timestamp - a[1].timestamp : 0
-
-    const swapDataSerializer = useCallback((value: SwapHistoryData) => {
-        return JSON.stringify(getMutatedObject(value, getSwapHistoryToJson, sortSwapData))
-    }, [getSwapHistoryToJson])
-
-    const swapDataDeserializer = useCallback((value: string): SwapHistoryData => {
-        return getMutatedObject(JSON.parse(value) as SwapHistoryJson, getSwapHistoryFromJson, sortSwapData)
-    }, [getSwapHistoryFromJson])
-
+    const swapHistoryDeserializer = useCallback((data: string) => swapHistoryDeserializerFunction(data, getToken), [getToken])
     const [swapHistoryData, setSwapHistoryData] = useLocalStorage({
         key: StorageKey.SwapHistory,
-        initialValue: {} as SwapHistoryData,
+        initialValue: getSwapHistoryMap([]),
         options: {
-            serializer: swapDataSerializer,
-            deserializer: swapDataDeserializer,
+            serializer: swapHistorySerializer,
+            deserializer: swapHistoryDeserializer,
         },
     })
 
-    const [swapHistories, setSwapHistories] = useState<SwapHistory[]>([])
-    const [pendingSwapTxHashes, setPendingSwapTxHashes] = useState<Hash[]>([])
+    const swapHistories = useMemo(() => getSwapHistoriesFromMap(swapHistoryData).filter((swap) => chainIds.includes(swap.srcData.chain.id)), [chainIds, swapHistoryData])
+    const getSwapHistory: GetSwapHistoryFunction = useCallback((txHash) => txHash && swapHistoryData.get(txHash), [swapHistoryData])
+    const getSwapHistories: GetSwapHistoriesFunction = useCallback((accountAddress) => accountAddress ? swapHistories.filter((swap) => isEqualAddress(swap.accountAddress, accountAddress)) : swapHistories, [swapHistories])
+
+
+
+
+
     const [pendingSwapNotifications, setPendingSwapNotifications] = useState<Notification[]>([])
-    const [pendingSwapChainIds, setPendingSwapChainIds] = useState<ChainId[]>([])
-
-    const { latestBlocks, getLatestBlock } = useLatestBlocks({
-        chainIds: pendingSwapChainIds,
-    })
-
-    const getSwapHistory: GetSwapHistoryFunction = useCallback((txHash) => {
-        return txHash && swapHistoryData[txHash]
-    }, [swapHistoryData])
-
-    const getSwapHistories: GetSwapHistoriesFunction = useCallback((accountAddress) => {
-        return accountAddress ? swapHistories.filter((swap) => isAddressEqual(swap.accountAddress, accountAddress)) : swapHistories
-    }, [swapHistories])
-
-    useEffect(() => {
-
-        const swapHistories = Object.values(swapHistoryData)
-        const pendingSwapHistories = swapHistories.filter((swap) => swap.status === SwapStatus.Pending)
-
-        setSwapHistories(swapHistories)
-        setPendingSwapTxHashes(pendingSwapHistories.map((swap) => swap.txHash))
-        setPendingSwapChainIds([...new Set(pendingSwapHistories.map((swap) => getSwapChainIds(swap, SwapStatus.Pending)).flat())])
-
-    }, [swapHistoryData])
-
-    useEffect(() => {
-        refetchTokens()
-    }, [pendingSwapTxHashes])
 
     useEffect(() => {
         setPendingSwapNotifications(Object.values(notificationData).filter((notification) => notification.txHash && notification.status === NotificationStatus.Pending))
@@ -344,6 +197,11 @@ const SwapHistoryProvider = ({
         })
     }, [swapHistories])
 
+
+
+
+
+
     const setSwapHistory: SetSwapHistoryFunction = useCallback((swap, error) => {
 
         if (!swap) {
@@ -364,98 +222,9 @@ const SwapHistoryProvider = ({
             swap.duration = swap.dstTimestamp - firstHop.timestamp
         }
 
-        setSwapHistoryData((prev) => ({
-            ...prev,
-            [swap.txHash]: swap,
-        }))
+        setSwapHistoryData((prev) => new Map(prev).set(swap.txHash, swap))
 
     }, [setSwapHistoryData])
-
-    const confirmSwapTokenData = useCallback(() => {
-
-        const confirmedTxHashes: Hash[] = []
-
-        if (isConfirmSwapTokenDataInProgress) {
-            return
-        }
-
-        try {
-
-            setIsConfirmSwapTokenDataInProgress(true)
-
-            for (const txHash of unconfirmedSwapTokenTxHashes) {
-
-                const swap = getSwapHistory(txHash)
-                if (!swap) {
-                    continue
-                }
-
-                let baseTokensConfirmed = false
-                let hopTokensConfirmed = false
-                let eventTokensConfirmed = false
-
-                if (swap.srcData.token.isUnconfirmed) {
-                    swap.srcData.token = getToken(swap.srcData.token)
-                }
-                if (swap.dstData.token.isUnconfirmed) {
-                    swap.dstData.token = getToken(swap.dstData.token)
-                }
-
-                if (!swap.srcData.token.isUnconfirmed && !swap.dstData.token.isUnconfirmed) {
-                    baseTokensConfirmed = true
-                }
-
-                for (const hop of swap.hops) {
-                    if (hop.srcData.token.isUnconfirmed) {
-                        hop.srcData.token = getToken(hop.srcData.token)
-                    }
-                    if (hop.dstData.token.isUnconfirmed) {
-                        hop.dstData.token = getToken(hop.dstData.token)
-                    }
-                }
-
-                if (swap.hops.every((hop) => !hop.srcData.token.isUnconfirmed && !hop.dstData.token.isUnconfirmed)) {
-                    hopTokensConfirmed = true
-                }
-
-                for (const event of swap.events) {
-                    if (event.srcData.token.isUnconfirmed) {
-                        event.srcData.token = getToken(event.srcData.token)
-                    }
-                    if (event.dstData.token.isUnconfirmed) {
-                        event.dstData.token = getToken(event.dstData.token)
-                    }
-                }
-
-                if (swap.events.every((events) => !events.srcData.token.isUnconfirmed && !events.dstData.token.isUnconfirmed)) {
-                    eventTokensConfirmed = true
-                }
-
-                if (baseTokensConfirmed && hopTokensConfirmed && eventTokensConfirmed) {
-                    confirmedTxHashes.push(txHash)
-                }
-
-                setSwapHistory(swap)
-            }
-        }
-
-        catch (err) {
-            console.log(`confirmSwapTokenData error: ${getParsedError(err)}`)
-        }
-
-        finally {
-            setUnconfirmedSwapTokenTxHashes((prev) => prev.filter((txHash) => !confirmedTxHashes.includes(txHash)))
-            setUnconfirmedSwapTokens(unconfirmedSwapTokens.filter((token) => getToken(token).isUnconfirmed))
-            setIsConfirmSwapTokenDataInProgress(false)
-        }
-
-    }, [getToken, getSwapHistory, setSwapHistory, unconfirmedSwapTokenTxHashes, setUnconfirmedSwapTokenTxHashes, unconfirmedSwapTokens, setUnconfirmedSwapTokens, isConfirmSwapTokenDataInProgress, setIsConfirmSwapTokenDataInProgress])
-
-    useEffect(() => {
-        if (!isConfirmSwapTokenDataInProgress) {
-            confirmSwapTokenData()
-        }
-    }, [tokens])
 
     const setHopHistoryLogData = useCallback((swap: SwapHistory, hop: HopHistory, receipt: TransactionReceipt) => {
 
@@ -463,16 +232,27 @@ const SwapHistoryProvider = ({
 
         try {
 
-            const cellAbi = getCellAbi(hop.srcData.cell)
-            const prevHop = hop.index > 0 ? swap.hops.find((data) => data.index === hop.index - 1) : undefined
+            const cellAbi = getCellAbi(hop.srcData.cell, networkMode)
+            const prevHop = swap.hops.find((data) => data.index === hop.index - 1)
+
+            const cellRoutedLog = getCellRoutedLog(receipt, networkMode)
+            const cellRoutedError = getCellRoutedError({
+                hop: hop,
+                log: cellRoutedLog,
+                getSupportedTokenById: getSupportedTokenById,
+            })
+
+            if (cellRoutedLog && cellRoutedError) {
+                throw new Error(cellRoutedError)
+            }
 
             if (prevHop) {
 
-                const bridgeType = getBridgePaths({
+                const bridgeType = ((cellRoutedLog && getBridgePathByAddress(cellRoutedLog.args.transferrer, hop.srcData.chain.id)) ?? getBridgePaths({
                     token: hop.srcData.token,
                     srcChain: prevHop.srcData.chain,
                     dstChain: hop.srcData.chain,
-                }).at(0)?.dstData.type
+                }).at(0))?.dstData.type
                 const bridgeAbi = bridgeType && BridgeTypeAbi[bridgeType]
 
                 const callFailedLogs = bridgeAbi && parseEventLogs({
@@ -480,7 +260,7 @@ const SwapHistoryProvider = ({
                     logs: receipt.logs,
                     eventName: "CallFailed",
                 })
-                if (callFailedLogs && callFailedLogs.length > 0) {
+                if (callFailedLogs && callFailedLogs.length) {
                     throw new Error("Swap Execution Failed")
                 }
 
@@ -489,9 +269,29 @@ const SwapHistoryProvider = ({
                     logs: receipt.logs,
                     eventName: "Rollback",
                 })
-                if (rollbackLogs && rollbackLogs.length > 0) {
+                if (rollbackLogs && rollbackLogs.length) {
                     throw new Error("Hop Rollback")
                 }
+            }
+
+            if (cellRoutedLog) {
+
+                // todo: add tesseract id + validation
+
+                if (!hop.srcData.cell) {
+                    hop.srcData.cell = hop.srcData.chain.cells.find((cell) => isEqualAddress(cell.address, cellRoutedLog.address))
+                }
+
+                if (!hop.dstData.cell && !isEqualAddress(cellRoutedLog.args.destinationCell, zeroAddress)) {
+                    hop.dstData.cell = hop.dstData.chain.cells.find((cell) => isEqualAddress(cell.address, cellRoutedLog.args.destinationCell))
+                }
+
+                if (!hop.msgSentId) {
+                    hop.msgSentId = cellRoutedLog.args.messageID
+                }
+
+                hop.srcData.amount = cellRoutedLog.args.amountIn
+                hop.dstData.amount = cellRoutedLog.args.amountOut
             }
 
             if (!hop.srcData.amount || hop.srcData.amount === BigInt(0)) {
@@ -501,7 +301,7 @@ const SwapHistoryProvider = ({
                         abi: cellAbi,
                         logs: receipt.logs,
                         eventName: "CellReceivedTokens",
-                    })[0]?.args.amount
+                    }).at(0)?.args.amount
                 }
 
                 if (!hop.srcData.amount) {
@@ -512,15 +312,15 @@ const SwapHistoryProvider = ({
                         args: {
                             from: zeroAddress,
                         },
-                    }).find((log) => isAddressEqual(log.address, hop.srcData.token.address))?.args.value
+                    }).find((log) => isEqualAddress(log.address, getTokenAddress(hop.srcData.token)))?.args.value
                 }
 
-                if (!hop.srcData.amount && hop.srcData.token.isNative) {
+                if (!hop.srcData.amount && isNativeToken(hop.srcData.token)) {
                     hop.srcData.amount = parseEventLogs({
                         abi: nativeDepositWithdrawAbi,
                         logs: receipt.logs,
                         eventName: "Withdrawal",
-                    }).find((log) => hop.srcData.token.wrappedAddress && isAddressEqual(log.address, hop.srcData.token.wrappedAddress))?.args.wad
+                    }).find((log) => isEqualAddress(log.address, getTokenAddress(hop.srcData.token)))?.args.wad
                 }
             }
 
@@ -530,7 +330,7 @@ const SwapHistoryProvider = ({
                     abi: teleporterMessengerAbi,
                     logs: receipt.logs,
                     eventName: "SendCrossChainMessage",
-                })[0]
+                }).at(0)
 
                 if (msgSentLog) {
 
@@ -547,14 +347,14 @@ const SwapHistoryProvider = ({
                         abi: erc20Abi,
                         logs: receipt.logs,
                         eventName: "Transfer",
-                    }).findLast((log) => isAddressEqual(log.address, token.address))?.args.value
+                    }).findLast((log) => isEqualAddress(log.address, getTokenAddress(token)))?.args.value
 
-                    if (!hop.dstData.amount && token.isNative) {
+                    if (!hop.dstData.amount && isNativeToken(token)) {
                         hop.dstData.amount = parseEventLogs({
                             abi: nativeDepositWithdrawAbi,
                             logs: receipt.logs,
                             eventName: "Deposit",
-                        }).findLast((log) => token.wrappedAddress && isAddressEqual(log.address, token.wrappedAddress))?.args.wad
+                        }).findLast((log) => isEqualAddress(log.address, getTokenAddress(token)))?.args.wad
                     }
                 }
 
@@ -573,24 +373,20 @@ const SwapHistoryProvider = ({
                         address: transferLog.address,
                         chainId: hop.srcData.chain.id,
                     })
-                    const nativeToken = transferToken?.isNative && getNativeToken(hop.srcData.chain.id)
+                    const nativeToken = getNativeToken(hop.srcData.chain.id)
                     const token = transferToken ?? nativeToken
 
                     if (!token) {
                         throw new Error(`Invalid Destination Token (${transferLog?.address})`)
                     }
 
-                    if (token.isUnconfirmed) {
-                        addUnconfirmedSwapTokenData(token, swap.txHash)
-                    }
-
                     hop.dstData.amount = transferLog?.args.value
-                    if (!hop.dstData.amount) {
+                    if (!hop.dstData.amount && isNativeToken(token)) {
                         hop.dstData.amount = parseEventLogs({
                             abi: nativeDepositWithdrawAbi,
                             logs: receipt.logs,
                             eventName: "Withdrawal",
-                        }).findLast((log) => token.wrappedAddress && isAddressEqual(log.address, token.wrappedAddress))?.args.wad
+                        }).findLast((log) => isEqualAddress(log.address, getTokenAddress(token)))?.args.wad
                     }
                 }
             }
@@ -605,7 +401,7 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [getToken, getNativeToken, addUnconfirmedSwapTokenData])
+    }, [getToken, getNativeToken, getSupportedTokenById, networkMode])
 
     const setHopEventData = useCallback((swap: SwapHistory, hop: HopHistory, receipt: TransactionReceipt) => {
 
@@ -663,7 +459,12 @@ const SwapHistoryProvider = ({
             }
 
             if (!event.srcData.amount) {
-                event.srcData.amount = prevDstAmount
+                if (hop.index === 0 && event.index === 0) {
+                    event.srcData.amount = hop.srcData.amount
+                }
+                else {
+                    event.srcData.amount = prevDstAmount
+                }
             }
 
             if (isTransferType(event.type)) {
@@ -677,95 +478,6 @@ const SwapHistoryProvider = ({
         }
 
     }, [])
-
-    const setSwapHopQueryData = useCallback(async (swap: SwapHistory, hopIndex: number, blockNumber: bigint) => {
-
-        let hop: HopHistory | undefined = undefined
-        let error: string | undefined = undefined
-
-        try {
-
-            hop = swap.hops.find((data) => data.index === hopIndex)
-            if (!hop) {
-                throw new Error("Invalid Hop Index")
-            }
-
-            const prevHop = swap.hops.find((data) => data.index === hopIndex - 1)
-            const msgId = prevHop?.msgSentId || hop?.msgReceivedId
-
-            const isQuery = hop && prevHop && msgId && hop.status === SwapStatus.Pending && !hop.isQueryInProgress && (!hop.lastCheckedBlock || blockNumber - hop.lastCheckedBlock >= BigInt(1))
-            if (!isQuery) {
-                return
-            }
-
-            hop.msgReceivedId = msgId
-            hop.isQueryInProgress = true
-            setSwapHistory(swap)
-
-            let txHash: Hash | undefined = undefined
-            let receipt: TransactionReceipt | undefined = undefined
-            let block: Block | undefined = undefined
-
-            const client: Client = getClient(wagmiConfig, {
-                chainId: hop.srcData.chain.id,
-            })
-            const fromBlock = hop.lastCheckedBlock ?? hop.initiatedBlock ?? MathBigInt.max([BigInt(1), blockNumber - BigInt(hop.srcData.chain.clientData.maxQueryChunkSize)])
-            const msgReceivedLogs = await getLogs(client, {
-                address: messengerAddress,
-                event: receivedMsgEvent,
-                args: {
-                    messageID: msgId,
-                    sourceBlockchainID: prevHop.srcData.chain.blockchainId,
-                },
-                fromBlock: fromBlock,
-                toBlock: blockNumber,
-                strict: true,
-            })
-            if (msgReceivedLogs.length >= 1) {
-                txHash = msgReceivedLogs[0].transactionHash
-                receipt = await getTransactionReceipt(wagmiConfig, {
-                    chainId: hop.srcData.chain.id,
-                    hash: txHash,
-                })
-                block = receipt.blockNumber === blockNumber ? getLatestBlock(hop.srcData.chain.id) : await getBlock(wagmiConfig, {
-                    chainId: hop.srcData.chain.id,
-                    blockNumber: receipt.blockNumber,
-                })
-            }
-
-            console.log(`   >>> setSwapHopQueryData swap: ${swap.id} / hop: ${hopIndex} / from: ${fromBlock.toString()} / to: ${blockNumber.toString()} / logs: ${serialize(msgReceivedLogs)}`)
-
-            hop.txHash = txHash
-            hop.timestamp = block && Number(block.timestamp) * 1000
-            hop.lastCheckedBlock = blockNumber
-            hop.status = txHash && receipt && block ? SwapStatus.Success : SwapStatus.Pending
-            hop.isQueryInProgress = false
-
-            if (receipt) {
-                error = setHopHistoryLogData(swap, hop, receipt)
-                setHopEventData(swap, hop, receipt)
-            }
-        }
-
-        catch (err) {
-            error = getParsedError(err)
-            swap.status = SwapStatus.Error
-            swap.error = error
-            if (hop) {
-                hop.status = SwapStatus.Error
-                if (!hop.error) {
-                    hop.error = error
-                }
-            }
-        }
-
-        finally {
-            setSwapHistory(swap, error)
-        }
-
-        return error
-
-    }, [messengerAddress, receivedMsgEvent, getLatestBlock, setHopHistoryLogData, setHopEventData, setSwapHistory])
 
     const setInitiateSwapData = useCallback(async (swap: SwapHistory, txReceipt?: TransactionReceipt) => {
 
@@ -785,8 +497,8 @@ const SwapHistoryProvider = ({
                 throw new Error(receipt.status === "reverted" ? "Transaction Reverted" : "No Recipient")
             }
 
-            const cell = chain.cells.find((data) => isAddressEqual(data.address, recipient))
-            const abi = getCellAbi(cell)
+            const cell = chain.cells.find((data) => isEqualAddress(data.address, recipient))
+            const abi = getCellAbi(cell, networkMode)
 
             if (!cell || !abi) {
                 throw new Error(!cell ? "No Cell" : "No ABI")
@@ -796,7 +508,7 @@ const SwapHistoryProvider = ({
                 abi: abi,
                 logs: receipt.logs,
                 eventName: "Initiated",
-            })[0]
+            }).at(0)
 
             if (!initiatedLog) {
                 throw new Error("No Initiated Log")
@@ -816,21 +528,18 @@ const SwapHistoryProvider = ({
                 throw new Error("No Initiate Hop")
             }
 
-            if (srcToken.isUnconfirmed) {
-                addUnconfirmedSwapTokenData(srcToken, swap.txHash)
-            }
-
             const block = await getBlock(wagmiConfig, {
                 chainId: chain.id,
                 blockNumber: receipt.blockNumber,
             })
-            const blockTimestamp = Number(block.timestamp) * 1000
+            const timestamp = Number(block.timestamp) * 1000
 
             hop.srcData.amount = srcAmount
             hop.txHash = receipt.transactionHash
-            hop.timestamp = blockTimestamp
+            hop.timestamp = timestamp
             hop.status = SwapStatus.Success
 
+            swap.timestamp = timestamp
             swap.gasFee = receipt.gasUsed * receipt.effectiveGasPrice
 
             error = setHopHistoryLogData(swap, hop, receipt)
@@ -855,9 +564,56 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [getToken, addUnconfirmedSwapTokenData, setSwapHistory, setHopHistoryLogData, setHopEventData])
+    }, [getToken, networkMode, setSwapHistory, setHopHistoryLogData, setHopEventData])
 
-    const setSwapDstTxData = useCallback(async (swap: SwapHistory, blockNumber: bigint) => {
+    const setSwapHopResult = useCallback((swap: SwapHistory, hopIndex: number, receipt: TransactionReceipt, block: Block, msgId: Hex) => {
+
+        let hop: HopHistory | undefined = undefined
+        let error: string | undefined = undefined
+
+        try {
+
+            hop = swap.hops.find((data) => data.index === hopIndex)
+            if (!hop) {
+                throw new Error(`Invalid Hop Index: ${hopIndex}`)
+            }
+
+            hop.msgReceivedId = msgId
+            hop.txHash = receipt.transactionHash
+            hop.timestamp = Number(block.timestamp) * 1000
+            hop.status = SwapStatus.Success
+            hop.isQueryInProgress = false
+            if (block.number) {
+                hop.lastCheckedBlock = block.number 
+            }
+
+            error = setHopHistoryLogData(swap, hop, receipt)
+            setHopEventData(swap, hop, receipt)
+        }
+
+        catch (err) {
+            error = getParsedError(err)
+            if (swap) {
+                swap.status = SwapStatus.Error
+                swap.error = error
+            }
+            if (hop) {
+                hop.status = SwapStatus.Error
+                if (!hop.error) {
+                    hop.error = error
+                }
+            }
+        }
+
+        finally {
+            setSwapHistory(swap, error)
+        }
+
+        return error
+
+    }, [setHopHistoryLogData, setHopEventData, setSwapHistory])
+
+    const setSwapDstTxResult = useCallback((swap: SwapHistory, receipt: TransactionReceipt, block: Block) => {
 
         let error: string | undefined = undefined
 
@@ -871,117 +627,67 @@ const SwapHistoryProvider = ({
                 throw new Error("Invalid Final Hop")
             }
 
-            // todo: check logic here
-            if (!isCrossChainHop) {
-                swap.dstAmount = finalHop.dstData.amount
-                swap.dstTxHash = finalHop.txHash
-                swap.dstTimestamp = finalHop.timestamp
-                return
-            }
-
-            const isQuery = msgId && swap.status === SwapStatus.Pending && !swap.isDstQueryInProgress && (!swap.dstLastCheckedBlock || blockNumber - swap.dstLastCheckedBlock >= BigInt(1))
-            if (!isQuery) {
-                return
-            }
-
-            swap.isDstQueryInProgress = true
-            setSwapHistory(swap)
-
-            let txHash: Hash | undefined = undefined
-            let receipt: TransactionReceipt | undefined = undefined
-            let block: Block | undefined = undefined
-
-            const client: Client = getClient(wagmiConfig, {
-                chainId: swap.dstData.chain.id,
-            })
-            const fromBlock = swap.dstLastCheckedBlock ?? swap.dstInitiatedBlock ?? MathBigInt.max([BigInt(1), blockNumber - BigInt(swap.dstData.chain.clientData.maxQueryChunkSize)])
-            const msgReceivedLogs = await getLogs(client, {
-                address: messengerAddress,
-                event: receivedMsgEvent,
-                args: {
-                    messageID: msgId,
-                    sourceBlockchainID: finalHop.srcData.chain.blockchainId,
-                },
-                fromBlock: fromBlock,
-                toBlock: blockNumber,
-                strict: true,
-            })
-            if (msgReceivedLogs.length >= 1) {
-                txHash = msgReceivedLogs[0].transactionHash
-                receipt = await getTransactionReceipt(wagmiConfig, {
-                    chainId: swap.dstData.chain.id,
-                    hash: txHash,
-                })
-                block = receipt.blockNumber === blockNumber ? getLatestBlock(swap.dstData.chain.id) : await getBlock(wagmiConfig, {
-                    chainId: swap.dstData.chain.id,
-                    blockNumber: receipt.blockNumber,
-                })
-            }
-
-            console.log(`   >>> setSwapDstTxData swap: ${swap.id} / msgId: ${msgId} / from: ${fromBlock.toString()} / to: ${blockNumber.toString()} / logs: ${serialize(msgReceivedLogs)}`)
-
-            swap.dstTxHash = txHash
-            swap.dstTimestamp = block && Number(block.timestamp) * 1000
-            swap.dstLastCheckedBlock = blockNumber
+            swap.dstTxHash = receipt.transactionHash
+            swap.dstTimestamp = Number(block.timestamp) * 1000
             swap.isDstQueryInProgress = false
+            if (block.number) {
+                swap.dstLastCheckedBlock = block.number
+            }
 
-            if (receipt) {
+            const cellAbi = getCellAbi(finalHop.dstData.cell, networkMode)
+            const bridgeType = getBridgePaths({
+                token: swap.dstData.token,
+                srcChain: finalHop.srcData.chain,
+                dstChain: swap.dstData.chain,
+            }).at(0)?.dstData.type
+            const bridgeAbi = bridgeType && BridgeTypeAbi[bridgeType]
 
-                const cellAbi = getCellAbi(finalHop.dstData.cell)
-                const bridgeType = getBridgePaths({
-                    token: swap.dstData.token,
-                    srcChain: finalHop.srcData.chain,
-                    dstChain: swap.dstData.chain,
-                }).at(0)?.dstData.type
-                const bridgeAbi = bridgeType && BridgeTypeAbi[bridgeType]
+            const callFailedLogs = bridgeAbi && parseEventLogs({
+                abi: bridgeAbi,
+                logs: receipt.logs,
+                eventName: "CallFailed",
+            })
+            if (callFailedLogs && callFailedLogs.length > 0) {
+                throw new Error("Execution Failed")
+            }
 
-                const callFailedLogs = bridgeAbi && parseEventLogs({
+            const rollbackLogs = cellAbi && parseEventLogs({
+                abi: cellAbi,
+                logs: receipt.logs,
+                eventName: "Rollback",
+            })
+            if (rollbackLogs && rollbackLogs.length > 0) {
+                throw new Error("Rollback")
+            }
+
+            if (bridgeAbi) {
+                swap.dstAmount = parseEventLogs({
                     abi: bridgeAbi,
                     logs: receipt.logs,
-                    eventName: "CallFailed",
-                })
-                if (callFailedLogs && callFailedLogs.length > 0) {
-                    throw new Error("Execution Failed")
-                }
+                    eventName: "TokensWithdrawn",
+                    args: {
+                        recipient: swap.recipientAddress,
+                    },
+                }).at(0)?.args.amount
+            }
 
-                const rollbackLogs = cellAbi && parseEventLogs({
-                    abi: cellAbi,
+            if (!swap.dstAmount) {
+                swap.dstAmount = parseEventLogs({
+                    abi: erc20Abi,
                     logs: receipt.logs,
-                    eventName: "Rollback",
-                })
-                if (rollbackLogs && rollbackLogs.length > 0) {
-                    throw new Error("Rollback")
-                }
+                    eventName: "Transfer",
+                    args: {
+                        to: swap.recipientAddress,
+                    },
+                }).at(-1)?.args.value
+            }
 
-                if (bridgeAbi) {
-                    swap.dstAmount = parseEventLogs({
-                        abi: bridgeAbi,
-                        logs: receipt.logs,
-                        eventName: "TokensWithdrawn",
-                        args: {
-                            recipient: swap.recipientAddress,
-                        },
-                    }).at(0)?.args.amount
-                }
-
-                if (!swap.dstAmount) {
-                    swap.dstAmount = parseEventLogs({
-                        abi: erc20Abi,
-                        logs: receipt.logs,
-                        eventName: "Transfer",
-                        args: {
-                            to: swap.recipientAddress,
-                        },
-                    }).at(-1)?.args.value
-                }
-
-                if (!swap.dstAmount) {
-                    swap.dstAmount = parseEventLogs({
-                        abi: nativeDepositWithdrawAbi,
-                        logs: receipt.logs,
-                        eventName: "Withdrawal",
-                    }).findLast((log) => swap.dstData.token.wrappedAddress && isAddressEqual(log.address, swap.dstData.token.wrappedAddress))?.args.wad
-                }
+            if (!swap.dstAmount && isNativeToken(swap.dstData.token)) {
+                swap.dstAmount = parseEventLogs({
+                    abi: nativeDepositWithdrawAbi,
+                    logs: receipt.logs,
+                    eventName: "Withdrawal",
+                }).findLast((log) => isEqualAddress(log.address, getTokenAddress(swap.dstData.token)))?.args.wad
             }
         }
 
@@ -997,27 +703,38 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [messengerAddress, receivedMsgEvent, getLatestBlock, setSwapHistory])
+    }, [networkMode, setSwapHistory])
+
+    const swapEventQueryMap: EventQueryMap = useMemo(() => getSwapEventQueryMap(swapHistories), [swapHistories])
+    const { results: swapEventResultsMap, setResults: setSwapEventResultsMap } = useWatchSwapEvents(swapEventQueryMap)
 
     useEffect(() => {
 
-        for (const txHash of pendingSwapTxHashes) {
-
-            const swap = swapHistoryData[txHash]
-            const hop = swap.hops.find((data) => data.status === SwapStatus.Pending)
-            const hopLatestBlockNumber = hop && getLatestBlock(hop.srcData.chain.id)?.number
-            const swapDstLatestBlockNumber = !hop && getLatestBlock(swap.dstData.chain.id)?.number
-
-            if (hop && hopLatestBlockNumber && (!hop.lastCheckedBlock || MathBigInt.abs(hopLatestBlockNumber - hop.lastCheckedBlock) >= BigInt(1))) {
-                console.log(`>>> call setSwapHopQueryData for swap: ${swap.id} / hop: ${hop.index} / block: ${hopLatestBlockNumber.toString()}`)
-                setSwapHopQueryData(swap, hop.index, hopLatestBlockNumber)
-            }
-            else if (swapDstLatestBlockNumber && (!swap.dstTxHash || !swap.dstTimestamp || !swap.dstAmount || swap.dstAmount === BigInt(0)) && (!swap.dstLastCheckedBlock || MathBigInt.abs(swapDstLatestBlockNumber - swap.dstLastCheckedBlock) >= BigInt(1))) {
-                console.log(`>>> call setSwapDstTxData for swap: ${swap.id} / block: ${swapDstLatestBlockNumber.toString()}`)
-                setSwapDstTxData(swap, swapDstLatestBlockNumber)
-            }
+        if (!swapEventResultsMap.size) {
+            return
         }
-    }, [latestBlocks])
+
+        swapEventResultsMap.forEach((result, txHash) => {
+            const swap = getSwapHistory(txHash)
+            if (swap && isHopEventQueryResult(result)) {
+                setSwapHopResult(swap, result.hopIndex, result.txReceipt, result.block, result.msgId)
+            }
+            else if (swap && isDstTxEventQueryResult(result)) {
+                setSwapDstTxResult(swap, result.txReceipt, result.block)
+            }
+        })
+
+    }, [swapEventResultsMap])
+
+    const updatedSwapTxHashes = useMemo(() => swapHistories.filter((swap) => swapEventResultsMap.has(swap.txHash) && swap.status !== SwapStatus.Pending).map((swap) => swap.txHash), [swapHistories, swapEventResultsMap])
+
+    useEffect(() => {
+        if (updatedSwapTxHashes.length) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            setSwapEventResultsMap((prev) => new Map(Array.from(prev.entries()).filter(([txHash, _]) => !updatedSwapTxHashes.includes(txHash))))
+            refetchTokens()
+        }
+    }, [updatedSwapTxHashes, setSwapEventResultsMap])
 
     const refetchSwapHistory = useCallback((swap: SwapHistory) => {
         swap.hops.filter((hop) => hop.status !== SwapStatus.Success).forEach((hop) => hop.lastCheckedBlock = undefined)
@@ -1032,7 +749,6 @@ const SwapHistoryProvider = ({
         getSwapHistories: getSwapHistories,
         setSwapHistory: setSwapHistory,
         setInitiateSwapData: setInitiateSwapData,
-        setSwapHopQueryData: setSwapHopQueryData,
         refetchSwapHistory: refetchSwapHistory,
     }
 

@@ -14,8 +14,8 @@ import MenuIcon from "@/app/components/icons/MenuIcon"
 import SocialIcon from "@/app/components/icons/SocialIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
+import TokenBalance from "@/app/components/tokens/TokenBalance"
 import Button from "@/app/components/ui/Button"
-import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import Popover from "@/app/components/ui/Popover"
 import { iconSizes } from "@/app/config/styling"
@@ -24,7 +24,7 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
 import { SocialLink } from "@/app/types/navigation"
-import { NumberFormatType } from "@/app/types/numbers"
+import { isValidTokenAmount } from "@/app/types/tokens"
 
 const AccountDetailButton = () => {
 
@@ -33,10 +33,12 @@ const AccountDetailButton = () => {
         accountAddress: accountAddress,
     })
     const { disconnect } = useDisconnect()
-    const { getNativeToken } = useTokens()
+    const { getNativeToken, useBalancesData } = useTokens()
+    const { getBalance } = useBalancesData
 
     const connectedChain = connectedChainId ? getChain(connectedChainId) : undefined
     const nativeToken = connectedChain && getNativeToken(connectedChain.id)
+    const nativeBalance = getBalance(nativeToken)
 
     const shortAddress = accountAddress ? toShort(accountAddress) : undefined
     const explorerUrl = getBlockExplorerLink({
@@ -99,12 +101,10 @@ const AccountDetailButton = () => {
                                             ) : shortAddress}
                                         </div>
                                         <div className="flex flex-row flex-1 font-mono font-bold text-muted-500">
-                                            {nativeToken?.balance ? (
-                                                <DecimalAmount
-                                                    amount={nativeToken.balance}
-                                                    symbol={nativeToken.symbol}
+                                            {nativeBalance && isValidTokenAmount(nativeBalance) ? (
+                                                <TokenBalance
                                                     token={nativeToken}
-                                                    type={NumberFormatType.Precise}
+                                                    balance={nativeBalance}
                                                 />
                                             ) : account.displayBalance}
                                         </div>

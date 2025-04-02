@@ -1,5 +1,5 @@
 import { motion } from "motion/react"
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import SlideInOut from "@/app/components/animations/SlideInOut"
@@ -19,7 +19,7 @@ interface AccountMenuItemProps extends React.ComponentPropsWithoutRef<typeof mot
     numItems: number,
 }
 
-const AccountMenuItem = React.forwardRef<React.ElementRef<typeof motion.div>, AccountMenuItemProps>(({
+const AccountMenuItem = React.forwardRef<React.ComponentRef<typeof motion.div>, AccountMenuItemProps>(({
     children,
     className,
     icon,

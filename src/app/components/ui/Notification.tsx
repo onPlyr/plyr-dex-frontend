@@ -269,6 +269,7 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
         return () => {
             clearTimeout(timeoutId)
         }
+
     }, [notification.status])
 
     return (

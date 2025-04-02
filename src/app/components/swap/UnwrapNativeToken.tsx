@@ -16,6 +16,7 @@ import { getChain } from "@/app/lib/chains"
 import { amountToLocale } from "@/app/lib/numbers"
 import { getTxActionLabel } from "@/app/lib/txs"
 import { NumberFormatType } from "@/app/types/numbers"
+import { isNativeToken } from "@/app/types/tokens"
 import { TxAction, TxLabelType } from "@/app/types/txs"
 
 export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.ComponentPropsWithoutRef<"div">>(({
@@ -28,7 +29,7 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
     const { swapRoute: { srcData: { chain, token } } } = useQuoteData()
     const { switchChain } = useSwitchChain()
     const { refetch: refetchTokens } = useTokens()
-    const unwrapEnabled = !(!connectedChain || !accountAddress || !chain || !token || token.isNative || !token.wrappedAddress)
+    const unwrapEnabled = !(!connectedChain || !accountAddress || !chain || !token || isNativeToken(token) || !token.wrappedAddress)
 
     const { data: wrappedBalance, refetch: refetchWrappedBalance } = useReadContract({
         chainId: chain?.id,
@@ -86,6 +87,7 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
                         <Button
                             className={twMerge("gradient-btn px-3 py-2 h-fit rounded-lg", className)}
                             onClick={enabled ? switchChainRequired ? handleSwitchChain.bind(this) : writeUnwrap.bind(this) : undefined}
+                            isAnimated={true}
                         >
                             {switchChainRequired ? `Switch to ${chain.name}` : getTxActionLabel(TxAction.Unwrap, isInProgress ? TxLabelType.InProgress : TxLabelType.Default)}
                         </Button>

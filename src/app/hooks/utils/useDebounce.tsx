@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 
-// note: needs trailing comma in generic type parameter below to avoid lint issues
 const useDebounce = <T,>(value: T, delayMs?: number): T => {
 
     const [debouncedValue, setDebouncedValue] = useState(value)

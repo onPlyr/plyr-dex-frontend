@@ -18,7 +18,7 @@ export const DecimalInput = React.forwardRef<HTMLInputElement, DecimalInputProps
     value = "",
     setValue,
     formatInput = formatDecimalInput,
-    decimals,
+    decimals = 18,
     replaceClass,
     placeholder,
     type = "text",

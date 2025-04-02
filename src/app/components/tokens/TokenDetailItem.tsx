@@ -1,29 +1,122 @@
-import React from "react"
+"use client"
 
+import { motion } from "motion/react"
+import React from "react"
+import { twMerge } from "tailwind-merge"
+
+import { FavouriteIcon } from "@/app/components/icons/FavouriteIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
-import FavouriteTokenDetail from "@/app/components/tokens/FavouriteTokenDetail"
-import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
-import DecimalAmount from "@/app/components/ui/DecimalAmount"
+import TokenAmountValue from "@/app/components/tokens/TokenAmountValue"
+import TokenBalance from "@/app/components/tokens/TokenBalance"
 import { SelectItem } from "@/app/components/ui/SelectItem"
 import { imgSizes } from "@/app/config/styling"
+import useTokens from "@/app/hooks/tokens/useTokens"
 import { getChain } from "@/app/lib/chains"
-import { NumberFormatType } from "@/app/types/numbers"
 import { Token } from "@/app/types/tokens"
 
-export interface TokenDetailItemProps extends React.ComponentPropsWithoutRef<typeof SelectItem> {
-    token: Token,
-    showFavourites?: boolean,
+interface RequiredAnimationProps {
+    index: number,
+    numTokens: number,
 }
 
-export const TokenDetailItem = React.forwardRef<React.ComponentRef<typeof SelectItem>, TokenDetailItemProps>(({
+interface TokenDetailAnimationProps extends React.ComponentPropsWithoutRef<typeof motion.div>, RequiredAnimationProps {
+    delay?: number,
+}
+
+interface TokenDetailItemProps extends React.ComponentPropsWithoutRef<typeof SelectItem> {
+    token: Token,
+}
+
+export const TokenDetailAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, TokenDetailAnimationProps>(({
+    initial = "initial",
+    animate = "animate",
+    exit = "exit",
+    layout = true,
+    transition = {
+        type: "spring",
+        duration: 0.5,
+    },
+    variants = {
+        initial: {
+            x: "-50%",
+            opacity: 0,
+            scale: 0,
+            height: 0,
+        },
+        animate: {
+            x: 0,
+            opacity: 1,
+            scale: 1,
+            height: "auto",
+        },
+        exit: {
+            x: "50%",
+            opacity: 0,
+            scale: 0,
+            height: 0,
+        },
+    },
+    delay = 0.025,
+    index,
+    numTokens,
+    ...props
+}, ref) => (
+    <motion.div
+        ref={ref}
+        className="overflow-hidden"
+        layout={layout}
+        layoutDependency={index}
+        initial={initial}
+        animate={animate}
+        exit={exit}
+        variants={{
+            ...variants,
+            initial: {
+                ...variants.initial,
+                transition: {
+                    ...transition,
+                    delay: (numTokens - index - 1) * delay,
+                },
+            },
+            animate: {
+                ...variants.animate,
+                transition: {
+                    ...transition,
+                    delay: index * delay,
+                },
+            },
+            exit: {
+                ...variants.exit,
+                transition: {
+                    ...transition,
+                    delay: (numTokens - index - 1) * delay,
+                },
+            },
+        }}
+        {...props}
+    />
+))
+TokenDetailAnimation.displayName = "TokenDetailAnimation"
+
+const TokenDetailItem = React.forwardRef<React.ComponentRef<typeof SelectItem>, TokenDetailItemProps>(({
     token,
-    showFavourites = true,
     ...props
 }, ref) => {
 
-    // todo: add token balance values once token prices are added
     const chain = getChain(token.chainId)
+    const { useBalancesData: { getBalance }, getIsFavouriteToken, setIsFavouriteToken } = useTokens()
+    const balance = getBalance(token)
+    const isFavourite = getIsFavouriteToken(token)
+
+    const favouriteIcon = <FavouriteIcon
+        className={twMerge("transition", isFavourite ? "text-brand-500 hover:text-brand-400" : "text-muted-500 hover:text-muted-300")}
+        isFavourite={isFavourite}
+        onClick={(e) => {
+            setIsFavouriteToken(token)
+            e.stopPropagation()
+        }}
+    />
 
     return (
         <SelectItem
@@ -54,34 +147,30 @@ export const TokenDetailItem = React.forwardRef<React.ComponentRef<typeof Select
                             </div>
                         )}
                     </div>
-                    {showFavourites && (
-                        <FavouriteTokenDetail
-                            token={token}
-                            className="flex sm:hidden"
-                        />
-                    )}
-                </div>
-                {(token.balanceFormatted !== undefined || token.valueFormatted !== undefined) && (
-                    <div className="flex flex-row sm:flex-col flex-1 justify-center items-end">
-                        <DecimalAmount
-                            amountFormatted={token.balanceFormatted}
-                            symbol={token.symbol}
-                            type={NumberFormatType.Precise}
-                            className="font-bold text-end"
-                        />
-                        <div className="flex flex-row flex-1 h-full justify-end sm:justify-start items-center sm:items-end text-muted-500 text-end">
-                            <CurrencyAmount amountFormatted="0" />
-                        </div>
+                    <div className="flex sm:hidden flex-row flex-none justify-center items-center">
+                        {favouriteIcon}
                     </div>
-                )}
-                {showFavourites && (
-                    <FavouriteTokenDetail
+                </div>
+                <div className="flex flex-row sm:flex-col flex-1 justify-center items-end">
+                    <TokenBalance
+                        className="text-end"
                         token={token}
-                        className="hidden sm:flex"
+                        balance={balance}
                     />
-                )}
+                    <div className="flex flex-row flex-1 h-full justify-end sm:justify-start items-center sm:items-end text-muted-500 text-end">
+                        <TokenAmountValue
+                            token={token}
+                            amount={balance}
+                        />
+                    </div>
+                </div>
+                <div className="hidden sm:flex flex-row flex-none justify-center items-center">
+                    {favouriteIcon}
+                </div>
             </div>
         </SelectItem>
     )
 })
 TokenDetailItem.displayName = "TokenDetailItem"
+
+export default TokenDetailItem

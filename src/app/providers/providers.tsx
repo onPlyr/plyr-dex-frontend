@@ -14,7 +14,6 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { TooltipProvider } from "@/app/components/ui/Tooltip"
 import { wagmiConfig } from "@/app/config/wagmi"
 import ApiDataProvider from "@/app/providers/ApiDataProvider"
-import FavouriteTokensProvider from "@/app/providers/FavouriteTokensProvider"
 import NotificationProvider from "@/app/providers/NotificationProvider"
 import PreferencesProvider from "@/app/providers/PreferencesProvider"
 import QuoteDataProvider from "@/app/providers/QuoteDataProvider"
@@ -47,9 +46,7 @@ const UiDataProviders = ({ children }: { children: ReactNode }) => (
 
 const StoredDataProviders = ({ children }: { children: ReactNode }) => (
     <PreferencesProvider>
-        <FavouriteTokensProvider>
-            {children}
-        </FavouriteTokensProvider>
+        {children}
     </PreferencesProvider>
 )
 

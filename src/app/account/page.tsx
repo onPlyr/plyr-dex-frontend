@@ -1,31 +1,29 @@
 "use client"
 
-import "@/app/styles/globals.css"
-
+import { formatUnits } from "viem"
 import { useAccount } from "wagmi"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
-import SlideInOut from "@/app/components/animations/SlideInOut"
-import { ChartIcon, ChartIconVariant } from "@/app/components/icons/ChartIcon"
 import { CurrencyIcon } from "@/app/components/icons/CurrencyIcon"
 import SwapParameter from "@/app/components/swap/SwapParameter"
-import { TokenDetailItem } from "@/app/components/tokens/TokenDetailItem"
+import TokenDetailItem, { TokenDetailAnimation } from "@/app/components/tokens/TokenDetailItem"
 import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import CurrencyAmount from "@/app/components/ui/CurrencyAmount"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { Page } from "@/app/components/ui/Page"
+import Skeleton from "@/app/components/ui/Skeleton"
 import { defaultCurrency } from "@/app/config/numbers"
+import { TokenPriceConfig } from "@/app/config/prices"
 import { iconSizes } from "@/app/config/styling"
 import useReadAvvyName from "@/app/hooks/avvy/useReadAvvyName"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
-import useFavouriteTokens from "@/app/hooks/tokens/useFavouriteTokens"
+import useTokenFilters from "@/app/hooks/tokens/useTokenFilters"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getBlockExplorerLink, getChain } from "@/app/lib/chains"
 import { toShort } from "@/app/lib/strings"
-import { sortTokens } from "@/app/lib/tokens"
 import { PageType } from "@/app/types/navigation"
 import { PreferenceType } from "@/app/types/preferences"
-import { TokenSortType } from "@/app/types/tokens"
+import { isValidTokenAmount } from "@/app/types/tokens"
 
 const AccountPage = () => {
 
@@ -36,12 +34,18 @@ const AccountPage = () => {
     })
 
     const { preferences } = usePreferences()
-    const { tokens: tokenData } = useTokens()
-    const { favouriteTokens } = useFavouriteTokens()
-    const tokens = sortTokens(tokenData.filter((token) => token.balance && token.balance > 0), TokenSortType.BalanceValue, favouriteTokens)
-    // const totalValue = tokens.reduce((sum, token) => token.value ? sum + token.value : sum, BigInt(0))
-    // const maxBalanceToken = sortTokens(tokens, TokenSortType.BalanceValue)[0]
     const currency = preferences[PreferenceType.Currency] ?? defaultCurrency
+    const { tokens, useBalancesData, useTokenPricesData } = useTokens()
+    const { getBalance } = useBalancesData
+    const { getAmountValue, isInProgress: priceIsInProgress } = useTokenPricesData
+    const { filteredTokens } = useTokenFilters(tokens)
+
+    const totalValue = tokens.reduce((sum, token) => {
+        const balance = getBalance(token)
+        const value = getAmountValue(token, balance)
+        return sum + (isValidTokenAmount(value) ? value.amount : BigInt(0))
+    }, BigInt(0))
+    const totalValueFormatted = formatUnits(totalValue, TokenPriceConfig.Decimals)
 
     const displayAddress = accountAddress ? <>
         <span className="hidden sm:flex">{accountAddress}</span>
@@ -84,62 +88,34 @@ const AccountPage = () => {
                         </div>
                         <div className="flex flex-col flex-1 gap-1">
                             <SwapParameter
-                                icon=<CurrencyIcon currency={currency} className={iconSizes.sm} />
+                                icon=<CurrencyIcon
+                                    currency={currency}
+                                    className={iconSizes.sm}
+                                />
                                 label="Total balance"
-                                value=<CurrencyAmount
-                                    amountFormatted="12345678.90"
-                                    // amount={totalValue}
-                                    currency={currency}
-                                    className="font-mono text-base"
-                                />
+                                value={priceIsInProgress ? (
+                                    <Skeleton className="h-6 w-24" />
+                                ) : (
+                                    <CurrencyAmount amountFormatted={totalValueFormatted} />
+                                )}
+                                valueClass="font-mono text-base"
                             />
-                            <SwapParameter
-                                icon=<ChartIcon variant={ChartIconVariant.TrendUp} className={iconSizes.sm} />
-                                label="Largest balance"
-                                value=<CurrencyAmount
-                                    amountFormatted="123456"
-                                    // amount={maxBalanceToken.value}
-                                    currency={currency}
-                                    className="font-mono text-base"
-                                />
-                            />
-                            {/*<SwapParameter
-                                icon=<CurrencyIcon variant={CurrencyIconVariant.UsdCircle} className={iconSizes.sm} />
-                                label="Token amount"
-                                value=<>
-                                    <DecimalAmount
-                                        amountFormatted={maxBalanceToken.balanceFormatted}
-                                        symbol={maxBalanceToken.symbol}
-                                        token={maxBalanceToken}
-                                        className="font-mono text-base"
-                                    />
-                                    <TokenImage
-                                        token={maxBalanceToken}
-                                        className={imgSizes.xs}
-                                    />
-                                </>
-                                valueClass="gap-4 font-mono font-normal text-muted-400"
-                            />*/}
                         </div>
                     </div>
                     <div className="flex flex-col flex-1 gap-1">
-                        {tokens.map((token, i) => (
-                            <SlideInOut
-                                key={`${token.chainId}-${token.id}`}
-                                from="left"
-                                to="right"
-                                delays={{
-                                    animate: i * 0.05,
-                                    exit: (tokens.length - 1 - i) * 0.05,
-                                }}
+                        {filteredTokens.map((token, i) => (
+                            <TokenDetailAnimation
+                                key={token.uid}
+                                index={i}
+                                numTokens={filteredTokens.length}
                             >
                                 <TokenDetailItem
                                     token={token}
-                                    isSelected={false}
-                                    className="container-select-transparent flex flex-row flex-1 p-4 gap-4"
+                                    className="container-select-transparent flex flex-row flex-1 p-4 gap-4 cursor-auto"
                                     replaceClass={true}
+                                    isSelected={false}
                                 />
-                            </SlideInOut>
+                            </TokenDetailAnimation>
                         ))}
                     </div>
                 </>) : (

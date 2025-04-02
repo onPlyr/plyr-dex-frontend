@@ -14,6 +14,7 @@ import AccountIcon from "@/app/components/icons/AccountIcon"
 import ArrowIcon from "@/app/components/icons/ArrowIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import HistoryIcon from "@/app/components/icons/HistoryIcon"
+import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import RouteIcon from "@/app/components/icons/RouteIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
 import SocialIcon from "@/app/components/icons/SocialIcon"
@@ -32,13 +33,13 @@ import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
-import { formatDuration } from "@/app/lib/datetime"
 import { getInitiateSwapError } from "@/app/lib/swaps"
 import { PageType, SocialLink } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { StorageKey } from "@/app/types/storage"
 import { StyleDirection, StyleToggleDirection } from "@/app/types/styling"
 import { InitiateSwapAction } from "@/app/types/swaps"
+import { isNativeToken } from "@/app/types/tokens"
 import { twMerge } from "tailwind-merge"
 
 const defaultIntroTransition: Transition = {
@@ -104,8 +105,12 @@ const SwapPage = () => {
     }, [isShowIntro])
 
     const { isConnected } = useAccount()
-    const { swapRoute, switchTokens, srcAmountInput, setSrcAmountInput, useSwapQuotesData, selectedQuote, quoteExpiry } = useQuoteData()
-    const { refetch: refetchTokens } = useTokens()
+    const { getNativeToken, useBalancesData } = useTokens()
+    const { getBalance, isInProgress: balanceIsInProgress } = useBalancesData
+    const { swapRoute, switchTokens, srcAmountInput, setSrcAmountInput, useSwapQuotesData, selectedQuote } = useQuoteData()
+    const srcBalance = getBalance(swapRoute.srcData.token)
+    const nativeBalance = isNativeToken(swapRoute.srcData.token) ? srcBalance : getBalance(getNativeToken(swapRoute.srcData.chain?.id))
+    const isInProgress = balanceIsInProgress || useSwapQuotesData.isInProgress
 
     const { errorMsg, isConnectError } = getInitiateSwapError({
         action: InitiateSwapAction.Review,
@@ -113,20 +118,16 @@ const SwapPage = () => {
         srcChain: swapRoute.srcData.chain,
         srcToken: swapRoute.srcData.token,
         srcAmount: swapRoute.srcData.amount,
+        srcBalance: srcBalance,
+        nativeBalance: nativeBalance,
         dstChain: swapRoute.dstData.chain,
         dstToken: swapRoute.dstData.token,
         quoteData: useSwapQuotesData.data,
         selectedQuote: selectedQuote,
-        isInProgress: useSwapQuotesData.isInProgress,
+        isInProgress: isInProgress,
         queryStatus: useSwapQuotesData.status,
         error: useSwapQuotesData.error,
     })
-
-    const refetch = useCallback(() => {
-        refetchTokens()
-        useSwapQuotesData.refetch()
-    }, [refetchTokens, useSwapQuotesData])
-
 
     const onClickReview = useCallback(() => {
         if (isConnected) {
@@ -189,18 +190,7 @@ const SwapPage = () => {
             >
                 My Preferences
             </Tooltip>
-            <Tooltip
-                trigger=<Button
-                    label="Refresh"
-                    className="icon-btn"
-                    replaceClass={true}
-                    onClick={refetch.bind(this)}
-                >
-                    <SwapQuoteExpiryTimer />
-                </Button>
-            >
-                Refresh{selectedQuote && ` in ${formatDuration(quoteExpiry)}`}
-            </Tooltip>
+            <SwapQuoteExpiryTimer />
         </div>
     </div>
 
@@ -294,8 +284,11 @@ const SwapPage = () => {
                             >
                                 <div className="flex flex-col flex-none gap-4 w-full h-fit overflow-hidden">
                                     <TokenInput
+                                        key="src"
                                         route={swapRoute}
                                         value={srcAmountInput}
+                                        amount={swapRoute.srcData.amount}
+                                        feeData={selectedQuote?.feeData}
                                         setValue={setSrcAmountInput}
                                         isDisabled={isShowIntro}
                                     />
@@ -314,8 +307,10 @@ const SwapPage = () => {
                                         </Tooltip>
                                     </div>
                                     <TokenInput
+                                        key="dst"
                                         route={swapRoute}
                                         value={selectedQuote ? formatUnits(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals) : undefined}
+                                        amount={swapRoute.srcData.amount}
                                         isDst={true}
                                         isDisabled={isShowIntro}
                                     />
@@ -330,6 +325,32 @@ const SwapPage = () => {
                                                     <div className="flex flex-row flex-1 gap-4 justify-start items-center">
                                                         <RouteIcon />
                                                         Routes
+                                                        <AnimatePresence mode="wait">
+                                                            {useSwapQuotesData.isFetching && (
+                                                                <motion.div
+                                                                    key="quotes-loading"
+                                                                    initial="hide"
+                                                                    animate="show"
+                                                                    exit="hide"
+                                                                    transition={{
+                                                                        type: "spring",
+                                                                        duration: 0.2,
+                                                                    }}
+                                                                    variants={{
+                                                                        hide: {
+                                                                            scale: 0,
+                                                                            opacity: 0,
+                                                                        },
+                                                                        show: {
+                                                                            scale: 1,
+                                                                            opacity: 1,
+                                                                        },
+                                                                    }}
+                                                                >
+                                                                    <LoadingIcon className={iconSizes.sm} />
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
                                                     </div>
                                                     {!useSwapQuotesData.isInProgress && useSwapQuotesData.data && useSwapQuotesData.data.quotes.length > 1 && (
                                                         <Link
@@ -381,6 +402,7 @@ const SwapPage = () => {
                                     <Button
                                         className="gradient-btn"
                                         onClick={setShowIntro.bind(this, false)}
+                                        isAnimated={true}
                                     >
                                         Start Swapping
                                     </Button>

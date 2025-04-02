@@ -5,11 +5,13 @@ import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
 
 const InfoIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconProps>(({
     children,
+    highlightStyle = "text-info-500",
     ...props
 }, ref) => {
     return (
         <BaseIcon
             ref={ref}
+            highlightStyle={highlightStyle}
             {...props}
         >
             {children ?? <Info />}

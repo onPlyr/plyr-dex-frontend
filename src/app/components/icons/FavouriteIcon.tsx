@@ -1,5 +1,5 @@
 import { Star } from "@phosphor-icons/react"
-import * as React from "react"
+import React from "react"
 
 import { BaseIcon } from "@/app/components/icons/BaseIcon"
 
@@ -15,21 +15,20 @@ const variants: Record<FavouriteIconVariant, React.ReactNode> = {
 
 export interface FavouriteIconProps extends React.ComponentPropsWithoutRef<typeof BaseIcon> {
     variant?: FavouriteIconVariant,
+    isFavourite?: boolean,
 }
 
-export const FavouriteIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, FavouriteIconProps>(({
+export const FavouriteIcon = React.forwardRef<React.ComponentRef<typeof BaseIcon>, FavouriteIconProps>(({
     children,
     variant,
+    isFavourite,
     ...props
-}, ref) => {
-    return (
+}, ref) => (
         <BaseIcon
             ref={ref}
             {...props}
         >
-            {children ?? variants[variant ?? FavouriteIconVariant.Default]}
+            {children ? children : variant ? variants[variant] : isFavourite ? variants[FavouriteIconVariant.Fill] : variants[FavouriteIconVariant.Default]}
         </BaseIcon>
-    )
-
-})
+    ))
 FavouriteIcon.displayName = "FavouriteIcon"

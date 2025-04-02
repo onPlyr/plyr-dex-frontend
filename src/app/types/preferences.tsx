@@ -20,18 +20,16 @@ export const PreferenceType = {
 } as const
 export type PreferenceType = (typeof PreferenceType)[keyof typeof PreferenceType]
 
-export type UserPreferenceValueType = number | Currency | NetworkMode | string
-export type UserPreferenceType = number | Currency | NetworkMode
-
-export interface UserPreferences {
-    [PreferenceType.Slippage]?: number,
-    [PreferenceType.Currency]?: Currency,
-    [PreferenceType.NetworkMode]?: NetworkMode,
-    [PreferenceType.TokenSortType]?: TokenSortType,
+export interface ValidUserPreferences {
+    [PreferenceType.Slippage]: number,
+    [PreferenceType.Currency]: Currency,
+    [PreferenceType.NetworkMode]: NetworkMode,
+    [PreferenceType.TokenSortType]: TokenSortType,
 }
+export type UserPreferences = ValidUserPreferences | Partial<ValidUserPreferences>
 
 export const SlippageConfig = {
-    DefaultBps: 10,
+    DefaultBps: 50,
     BpsOptions: [
         {
             bps: 10,
@@ -53,33 +51,36 @@ export const SlippageConfig = {
     MaxBps: 10000,
 } as const
 
-export const isValidSlippagePreference = (bps: number): bps is number => {
+export const isValidSlippagePreference = (bps: number): bps is ValidUserPreferences[typeof PreferenceType.Slippage] => {
     return !Number.isNaN(bps) && bps >= SlippageConfig.MinBps && bps <= SlippageConfig.MaxBps
 }
 
-export const isValidCurrencyPreference = (currency: string): currency is Currency => {
+export const isValidCurrencyPreference = (currency: string): currency is ValidUserPreferences[typeof PreferenceType.Currency] => {
     return Object.values(Currency).includes(currency as Currency)
 }
 
-export const isValidNetworkModePreference = (mode: string): mode is NetworkMode => {
+export const isValidNetworkModePreference = (mode: string): mode is ValidUserPreferences[typeof PreferenceType.NetworkMode] => {
     return Object.values(NetworkMode).includes(mode as NetworkMode)
 }
 
-export const isValidTokenSortTypePreference = (type: string): type is TokenSortType => {
+export const isValidTokenSortTypePreference = (type: string): type is ValidUserPreferences[typeof PreferenceType.TokenSortType] => {
     return Object.values(TokenSortType).includes(type as TokenSortType)
 }
 
-export const isValidPreference = (key: PreferenceType, value: UserPreferenceValueType): value is UserPreferenceType => {
-    if (key === PreferenceType.Slippage && isValidSlippagePreference(value as number)) {
+export const isValidPreference = <T extends PreferenceType = PreferenceType>(type: T, value?: UserPreferences[T]): value is ValidUserPreferences[T] => {
+    if (!value) {
+        return false
+    }
+    else if (type === PreferenceType.Slippage && isValidSlippagePreference(value as number)) {
         return true
     }
-    else if (key === PreferenceType.Currency && isValidCurrencyPreference(value as string)) {
+    else if (type === PreferenceType.Currency && isValidCurrencyPreference(value as string)) {
         return true
     }
-    else if (key === PreferenceType.NetworkMode && isValidNetworkModePreference(value as string)) {
+    else if (type === PreferenceType.NetworkMode && isValidNetworkModePreference(value as string)) {
         return true
     }
-    else if (key === PreferenceType.TokenSortType && isValidTokenSortTypePreference(value as string)) {
+    else if (type === PreferenceType.TokenSortType && isValidTokenSortTypePreference(value as string)) {
         return true
     }
     return false

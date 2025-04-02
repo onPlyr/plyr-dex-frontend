@@ -76,7 +76,7 @@ const PreferencesPage = () => {
     // currency
 
     const currency = preferences[PreferenceType.Currency] ?? DefaultUserPreferences[PreferenceType.Currency]
-    const setCurrency = useCallback((data: string) => {
+    const setCurrency = useCallback((data: Currency) => {
         const isValid = setPreference(PreferenceType.Currency, data)
         setErrorMsgs((prev) => ({
             ...prev,
@@ -88,7 +88,7 @@ const PreferencesPage = () => {
     // network mode
 
     const networkMode = preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode]
-    const setNetworkMode = useCallback((data: string) => {
+    const setNetworkMode = useCallback((data: NetworkMode) => {
         const isValid = setPreference(PreferenceType.NetworkMode, data)
         setErrorMsgs((prev) => ({
             ...prev,

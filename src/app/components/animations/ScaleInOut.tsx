@@ -12,7 +12,7 @@ interface ScaleInOutProps extends React.ComponentPropsWithoutRef<typeof motion.d
 
 const defaultScaleInOutAnimations: AnimationVariants = {
     initial: {
-        scale: 0.5,
+        scale: 0,
     },
     animate: {
         scale: 1,

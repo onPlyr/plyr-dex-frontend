@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 import { useAccount, useWatchAsset } from "wagmi"
 
@@ -14,7 +14,7 @@ export interface AddTokenButtonProps extends React.ComponentPropsWithoutRef<type
     iconClass?: string,
 }
 
-export const AddTokenButton = React.forwardRef<React.ElementRef<typeof Button>, AddTokenButtonProps>(({
+export const AddTokenButton = React.forwardRef<React.ComponentRef<typeof Button>, AddTokenButtonProps>(({
     className,
     token,
     iconClass,

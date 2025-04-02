@@ -212,9 +212,14 @@ const SwapDetailPage = ({
             footer={swap.status === SwapStatus.Success && (
                 <Link
                     href="/swap"
-                    className="btn gradient-btn rounded w-full"
+                    className="contents"
                 >
-                    New Swap
+                    <Button
+                        className="gradient-btn"
+                        isAnimated={true}
+                    >
+                        New Swap
+                    </Button>
                 </Link>
             )}
             backUrl="/swap"

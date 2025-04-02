@@ -1,17 +1,33 @@
 import { AbiParameter } from "viem"
 
 import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
-import { hopOnlyCellAbi } from "@/app/abis/cells/hopOnly"
-import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
-import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
+import { hopOnlyCellAbi, hopOnlyCellAbiTestnet } from "@/app/abis/cells/hopOnly"
+import { uniV2CellAbi, uniV2CellAbiTestnet } from "@/app/abis/cells/uniV2"
+import { yakSwapCellAbi, yakSwapCellAbiTestnet } from "@/app/abis/cells/yakSwap"
 import { ApiProvider, ApiRoute } from "@/app/types/apis"
-import { CellAbiType, CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData } from "@/app/types/cells"
+import { CellRouteDataParameter, CellTradeDataParameter, CellTradeParameter, CellType, CellTypeData, MainnetCellAbiType, TestnetCellAbiType } from "@/app/types/cells"
+import { NetworkMode } from "@/app/types/preferences"
 
-export const CellTypeAbi: Record<CellType, CellAbiType> = {
-    [CellType.HopOnly]: hopOnlyCellAbi,
-    [CellType.YakSwap]: yakSwapCellAbi,
-    [CellType.UniV2]: uniV2CellAbi,
-    [CellType.Dexalot]: dexalotCellAbi,
+export const CellTypeAbi: Record<CellType, {
+    [NetworkMode.Mainnet]: MainnetCellAbiType,
+    [NetworkMode.Testnet]: TestnetCellAbiType,
+}> = {
+    [CellType.HopOnly]: {
+        [NetworkMode.Mainnet]: hopOnlyCellAbi,
+        [NetworkMode.Testnet]: hopOnlyCellAbiTestnet,
+    },
+    [CellType.YakSwap]: {
+        [NetworkMode.Mainnet]: yakSwapCellAbi,
+        [NetworkMode.Testnet]: yakSwapCellAbiTestnet,
+    },
+    [CellType.UniV2]: {
+        [NetworkMode.Mainnet]: uniV2CellAbi,
+        [NetworkMode.Testnet]: uniV2CellAbiTestnet,
+    },
+    [CellType.Dexalot]: {
+        [NetworkMode.Mainnet]: dexalotCellAbi,
+        [NetworkMode.Testnet]: dexalotCellAbi,
+    },
 } as const
 
 export const cellRouteDataParameters: Record<CellRouteDataParameter, AbiParameter> = {

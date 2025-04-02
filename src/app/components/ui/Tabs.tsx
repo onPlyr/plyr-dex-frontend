@@ -1,6 +1,6 @@
 import { motion } from "motion/react"
-import React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 export const TabsContainer = React.forwardRef<React.ComponentRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(({

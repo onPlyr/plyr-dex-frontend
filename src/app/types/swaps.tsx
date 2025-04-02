@@ -2,9 +2,9 @@ import { Address, Hash, Hex, toHex } from "viem"
 
 import { PlatformId } from "@/app/config/platforms"
 import { BridgeProvider, BridgePath } from "@/app/types/bridges"
-import { Cell, CellAbiType, CellTrade } from "@/app/types/cells"
+import { Cell, CellAbiType, CellFeeType, CellInstructions, CellTrade } from "@/app/types/cells"
 import { Chain, ChainId } from "@/app/types/chains"
-import { Token, TokenId } from "@/app/types/tokens"
+import { Token, TokenDataMap } from "@/app/types/tokens"
 import { WithRequired } from "@/app/types/utils"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +77,11 @@ export interface SwapAdapter {
     platform: PlatformId,
 }
 
+export const SwapSource = {
+    Tesseract: "tesseract",
+} as const
+export type SwapSource = (typeof SwapSource)[keyof typeof SwapSource]
+
 export const isSwapType = (type: SwapType): type is typeof SwapType.Swap => {
     return type === SwapType.Swap
 }
@@ -115,7 +120,6 @@ export type BaseData = SwapBaseData | QuoteData | ValidQuoteData | HistoryBaseDa
 export interface SwapBaseJson {
     chain: ChainId,
     tokenAddress: Address,
-    tokenId?: TokenId,
     cell?: Address,
     estAmount: string,
     minAmount: string,
@@ -123,6 +127,20 @@ export interface SwapBaseJson {
 }
 export type EventBaseJson = WithRequired<Partial<SwapBaseJson>, "chain" | "tokenAddress">
 export type BaseJson = SwapBaseJson | EventBaseJson
+
+type BaseFeeData = {
+    [type in CellFeeType]?: bigint
+}
+export type ValidSwapFeeData = Required<BaseFeeData>
+export type SwapFeeData = BaseFeeData | ValidSwapFeeData
+
+export type SwapFeeJson = {
+    [type in CellFeeType]: string
+}
+
+export const isValidSwapFeeData = (data: SwapFeeData): data is ValidSwapFeeData => {
+    return Object.values(CellFeeType).every((feeType) => feeType in data && data[feeType] !== undefined)
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // routes
@@ -141,7 +159,6 @@ export type SwapRoute = BaseSwapRoute | ValidSwapRoute
 export interface SwapRouteBaseJson {
     chain?: ChainId,
     tokenAddress?: Address,
-    tokenId?: TokenId,
     amount?: string,
 }
 export interface SwapRouteJson {
@@ -157,7 +174,7 @@ export const isValidSwapRoute = (route: SwapRoute): route is ValidSwapRoute => {
 // swaps
 
 export type SwapId = string
-interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent = HopEvent> {
+interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent = HopEvent, TFeeData = SwapFeeData> {
     id: SwapId,
     srcData: TSrcData,
     dstData: TDstData,
@@ -173,6 +190,7 @@ interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent 
     estDstAmount?: bigint,
     duration?: number,
     estDuration: number,
+    feeData: TFeeData,
     gasFee?: bigint,
     estGasFee: bigint,
     estGasUnits: bigint,
@@ -188,13 +206,13 @@ interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent 
     error?: string,
 }
 export type SwapQuote = WithRequired<BaseSwap<QuoteData, BaseData, ValidHopQuote>, "estDstAmount" | "minDstAmount">
-export type InitiateSwapQuote = WithRequired<BaseSwap<ValidQuoteData, ValidQuoteData, ValidHopQuote>, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount">
-export type BaseSwapHistory = WithRequired<BaseSwap<HistoryBaseData, HistoryBaseData, HopHistory, HopEventHistory>, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount" | "txHash" | "status">
+export type InitiateSwapQuote = WithRequired<BaseSwap<ValidQuoteData, ValidQuoteData, ValidHopQuote, HopEvent, ValidSwapFeeData>, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount">
+export type BaseSwapHistory = WithRequired<BaseSwap<HistoryBaseData, HistoryBaseData, HopHistory, HopEventHistory, ValidSwapFeeData>, "accountAddress" | "recipientAddress" | "estDstAmount" | "minDstAmount" | "txHash" | "status">
 export type CompletedSwapHistory = WithRequired<BaseSwapHistory, "dstAmount" | "duration" | "gasFee" | "dstTxHash" | "dstTimestamp">
 export type SwapHistory = BaseSwapHistory | CompletedSwapHistory
 export type Swap = BaseSwap | SwapQuote | InitiateSwapQuote | SwapHistory
 
-export interface SwapJson extends WithRequired<Omit<SwapHistory, "srcData" | "dstData" | "hops" | "events" | "srcAmount" | "dstAmount" | "minDstAmount" | "estDstAmount" | "gasFee" | "estGasFee" | "estGasUnits" | "dstInitiatedBlock" | "dstLastCheckedBlock">, "status"> {
+export interface SwapJson extends WithRequired<Omit<SwapHistory, "srcData" | "dstData" | "hops" | "events" | "srcAmount" | "dstAmount" | "minDstAmount" | "estDstAmount" | "feeData" | "gasFee" | "estGasFee" | "estGasUnits" | "dstInitiatedBlock" | "dstLastCheckedBlock">, "status"> {
     srcData: SwapBaseJson,
     dstData: SwapBaseJson,
     hops: HopJson[],
@@ -203,6 +221,7 @@ export interface SwapJson extends WithRequired<Omit<SwapHistory, "srcData" | "ds
     dstAmount?: string,
     minDstAmount: string,
     estDstAmount: string,
+    feeData: SwapFeeJson,
     gasFee?: string,
     estGasFee: string,
     estGasUnits: string,
@@ -217,6 +236,7 @@ export interface SwapQuoteData {
     maxDstAmount: bigint,
     minDuration: number,
     quotes: SwapQuote[],
+    quoteTokens?: TokenDataMap,
 }
 
 export const isValidQuoteData = (data: BaseData): data is ValidQuoteData => {
@@ -224,7 +244,7 @@ export const isValidQuoteData = (data: BaseData): data is ValidQuoteData => {
 }
 
 export const isValidSwapQuote = (swap: Swap): swap is SwapQuote => {
-    return !(!swap.srcData.cell || !swap.estDstAmount || swap.estDstAmount === BigInt(0) || !swap.minDstAmount || swap.minDstAmount === BigInt(0)) && swap.hops.length > 0 && swap.hops.every((hop) => isValidHopQuote(hop))
+    return !(!swap.srcData.cell || !swap.estDstAmount || swap.estDstAmount === BigInt(0) || !swap.minDstAmount || swap.minDstAmount === BigInt(0) || !isValidSwapFeeData(swap.feeData)) && swap.hops.length > 0 && swap.hops.every((hop) => isValidHopQuote(hop))
 }
 
 export const isValidInitiateSwapQuote = (swap: Swap): swap is InitiateSwapQuote => {
@@ -346,6 +366,14 @@ export interface HopQueryResult {
 export interface HopQueryData {
     apiQuery?: HopApiQuery,
     contractQuery?: HopContractQuery,
+}
+
+export interface SwapFeeQuery {
+    chainId: ChainId,
+    address: Address,
+    abi: CellAbiType,
+    functionName: "calculateFees",
+    args: [CellInstructions, bigint],
 }
 
 ////////////////////////////////////////////////////////////////////////////////

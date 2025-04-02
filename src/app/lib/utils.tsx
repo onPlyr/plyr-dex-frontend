@@ -1,7 +1,8 @@
 import { QueryStatus } from "@tanstack/react-query"
-import { BaseError, ContractFunctionRevertedError } from "viem"
+import { Address, BaseError, ContractFunctionRevertedError, isAddress, isAddressEqual } from "viem"
 
 import { TxStatusLabel } from "@/app/config/txs"
+import { ReadContractErrorData } from "@/app/types/utils"
 
 export const isEqualObj = (objA?: object, objB?: object) => {
     if (objA === undefined && objB === undefined) {
@@ -35,6 +36,14 @@ export const getParsedError = (error: any): string => {
     return parsed?.message ?? "An unknown error occurred"
 }
 
+export const getParsedReadContractError = (...results: ReadContractErrorData[]) => {
+    const errors = results.map((data) => data.error).filter((error) => !!error)
+    if (errors.length === 0) {
+        return ""
+    }
+    return results.filter((data) => !!data.error).map((data) => getParsedError(data.error)).join(" / ")
+}
+
 export const setTimeoutPromise = async (delay: number) => {
     return new Promise(resolve => setTimeout(resolve, delay))
 }
@@ -46,4 +55,12 @@ export const getMutatedObject = <T,>(
     sortCompareFunction?: (a: [string, T], b: [string, T]) => number,
 ) => {
     return Object.fromEntries((sortCompareFunction ? Object.entries(obj).sort((a, b) => sortCompareFunction(a, b)) : Object.entries(obj)).map(([key, value]) => [key, mutateFunction(value)]))
+}
+
+export const isValidAddress = (address?: string, strict: boolean = false): address is Address => {
+    return address ? isAddress(address, { strict: strict }) : false
+}
+
+export const isEqualAddress = (a?: string, b?: string, strict: boolean = false) => {
+    return isValidAddress(a, strict) && isValidAddress(b, strict) && isAddressEqual(a, b)
 }

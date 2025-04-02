@@ -1,12 +1,13 @@
 import { Address, Hex } from "viem"
 
 import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
-import { hopOnlyCellAbi } from "@/app/abis/cells/hopOnly"
-import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
-import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
+import { hopOnlyCellAbi, hopOnlyCellAbiTestnet } from "@/app/abis/cells/hopOnly"
+import { uniV2CellAbi, uniV2CellAbiTestnet } from "@/app/abis/cells/uniV2"
+import { yakSwapCellAbi, yakSwapCellAbiTestnet } from "@/app/abis/cells/yakSwap"
 import { ApiProvider, ApiRoute } from "@/app/types/apis"
 import { DexalotFirmQuoteOrder } from "@/app/types/dexalot"
-import { HopType } from "@/app/types/swaps"
+import { HopType, SwapSource } from "@/app/types/swaps"
+import { WithRequired } from "@/app/types/utils"
 
 export enum CellType {
     HopOnly = "hopOnly",
@@ -77,7 +78,9 @@ export interface CellTradeData {
     [CellTradeDataParameter.YakSwapFeeBips]?: bigint,
 }
 
-export type CellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbi | typeof uniV2CellAbi | typeof yakSwapCellAbi
+export type TestnetCellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbiTestnet | typeof uniV2CellAbiTestnet | typeof yakSwapCellAbiTestnet
+export type MainnetCellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbi | typeof uniV2CellAbi | typeof yakSwapCellAbi
+export type CellAbiType = TestnetCellAbiType | MainnetCellAbiType
 
 ////////////////////////////////////////////////////////////////////////////////
 // cell interfaces
@@ -90,6 +93,19 @@ export const CellHopAction = {
     [HopType.SwapAndTransfer]: 3,
 } as const
 export type CellHopAction = (typeof CellHopAction)[keyof typeof CellHopAction]
+
+export const CellSwapSource = {
+    [SwapSource.Tesseract]: BigInt(1),
+} as const
+export type CellSwapSource = (typeof CellSwapSource)[keyof typeof CellSwapSource]
+
+// The fixedNativeFee is a native token amount of that chain. You will need to add that to the value of the Initiate transaction.
+// The baseFee is a tokenIn amount. You will need to add that to the approve value before Initiate.
+export const CellFeeType = {
+    FixedNative: "fixedNativeFee",
+    Base: "baseFee",
+} as const
+export type CellFeeType = (typeof CellFeeType)[keyof typeof CellFeeType]
 
 /**
 * @notice Defines the complete path for cross-chain token bridging
@@ -143,12 +159,23 @@ export type CellHop = {
 * @param rollbackGasLimit Gas limit for rollback operations
 * @param hops Ordered array of Hop structures defining the complete operation path
 */
-export type CellInstructions = {
+
+interface BaseCellInstructions {
     receiver: Address,
     payableReceiver: boolean,
     rollbackTeleporterFee: bigint,
     rollbackGasLimit: bigint,
     hops: CellHop[],
+    sourceId?: CellSwapSource,
 }
+export type CellInstructions = BaseCellInstructions | WithRequired<BaseCellInstructions, "sourceId">
+
+// export type CellInstructions = {
+//     receiver: Address,
+//     payableReceiver: boolean,
+//     rollbackTeleporterFee: bigint,
+//     rollbackGasLimit: bigint,
+//     hops: CellHop[],
+// }
 
 ////////////////////////////////////////////////////////////////////////////////

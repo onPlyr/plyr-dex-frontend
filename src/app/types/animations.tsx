@@ -6,6 +6,7 @@ export interface AnimationVariants {
     exit?: Variant,
 }
 
+// todo: remove the below + delays, both are duplicating what's in variants already
 export interface AnimationTransitions {
     initial?: Transition,
     animate?: Transition,
