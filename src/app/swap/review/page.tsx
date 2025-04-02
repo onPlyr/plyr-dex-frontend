@@ -336,7 +336,7 @@ const ReviewSwapPage = () => {
 
     const isInProgress = balanceIsInProgress || allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
 
-    console.log('srcBalance', srcBalance)
+    //console.log('srcBalance', srcBalance)
 
     const { errorMsg, isConnectError } = getInitiateSwapError({
         action: InitiateSwapAction.Initiate,
