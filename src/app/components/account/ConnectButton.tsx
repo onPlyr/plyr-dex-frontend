@@ -15,6 +15,7 @@ const ConnectButton = React.forwardRef<React.ComponentRef<typeof Button>, React.
     const { openConnectModal } = useConnectModal()
 
     return (
+        //@ts-ignore
         <Button
             ref={ref}
             onClick={openConnectModal?.bind(this)}
