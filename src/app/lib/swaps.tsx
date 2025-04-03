@@ -18,7 +18,7 @@ import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/a
 import { BridgeProvider } from "@/app/types/bridges"
 import { CellFeeType, CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
-import { NetworkMode, SlippageConfig } from "@/app/types/preferences"
+import { SlippageConfig } from "@/app/types/preferences"
 import {
     GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnData, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
     isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapId, SwapQuote,
@@ -272,7 +272,6 @@ export const getSwapQuoteData = async ({
     cellRouteData,
     getToken,
     getSupportedTokenById,
-    networkMode,
 }: {
     route: SwapRoute,
     getApiTokenPair: GetApiTokenPairFunction,
@@ -280,7 +279,6 @@ export const getSwapQuoteData = async ({
     cellRouteData?: CellRouteData,
     getToken: GetTokenFunction,
     getSupportedTokenById: GetSupportedTokenByIdFunction,
-    networkMode: NetworkMode,
 }): Promise<GetSwapQuoteDataReturnType> => {
 
     const swapQuoteData: GetSwapQuoteDataReturnType = {}
@@ -306,7 +304,6 @@ export const getSwapQuoteData = async ({
         const feeData = await getQuoteFeeData({
             route: route,
             hopData: initialHopData,
-            networkMode: networkMode,
         })
 
         const { data: validHopData, error: quoteError } = await getValidHopQuoteData({
@@ -317,7 +314,6 @@ export const getSwapQuoteData = async ({
             slippageBps: slippageBps,
             cellRouteData: cellRouteData,
             getSupportedTokenById: getSupportedTokenById,
-            networkMode: networkMode,
         })
 
         if (quoteError || !validHopData) {
@@ -520,21 +516,18 @@ export const getInitialHopQuoteData = ({
 export const getQuoteFeeData = async ({
     route,
     hopData,
-    networkMode,
 }: {
     route: SwapRoute,
     hopData: Record<SwapId, HopQuote[]>,
-    networkMode: NetworkMode,
 }) => {
 
-    const isTestnet = networkMode === NetworkMode.Testnet
     const quoteIds = Object.keys(hopData)
     const quoteFeeData: Map<SwapId, SwapFeeData> = new Map(quoteIds.map((swapId) => [swapId, {
-        [CellFeeType.FixedNative]: isTestnet ? BigInt(0) : undefined,
-        [CellFeeType.Base]: isTestnet ? BigInt(0) : undefined,
+        [CellFeeType.FixedNative]: undefined,
+        [CellFeeType.Base]: undefined,
     }]))
 
-    if (!isValidSwapRoute(route) || !quoteFeeData.size || isTestnet) {
+    if (!isValidSwapRoute(route) || !quoteFeeData.size) {
         return quoteFeeData
     }
 
@@ -545,12 +538,11 @@ export const getQuoteFeeData = async ({
         Object.entries(hopData).forEach(([swapId, hops]) => {
 
             const cell = hops.find((hop) => hop.index === 0)?.srcData.cell
-            const abi = getCellAbi(cell, networkMode)
+            const abi = getCellAbi(cell)
             const instructions = cell && abi && getQuoteCellInstructions({
                 route: route,
                 cell: cell,
                 hops: hops,
-                networkMode: networkMode,
             })
 
             if (cell && abi && instructions) {
@@ -589,7 +581,6 @@ export const getValidHopQuoteData = async ({
     slippageBps,
     cellRouteData,
     getSupportedTokenById,
-    networkMode,
 }: {
     hopData: Record<SwapId, HopQuote[]>,
     feeData: Map<SwapId, SwapFeeData>,
@@ -598,7 +589,6 @@ export const getValidHopQuoteData = async ({
     slippageBps?: bigint,
     cellRouteData?: CellRouteData,
     getSupportedTokenById: GetSupportedTokenByIdFunction,
-    networkMode: NetworkMode,
 }): Promise<GetValidHopQuoteDataReturnType> => {
 
     const quoteIds = Object.keys(hopData)
@@ -694,7 +684,6 @@ export const getValidHopQuoteData = async ({
                     getApiTokenPair: getApiTokenPair,
                     cellRouteData: cellRouteData,
                     getSupportedTokenById: getSupportedTokenById,
-                    networkMode: networkMode,
                 })
 
                 if (hop.srcData.cell.apiData && apiQuery) {
@@ -862,13 +851,11 @@ export const getHopQueryData = ({
     getApiTokenPair,
     cellRouteData,
     getSupportedTokenById,
-    networkMode,
 }: {
     hop: Hop,
     getApiTokenPair: GetApiTokenPairFunction,
     cellRouteData?: CellRouteData,
     getSupportedTokenById: GetSupportedTokenByIdFunction,
-    networkMode: NetworkMode,
 }) => {
 
     const queryData: HopQueryData = {}
@@ -913,7 +900,7 @@ export const getHopQueryData = ({
 
     else {
 
-        const abi = getCellAbi(srcData.cell, networkMode)
+        const abi = getCellAbi(srcData.cell)
         const { srcTokenAddress, dstTokenAddress } = getSwapQuoteTokenAddresses(hop, getSupportedTokenById)
         const routeData = getEncodedCellRouteData(srcData.chain, srcData.cell, cellRouteData, false)
 
@@ -1099,8 +1086,6 @@ export const getHopEventData = ({
             address: tokenOut,
             chainId: hop.srcData.chain.id,
         })
-
-        // @ts-ignore
         const tradeDstToken = (tradeDstTokenData?.isUnconfirmed && quoteTokens.get(tradeDstTokenData.uid)) || tradeDstTokenData
         const prevHop = hops.at(hop.index - 1)
 

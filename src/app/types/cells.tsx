@@ -1,13 +1,12 @@
 import { Address, Hex } from "viem"
 
 import { dexalotCellAbi } from "@/app/abis/cells/dexalot"
-import { hopOnlyCellAbi, hopOnlyCellAbiTestnet } from "@/app/abis/cells/hopOnly"
-import { uniV2CellAbi, uniV2CellAbiTestnet } from "@/app/abis/cells/uniV2"
-import { yakSwapCellAbi, yakSwapCellAbiTestnet } from "@/app/abis/cells/yakSwap"
+import { hopOnlyCellAbi } from "@/app/abis/cells/hopOnly"
+import { uniV2CellAbi } from "@/app/abis/cells/uniV2"
+import { yakSwapCellAbi } from "@/app/abis/cells/yakSwap"
 import { ApiProvider, ApiRoute } from "@/app/types/apis"
 import { DexalotFirmQuoteOrder } from "@/app/types/dexalot"
 import { HopType, SwapSource } from "@/app/types/swaps"
-import { WithRequired } from "@/app/types/utils"
 
 export enum CellType {
     HopOnly = "hopOnly",
@@ -78,9 +77,7 @@ export interface CellTradeData {
     [CellTradeDataParameter.YakSwapFeeBips]?: bigint,
 }
 
-export type TestnetCellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbiTestnet | typeof uniV2CellAbiTestnet | typeof yakSwapCellAbiTestnet
-export type MainnetCellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbi | typeof uniV2CellAbi | typeof yakSwapCellAbi
-export type CellAbiType = TestnetCellAbiType | MainnetCellAbiType
+export type CellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbi | typeof uniV2CellAbi | typeof yakSwapCellAbi
 
 ////////////////////////////////////////////////////////////////////////////////
 // cell interfaces
@@ -123,6 +120,7 @@ export type CellFeeType = (typeof CellFeeType)[keyof typeof CellFeeType]
 * @param teleporterFee Primary fee for Teleporter service
 * @param secondaryTeleporterFee Additional fee for multi-hop operations
 */
+
 export type CellBridgePath = {
     bridgeSourceChain: Address,
     sourceBridgeIsNative: boolean,
@@ -142,6 +140,7 @@ export type CellBridgePath = {
 * @param trade Encoded trade data (interpretation depends on action type)
 * @param bridgePath Detailed path information for cross-chain token movement
 */
+
 export type CellHop = {
     action: CellHopAction,
     requiredGasLimit: bigint,
@@ -160,22 +159,13 @@ export type CellHop = {
 * @param hops Ordered array of Hop structures defining the complete operation path
 */
 
-interface BaseCellInstructions {
+export interface CellInstructions {
     receiver: Address,
     payableReceiver: boolean,
     rollbackTeleporterFee: bigint,
     rollbackGasLimit: bigint,
     hops: CellHop[],
-    sourceId?: CellSwapSource,
+    sourceId: CellSwapSource,
 }
-export type CellInstructions = BaseCellInstructions | WithRequired<BaseCellInstructions, "sourceId">
-
-// export type CellInstructions = {
-//     receiver: Address,
-//     payableReceiver: boolean,
-//     rollbackTeleporterFee: bigint,
-//     rollbackGasLimit: bigint,
-//     hops: CellHop[],
-// }
 
 ////////////////////////////////////////////////////////////////////////////////

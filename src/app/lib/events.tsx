@@ -5,13 +5,12 @@ import { getTokenAddress } from "@/app/lib/tokens"
 import { isEqualAddress } from "@/app/lib/utils"
 import { CellHopAction } from "@/app/types/cells"
 import { CellRoutedLog } from "@/app/types/events"
-import { NetworkMode } from "@/app/types/preferences"
 import { HopHistory, isCrossChainHopType } from "@/app/types/swaps"
 import { GetSupportedTokenByIdFunction } from "@/app/types/tokens"
 
-export const getCellRoutedLog = <TStrict extends boolean = true>(receipt?: TransactionReceipt, networkMode?: NetworkMode, strict?: TStrict): CellRoutedLog<TStrict> | undefined => {
+export const getCellRoutedLog = <TStrict extends boolean = true>(receipt?: TransactionReceipt, strict?: TStrict): CellRoutedLog<TStrict> | undefined => {
 
-    if (!receipt || receipt.status !== "success" || networkMode !== NetworkMode.Mainnet) {
+    if (!receipt || receipt.status !== "success") {
         return
     }
 

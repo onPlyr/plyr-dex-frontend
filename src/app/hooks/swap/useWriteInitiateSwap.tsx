@@ -1,15 +1,11 @@
-import { useMemo } from "react"
 import { zeroAddress } from "viem"
 import { useAccount } from "wagmi"
 
 import { NotificationBody, NotificationHeader } from "@/app/components/notifications/SwapHistory"
-import { DefaultUserPreferences } from "@/app/config/preferences"
-import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useWriteTransaction, { WriteTransactionCallbacks } from "@/app/hooks/txs/useWriteTransaction"
 import { getCellAbi, getInitiateCellInstructions } from "@/app/lib/cells"
 import { getInitiateSwapValue } from "@/app/lib/swaps"
 import { NotificationType } from "@/app/types/notifications"
-import { PreferenceType } from "@/app/types/preferences"
 import { SwapQuote } from "@/app/types/swaps"
 
 const useWriteInitiateSwap = ({
@@ -21,12 +17,9 @@ const useWriteInitiateSwap = ({
 }) => {
 
     const { address: accountAddress } = useAccount()
-    const { preferences } = usePreferences()
-    const networkMode = useMemo(() => preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode], [preferences])
-    const abi = getCellAbi(quote?.srcData.cell, networkMode)
+    const abi = getCellAbi(quote?.srcData.cell)
     const instructions = getInitiateCellInstructions({
         quote: quote,
-        networkMode: networkMode,
     })
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({

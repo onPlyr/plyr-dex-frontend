@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { formatUnits } from "viem"
 import { useAccount } from "wagmi"
 
@@ -34,9 +35,11 @@ const AccountPage = () => {
 
     const { getPreference } = usePreferences()
     const currency = getPreference(PreferenceType.Currency)
-    const { tokens, useBalancesData, useTokenPricesData } = useTokens()
+    const { tokens: allTokens, useBalancesData, useTokenPricesData } = useTokens()
     const { getBalance } = useBalancesData
     const { getAmountValue, isInProgress: priceIsInProgress } = useTokenPricesData
+
+    const tokens = useMemo(() => allTokens.filter((token) => Boolean(getBalance(token)?.amount)), [allTokens, getBalance])
     const { filteredTokens } = useTokenFilters(tokens)
 
     const totalValue = tokens.reduce((sum, token) => {

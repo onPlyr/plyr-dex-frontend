@@ -20,6 +20,8 @@ export interface UseTokenFiltersReturnType {
     setSortType: (type?: TokenSortType) => void,
     sortDirection: SortDirection,
     setSortDirection: Dispatch<SetStateAction<SortDirection>>,
+    maxVisibleTokens: number,
+    setMaxVisibleTokens: Dispatch<SetStateAction<number>>,
 }
 
 interface SortFunctionArgs {
@@ -34,6 +36,7 @@ interface SortFunctionArgs {
 }
 type SortFunction = (args: SortFunctionArgs) => number
 
+export const TokenFilterStepSize = 20 as const
 const TokenFilterFields = [
     "symbol",
     "name",
@@ -56,7 +59,7 @@ const valueSortFunction = (args: SortFunctionArgs) => {
     if (isValidTokenAmount(args.aValue) || isValidTokenAmount(args.bValue) || isValidTokenAmount(args.aBalance) || isValidTokenAmount(args.bBalance)) {
         return Number((args.aValue?.amount ?? BigInt(0)) - (args.bValue?.amount ?? BigInt(0))) || (parseFloat(args.aBalance?.formatted ?? "0")) - (parseFloat(args.bBalance?.formatted ?? "0"))
     }
-    return symbolSortFunction(args)
+    return symbolSortFunction({ a: args.b, b: args.a })
 }
 
 const getFilteredAndSortedChains = (networkMode: NetworkMode, tokens: Token[], selectedChainId?: number) => {
@@ -70,18 +73,19 @@ const TokenSortFunctions: Record<TokenSortType, SortFunction> = {
 
 const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
 
-    const { preferences } = usePreferences()
+    const { getPreference } = usePreferences()
     const { useBalancesData, useTokenPricesData, getIsFavouriteToken } = useTokens()
     const { getBalance } = useBalancesData
     const { getAmountValue } = useTokenPricesData
-    const networkMode = useMemo(() => preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode], [preferences])
+    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
 
     const [filteredTokens, setFilteredTokens] = useState(tokens)
     const [filteredChains, setFilteredChains] = useState(getFilteredAndSortedChains(networkMode, filteredTokens))
     const [selectedChainId, setSelectedChainId] = useState<number>()
     const [query, setQuery] = useState<string>()
-    const [sortType, setSortTypeState] = useState(preferences[PreferenceType.TokenSortType] ?? DefaultUserPreferences[PreferenceType.TokenSortType])
+    const [sortType, setSortTypeState] = useState(getPreference(PreferenceType.TokenSortType))
     const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Descending)
+    const [maxVisibleTokens, setMaxVisibleTokens] = useState<number>(TokenFilterStepSize)
 
     const setSortType = useCallback((type?: TokenSortType) => {
         setSortTypeState(type ?? DefaultUserPreferences[PreferenceType.TokenSortType])
@@ -150,6 +154,8 @@ const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
         setSortType: setSortType,
         sortDirection: sortDirection,
         setSortDirection: setSortDirection,
+        maxVisibleTokens: maxVisibleTokens,
+        setMaxVisibleTokens: setMaxVisibleTokens,
     }
 }
 

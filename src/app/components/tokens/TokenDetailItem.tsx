@@ -29,6 +29,7 @@ interface TokenDetailItemProps extends React.ComponentPropsWithoutRef<typeof Sel
 }
 
 export const TokenDetailAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, TokenDetailAnimationProps>(({
+    className,
     initial = "initial",
     animate = "animate",
     exit = "exit",
@@ -64,7 +65,7 @@ export const TokenDetailAnimation = React.forwardRef<React.ComponentRef<typeof m
 }, ref) => (
     <motion.div
         ref={ref}
-        className="overflow-hidden"
+        className={twMerge("overflow-hidden", className)}
         layout={layout}
         layoutDependency={index}
         initial={initial}

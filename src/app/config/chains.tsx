@@ -260,8 +260,8 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
             {
                 ...cellTypeDefinitions[CellType.Dexalot],
-                address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
-                // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
+                // address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
+                address: "0xcab18F63d100845307931ad7040300C7F8F9627a",
             },
         ],
         blockchainId: "0x7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5",
@@ -291,8 +291,8 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "lfj",
             },
             {
-                address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
-                // address: "0x05d9C541CA76635062b3173c76934DA23820ae0E",
+                // address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
+                address: "0xcab18F63d100845307931ad7040300C7F8F9627a",
                 name: "Dexalot",
                 platform: "dexalot",
             },
@@ -304,7 +304,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.UniV2],
-                // address: "0x4C5b32F836017d4686FDB3A7eB129c8642A97495",
                 address: "0x01774D88deeB642b290D0BE0ABe4656BA23D58CB",
             },
         ],
@@ -334,7 +333,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.UniV2],
-                address: "0xcC76c9F36193Ba61BF92020eAc5De177A6cE2E3A",
+                address: "0x33234C8083Ff12AFFa0Fed2c854082296046C59d",
             },
         ],
         blockchainId: "0x59b5bdd59c9a138861e499f871c3cf10f2517394f6ff77f8067430d57e8e9489",
@@ -349,9 +348,9 @@ export const SupportedChains: Record<ChainId, Chain> = {
         },
         adapters: [
             {
-                address: "0xcC76c9F36193Ba61BF92020eAc5De177A6cE2E3A",
-                name: "Uniswap V2",
-                platform: "uniswap",
+                address: "0x33234C8083Ff12AFFa0Fed2c854082296046C59d",
+                name: "PLYR[SWAP]",
+                platform: "plyr",
             },
             {
                 address: "0x41E0e24C4637F254B8039E50c3eFb31c435b8C1D",

@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation"
 import React, { use, useCallback } from "react"
 
 import SlideInOut from "@/app/components/animations/SlideInOut"
+import MinusIcon, { MinusIconVariant } from "@/app/components/icons/MinusIcon"
+import PlusIcon, { PlusIconVariant } from "@/app/components/icons/PlusIcon"
 import { ChainImage } from "@/app/components/images/ChainImage"
 import CustomTokenInput from "@/app/components/tokens/CustomTokenInput"
 import TokenDetailItem, { TokenDetailAnimation } from "@/app/components/tokens/TokenDetailItem"
+import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import SearchInput from "@/app/components/ui/SearchInput"
 import { SelectItemToggle } from "@/app/components/ui/SelectItemToggle"
 import { Tooltip } from "@/app/components/ui/Tooltip"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useAddToken from "@/app/hooks/tokens/useAddToken"
-import useTokenFilters from "@/app/hooks/tokens/useTokenFilters"
+import useTokenFilters, { TokenFilterStepSize } from "@/app/hooks/tokens/useTokenFilters"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { PageType } from "@/app/types/navigation"
 import { Token } from "@/app/types/tokens"
@@ -78,9 +81,7 @@ const SwapSelectPage = ({
     const { select } = use(params)
     const isDst = select === SelectOptions.dst
 
-    // const { swapRoute, setSwapRoute } = useQuoteData()
-    const { swapRoute, setSelectedToken: testSetSelectedToken } = useQuoteData()
-
+    const { swapRoute, setSelectedToken: setSelectedTokenData } = useQuoteData()
     const router = useRouter()
     const selectOnClick = useCallback(() => {
         router.push("/swap")
@@ -90,12 +91,12 @@ const SwapSelectPage = ({
     const selectedToken = isDst ? dstData.token : srcData.token
 
     const setSelectedToken = useCallback((token?: Token) => {
-        testSetSelectedToken(token, isDst)
+        setSelectedTokenData(token, isDst)
         selectOnClick()
-    }, [isDst, testSetSelectedToken, selectOnClick])
+    }, [isDst, setSelectedTokenData, selectOnClick])
 
     const { tokens } = useTokens()
-    const { filteredTokens, filteredChains, selectedChainId, setSelectedChainId, query, setQuery } = useTokenFilters(tokens)
+    const { filteredTokens, filteredChains, selectedChainId, setSelectedChainId, query, setQuery, maxVisibleTokens, setMaxVisibleTokens } = useTokenFilters(tokens)
 
     const handleSearchInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value)
@@ -183,13 +184,13 @@ const SwapSelectPage = ({
                         />
                         <div className="flex flex-col flex-1 overflow-hidden">
                             <AnimatePresence>
-                                {filteredTokens.length > 0 ? filteredTokens.map((token, i) => {
+                                {filteredTokens.length ? filteredTokens.slice(0, maxVisibleTokens).map((token, i) => {
                                     const isSelected = selectedToken && selectedToken.id === token.id && selectedToken.chainId === token.chainId
                                     return (
                                         <TokenDetailAnimation
                                             key={token.uid}
                                             index={i}
-                                            numTokens={filteredTokens.length}
+                                            numTokens={maxVisibleTokens}
                                         >
                                             <TokenDetailItem
                                                 token={token}
@@ -206,6 +207,65 @@ const SwapSelectPage = ({
                                         useAddTokenData={useAddTokenData}
                                         showNotFoundMsg={true}
                                     />
+                                )}
+                            </AnimatePresence>
+                            <AnimatePresence>
+                                {filteredTokens.length && (
+                                    <motion.div
+                                        key="results-options"
+                                        className="flex flex-row flex-1 p-4 gap-4 justify-between items-center text-muted-500"
+                                        initial="hide"
+                                        animate="show"
+                                        exit="hide"
+                                        transition={{
+                                            type: "spring",
+                                            duration: 0.2,
+                                        }}
+                                        variants={{
+                                            show: {
+                                                y: 0,
+                                                opacity: 1,
+                                                height: "auto",
+                                            },
+                                            hide: {
+                                                y: "-50%",
+                                                opacity: 0,
+                                                height: 0,
+                                            },
+                                        }}
+                                    >
+                                        {maxVisibleTokens > TokenFilterStepSize && (
+                                            <Tooltip
+                                                trigger=<Button
+                                                    label="Show Less"
+                                                    className="icon-btn transition hover:text-white"
+                                                    replaceClass={true}
+                                                    onClick={() => setMaxVisibleTokens((prev) => prev - TokenFilterStepSize)}
+                                                >
+                                                    <MinusIcon variant={MinusIconVariant.Circle} />
+                                                </Button>
+                                            >
+                                                Show less
+                                            </Tooltip>
+                                        )}
+                                        <div className="flex flex-row flex-1 justify-center items-center">
+                                            Showing {maxVisibleTokens > filteredTokens.length ? filteredTokens.length : maxVisibleTokens} of {filteredTokens.length}
+                                        </div>
+                                        {filteredTokens.length > maxVisibleTokens && (
+                                            <Tooltip
+                                                trigger=<Button
+                                                    label="Show More"
+                                                    className="icon-btn transition hover:text-white"
+                                                    replaceClass={true}
+                                                    onClick={() => setMaxVisibleTokens((prev) => prev + TokenFilterStepSize)}
+                                                >
+                                                    <PlusIcon variant={PlusIconVariant.Circle} />
+                                                </Button>
+                                            >
+                                                Show more
+                                            </Tooltip>
+                                        )}
+                                    </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>

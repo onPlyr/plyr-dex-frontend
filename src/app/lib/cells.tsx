@@ -1,12 +1,11 @@
 import { AbiParameter, decodeAbiParameters, encodeAbiParameters, Hex, parseUnits, toHex, zeroAddress } from "viem"
 
 import { cellRouteDataParameters, cellTradeDataParameters, cellTradeParameters, CellTypeAbi } from "@/app/config/cells"
-import { DefaultUserPreferences } from "@/app/config/preferences"
 import { defaultGasPriceExponent, defaultMinGasPrice, GasUnits, HopTypeGasUnits, YakSwapConfig } from "@/app/config/swaps"
 import { isNativeBridge } from "@/app/types/bridges"
 import { Cell, CellHopAction, CellInstructions, CellRouteData, CellRouteDataParameter, CellSwapSource, CellTrade, CellTradeData, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
-import { NetworkMode, PreferenceType, SlippageConfig } from "@/app/types/preferences"
+import { SlippageConfig } from "@/app/types/preferences"
 import { HopQuote, isValidInitiateSwapQuote, isValidSwapRoute, SwapQuote, SwapRoute, SwapSource } from "@/app/types/swaps"
 import { TeleporterFee } from "@/app/types/teleporter"
 import { isNativeToken } from "@/app/types/tokens"
@@ -31,8 +30,8 @@ export const getCellRouteDataArgs = (cell?: Cell, routeData?: CellRouteData) => 
     return cell?.routeDataParams !== undefined && cell.routeDataParams.length > 0 && routeData !== undefined ? cell.routeDataParams.map((param) => routeData[param]) : undefined
 }
 
-export const getCellAbi = (cell?: Cell, networkMode?: NetworkMode) => {
-    return cell && CellTypeAbi[cell.type][networkMode ?? DefaultUserPreferences[PreferenceType.NetworkMode]]
+export const getCellAbi = (cell?: Cell) => {
+    return cell && CellTypeAbi[cell.type]
 }
 
 export const getCellRouteData = (chain?: Chain, cell?: Cell, routeData?: CellRouteData, useSlippage?: boolean) => {
@@ -140,11 +139,9 @@ export const getEncodedCellTrade = (cell?: Cell, trade?: CellTrade, tradeParams?
 
 export const getInitiateCellInstructions = ({
     quote,
-    networkMode = DefaultUserPreferences[PreferenceType.NetworkMode],
     swapSource = SwapSource.Tesseract,
 }: {
     quote?: SwapQuote,
-    networkMode?: NetworkMode,
     swapSource?: SwapSource,
 }) => {
 
@@ -157,6 +154,7 @@ export const getInitiateCellInstructions = ({
         payableReceiver: isNativeToken(quote.dstData.token),
         rollbackTeleporterFee: TeleporterFee.Rollback,
         rollbackGasLimit: GasUnits.Est,
+        sourceId: CellSwapSource[swapSource],
         hops: quote.hops.map((hop) => ({
             action: CellHopAction[hop.type],
             requiredGasLimit: HopTypeGasUnits[hop.type].requiredLimitBase + hop.estGasUnits,
@@ -174,10 +172,6 @@ export const getInitiateCellInstructions = ({
         })),
     }
 
-    if (networkMode === NetworkMode.Mainnet) {
-        instructions.sourceId = CellSwapSource[swapSource]
-    }
-
     return instructions
 }
 
@@ -185,13 +179,11 @@ export const getQuoteCellInstructions = ({
     route,
     cell,
     hops,
-    networkMode = DefaultUserPreferences[PreferenceType.NetworkMode],
     swapSource = SwapSource.Tesseract,
 }: {
     route?: SwapRoute,
     cell?: Cell,
     hops?: HopQuote[],
-    networkMode?: NetworkMode,
     swapSource?: SwapSource,
 }) => {
 
@@ -204,6 +196,7 @@ export const getQuoteCellInstructions = ({
         payableReceiver: isNativeToken(route.dstData.token),
         rollbackTeleporterFee: TeleporterFee.Rollback,
         rollbackGasLimit: GasUnits.Est,
+        sourceId: CellSwapSource[swapSource],
         hops: hops.map((hop) => ({
             action: CellHopAction[hop.type],
             requiredGasLimit: HopTypeGasUnits[hop.type].requiredLimitBase + GasUnits.Est,
@@ -219,10 +212,6 @@ export const getQuoteCellInstructions = ({
                 secondaryTeleporterFee: TeleporterFee.Secondary,
             },
         })),
-    }
-
-    if (networkMode === NetworkMode.Mainnet) {
-        instructions.sourceId = CellSwapSource[swapSource]
     }
 
     return instructions

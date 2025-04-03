@@ -232,10 +232,10 @@ const SwapHistoryProvider = ({
 
         try {
 
-            const cellAbi = getCellAbi(hop.srcData.cell, networkMode)
+            const cellAbi = getCellAbi(hop.srcData.cell)
             const prevHop = swap.hops.find((data) => data.index === hop.index - 1)
 
-            const cellRoutedLog = getCellRoutedLog(receipt, networkMode)
+            const cellRoutedLog = getCellRoutedLog(receipt)
             const cellRoutedError = getCellRoutedError({
                 hop: hop,
                 log: cellRoutedLog,
@@ -401,7 +401,7 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [getToken, getNativeToken, getSupportedTokenById, networkMode])
+    }, [getToken, getNativeToken, getSupportedTokenById])
 
     const setHopEventData = useCallback((swap: SwapHistory, hop: HopHistory, receipt: TransactionReceipt) => {
 
@@ -498,7 +498,7 @@ const SwapHistoryProvider = ({
             }
 
             const cell = chain.cells.find((data) => isEqualAddress(data.address, recipient))
-            const abi = getCellAbi(cell, networkMode)
+            const abi = getCellAbi(cell)
 
             if (!cell || !abi) {
                 throw new Error(!cell ? "No Cell" : "No ABI")
@@ -564,7 +564,7 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [getToken, networkMode, setSwapHistory, setHopHistoryLogData, setHopEventData])
+    }, [getToken, setSwapHistory, setHopHistoryLogData, setHopEventData])
 
     const setSwapHopResult = useCallback((swap: SwapHistory, hopIndex: number, receipt: TransactionReceipt, block: Block, msgId: Hex) => {
 
@@ -634,7 +634,7 @@ const SwapHistoryProvider = ({
                 swap.dstLastCheckedBlock = block.number
             }
 
-            const cellAbi = getCellAbi(finalHop.dstData.cell, networkMode)
+            const cellAbi = getCellAbi(finalHop.dstData.cell)
             const bridgeType = getBridgePaths({
                 token: swap.dstData.token,
                 srcChain: finalHop.srcData.chain,
@@ -703,7 +703,7 @@ const SwapHistoryProvider = ({
 
         return error
 
-    }, [networkMode, setSwapHistory])
+    }, [setSwapHistory])
 
     const swapEventQueryMap: EventQueryMap = useMemo(() => getSwapEventQueryMap(swapHistories), [swapHistories])
     const { results: swapEventResultsMap, setResults: setSwapEventResultsMap } = useWatchSwapEvents(swapEventQueryMap)

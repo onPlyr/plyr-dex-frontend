@@ -8,6 +8,21 @@ export const dexalotCellAbi = [
                 "internalType": "address"
             },
             {
+                "name": "wrappedNativeToken",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "teleporterRegistry",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "minTeleporterVersion",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
                 "name": "mainnetRFQAddress",
                 "type": "address",
                 "internalType": "address"
@@ -16,11 +31,6 @@ export const dexalotCellAbi = [
                 "name": "estimatedSwapGas",
                 "type": "uint256",
                 "internalType": "uint256"
-            },
-            {
-                "name": "wrappedNativeToken",
-                "type": "address",
-                "internalType": "address"
             }
         ],
         "stateMutability": "nonpayable"
@@ -86,6 +96,107 @@ export const dexalotCellAbi = [
         "name": "calculateFees",
         "inputs": [
             {
+                "name": "instructions",
+                "type": "tuple",
+                "internalType": "struct Instructions",
+                "components": [
+                    {
+                        "name": "sourceId",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "receiver",
+                        "type": "address",
+                        "internalType": "address"
+                    },
+                    {
+                        "name": "payableReceiver",
+                        "type": "bool",
+                        "internalType": "bool"
+                    },
+                    {
+                        "name": "rollbackTeleporterFee",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "rollbackGasLimit",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "hops",
+                        "type": "tuple[]",
+                        "internalType": "struct Hop[]",
+                        "components": [
+                            {
+                                "name": "action",
+                                "type": "uint8",
+                                "internalType": "enum Action"
+                            },
+                            {
+                                "name": "requiredGasLimit",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                            },
+                            {
+                                "name": "recipientGasLimit",
+                                "type": "uint256",
+                                "internalType": "uint256"
+                            },
+                            {
+                                "name": "trade",
+                                "type": "bytes",
+                                "internalType": "bytes"
+                            },
+                            {
+                                "name": "bridgePath",
+                                "type": "tuple",
+                                "internalType": "struct BridgePath",
+                                "components": [
+                                    {
+                                        "name": "bridgeSourceChain",
+                                        "type": "address",
+                                        "internalType": "address"
+                                    },
+                                    {
+                                        "name": "sourceBridgeIsNative",
+                                        "type": "bool",
+                                        "internalType": "bool"
+                                    },
+                                    {
+                                        "name": "bridgeDestinationChain",
+                                        "type": "address",
+                                        "internalType": "address"
+                                    },
+                                    {
+                                        "name": "cellDestinationChain",
+                                        "type": "address",
+                                        "internalType": "address"
+                                    },
+                                    {
+                                        "name": "destinationBlockchainID",
+                                        "type": "bytes32",
+                                        "internalType": "bytes32"
+                                    },
+                                    {
+                                        "name": "teleporterFee",
+                                        "type": "uint256",
+                                        "internalType": "uint256"
+                                    },
+                                    {
+                                        "name": "secondaryTeleporterFee",
+                                        "type": "uint256",
+                                        "internalType": "uint256"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "name": "amount",
                 "type": "uint256",
                 "internalType": "uint256"
@@ -101,6 +212,25 @@ export const dexalotCellAbi = [
                 "name": "baseFee",
                 "type": "uint256",
                 "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "calculateTesseractID",
+        "inputs": [
+            {
+                "name": "nonce",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bytes32",
+                "internalType": "bytes32"
             }
         ],
         "stateMutability": "view"
@@ -133,6 +263,19 @@ export const dexalotCellAbi = [
     },
     {
         "type": "function",
+        "name": "getMinTeleporterVersion",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "initiate",
         "inputs": [
             {
@@ -150,6 +293,11 @@ export const dexalotCellAbi = [
                 "type": "tuple",
                 "internalType": "struct Instructions",
                 "components": [
+                    {
+                        "name": "sourceId",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
                     {
                         "name": "receiver",
                         "type": "address",
@@ -247,6 +395,25 @@ export const dexalotCellAbi = [
     },
     {
         "type": "function",
+        "name": "isTeleporterAddressPaused",
+        "inputs": [
+            {
+                "name": "teleporterAddress",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool",
+                "internalType": "bool"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "mainnetRFQ",
         "inputs": [],
         "outputs": [
@@ -270,6 +437,42 @@ export const dexalotCellAbi = [
             }
         ],
         "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "pauseTeleporterAddress",
+        "inputs": [
+            {
+                "name": "teleporterAddress",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "receiveTeleporterMessage",
+        "inputs": [
+            {
+                "name": "sourceBlockchainID",
+                "type": "bytes32",
+                "internalType": "bytes32"
+            },
+            {
+                "name": "originSenderAddress",
+                "type": "address",
+                "internalType": "address"
+            },
+            {
+                "name": "message",
+                "type": "bytes",
+                "internalType": "bytes"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
     },
     {
         "type": "function",
@@ -429,10 +632,49 @@ export const dexalotCellAbi = [
     },
     {
         "type": "function",
+        "name": "teleporterRegistry",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "contract TeleporterRegistry"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "tesseractIDNonce",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "transferOwnership",
         "inputs": [
             {
                 "name": "newOwner",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "unpauseTeleporterAddress",
+        "inputs": [
+            {
+                "name": "teleporterAddress",
                 "type": "address",
                 "internalType": "address"
             }
@@ -472,6 +714,19 @@ export const dexalotCellAbi = [
         "inputs": [
             {
                 "name": "newFixedFee",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "updateMinTeleporterVersion",
+        "inputs": [
+            {
+                "name": "version",
                 "type": "uint256",
                 "internalType": "uint256"
             }
@@ -526,6 +781,12 @@ export const dexalotCellAbi = [
                 "type": "address",
                 "indexed": true,
                 "internalType": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
             }
         ],
         "anonymous": false
@@ -569,6 +830,85 @@ export const dexalotCellAbi = [
     },
     {
         "type": "event",
+        "name": "CellRouted",
+        "inputs": [
+            {
+                "name": "tesseractID",
+                "type": "bytes32",
+                "indexed": true,
+                "internalType": "bytes32"
+            },
+            {
+                "name": "messageID",
+                "type": "bytes32",
+                "indexed": true,
+                "internalType": "bytes32"
+            },
+            {
+                "name": "action",
+                "type": "uint8",
+                "indexed": false,
+                "internalType": "enum Action"
+            },
+            {
+                "name": "transferrer",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "destinationBlockchainID",
+                "type": "bytes32",
+                "indexed": false,
+                "internalType": "bytes32"
+            },
+            {
+                "name": "destinationCell",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
+                "name": "destinationTransferrer",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
+                "name": "tokenIn",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
+                "name": "amountIn",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "tokenOut",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
+                "name": "amountOut",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "DexalotCellSwap",
+        "inputs": [],
+        "anonymous": false
+    },
+    {
+        "type": "event",
         "name": "FeeCollectorUpdated",
         "inputs": [
             {
@@ -598,21 +938,76 @@ export const dexalotCellAbi = [
         "name": "Initiated",
         "inputs": [
             {
-                "name": "sender",
+                "name": "tesseractId",
+                "type": "bytes32",
+                "indexed": true,
+                "internalType": "bytes32"
+            },
+            {
+                "name": "sourceId",
+                "type": "uint256",
+                "indexed": true,
+                "internalType": "uint256"
+            },
+            {
+                "name": "origin",
                 "type": "address",
                 "indexed": true,
                 "internalType": "address"
             },
             {
+                "name": "sender",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
+                "name": "receiver",
+                "type": "address",
+                "indexed": false,
+                "internalType": "address"
+            },
+            {
                 "name": "token",
                 "type": "address",
-                "indexed": true,
+                "indexed": false,
                 "internalType": "address"
             },
             {
                 "name": "amount",
                 "type": "uint256",
                 "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "nativeFeeAmount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            },
+            {
+                "name": "baseFeeAmount",
+                "type": "uint256",
+                "indexed": false,
+                "internalType": "uint256"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "MinTeleporterVersionUpdated",
+        "inputs": [
+            {
+                "name": "oldMinTeleporterVersion",
+                "type": "uint256",
+                "indexed": true,
+                "internalType": "uint256"
+            },
+            {
+                "name": "newMinTeleporterVersion",
+                "type": "uint256",
+                "indexed": true,
                 "internalType": "uint256"
             }
         ],
@@ -683,13 +1078,26 @@ export const dexalotCellAbi = [
     },
     {
         "type": "event",
-        "name": "ValidationFailed",
+        "name": "TeleporterAddressPaused",
         "inputs": [
             {
-                "name": "reason",
-                "type": "string",
+                "name": "teleporterAddress",
+                "type": "address",
                 "indexed": true,
-                "internalType": "string"
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    {
+        "type": "event",
+        "name": "TeleporterAddressUnpaused",
+        "inputs": [
+            {
+                "name": "teleporterAddress",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
             }
         ],
         "anonymous": false
@@ -738,6 +1146,33 @@ export const dexalotCellAbi = [
     {
         "type": "error",
         "name": "InvalidSender",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "OwnableInvalidOwner",
+        "inputs": [
+            {
+                "name": "owner",
+                "type": "address",
+                "internalType": "address"
+            }
+        ]
+    },
+    {
+        "type": "error",
+        "name": "OwnableUnauthorizedAccount",
+        "inputs": [
+            {
+                "name": "account",
+                "type": "address",
+                "internalType": "address"
+            }
+        ]
+    },
+    {
+        "type": "error",
+        "name": "ReentrancyGuardReentrantCall",
         "inputs": []
     },
     {

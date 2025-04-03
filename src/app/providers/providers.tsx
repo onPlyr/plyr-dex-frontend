@@ -81,9 +81,11 @@ export const Providers = ({ children }: { children: ReactNode }) => {
                     <WagmiProvider config={wagmiConfig}>
                         {persister && <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
                             <RainbowKitProvider showRecentTransactions={true} theme={darkTheme()}>
-                                <QueryDataProviders>
-                                    {children}
-                                </QueryDataProviders>
+                                <ApiDataProviders>
+                                    <QueryDataProviders>
+                                        {children}
+                                    </QueryDataProviders>
+                                </ApiDataProviders>
                             </RainbowKitProvider>
                             <ReactQueryDevtools initialIsOpen={false} />
                         </PersistQueryClientProvider>}

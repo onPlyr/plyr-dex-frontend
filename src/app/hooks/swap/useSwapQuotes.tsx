@@ -11,7 +11,7 @@ import { getSwapQuoteData } from "@/app/lib/swaps"
 import { getParsedError } from "@/app/lib/utils"
 import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
 import { CellRouteData, CellRouteDataParameter } from "@/app/types/cells"
-import { NetworkMode, PreferenceType } from "@/app/types/preferences"
+import { PreferenceType } from "@/app/types/preferences"
 import { isValidSwapRoute, SwapQuoteData, SwapRoute } from "@/app/types/swaps"
 import { GetSupportedTokenByIdFunction, GetTokenFunction } from "@/app/types/tokens"
 
@@ -31,7 +31,6 @@ interface FetchQuotesParameters {
     getSupportedTokenById: GetSupportedTokenByIdFunction,
     getApiTokenPair: GetApiTokenPairFunction,
     cellRouteData: CellRouteData,
-    networkMode: NetworkMode,
 }
 
 const fetchQuotes = async ({
@@ -40,7 +39,6 @@ const fetchQuotes = async ({
     getSupportedTokenById,
     getApiTokenPair,
     cellRouteData,
-    networkMode,
 }: FetchQuotesParameters) => {
 
     try {
@@ -55,7 +53,6 @@ const fetchQuotes = async ({
             cellRouteData: cellRouteData,
             getToken: getToken,
             getSupportedTokenById: getSupportedTokenById,
-            networkMode: networkMode,
         })
 
         if (error || !data) {
@@ -75,12 +72,11 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
     const { getToken, getSupportedTokenById, setCustomToken } = useTokens()
     const { getApiTokenPair } = useApiData()
     const { getPreference } = usePreferences()
-    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
     const cellRouteData: CellRouteData = useMemo(() => ({ [CellRouteDataParameter.SlippageBips]: BigInt(getPreference(PreferenceType.Slippage)) }), [getPreference])
     const enabled = useMemo(() => Boolean(route && isValidSwapRoute(route)), [route])
 
     const queryClient = useQueryClient()
-    const queryKey = useMemo(() => ["quotes", route, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData, networkMode], [route, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData, networkMode])
+    const queryKey = useMemo(() => ["quotes", route, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData], [route, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData])
     const previousQueryKey = usePrevious(queryKey)
 
     const { data, isPending, isFetching, error, status, refetch } = useQuery({
@@ -91,7 +87,6 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
             getSupportedTokenById: getSupportedTokenById,
             getApiTokenPair: getApiTokenPair,
             cellRouteData: cellRouteData,
-            networkMode: networkMode,
         }),
         enabled: enabled,
         staleTime: 0,
