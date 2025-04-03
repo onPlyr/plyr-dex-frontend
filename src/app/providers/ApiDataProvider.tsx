@@ -146,7 +146,7 @@ const ApiDataProvider = ({
                         getApiTokenPair: getApiTokenPair,
                         cellRouteData: cellRouteData,
                         getSupportedTokenById: getSupportedTokenById,
-                        networkMode: networkMode,
+                        //networkMode: networkMode,
                     })
 
                     if (!contractQuery) {
