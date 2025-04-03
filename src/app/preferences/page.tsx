@@ -159,7 +159,7 @@ const PreferencesPage = () => {
                         ))}
                     </div>
                 </div>
-                <div className="flex flex-col flex-1 gap-4">
+                {/* <div className="flex flex-col flex-1 gap-4">
                     <PreferenceHeaderRow
                         label="Network Mode"
                         errorMsg={errorMsgs[PreferenceType.NetworkMode]}
@@ -179,7 +179,7 @@ const PreferencesPage = () => {
                             </SelectItem>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </ScaleInOut>
         </Page>
     )

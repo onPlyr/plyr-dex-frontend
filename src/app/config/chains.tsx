@@ -401,7 +401,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
     },
 } as const
 
-export const defaultNetworkMode = NetworkMode.Testnet
+export const defaultNetworkMode = process.env.NEXT_PUBLIC_NETWORK_MODE === "testnet" ? NetworkMode.Testnet : NetworkMode.Mainnet
 
 const networkModeLabels: Record<NetworkMode, string> = {
     [NetworkMode.Mainnet]: "Mainnet",
