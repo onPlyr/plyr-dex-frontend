@@ -1,4 +1,4 @@
-import { PriceData, PriceResponse, ErrorResponse, ErrorCode } from '../types';
+import { PriceData, PriceResponse, ErrorResponse, ErrorCode } from '@/app/types/prices';
 
 /**
  * Formats a successful price response

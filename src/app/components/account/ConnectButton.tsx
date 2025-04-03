@@ -4,9 +4,9 @@ import { useConnectModal } from "@rainbow-me/rainbowkit"
 import React from "react"
 import { twMerge } from "tailwind-merge"
 
-import Button from "@/app/components/ui/Button"
+import Button, { ButtonProps } from "@/app/components/ui/Button"
 
-const ConnectButton = React.forwardRef<React.ComponentRef<typeof Button>, React.ButtonHTMLAttributes<HTMLButtonElement>>(({
+const ConnectButton = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     className,
     disabled = false,
     ...props
@@ -15,7 +15,6 @@ const ConnectButton = React.forwardRef<React.ComponentRef<typeof Button>, React.
     const { openConnectModal } = useConnectModal()
 
     return (
-        //@ts-ignore
         <Button
             ref={ref}
             onClick={openConnectModal?.bind(this)}

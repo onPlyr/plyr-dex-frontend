@@ -2,7 +2,7 @@ import { motion } from "motion/react"
 import React from "react"
 import { twMerge } from "tailwind-merge"
 
-interface ButtonProps extends React.ComponentPropsWithoutRef<typeof motion.button> {
+export interface ButtonProps extends React.ComponentPropsWithoutRef<typeof motion.button> {
     label?: string,
     replaceClass?: boolean,
     isAnimated?: boolean,

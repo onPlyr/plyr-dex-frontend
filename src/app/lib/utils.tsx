@@ -64,3 +64,16 @@ export const isValidAddress = (address?: string, strict: boolean = false): addre
 export const isEqualAddress = (a?: string, b?: string, strict: boolean = false) => {
     return isValidAddress(a, strict) && isValidAddress(b, strict) && isAddressEqual(a, b)
 }
+
+/**
+ * Gets the base URL for API requests, using the current origin
+ */
+export function getBaseUrl(): string {
+  // In the browser, use the current origin
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // On the server, use the environment variable as fallback
+  return process.env.BASE_API_URL || '';
+}

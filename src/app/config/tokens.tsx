@@ -835,15 +835,39 @@ const baseTokens: BaseToken[] = [
         ],
     },
     {
+        id: "usdc.e",
+        symbol: "USDC.e",
+        name: "Avalanche Bridge USDC",
+        decimals: 6,
+        icon: "usdc.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664",
+            },
+        },
+    },
+    {
         id: "usdt",
         priceId: "usdt.avax",
-        symbol: "USDt",
-        name: "Tether",
+        symbol: "USDT",
+        name: "Native USDT",
         decimals: 6,
         icon: "usdt.svg",
         chains: {
             [avalanche.id]: {
                 address: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+            },
+        },
+    },
+    {
+        id: "usdt.e",
+        symbol: "USDT.e",
+        name: "Avalanche Bridge USDT",
+        decimals: 6,
+        icon: "usdt.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xc7198437980c041c805A1EDcbA50c1Ce5db95118",
             },
         },
     },
@@ -862,7 +886,7 @@ const baseTokens: BaseToken[] = [
     {
         id: "wbtce",
         symbol: "WBTC.e",
-        name: "Wrapped BTC",
+        name: "Avalanche Bridge Wrapped BTC",
         decimals: 8,
         icon: "wbtce.png",
         chains: {
@@ -875,7 +899,7 @@ const baseTokens: BaseToken[] = [
         id: "wethe",
         priceId: "eth.avax",
         symbol: "WETH.e",
-        name: "Wrapped ETH",
+        name: "Avalanche Bridge ETH",
         decimals: 18,
         icon: "wethe.png",
         chains: {

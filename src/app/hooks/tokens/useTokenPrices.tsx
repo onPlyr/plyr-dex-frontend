@@ -4,9 +4,9 @@ import { formatUnits, parseUnits } from "viem"
 
 import { TokenPriceConfig } from "@/app/config/prices"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
-import { PriceResponse } from "@/app/lib/prices/types"
+import { PriceResponse } from "@/app/types/prices"
 import { getInitialTokenAmountDataMap } from "@/app/lib/tokens"
-import { getParsedError } from "@/app/lib/utils"
+import { getParsedError, getBaseUrl } from "@/app/lib/utils"
 import { Currency } from "@/app/types/currency"
 import { PreferenceType } from "@/app/types/preferences"
 import { GetTokenAmountFunction, GetTokenAmountValueFunction, isValidTokenAmount, Token, TokenAmount, TokenAmountDataMap, TokenUid } from "@/app/types/tokens"
@@ -32,7 +32,18 @@ interface FetchPricesParameters {
 }
 
 const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiIdPrefix, separator: string = ":") => {
-    return (token.priceId ? `${prefix}${separator}${token.priceId}` : token.uid).toLowerCase()
+    if (token.isCustomToken) {
+        if (!token.uid) {
+            console.warn('[getPriceApiTokenId] Custom token has no uid');
+            return "";
+        }
+        return token.uid.toLowerCase();
+    }
+    if (!token.id) {
+        console.warn('[getPriceApiTokenId] Token has no id');
+        return `${prefix}${separator}undefined`.toLowerCase();
+    }
+    return `${prefix}${separator}${token.id}`.toLowerCase();
 }
 
 const fetchPrices = async ({
@@ -46,29 +57,50 @@ const fetchPrices = async ({
 
     try {
 
-        if (!tokens.length) {
-            return prices
+        if (!tokens || !tokens.length) {
+            return prices;
         }
 
-        const tokenIdData: TokenIdMap = new Map(tokens.map((token) => [token.uid, getPriceApiTokenId(token)]))
+        // Filter out any invalid tokens
+        const validTokens = tokens.filter(token => token && token.uid);
+        if (validTokens.length !== tokens.length) {
+            console.warn(`[fetchPrices] Filtered out ${tokens.length - validTokens.length} invalid tokens`);
+        }
+        
+        const tokenIdData: TokenIdMap = new Map(validTokens.map((token) => {
+            const apiId = getPriceApiTokenId(token);
+            return [token.uid, apiId];
+        }));
         const tokenApiIds = Array.from(new Set(tokenIdData.values()))
 
         const urlParams = new URLSearchParams({
             tokens: tokenApiIds.join(","),
-            currency: currency,
+            currency: "usd", // todo: use currency from preferences
         })
 
         if (sources && sources.length > 0) {
             urlParams.append("sources", sources.join(","))
         }
 
-        const url = new URL(`/api/prices/?${urlParams}`, process.env.NEXT_PUBLIC_BASE_API_URL)
+        const baseUrl = getBaseUrl();
+        const apiPath = baseUrl.endsWith('/api') ? '' : '/api';
+        const url = new URL(`${apiPath}/prices/?${urlParams}`, baseUrl);
+        
         const response = await fetch(url.href)
+        
         if (!response.ok) {
+            console.error(`[fetchPrices] API error: ${response.status} ${response.statusText}`);
+            try {
+                const errorText = await response.text();
+                console.error(`[fetchPrices] Error details: ${errorText}`);
+            } catch (err) {
+                console.error(`[fetchPrices] Could not read error details:`, err);
+            }
             throw new Error(`Failed to fetch token prices: ${response.statusText}`)
         }
 
         const responseData: PriceResponse = await response.json()
+        
         if (!responseData.data.prices) {
             throw new Error(`Invalid API response structure: missing data.prices`)
         }
@@ -89,6 +121,7 @@ const fetchPrices = async ({
     }
 
     catch (err) {
+        console.error(`[fetchPrices] Error:`, err);
         throw new Error(getParsedError(err))
     }
 

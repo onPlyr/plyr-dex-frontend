@@ -3,7 +3,7 @@ import { Address, isAddress } from "viem"
 import { ApiProviderData } from "@/app/config/apis"
 import { SupportedChains } from "@/app/config/chains"
 import { Tokens } from "@/app/config/tokens"
-import { isEqualAddress } from "@/app/lib/utils"
+import { isEqualAddress, getBaseUrl } from "@/app/lib/utils"
 import { ApiProvider, ApiRoute, ApiRouteType, ApiTokenPairName, BaseApiData } from "@/app/types/apis"
 
 export const getApiParamsData = ({
@@ -99,5 +99,5 @@ export const getApiUrl = ({
         return
     }
 
-    return new URL(`${routePath}?${params ? new URLSearchParams([...Object.entries(params)]).toString() : ""}`, type === ApiRouteType.Api ? ApiProviderData[provider].baseApiUrl : process.env.NEXT_PUBLIC_BASE_API_URL)
+    return new URL(`${routePath}?${params ? new URLSearchParams([...Object.entries(params)]).toString() : ""}`, type === ApiRouteType.Api ? ApiProviderData[provider].baseApiUrl : getBaseUrl())
 }

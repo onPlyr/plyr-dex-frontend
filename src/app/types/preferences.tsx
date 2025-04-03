@@ -29,12 +29,12 @@ export interface ValidUserPreferences {
 export type UserPreferences = ValidUserPreferences | Partial<ValidUserPreferences>
 
 export const SlippageConfig = {
-    DefaultBps: 50,
+    DefaultBps: 25,
     BpsOptions: [
         {
-            bps: 10,
-            percent: 0.1,
-            label: "0.1%",
+            bps: 25,
+            percent: 0.25,
+            label: "0.25%",
         },
         {
             bps: 50,
