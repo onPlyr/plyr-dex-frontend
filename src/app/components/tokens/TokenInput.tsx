@@ -53,16 +53,14 @@ export interface TokenSelectDetailProps extends React.ComponentPropsWithoutRef<t
 
 const getMinTokenAmountBuffer = (route: SwapRoute, percent: number, token?: Token, balance?: TokenAmount, feeData?: SwapFeeData) => {
 
-    if (percent !== 100 || !token || !isValidTokenAmount(balance)) {
+    if (percent !== 100 || !token || !isNativeToken(token) || !isValidTokenAmount(balance)) {
         return BigInt(0)
     }
 
-    const isNative = isNativeToken(token)
-    const estGasFee = (isNative && getSwapRouteEstGasFee(route)) || BigInt(0)
-    const fixedFee = isNative ? feeData?.[CellFeeType.FixedNative] || parseUnits((route.srcData.chain?.defaultFixedNativeFee || SwapQuoteConfig.DefaultFixedNativeFee).toString(), token.decimals) : BigInt(0)
-    const baseFee = feeData?.[CellFeeType.Base] || (balance.amount * BigInt(SwapQuoteConfig.DefaultBaseFeeBps) / BigInt(10000))
+    const estGasFee = getSwapRouteEstGasFee(route) || BigInt(0)
+    const fixedFee = feeData?.[CellFeeType.FixedNative] || parseUnits((route.srcData.chain?.defaultFixedNativeFee || SwapQuoteConfig.DefaultFixedNativeFee).toString(), token.decimals)
 
-    return estGasFee + fixedFee + baseFee
+    return estGasFee + fixedFee
 }
 
 const TokenInputPercentButtons = React.forwardRef<HTMLDivElement, TokenInputPercentButtonsProps>(({

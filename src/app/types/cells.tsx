@@ -77,7 +77,7 @@ export interface CellTradeData {
     [CellTradeDataParameter.YakSwapFeeBips]?: bigint,
 }
 
-export type CellAbiType = typeof dexalotCellAbi | typeof hopOnlyCellAbi | typeof uniV2CellAbi | typeof yakSwapCellAbi
+export type CellAbiType = typeof hopOnlyCellAbi | typeof uniV2CellAbi | typeof yakSwapCellAbi | typeof dexalotCellAbi
 
 ////////////////////////////////////////////////////////////////////////////////
 // cell interfaces

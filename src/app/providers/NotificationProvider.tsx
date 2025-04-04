@@ -7,19 +7,17 @@ import { Hash } from "viem"
 import { NotificationContainer, NotificationContent } from "@/app/components/ui/Notification"
 import { Notification } from "@/app/types/notifications"
 
-interface NotificationData {
-    [id: string]: Notification,
+interface GetNotificationArgs {
+    id?: string,
+    txHash?: Hash,
 }
 
+type GetNotificationFunction = (args: GetNotificationArgs) => Notification | undefined
+type NotificationDataMap = Map<string, Notification>
+
 interface NotificationContextType {
-    data: NotificationData,
-    getNotification: ({
-        id,
-        txHash,
-    }: {
-        id?: string,
-        txHash?: Hash,
-    }) => Notification | undefined,
+    data: NotificationDataMap,
+    getNotification: GetNotificationFunction,
     setNotification: (notification?: Notification) => void,
     removeNotification: (id?: string) => void,
 }
@@ -33,39 +31,20 @@ const NotificationProvider = ({
 }) => {
 
     const [container, setContainer] = useState<HTMLDivElement | null>(null)
-    const [notificationData, setNotificationData] = useState<NotificationData>({})
-
-    const getNotification = useCallback(({
-        id,
-        txHash,
-    }: {
-        id?: string,
-        txHash?: Hash,
-    }) => {
-
-        const byId = id ? notificationData[id] : undefined
-        const byTxHash = txHash && !byId ? Object.values(notificationData).find((data) => data.txHash && data.txHash.toLowerCase() === txHash.toLowerCase()) : undefined
-
-        return byId ?? byTxHash
-
-    }, [notificationData])
+    const [notificationData, setNotificationData] = useState<NotificationDataMap>(new Map([]))
+    const getNotification: GetNotificationFunction = useCallback(({ id, txHash }) => (id && notificationData.get(id)) || (txHash && Array.from(notificationData.values()).find((notification) => notification.txHash && notification.txHash === txHash)), [notificationData])
 
     const setNotification = useCallback((notification?: Notification) => {
         if (notification) {
-            setNotificationData((prevData) => {
-                return {
-                    ...prevData,
-                    [notification.id]: notification,
-                }
-            })
+            setNotificationData((prev) => new Map(prev).set(notification.id, notification))
         }
     }, [setNotificationData])
 
     const removeNotification = useCallback((id?: string) => {
         if (id) {
-            setNotificationData((prevData) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { [id]: _, ...data } = prevData
+            setNotificationData((prev) => {
+                const data = new Map(prev)
+                data.delete(id)
                 return data
             })
         }
@@ -83,7 +62,7 @@ const NotificationProvider = ({
             {children}
             <NotificationContainer ref={setContainer}>
                 <AnimatePresence mode="popLayout">
-                    {Object.values(notificationData).map((notification) => (
+                    {Array.from(notificationData.values()).map((notification) => (
                         <NotificationContent
                             key={notification.id}
                             notification={notification}

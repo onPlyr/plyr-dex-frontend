@@ -18,9 +18,7 @@ const useWriteInitiateSwap = ({
 
     const { address: accountAddress } = useAccount()
     const abi = getCellAbi(quote?.srcData.cell)
-    const instructions = getInitiateCellInstructions({
-        quote: quote,
-    })
+    const instructions = getInitiateCellInstructions(quote)
 
     const { data: txHash, txReceipt, status, writeTransaction, isInProgress } = useWriteTransaction({
         params: {
@@ -29,7 +27,7 @@ const useWriteInitiateSwap = ({
             address: quote?.srcData.cell.address,
             abi: abi,
             functionName: "initiate",
-            args: [quote?.srcData.token.address || zeroAddress, quote?.srcAmount, instructions!],
+            args: [quote?.srcData.token.address || zeroAddress, quote?.srcAmount, instructions],
             value: getInitiateSwapValue(quote),
         },
         callbacks: callbacks,

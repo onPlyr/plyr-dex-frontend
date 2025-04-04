@@ -2,7 +2,7 @@
 
 import React from "react"
 import { twMerge } from "tailwind-merge"
-import { formatUnits, parseUnits } from "viem"
+import { formatUnits } from "viem"
 
 import DurationIcon from "@/app/components/icons/DurationIcon"
 import GasIcon from "@/app/components/icons/GasIcon"
@@ -46,10 +46,9 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
     const { getNativeToken, useTokenPricesData } = useTokens()
     const { getAmountValue } = useTokenPricesData
     const nativeToken = getNativeToken(quote.srcData.chain.id)
-    const gasFeeAmount = parseUnits(quote.estGasFee.toString(), quote.srcData.chain.gasPriceExponent)
     const gasFeeValue = nativeToken && getAmountValue(nativeToken, {
-        amount: gasFeeAmount,
-        formatted: formatUnits(gasFeeAmount, nativeToken.decimals)
+        amount: quote.estGasFee,
+        formatted: formatUnits(quote.estGasFee, quote.srcData.chain.gasPriceExponent)
     })
 
     return (
@@ -151,7 +150,7 @@ const SwapQuotePreviewSummary = React.forwardRef<HTMLDivElement, SwapQuotePrevie
                     <DecimalAmount
                         amount={quote.estGasFee}
                         symbol={quote.srcData.chain.nativeCurrency.symbol}
-                        decimals={quote.srcData.chain.gasPriceExponent}
+                        decimals={quote.srcData.chain.nativeCurrency.decimals}
                         type={NumberFormatType.Precise}
                         className="font-bold"
                     />

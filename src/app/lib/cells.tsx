@@ -137,19 +137,13 @@ export const getEncodedCellTrade = (cell?: Cell, trade?: CellTrade, tradeParams?
     return encodeAbiParameters(params, [args])
 }
 
-export const getInitiateCellInstructions = ({
-    quote,
-    swapSource = SwapSource.Tesseract,
-}: {
-    quote?: SwapQuote,
-    swapSource?: SwapSource,
-}) => {
+export const getInitiateCellInstructions = (quote?: SwapQuote, swapSource: SwapSource = SwapSource.Tesseract): CellInstructions | undefined => {
 
     if (!quote || !isValidInitiateSwapQuote(quote)) {
         return
     }
 
-    const instructions: CellInstructions = {
+    return {
         receiver: quote.recipientAddress,
         payableReceiver: isNativeToken(quote.dstData.token),
         rollbackTeleporterFee: TeleporterFee.Rollback,
@@ -171,27 +165,15 @@ export const getInitiateCellInstructions = ({
             },
         })),
     }
-
-    return instructions
 }
 
-export const getQuoteCellInstructions = ({
-    route,
-    cell,
-    hops,
-    swapSource = SwapSource.Tesseract,
-}: {
-    route?: SwapRoute,
-    cell?: Cell,
-    hops?: HopQuote[],
-    swapSource?: SwapSource,
-}) => {
+export const getQuoteCellInstructions = (route?: SwapRoute, cell?: Cell, hops?: HopQuote[], swapSource: SwapSource = SwapSource.Tesseract): CellInstructions | undefined => {
 
     if (!route || !isValidSwapRoute(route) || !cell || !hops || !hops.length) {
         return
     }
 
-    const instructions: CellInstructions = {
+    return {
         receiver: zeroAddress,
         payableReceiver: isNativeToken(route.dstData.token),
         rollbackTeleporterFee: TeleporterFee.Rollback,
@@ -213,6 +195,4 @@ export const getQuoteCellInstructions = ({
             },
         })),
     }
-
-    return instructions
 }

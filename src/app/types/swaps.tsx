@@ -176,6 +176,7 @@ export const isValidSwapRoute = (route: SwapRoute): route is ValidSwapRoute => {
 export type SwapId = string
 interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent = HopEvent, TFeeData = SwapFeeData> {
     id: SwapId,
+    tesseractId?: Hex,
     srcData: TSrcData,
     dstData: TDstData,
     type: SwapType,
@@ -374,6 +375,16 @@ export interface SwapFeeQuery {
     abi: CellAbiType,
     functionName: "calculateFees",
     args: [CellInstructions, bigint],
+}
+
+export interface SwapGasFeeQuery {
+    chainId: ChainId,
+    address: Address,
+    account: Address,
+    abi: CellAbiType,
+    functionName: "initiate",
+    args: [Address, bigint, CellInstructions],
+    value?: bigint,
 }
 
 ////////////////////////////////////////////////////////////////////////////////

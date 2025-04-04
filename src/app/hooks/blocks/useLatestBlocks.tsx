@@ -1,137 +1,84 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Block } from "viem"
 import { getBlock } from "@wagmi/core"
 
 import { SupportedChains } from "@/app/config/chains"
 import { wagmiConfig } from "@/app/config/wagmi"
 import { getParsedError } from "@/app/lib/utils"
-import { ChainId } from "@/app/types/chains"
+import { ChainId, isSupportedChainId } from "@/app/types/chains"
 
-export type LatestBlockData = {
-    [id in ChainId]?: Block
+type BlockDataMap = Map<number, Block | undefined>
+export interface UseLatestBlocksReturnType {
+    blockData: BlockDataMap,
+    getLatestBlock: (chainId: ChainId) => Block | undefined,
+    isPending: boolean,
+    isFetching: boolean,
+    error?: string,
+    refetch: () => void,
 }
 
-export type WatchLatestBlocksOnSuccess = (chainId: ChainId, block: Block, prevBlock?: Block) => void
-export type WatchLatestBlocksOnError = (chainId: ChainId, error: Error) => void
-export interface WatchLatestBlocksCallbacks {
-    onSuccess?: WatchLatestBlocksOnSuccess,
-    onError?: WatchLatestBlocksOnError,
-}
-
-export type GetLatestBlocksOnSuccess = () => void
-export type GetLatestBlocksOnError = (errorMsg: string) => void
-export interface GetLatestBlocksCallbacks {
-    onSuccess?: GetLatestBlocksOnSuccess,
-    onError?: GetLatestBlocksOnError,
-}
-
-const useLatestBlocks = ({
+const fetchLatestBlocks = async ({
     chainIds,
-    watchCallbacks,
-    getCallbacks,
-    isWatch = true,
+    initialData,
 }: {
-    chainIds: ChainId[],
-    watchCallbacks?: WatchLatestBlocksCallbacks,
-    getCallbacks?: GetLatestBlocksCallbacks,
-    isWatch?: boolean,
+    chainIds: number[],
+    initialData: BlockDataMap,
 }) => {
 
-    const [useChainIds, setUseChainIds] = useState<number[]>([])
-    const [latestBlocks, setLatestBlocks] = useState<LatestBlockData>({})
+    const blockData: BlockDataMap = new Map(initialData)
 
-    useEffect(() => {
-        setUseChainIds(chainIds.filter((chainId) => Object.values(SupportedChains).some((chain) => !chain.isDisabled && chain.id === chainId)))
-    }, [chainIds])
+    try {
 
-    const getOnSuccess: GetLatestBlocksOnSuccess = useCallback(() => {
-        getCallbacks?.onSuccess?.()
-    }, [getCallbacks])
-
-    const getOnError: GetLatestBlocksOnError = useCallback((error) => {
-        getCallbacks?.onError?.(error)
-    }, [getCallbacks])
-
-    const getLatestBlockData = useCallback(async () => {
-
-        if (isWatch) {
-            return
+        if (!chainIds.length) {
+            return blockData
         }
 
-        const latestBlockData: LatestBlockData = {}
+        for (const id of chainIds) {
 
-        try {
-            for (const chainId of useChainIds as ChainId[]) {
-                latestBlockData[chainId] = await getBlock(wagmiConfig, {
-                    chainId: chainId,
-                    blockTag: "finalized",
-                    includeTransactions: false,
-                })
-                getOnSuccess()
+            if (!isSupportedChainId(id)) {
+                continue
             }
-        }
 
-        catch (err) {
-            getOnError(getParsedError(err))
-        }
-
-        finally {
-            setLatestBlocks((prev) => ({
-                ...prev,
-                ...latestBlockData,
+            blockData.set(id, await getBlock(wagmiConfig, {
+                chainId: id,
+                blockTag: "finalized",
+                includeTransactions: false,
             }))
         }
 
-    }, [isWatch, useChainIds, setLatestBlocks, getOnSuccess, getOnError])
+        return blockData
+    }
 
-    useEffect(() => {
-        if (!isWatch) {
-            getLatestBlockData()
-        }
-    }, [isWatch, useChainIds, getOnSuccess, getOnError])
+    catch (err) {
+        throw new Error(getParsedError(err))
+    }
+}
 
-    const watchOnSuccess: WatchLatestBlocksOnSuccess = useCallback((chainId, block, prevBlock) => {
-        setLatestBlocks((prev) => ({
-            ...prev,
-            [chainId]: block,
-        }))
-        watchCallbacks?.onSuccess?.(chainId, block, prevBlock)
-    }, [watchCallbacks, setLatestBlocks])
+const useLatestBlocks = (chainIds: ChainId[]): UseLatestBlocksReturnType => {
 
-    const watchOnError: WatchLatestBlocksOnError = useCallback((chainId, error) => {
-        watchCallbacks?.onError?.(chainId, error)
-    }, [watchCallbacks])
+    const queryChainIds: number[] = useMemo(() => chainIds.filter((chainId) => Object.values(SupportedChains).some((chain) => !chain.isDisabled && chain.id === chainId)), [chainIds])
+    const initialBlockData: BlockDataMap = useMemo(() => new Map(queryChainIds.map((id) => [id, undefined])), [queryChainIds])
 
-    useEffect(() => {
+    const { data, isPending, isFetching, error, refetch } = useQuery({
+        queryKey: ["latestBlocks", queryChainIds],
+        queryFn: async () => fetchLatestBlocks({
+            chainIds: queryChainIds,
+            initialData: initialBlockData,
+        }),
+    })
 
-        if (!isWatch) {
-            return
-        }
-
-        // const unwatchBlocks = (useChainIds as ChainId[]).map((chainId) => watchBlocks(wagmiConfig, {
-        //     chainId: chainId,
-        //     blockTag: "finalized",
-        //     emitOnBegin: true,
-        //     syncConnectedChain: false,
-        //     onBlock: (block, prevBlock) => {
-        //         watchOnSuccess(chainId, block, prevBlock)
-        //     },
-        //     onError: (error) => {
-        //         watchOnError(chainId, error)
-        //     },
-        // }))
-
-        // return () => unwatchBlocks.forEach((unwatch) => unwatch())
-
-    }, [isWatch, useChainIds, watchOnSuccess, watchOnError])
-
-    const getLatestBlock = useCallback((chainId: ChainId) => {
-        return latestBlocks[chainId]
-    }, [latestBlocks])
+    const blockData = useMemo(() => data ?? initialBlockData, [initialBlockData, data])
+    const errorMsg = useMemo(() => error ? getParsedError(error) : undefined, [error])
+    const getLatestBlock = useCallback((chainId: ChainId) => blockData.get(chainId), [blockData])
 
     return {
-        latestBlocks,
-        getLatestBlock,
+        blockData: blockData,
+        getLatestBlock: getLatestBlock,
+        isPending: isPending,
+        isFetching: isFetching,
+        error: errorMsg,
+        refetch: refetch,
     }
 }
 

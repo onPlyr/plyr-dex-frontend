@@ -66,10 +66,7 @@ const ReviewSwapPage = () => {
     })
 
     const [quoteChainIds, setQuoteChainIds] = useState<ChainId[]>([])
-    const { getLatestBlock } = useLatestBlocks({
-        chainIds: quoteChainIds,
-        isWatch: false,
-    })
+    const { getLatestBlock } = useLatestBlocks(quoteChainIds)
 
     useAlternativeSwapQuote({
         quote: quote,
@@ -268,7 +265,7 @@ const ReviewSwapPage = () => {
 
         router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}${quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? `?plyrId=${plyrId}` : ""}`)
 
-    }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, getLatestBlock, setInitiateSwapData])
+    }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, setInitiateSwapData, getLatestBlock])
 
     const { write: writeInitiate, isInProgress: initiateIsInProgress } = useWriteInitiateSwap({
         quote: quote,

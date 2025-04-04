@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Block, Client, getAbiItem, Hash, Hex, TransactionReceipt } from "viem"
-import { getBlock, getLogs, getTransactionReceipt, watchBlocks } from "viem/actions"
-import { getClient, serialize } from "@wagmi/core"
+import { getBlock, getLogs, watchBlocks } from "viem/actions"
+import { getClient, getTransactionReceipt } from "@wagmi/core"
 
 import { teleporterMessengerAbi } from "@/app/abis/teleporter/messenger"
 import { wagmiConfig } from "@/app/config/wagmi"
@@ -40,7 +40,7 @@ export type EventQueryResult = HopEventQueryResult | DstTxEventQueryResult
 export type EventQueryResultMap = Map<Hash, EventQueryResult>
 
 type UnwatchFunction = () => void
-type ChainBlockNumberMap = Map<number, bigint>
+type BlockNumberMap = Map<number, bigint>
 
 const MessengerAddress = getTeleporterMessengerAddress()
 const ReceiveCrossChainMessageEvent = getAbiItem({
@@ -81,7 +81,7 @@ export const useWatchSwapEvents = (queryMap: EventQueryMap) => {
     useEffect(() => {
 
         const unwatchBlockNumbers: UnwatchFunction[] = []
-        const fromBlockData: ChainBlockNumberMap = new Map([])
+        const fromBlockData: BlockNumberMap = new Map([])
 
         queryMap.forEach((queries, chainId) => {
 
@@ -105,8 +105,6 @@ export const useWatchSwapEvents = (queryMap: EventQueryMap) => {
 
                     try {
 
-                        console.log(`useWatchSwapEvents block changed for ${chainId}: ${block.number.toString()}`)
-
                         const logs = await getLogs(client, {
                             address: MessengerAddress,
                             event: ReceiveCrossChainMessageEvent,
@@ -125,10 +123,11 @@ export const useWatchSwapEvents = (queryMap: EventQueryMap) => {
                                 continue
                             }
 
-                            console.log(`useWatchSwapEvents logs found on ${chainId} for query: ${serialize(logQuery)}`)
-
-                            const txReceipt = await getTransactionReceipt(client, { hash: log.transactionHash })
-                            const txBlock =  log.blockNumber === block.number ? block : await getBlock(client, { blockNumber: log.blockNumber })
+                            const txReceipt = await getTransactionReceipt(wagmiConfig, {
+                                chainId: chainId,
+                                hash: log.transactionHash,
+                            })
+                            const txBlock = log.blockNumber === block.number ? block : await getBlock(client, { blockNumber: log.blockNumber })
 
                             queryResults.set(logQuery.swapTxHash, {
                                 txReceipt: txReceipt,

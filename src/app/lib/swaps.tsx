@@ -1,6 +1,6 @@
 import { QueryStatus } from "@tanstack/query-core"
 import { Address, Block, erc20Abi, formatUnits } from "viem"
-import { readContracts } from "@wagmi/core"
+import { getGasPrice, readContracts } from "@wagmi/core"
 import { v4 as uuidv4 } from "uuid"
 
 import { durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteConfig } from "@/app/config/swaps"
@@ -84,14 +84,6 @@ export const getQuoteEstDuration = (hops: Hop[]) => {
     return hops.reduce((sum, hop) => sum + (hop.srcData.chain.avgBlockTimeMs * durationEstimateNumConfirmations), 0) + (finalHop.dstData.chain.avgBlockTimeMs * durationEstimateNumConfirmations)
 }
 
-export const getQuoteEstGasUnits = (hops: HopQuote[]) => {
-    return hops.reduce((sum, hop) => sum + hop.estGasUnits, BigInt(0))
-}
-
-export const getQuoteEstGasFee = (chain: Chain, hops: HopQuote[]) => {
-    return getQuoteEstGasUnits(hops) * chain.minGasPrice
-}
-
 export const getSwapType = (hops: Hop[]) => {
     return hops.some((hop) => isSwapHopType(hop.type)) ? SwapType.Swap : SwapType.Transfer
 }
@@ -109,7 +101,7 @@ export const getSwapStatus = (swap: Swap, hopStatus: SwapStatus) => {
 }
 
 export const getSwapRouteEstGasFee = (route: SwapRoute) => {
-    return isValidSwapRoute(route) ? BigInt(SwapQuoteConfig.MaxHops) * (GasUnits.Est + GasUnits.Buffer + (BigInt(2) * GasUnits.Buffer)) * route.srcData.chain.minGasPrice : undefined
+    return isValidSwapRoute(route) ? (GasUnits.Est + GasUnits.Buffer + (BigInt(2) * GasUnits.Buffer)) * route.srcData.chain.minGasPrice : undefined
 }
 
 export const getSwapChainIds = (swap: Swap, status?: SwapStatus) => {
@@ -118,10 +110,10 @@ export const getSwapChainIds = (swap: Swap, status?: SwapStatus) => {
     const hopChainIds = hops.map((hop) => [hop.srcData.chain.id, hop.dstData.chain.id]).flat()
     const swapChainIds = !status || swap.status === status ? [swap.dstData.chain.id] : []
 
-    return [...new Set([
+    return Array.from(new Set([
         ...hopChainIds,
         ...swapChainIds,
-    ])]
+    ]))
 }
 
 export const getSwapSrcAmount = (hop?: Hop, feeData?: SwapFeeData) => {
@@ -150,7 +142,7 @@ export const getSwapNativeTokenAmount = (swap?: Swap) => {
 
 export const getSwapFeeTokenData = (swap: Swap, getNativeToken: GetNativeTokenFunction) => {
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const displayFees = isValidSwapFeeData(swap.feeData) && Object.entries(swap.feeData).filter(([_, amount]) => amount > BigInt(0))
     if (!displayFees || !displayFees.length) {
         return
@@ -329,6 +321,10 @@ export const getSwapQuoteData = async ({
             quoteTokenData.forEach((token) => quoteTokens.set(token.uid, token))
         }
 
+        const gasPrice = await getGasPrice(wagmiConfig, {
+            chainId: route.srcData.chain.id,
+        })
+
         for (const [id, hops] of Object.entries(validHopData)) {
 
             const [firstHop, finalHop] = [hops.at(0), hops.at(-1)]
@@ -345,7 +341,7 @@ export const getSwapQuoteData = async ({
                 quoteTokens: quoteTokens,
             })
 
-            const quote: SwapQuote = {
+            swapQuotes.push({
                 id: id,
                 srcData: {
                     ...firstHop.srcData,
@@ -360,13 +356,12 @@ export const getSwapQuoteData = async ({
                 minDstAmount: finalHop.dstData.minAmount,
                 feeData: swapFeeData,
                 estDuration: getQuoteEstDuration(hops),
-                estGasUnits: getQuoteEstGasUnits(hops),
-                estGasFee: getQuoteEstGasFee(route.srcData.chain, hops),
+                estGasUnits: firstHop.estGasUnits,
+                estGasFee: firstHop.estGasUnits * gasPrice,
                 type: getSwapType(hops),
                 isConfirmed: hops.every((hop) => hop.isConfirmed),
                 timestamp: timestamp,
-            }
-            swapQuotes.push(quote)
+            })
         }
     }
 
@@ -539,11 +534,7 @@ export const getQuoteFeeData = async ({
 
             const cell = hops.find((hop) => hop.index === 0)?.srcData.cell
             const abi = getCellAbi(cell)
-            const instructions = cell && abi && getQuoteCellInstructions({
-                route: route,
-                cell: cell,
-                hops: hops,
-            })
+            const instructions = cell && abi && getQuoteCellInstructions(route, cell, hops)
 
             if (cell && abi && instructions) {
                 queryData.set(swapId, {
