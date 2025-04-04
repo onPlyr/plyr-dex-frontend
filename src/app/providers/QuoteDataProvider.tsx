@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useEffect, useMemo, useReducer, useState } from "react"
-import { parseUnits } from "viem"
+import { formatUnits, parseUnits } from "viem"
 
 import { DefaultUserPreferences } from "@/app/config/preferences"
 import { DefaultSwapRouteConfig } from "@/app/config/swaps"
@@ -55,15 +55,16 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
             const swapRoute: SwapRoute = {
                 ...state,
                 srcData: {
+                    ...state.srcData,
                     chain: action.srcToken && getChain(action.srcToken.chainId),
                     token: action.srcToken,
-                    amount: BigInt(0),
                 },
             }
 
             if (action.srcToken && action.srcToken.uid === state.dstData.token?.uid) {
                 swapRoute.dstData = {
                     ...state.srcData,
+                    amount: undefined,
                 }
             }
 
@@ -83,7 +84,6 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
             if (action.dstToken && action.dstToken.uid === state.srcData.token?.uid) {
                 swapRoute.srcData = {
                     ...state.dstData,
-                    amount: BigInt(0),
                 }
             }
 
@@ -95,7 +95,6 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
                 srcData: {
                     chain: action.srcToken && getChain(action.srcToken.chainId),
                     token: action.srcToken,
-                    amount: BigInt(0),
                 },
                 dstData: {
                     chain: action.dstToken && getChain(action.dstToken.chainId),
@@ -115,9 +114,7 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
         }
 
         default: {
-            return {
-                ...state,
-            }
+            throw new Error(`swapRouteReducer error: unknown action: ${action.type}`)
         }
     }
 }
@@ -194,6 +191,7 @@ const QuoteDataProvider = ({
 
     useEffect(() => {
         setSwapRouteData(swapRoute)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [swapRoute])
 
     const [srcAmountInput, setSrcAmountInputState] = useState("")
@@ -221,6 +219,7 @@ const QuoteDataProvider = ({
             })
             setSrcAmountInput("")
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [networkMode])
 
     const setSelectedToken = useCallback((token?: Token, isDst?: boolean) => {
@@ -229,19 +228,7 @@ const QuoteDataProvider = ({
             dstToken: isDst ? token : undefined,
             type: isDst ? SwapRouteActionType.SetDstToken : SwapRouteActionType.SetSrcToken,
         })
-        if (token && token.uid !== (isDst ? swapRouteData.dstData : swapRouteData.srcData).token?.uid) {
-            setSrcAmountInput("")
-        }
-    }, [swapRouteData, setSrcAmountInput])
-
-    const switchTokens = useCallback(() => {
-        dispatchSwapRoute({
-            srcToken: swapRoute.dstData.token,
-            dstToken: swapRoute.srcData.token,
-            type: SwapRouteActionType.SetBothTokens,
-        })
-        setSrcAmountInput("")
-    }, [swapRoute, setSrcAmountInput])
+    }, [])
 
     const useSwapQuotesData = useSwapQuotes(swapRoute)
     const { data: swapQuotesData } = useSwapQuotesData
@@ -251,6 +238,16 @@ const QuoteDataProvider = ({
         setSelectedQuoteState(quote)
     }, [setSelectedQuoteState])
 
+    const switchTokens = useCallback(() => {
+        dispatchSwapRoute({
+            srcToken: swapRoute.dstData.token,
+            dstToken: swapRoute.srcData.token,
+            type: SwapRouteActionType.SetBothTokens,
+        })
+        setSrcAmountInput(selectedQuote?.estDstAmount && swapRoute.dstData.token ? formatUnits(selectedQuote.estDstAmount, swapRoute.dstData.token.decimals) : "")
+    }, [swapRoute, setSrcAmountInput, selectedQuote])
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => setSelectedQuote(swapQuotesData?.quotes.at(0)), [swapQuotesData])
 
     useEventListener("beforeunload", () => dispatchSwapRoute({

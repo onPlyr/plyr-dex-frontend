@@ -95,6 +95,7 @@ const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut
                         token={swap.dstData.token}
                         type={NumberFormatType.Precise}
                         className="font-mono font-bold text-base"
+                        isInline={true}
                     />
                     <TokenImage
                         token={swap.dstData.token}
@@ -110,8 +111,10 @@ const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut
                             token={swap.dstData.token}
                             type={NumberFormatType.PreciseWithSign}
                             className="font-mono font-bold text-base text-success-500"
+                            symbolClass="text-white"
+                            isInline={true}
                         />
-                        <ConfettiIcon className={twMerge(iconSizes.sm, "text-success-500")} />
+                        <ConfettiIcon className={twMerge(iconSizes.sm, "text-white")} />
                     </div>
                 ) : (
                     <div className="flex flex-row flex-1 gap-2 justify-center items-center">

@@ -14,6 +14,9 @@ interface DecimalAmountProps extends React.ComponentPropsWithoutRef<"div"> {
     type?: NumberFormatType,
     withSign?: boolean,
     emptyValue?: React.ReactNode,
+    replaceClass?: boolean,
+    isInline?: boolean,
+    symbolClass?: string,
 }
 
 const DecimalAmount = React.forwardRef<HTMLDivElement, DecimalAmountProps>(({
@@ -26,6 +29,9 @@ const DecimalAmount = React.forwardRef<HTMLDivElement, DecimalAmountProps>(({
     type,
     withSign,
     emptyValue,
+    replaceClass = false,
+    isInline = false,
+    symbolClass,
     ...props
 }, ref) => {
 
@@ -34,10 +40,13 @@ const DecimalAmount = React.forwardRef<HTMLDivElement, DecimalAmountProps>(({
     return (
         <div
             ref={ref}
-            className={twMerge("inline-flex", className)}
+            className={replaceClass ? className : twMerge("contents", className)}
             {...props}
         >
-            {localeAmount !== undefined ? localeAmount : emptyValue}&nbsp;{symbol && symbol}
+            {isInline && <>&nbsp;</>}{localeAmount || emptyValue}
+            {symbol && (
+                <span className={twMerge("contents", symbolClass)}>&nbsp;{symbol}</span>
+            )}
         </div>
     )
 })

@@ -49,6 +49,7 @@ export const NotificationBody = React.forwardRef<HTMLDivElement, NotificationPro
                     symbol={swap.srcData.token.symbol}
                     token={swap.srcData.token}
                     className="flex flex-row flex-1 justify-end items-center font-mono font-bold text-base text-end"
+                    replaceClass={true}
                 />
                 <TokenImage
                     token={swap.srcData.token}
@@ -63,6 +64,7 @@ export const NotificationBody = React.forwardRef<HTMLDivElement, NotificationPro
                         symbol={swap.dstData.token.symbol}
                         token={swap.dstData.token}
                         className="flex flex-row flex-1 justify-end items-center font-mono font-bold text-base text-end"
+                        replaceClass={true}
                     />
                 ) : (
                     <div className="flex flex-row flex-1 justify-end items-center font-mono font-bold text-base text-end">

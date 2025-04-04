@@ -131,6 +131,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
             const eventIndex = swap.events.findLastIndex((event) => event.status === SwapStatus.Success)
             setEventTab(swap.status === SwapStatus.Success || eventIndex === -1 ? defaultTab : eventIndex.toString())
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [swap.status, swap.events])
 
     const swapSrcTxUrl = isHistory ? getBlockExplorerLink({
@@ -307,7 +308,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                                 amount={eventIsHistory ? event.srcData.amount : undefined}
                                                                 symbol={event.srcData.token.symbol}
                                                                 token={event.srcData.token}
-                                                                className="justify-end text-end"
+                                                                className="font-mono text-base"
                                                             />
                                                             <TokenImage token={event.srcData.token} size="xs" />
                                                         </>)}
@@ -326,7 +327,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                                 amount={eventIsHistory ? event.dstData.amount : undefined}
                                                                 symbol={event.dstData.token.symbol}
                                                                 token={event.dstData.token}
-                                                                className="justify-end text-end"
+                                                                className="font-mono text-base"
                                                             />
                                                             <TokenImage token={event.dstData.token} size="xs" />
                                                         </>)}
@@ -403,10 +404,11 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                         token={swap.dstData.token}
                                                         type={NumberFormatType.PreciseWithSign}
                                                         className="font-mono font-bold text-base text-success-500"
+                                                        symbolClass="text-white"
                                                     />
                                                     <ConfettiIcon className={iconSizes.sm} />
                                                 </>
-                                                valueClass="gap-2 text-success-500"
+                                                valueClass="gap-2"
                                             />
                                         )}
                                         {isHistory ? (<>
@@ -418,7 +420,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                                                     {durationDiff ? (
                                                         <span className="inline-flex flex-row gap-2 items-center text-success-500">
                                                             ({formatDuration(durationDiff)} faster)
-                                                            <SpeedIcon className={iconSizes.sm} />
+                                                            <SpeedIcon className={twMerge(iconSizes.sm, "text-white")} />
                                                         </span>
                                                     ) : undefined}
                                                 </>) : swap.status === SwapStatus.Error ? "Error" : "Pending"}

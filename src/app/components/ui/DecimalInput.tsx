@@ -1,12 +1,13 @@
 "use client"
 
-import React from "react"
+import React, { useCallback, useEffect } from "react"
 
 import TextInput from "@/app/components/ui/TextInput"
 import { formatDecimalInput, formattedAmountToLocale } from "@/app/lib/numbers"
 import { NumberFormatType } from "@/app/types/numbers"
 
 export interface DecimalInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    value?: string,
     setValue?: (value: string) => void,
     formatInput?: () => string,
     decimals?: number,
@@ -27,10 +28,14 @@ export const DecimalInput = React.forwardRef<HTMLInputElement, DecimalInputProps
     ...props
 }, ref) => {
 
-    const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const formatted = formatInput(event.target.value, decimals)
-        setValue?.(formatted)
-    }
+    const handleInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => setValue?.(formatInput(event.target.value, decimals)), [setValue, formatInput, decimals])
+
+    useEffect(() => {
+        if (setValue) {
+            setValue(decimals && value ? formatInput(value.toString(), decimals) : "")
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setValue, decimals])
 
     return (
         <TextInput

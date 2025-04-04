@@ -46,6 +46,7 @@ export const NotificationBody = React.forwardRef<HTMLDivElement, NotificationPro
             symbol={token.symbol}
             token={token}
             className="flex flex-row flex-1 justify-end items-center font-mono font-bold text-base text-end"
+            replaceClass={true}
         />
         <TokenImage
             token={token}

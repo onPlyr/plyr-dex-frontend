@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useMemo } from "react"
 import { useAccount } from "wagmi"
-import { readContract } from "@wagmi/core"
+import { getGasPrice, readContract } from "@wagmi/core"
 
 import { wagmiConfig } from "@/app/config/wagmi"
 import useApiTokenData from "@/app/hooks/apis/useApiTokenData"
@@ -10,7 +10,7 @@ import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getApiUrl } from "@/app/lib/apis"
 import { getDecodedCellTradeData } from "@/app/lib/cells"
-import { getHopQueryData, getHopTypeEstGasUnits, getMinAmount, getQuoteEstGasFee, getQuoteEstGasUnits, setNextHopAmounts } from "@/app/lib/swaps"
+import { getHopQueryData, getHopTypeEstGasUnits, getMinAmount, setNextHopAmounts } from "@/app/lib/swaps"
 import { getParsedError } from "@/app/lib/utils"
 import { ApiFirmQuoteResultData, ApiProvider, ApiResult, ApiRoute, ApiRouteType, ApiTokenPairData, ApiTokenPairName } from "@/app/types/apis"
 import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
@@ -60,7 +60,6 @@ const ApiDataProvider = ({
     const { getSupportedTokenById } = useTokens()
     const apiTokenData = useApiTokenData()
     const slippage = useMemo(() => BigInt(getPreference(PreferenceType.Slippage)), [getPreference])
-    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
     const cellRouteData: CellRouteData = useMemo(() => ({ [CellRouteDataParameter.SlippageBips]: slippage }), [slippage])
 
     const getApiTokenData: GetApiTokenDataFunction = useCallback((provider, chainId) => apiTokenData.data[provider]?.[chainId], [apiTokenData.data])
@@ -85,6 +84,7 @@ const ApiDataProvider = ({
     const getFirmQuote: GetFirmQuoteFunction = useCallback(async (swap) => {
 
         let error: string | undefined = undefined
+        let gasPrice: bigint | undefined = undefined
 
         try {
 
@@ -178,6 +178,10 @@ const ApiDataProvider = ({
                     setNextHopAmounts(hop, nextHop, slippage)
                 }
             }
+
+            gasPrice = await getGasPrice(wagmiConfig, {
+                chainId: swap.srcData.chain.id,
+            })
         }
 
         catch (err) {
@@ -186,8 +190,11 @@ const ApiDataProvider = ({
 
         finally {
 
-            swap.estGasUnits = getQuoteEstGasUnits(swap.hops)
-            swap.estGasFee = getQuoteEstGasFee(swap.srcData.chain, swap.hops)
+            const firstHop = swap.hops.at(0)
+            if (firstHop && gasPrice) {
+                swap.estGasUnits = firstHop.estGasUnits
+                swap.estGasFee = firstHop.estGasUnits * gasPrice
+            }
 
             const finalHop = swap.hops.at(-1)
             if (finalHop) {
@@ -207,7 +214,7 @@ const ApiDataProvider = ({
             }
         }
 
-    }, [accountAddress, getSupportedTokenById, cellRouteData, getApiTokenPair, slippage, networkMode])
+    }, [accountAddress, getSupportedTokenById, cellRouteData, getApiTokenPair, slippage])
 
     const context: ApiDataContextType = {
         getApiTokenData: getApiTokenData,

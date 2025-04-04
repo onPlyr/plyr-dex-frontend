@@ -49,6 +49,7 @@ const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiI
 const fetchPrices = async ({
     tokens,
     sources,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     currency,
     initialData,
 }: FetchPricesParameters) => {
@@ -108,7 +109,7 @@ const fetchPrices = async ({
         for (const priceData of responseData.data.prices) {
 
             const apiId = priceData.id
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+             
             const tokenUids = Array.from(tokenIdData.entries()).filter(([uid, id]) => apiId === id && prices.has(uid)).map(([uid, _]) => uid)
 
             tokenUids.forEach((uid) => prices.set(uid, {

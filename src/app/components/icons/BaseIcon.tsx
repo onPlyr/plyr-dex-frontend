@@ -31,7 +31,6 @@ export const BaseIcon = React.forwardRef<HTMLDivElement, BaseIconProps>(({
     toggleDirection,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     shape,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ...props
 }, ref) => {
 

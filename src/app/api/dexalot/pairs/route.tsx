@@ -72,9 +72,7 @@ export const GET = async (request: NextRequest) => {
                 continue
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const asBaseToken = Object.entries(data).filter(([_, pair]) => pair.base.toLowerCase() === providerTokenId)
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const asQuoteToken = Object.entries(data).filter(([_, pair]) => pair.quote.toLowerCase() === providerTokenId)
             if (asBaseToken.length === 0 && asQuoteToken.length === 0) {
                 continue

@@ -137,12 +137,12 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "lfj",
             },
             {
-                address: "0x6A68F261F8976559259d74A3494C19Ee2bDE0e4F",
+                address: "0xb94187369171f12ae28e08424BBD01424f13c659",
                 name: "LFJ Liquidity Book",
                 platform: "lfj",
             },
             {
-                address: "0xd8F5aBA3Ee8E3B27633E06b43f459f5bCE516Ab6",
+                address: "0xf9F824576F06fF92765f2Af700a5A9923526261e",
                 name: "LFJ Liquidity Book",
                 platform: "lfj",
             },
@@ -212,7 +212,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "curve",
             },
             {
-                address: "0x3B9645B2432374d9B3Fa766b95D5A793D7241190",
+                address: "0x4efB1880Dc9B01c833a6E2824C8EadeA83E428B0",
                 name: "WOOFi",
                 platform: "woofi",
             },
@@ -260,7 +260,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
             {
                 ...cellTypeDefinitions[CellType.Dexalot],
-                // address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
                 address: "0xcab18F63d100845307931ad7040300C7F8F9627a",
             },
         ],
@@ -291,7 +290,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "lfj",
             },
             {
-                // address: "0xaC497Cf95801cE89C527eAc5F3792a239f8975F7",
                 address: "0xcab18F63d100845307931ad7040300C7F8F9627a",
                 name: "Dexalot",
                 platform: "dexalot",
@@ -401,7 +399,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
     },
 } as const
 
-export const defaultNetworkMode = process.env.NEXT_PUBLIC_NETWORK_MODE === "testnet" ? NetworkMode.Testnet : NetworkMode.Mainnet
+export const defaultNetworkMode = NetworkMode.Testnet
 
 const networkModeLabels: Record<NetworkMode, string> = {
     [NetworkMode.Mainnet]: "Mainnet",
