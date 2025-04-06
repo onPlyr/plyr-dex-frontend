@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 interface SwapParameterProps extends React.ComponentPropsWithoutRef<"div"> {

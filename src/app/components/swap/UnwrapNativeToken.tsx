@@ -19,7 +19,7 @@ import { NumberFormatType } from "@/app/types/numbers"
 import { isNativeToken } from "@/app/types/tokens"
 import { TxAction, TxLabelType } from "@/app/types/txs"
 
-export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.ComponentPropsWithoutRef<"div">>(({
+const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.ComponentPropsWithoutRef<"div">>(({
     className,
     ...props
 }, ref) => {
@@ -98,3 +98,5 @@ export const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, Rea
     )
 })
 UnwrapNativeToken.displayName = "UnwrapNativeToken"
+
+export default UnwrapNativeToken

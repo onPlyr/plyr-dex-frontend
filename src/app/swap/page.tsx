@@ -3,27 +3,19 @@
 import "@/app/styles/globals.css"
 
 import { AnimatePresence, motion, Transition } from "motion/react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import React, { useCallback, useEffect } from "react"
-import { formatUnits } from "viem"
-import { useAccount } from "wagmi"
-
+import React, { useEffect } from "react"
+import { twMerge } from "tailwind-merge"
 
 import AccountIcon from "@/app/components/icons/AccountIcon"
-import ArrowIcon from "@/app/components/icons/ArrowIcon"
-import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import HistoryIcon from "@/app/components/icons/HistoryIcon"
-import LoadingIcon from "@/app/components/icons/LoadingIcon"
-import RouteIcon from "@/app/components/icons/RouteIcon"
 import { SettingsIcon } from "@/app/components/icons/SettingsIcon"
 import SocialIcon from "@/app/components/icons/SocialIcon"
-import { ReviewRouteButton } from "@/app/components/routes/ReviewRouteButton"
-
-import { UnwrapNativeToken } from "@/app/components/swap/UnwrapNativeToken"
+import SwapButton from "@/app/components/swap/SwapButton"
+import SwapWidget from "@/app/components/swap/SwapWidget"
 import SwapQuoteExpiryTimer from "@/app/components/swapQuotes/SwapQuoteExpiryTimer"
-import SwapQuotePreview from "@/app/components/swapQuotes/SwapQuotePreview"
-import { TokenInput } from "@/app/components/tokens/TokenInput"
 import Button from "@/app/components/ui/Button"
 import ExternalLink from "@/app/components/ui/ExternalLink"
 import { Page } from "@/app/components/ui/Page"
@@ -31,61 +23,15 @@ import { Tooltip } from "@/app/components/ui/Tooltip"
 import { iconSizes } from "@/app/config/styling"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
-import useTokens from "@/app/hooks/tokens/useTokens"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
-import { getInitiateSwapError } from "@/app/lib/swaps"
 import { PageType, SocialLink } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { StorageKey } from "@/app/types/storage"
-import { StyleDirection, StyleToggleDirection } from "@/app/types/styling"
-import { InitiateSwapAction } from "@/app/types/swaps"
-import { isNativeToken } from "@/app/types/tokens"
-import { twMerge } from "tailwind-merge"
 
 const defaultIntroTransition: Transition = {
     type: "spring",
     duration: 1,
 } as const
-
-const SwapQuotePreviewAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
-    className,
-    initial = "initial",
-    animate = "animate",
-    exit = "exit",
-    transition = {
-        type: "spring",
-        duration: 0.15,
-    },
-    variants = {
-        initial: {
-            y: "-50%",
-            opacity: 0,
-        },
-        animate: {
-            y: 0,
-            opacity: 1,
-        },
-        exit: {
-            y: "-50%",
-            opacity: 0,
-        },
-    },
-    layout = true,
-    ...props
-}, ref) => (
-    <motion.div
-        ref={ref}
-        className={twMerge("overflow-hidden", className)}
-        initial={initial}
-        animate={animate}
-        exit={exit}
-        transition={transition}
-        layout={layout}
-        variants={variants}
-        {...props}
-    />
-))
-SwapQuotePreviewAnimation.displayName = "SwapQuotePreviewAnimation"
 
 const SwapPage = () => {
 
@@ -102,63 +48,36 @@ const SwapPage = () => {
             setShowIntro(true)
             router.replace("/swap")
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isShowIntro])
 
-    const { isConnected } = useAccount()
-    const { getNativeToken, useBalancesData } = useTokens()
-    const { getBalance, isInProgress: balanceIsInProgress } = useBalancesData
-    const { swapRoute, switchTokens, srcAmountInput, setSrcAmountInput, useSwapQuotesData, selectedQuote } = useQuoteData()
-    const srcBalance = getBalance(swapRoute.srcData.token)
-    const nativeBalance = isNativeToken(swapRoute.srcData.token) ? srcBalance : getBalance(getNativeToken(swapRoute.srcData.chain?.id))
-    const isInProgress = balanceIsInProgress || useSwapQuotesData.isInProgress
-
-    const { errorMsg, isConnectError } = getInitiateSwapError({
-        action: InitiateSwapAction.Review,
-        isConnected: isConnected,
-        srcChain: swapRoute.srcData.chain,
-        srcToken: swapRoute.srcData.token,
-        srcAmount: swapRoute.srcData.amount,
-        srcBalance: srcBalance,
-        nativeBalance: nativeBalance,
-        dstChain: swapRoute.dstData.chain,
-        dstToken: swapRoute.dstData.token,
-        quoteData: useSwapQuotesData.data,
-        selectedQuote: selectedQuote,
-        isInProgress: isInProgress,
-        queryStatus: useSwapQuotesData.status,
-        error: useSwapQuotesData.error,
-    })
-
-    const onClickReview = useCallback(() => {
-        if (isConnected) {
-            router.push("/swap/review")
-        }
-    }, [isConnected, router])
-
+    const { useSwapQuotesData: { error: quotesError } } = useQuoteData()
     const { setNotification } = useNotifications()
+
     useEffect(() => {
-        if (useSwapQuotesData.error) {
+        if (quotesError) {
             setNotification({
-                id: useSwapQuotesData.error,
+                id: quotesError,
                 type: NotificationType.Error,
                 header: `Error Fetching Quotes`,
-                body: useSwapQuotesData.error,
+                body: quotesError,
                 status: NotificationStatus.Error,
             })
         }
-    }, [useSwapQuotesData.error])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [quotesError])
 
-    const pageHeader = <div className="flex flex-row flex-1 justify-between items-center">
+    const pageHeader = <div className="flex flex-row flex-1 gap-4 justify-between items-center">
         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>SWAP</div>
         <div className="flex flex-row gap-4">
             <Tooltip
                 trigger=<Button
                     label="My Account"
-                    className="icon-btn transition hover:-rotate-[360deg]"
+                    className="icon-btn transition hover:rotate-[360deg]"
                     replaceClass={true}
                 >
                     <Link href="/account">
-                        <AccountIcon className={`${iconSizes.sm} text-brand-green`} />
+                        <AccountIcon className={iconSizes.sm} />
                     </Link>
                 </Button>
             >
@@ -167,11 +86,11 @@ const SwapPage = () => {
             <Tooltip
                 trigger=<Button
                     label="My Transactions"
-                    className="icon-btn transition hover:rotate-[360deg] text-brand-green"
+                    className="icon-btn transition hover:-rotate-[360deg]"
                     replaceClass={true}
                 >
                     <Link href="/swap/history">
-                        <HistoryIcon className={`${iconSizes.sm} text-brand-green`} />
+                        <HistoryIcon className={iconSizes.sm} />
                     </Link>
                 </Button>
             >
@@ -184,7 +103,7 @@ const SwapPage = () => {
                     replaceClass={true}
                 >
                     <Link href="/preferences">
-                        <SettingsIcon className={`${iconSizes.sm} text-brand-green`} />
+                        <SettingsIcon className={iconSizes.sm} />
                     </Link>
                 </Button>
             >
@@ -273,100 +192,11 @@ const SwapPage = () => {
                             <Page
                                 key={PageType.Swap}
                                 header={pageHeader}
-                                footer={!showIntro && <ReviewRouteButton
-                                    err={errorMsg}
-                                    isConnectWalletErr={isConnectError}
-                                    queryStatus={useSwapQuotesData.status}
-                                    onClick={onClickReview.bind(this)}
-                                />}
+                                footer={!showIntro && <SwapButton />}
                                 hideNetworkMsg={showIntro}
                                 isNestedPage={true}
                             >
-                                <div className="flex flex-col flex-none gap-4 w-full h-fit overflow-hidden">
-                                <TokenInput
-                                        key="src"
-                                        route={swapRoute}
-                                        value={srcAmountInput}
-                                        amount={swapRoute.srcData.amount}
-                                        feeData={selectedQuote?.feeData}
-                                        setValue={setSrcAmountInput}
-                                        isDisabled={isShowIntro}
-                                    />
-                                    <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
-                                        <Tooltip
-                                            trigger=<Button
-                                                label="Switch"
-                                                className="p-3 rounded-full transition bg-layout-950/50 hover:bg-layout-950/75 hover:rotate-180"
-                                                replaceClass={true}
-                                                onClick={switchTokens.bind(this)}
-                                            >
-                                                <ArrowIcon toggleDirection={StyleToggleDirection.UpDown} />
-                                            </Button>
-                                        >
-                                            Switch
-                                        </Tooltip>
-                                    </div>
-                                    <TokenInput
-                                        key="dst"
-                                        route={swapRoute}
-                                        value={selectedQuote ? formatUnits(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals) : undefined}
-                                        amount={selectedQuote?.estDstAmount}
-                                        isDst={true}
-                                        isDisabled={isShowIntro}
-                                    />
-                                    <UnwrapNativeToken />
-                                    <AnimatePresence mode="wait">
-                                        {selectedQuote && (
-                                            <SwapQuotePreviewAnimation
-                                                key={selectedQuote.id}
-                                                className="flex flex-col flex-1 gap-4"
-                                            >
-                                                <div className="flex flex-row flex-1 px-4 gap-4 font-bold">
-                                                    <div className="flex flex-row flex-1 gap-4 justify-start items-center">
-                                                        <RouteIcon />
-                                                        Routes
-                                                        <AnimatePresence mode="wait">
-                                                            {useSwapQuotesData.isFetching && (
-                                                                <motion.div
-                                                                    key="quotes-loading"
-                                                                    initial="hide"
-                                                                    animate="show"
-                                                                    exit="hide"
-                                                                    transition={{
-                                                                        type: "spring",
-                                                                        duration: 0.2,
-                                                                    }}
-                                                                    variants={{
-                                                                        hide: {
-                                                                            scale: 0,
-                                                                            opacity: 0,
-                                                                        },
-                                                                        show: {
-                                                                            scale: 1,
-                                                                            opacity: 1,
-                                                                        },
-                                                                    }}
-                                                                >
-                                                                    <LoadingIcon className={iconSizes.sm} />
-                                                                </motion.div>
-                                                            )}
-                                                        </AnimatePresence>
-                                                    </div>
-                                                    {!useSwapQuotesData.isInProgress && useSwapQuotesData.data && useSwapQuotesData.data.quotes.length > 1 && (
-                                                        <Link
-                                                            href="/swap/routes"
-                                                            className="flex flex-row flex-none gap-2 justify-end items-center text-end transition text-muted-500 hover:text-white"
-                                                        >
-                                                            View all {useSwapQuotesData.data.quotes.length} routes
-                                                            <ChevronIcon direction={StyleDirection.Right} className={iconSizes.xs} />
-                                                        </Link>
-                                                    )}
-                                                </div>
-                                                <SwapQuotePreview quote={selectedQuote} />
-                                            </SwapQuotePreviewAnimation>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                                <SwapWidget isShowIntro={isShowIntro} />
                             </Page>
                         </motion.div>
                     </motion.div>

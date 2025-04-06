@@ -135,7 +135,7 @@ const TokenSelectDetail = React.forwardRef<React.ComponentRef<typeof Link>, Toke
 ))
 TokenSelectDetail.displayName = "TokenSelectDetail"
 
-export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
+const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     route,
     value,
     setValue,
@@ -267,3 +267,5 @@ export const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     )
 })
 TokenInput.displayName = "TokenInput"
+
+export default TokenInput
