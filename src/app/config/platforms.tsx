@@ -91,6 +91,14 @@ const basePlatforms: Platform[] = [
         },
     },
     {
+        id: "pharaoh",
+        name: "Pharaoh",
+        icon: "square.png",
+        img: {
+            square: "square.png",
+        },
+    },
+    {
         id: "sushi",
         name: "Sushi",
         icon: "square.svg",

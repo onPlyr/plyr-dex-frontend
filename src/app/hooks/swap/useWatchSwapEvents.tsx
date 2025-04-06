@@ -142,7 +142,7 @@ export const useWatchSwapEvents = (queryMap: EventQueryMap) => {
                     }
 
                     catch (error) {
-                        console.error(`useWatchSwapEvents onBlockNumber error in watchBlockNumber: ${getParsedError(error)}`)
+                        console.warn(`useWatchSwapEvents error for ${chain.id} at block ${block.number.toString()}: ${getParsedError(error)}`)
                     }
 
                     finally {
@@ -155,7 +155,7 @@ export const useWatchSwapEvents = (queryMap: EventQueryMap) => {
                     }
                 },
                 onError: (error) => {
-                    console.error(`useWatchSwapEvents onError in watchBlockNumber: ${getParsedError(error)}`)
+                    console.warn(`useWatchSwapEvents error for ${chain.id}: ${getParsedError(error)}`)
                 },
             })
 

@@ -367,7 +367,7 @@ export const getSwapQuoteData = async ({
 
     catch (err) {
         swapQuoteData.error = getParsedError(err)
-        console.debug(`getSwapQuoteData error: ${swapQuoteData.error}`)
+        console.warn(`getSwapQuoteData error: ${swapQuoteData.error}`)
     }
 
     finally {
@@ -393,21 +393,6 @@ export const getSwapQuoteData = async ({
     }
 
     return swapQuoteData
-
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getSwapQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
-    // console.log(`>>> ${formatUnits(route.srcData.amount, route.srcData.token.decimals)} ${route.srcData.token.symbol} (${route.srcData.chain.name}) -> ${route.dstData.token.symbol} (${route.dstData.chain.name})`)
-    // swapQuotes.forEach((swap) => {
-    //     console.log(`>>> getSwapQuoteData quote: ${swap.srcData.minAmount ? formatUnits(swap.srcData.minAmount, swap.srcData.token.decimals) : "n/a"} ${swap.srcData.token.symbol} (${swap.srcData.chain.name}) -> ${formatUnits(swap.minDstAmount, swap.dstData.token.decimals)} ${swap.dstData.token.symbol} (${swap.dstData.chain.name ?? "n/a"})`)
-    //     console.log(`>>> HOPS <<<`)
-    //     swap.hops.forEach((hop, i) => {
-    //         console.log(`   >>> getSwapQuoteData hop ${i}: ${hop.srcData.minAmount ? formatUnits(hop.srcData.minAmount, hop.srcData.token.decimals) : "n/a"} ${hop.srcData.token.symbol} (${hop.srcData.chain.name}) -> ${formatUnits(hop.dstData.minAmount, hop.dstData.token.decimals)} ${hop.dstData.token.symbol} (${hop.dstData?.chain.name ?? "n/a"}) / type: ${hop.type}`)
-    //     })
-    //     console.log(`>>> EVENTS <<<`)
-    //     swap.events.forEach((event, i) => {
-    //         console.log(`   >>> getSwapQuoteData event ${i}: ${event.srcData.minAmount ? formatUnits(event.srcData.minAmount, event.srcData.token.decimals) : "n/a"} ${event.srcData.token.symbol} (${event.srcData.chain.name}) -> ${event.dstData.minAmount ? formatUnits(event.dstData.minAmount, event.dstData.token.decimals) : "n/a"} ${event.dstData?.token.symbol ?? "n/a"} (${event.dstData?.chain.name ?? "n/a"}) / hop: ${event.hopIndex} / adapter: ${serialize(event.adapter)} / bridge: ${serialize(event.bridge)} / ${event.type}`)
-    //     })
-    // })
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getSwapQuoteData END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
 }
 
 export const getInitialHopQuoteData = ({
@@ -496,15 +481,6 @@ export const getInitialHopQuoteData = ({
         }
     }
 
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getInitialHopQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
-    // Object.entries(hopData).forEach(([id, hops]) => {
-    //     console.log(`>>> path: ${id}`)
-    //     hops.forEach((data, i) => {
-    //         console.log(`   >>> hop ${i}: ${data.srcData.minAmount ? formatUnits(data.srcData.minAmount, data.srcData.token.decimals) : "n/a"} ${data.srcData.token.symbol} (${data.srcData.chain.name}) -> ${data.dstData.minAmount ? formatUnits(data.dstData.minAmount, data.dstData.token.decimals) : "n/a"} ${data.dstData.token.symbol} (${data.dstData.chain.name}) / type: ${data.type} / srcCell: ${data.srcData.cell?.type ?? "NO SRC CELL"} / dstCell: ${data.dstData.cell?.type ?? "NO CELL???????"}`)
-    //     })
-    // })
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getInitialHopQuoteData END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
-
     return hopData
 }
 
@@ -558,7 +534,7 @@ export const getQuoteFeeData = async ({
     }
 
     catch (err) {
-        console.debug(`getValidHopQuoteData error: ${getParsedError(err)}`)
+        console.warn(`getValidHopQuoteData error: ${getParsedError(err)}`)
     }
 
     return quoteFeeData
@@ -629,8 +605,6 @@ export const getValidHopQuoteData = async ({
 
         for (let i = 0; i < maxHops; i++) {
 
-            // console.debug(`getValidHopQuoteData initial run i: ${i}`)
-
             const apiQueries: HopApiQuery[] = []
             const contractQueries: HopContractQuery[] = []
 
@@ -644,28 +618,21 @@ export const getValidHopQuoteData = async ({
                 const hop = hops.find((data) => data.index === i)
                 const prevHop = i > 0 ? hops.find((data) => data.index === i - 1) : undefined
 
-                // console.debug(`   >>> hop ${hop?.index}: ${hop?.srcData.token.symbol} (${hop?.srcData.chain.name}) -> ${hop?.dstData.token.symbol} (${hop?.dstData.chain.name})`)
-
                 if (!hop || hop.isError) {
-                    // console.debug(`      >>> return 1 - ERROR / !hop: ${serialize(!hop)} / hop.isError: ${serialize(!hop?.isError)}`)
                     continue
                 }
                 else if (prevHop && (prevHop.isError || !isValidHopQuote(prevHop))) {
-                    // console.debug(`      >>> return 2 - ERROR / prevHop.isError: ${serialize(prevHop.isError)} / !isValidHopQuote(prevHop): ${serialize(!isValidHopQuote(prevHop))}`)
                     hop.isError = true
                     continue
                 }
                 else if (isValidHopQuote(hop)) {
-                    // console.debug(`      >>> return 3 - OK / isValidHopQuote(hop): ${serialize(isValidHopQuote(hop))}`)
                     continue
                 }
                 else if (!isSwapHopType(hop.type) && !isValidQuoteData(hop.srcData)) {
-                    // console.debug(`      >>> return 4 - ERROR / !isSwapHopType(hop.type): ${serialize(!isSwapHopType(hop.type))} / !isValidQuoteData(hop.srcData): ${serialize(!isValidQuoteData(hop.srcData))}`)
                     hop.isError = true
                     continue
                 }
                 else if (!hop.srcData.cell || !hop.dstData.cell) {
-                    // console.debug(`      >>> return 5 - ERROR / !hop.srcData.cell: ${serialize(!hop.srcData.cell)} / !hop.dstData.cell: ${serialize(!hop.dstData.cell)}`)
                     hop.isError = true
                     continue
                 }
@@ -684,7 +651,6 @@ export const getValidHopQuoteData = async ({
                     hop.queryIndex = contractQueries.push(contractQuery) - 1
                 }
                 else {
-                    // console.debug(`      >>> return 6 - ERROR / hop.srcData.cell.apiData && apiQuery: ${serialize(hop.srcData.cell.apiData && apiQuery)} / contractQuery: ${serialize(contractQuery)}`)
                     hop.isError = true
                     continue
                 }
@@ -699,8 +665,6 @@ export const getValidHopQuoteData = async ({
                 throw new Error(hopQueryResultsError)
             }
 
-            // console.debug(`getValidHopQuoteData results run i: ${i}`)
-
             for (const id of quoteIds) {
 
                 const hops = hopData[id]
@@ -708,37 +672,28 @@ export const getValidHopQuoteData = async ({
                     continue
                 }
 
-                // console.debug(`>>> quote RESULTS START: ${id} / hops: ${hops.length}`)
-
                 const hop = hops.find((data) => data.index === i)
                 const prevHop = i > 0 ? hops.find((data) => data.index === i - 1) : undefined
                 const nextHop = i + 1 <= hops.length - 1 ? hops[i + 1] : undefined
 
-                // console.debug(`   >>> hop ${hop?.index}: ${hop?.srcData.token.symbol} (${hop?.srcData.chain.name}) -> ${hop?.dstData.token.symbol} (${hop?.dstData.chain.name}) / ${hop?.type}`)
-
                 if (!hop || hop.isError) {
-                    // console.debug(`      >>> return 7 - ERROR / !hop: ${serialize(!hop)} / hop.isError: ${serialize(hop?.isError)} / hop.error: ${serialize(hop?.error)}`)
                     continue
                 }
                 else if (prevHop && (prevHop.isError || !isValidHopQuote(prevHop))) {
-                    // console.debug(`      >>> return 8 - ERROR / prevHop.isError: ${serialize(prevHop.isError)} / !isValidHopQuote(prevHop): ${serialize(!isValidHopQuote(prevHop))} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
                 else if (isValidHopQuote(hop)) {
-                    // console.debug(`      >>> return 9 - OK / isValidHopQuote(hop): ${serialize(isValidHopQuote(hop))} / hop.error: ${serialize(hop?.error)}`)
                     setNextHopAmounts(hop, nextHop, slippageBps)
                     continue
                 }
                 else if (hop.queryIndex === undefined) {
-                    // console.debug(`      >>> return 10 - ERROR / hop.queryIndex === undefined: ${serialize(hop.queryIndex === undefined)} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
 
                 const { srcData } = hop
                 if (!isValidQuoteData(srcData)) {
-                    // console.debug(`      >>> return 11 - ERROR / !isValidQuoteData(srcData): ${serialize(!isValidQuoteData(srcData))} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
@@ -748,7 +703,6 @@ export const getValidHopQuoteData = async ({
                     const { dstTokenAddress: dstSwapTokenAddress } = getSwapQuoteTokenAddresses(hop, getSupportedTokenById)
                     const { amount: dstAmount } = apiData[hop.queryIndex]
                     if (!dstSwapTokenAddress || !dstAmount || dstAmount === BigInt(0)) {
-                        // console.debug(`      >>> return 12 - ERROR / !dstSwapTokenAddress: ${serialize(!dstSwapTokenAddress)} / !dstAmount: ${serialize(!dstAmount)} / dstAmount === BigInt(0): ${serialize(dstAmount === BigInt(0))} / hop.error: ${serialize(hop?.error)}`)
                         hop.isError = true
                         continue
                     }
@@ -780,7 +734,6 @@ export const getValidHopQuoteData = async ({
                     const trade = getDecodedCellTradeData(srcData.cell, encodedTrade)?.trade
                     const dstAmount = trade?.[CellTradeParameter.AmountOut] ?? trade?.[CellTradeParameter.MinAmountOut]
                     if (!encodedTrade || !trade || !dstAmount || dstAmount === BigInt(0)) {
-                        // console.debug(`      >>> return 13 - ERROR / !encodedTrade: ${serialize(!encodedTrade)} / !trade: ${serialize(!trade)} / !dstAmount: ${serialize(!dstAmount)} / dstAmount === BigInt(0): ${serialize(dstAmount === BigInt(0))} / hop.error: ${serialize(hop?.error)}`)
                         hop.isError = true
                         continue
                     }
@@ -793,7 +746,6 @@ export const getValidHopQuoteData = async ({
                 }
 
                 if (!isValidHopQuote(hop)) {
-                    // console.debug(`      >>> return 14 - ERROR / !isValidHopQuote(hop): ${serialize(!isValidHopQuote(hop))} / hop.error: ${serialize(hop?.error)}`)
                     hop.isError = true
                     continue
                 }
@@ -807,7 +759,7 @@ export const getValidHopQuoteData = async ({
 
     catch (err) {
         hopQuoteData.error = getParsedError(err)
-        console.debug(`getValidHopQuoteData error: ${hopQuoteData.error}`)
+        console.warn(`getValidHopQuoteData error: ${hopQuoteData.error}`)
     }
 
     finally {
@@ -824,15 +776,6 @@ export const getValidHopQuoteData = async ({
             }
         }
     }
-
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getValidHopQuoteData START <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
-    // Object.entries(hopQuoteData.data).forEach(([id, hops]) => {
-    //     console.log(`>>> path: ${id}`)
-    //     hops.forEach((data, i) => {
-    //         console.log(`   >>> hop ${i}: ${data.srcData.minAmount ? formatUnits(data.srcData.minAmount, data.srcData.token.decimals) : "n/a"} ${data.srcData.token.symbol} (${data.srcData.chain.name}) -> ${data.dstData.minAmount ? formatUnits(data.dstData.minAmount, data.dstData.token.decimals) : "n/a"} ${data.dstData.token.symbol} (${data.dstData.chain.name}) / type: ${data.type} / srcCell: ${data.srcData.cell?.type ?? "NO SRC CELL"} / dstCell: ${data.dstData.cell?.type ?? "NO CELL???????"}`)
-    //     })
-    // })
-    // console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getValidHopQuoteData END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<`)
 
     return hopQuoteData
 }
@@ -939,7 +882,7 @@ export const getHopQueryResults = async ({
 
     catch (err) {
         error = `getHopQueryResults error: ${err}`
-        console.debug(`getHopQueryResults error: ${error}`)
+        console.warn(`getHopQueryResults error: ${error}`)
     }
 
     return {
@@ -1038,7 +981,7 @@ export const getUnconfirmedQuoteTokens = async ({
 
     catch (err) {
         error = getParsedError(err)
-        console.debug(`getUnconfirmedQuoteTokens error: ${error}`)
+        console.warn(`getUnconfirmedQuoteTokens error: ${error}`)
     }
 
     return {

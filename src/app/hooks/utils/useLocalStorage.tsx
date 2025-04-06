@@ -47,7 +47,7 @@ const useLocalStorage = <T,>({
             parsedValue = JSON.parse(value)
         }
         catch (error) {
-            console.error(`useLocalStorage error parsing json: ${error}`)
+            console.warn(`useLocalStorage error parsing json: ${error}`)
             return defaultValue
         }
 
@@ -68,7 +68,7 @@ const useLocalStorage = <T,>({
             return value ? deserializer(value) : useInitialValue
         }
         catch (error) {
-            console.error(`useLocalStorage error reading value of ${key}: ${error}`)
+            console.warn(`useLocalStorage error reading value of ${key}: ${error}`)
             return useInitialValue
         }
 
@@ -89,7 +89,7 @@ const useLocalStorage = <T,>({
             window.dispatchEvent(new StorageEvent(CustomStorageEventName.LocalStorage, { key }))
         }
         catch (error) {
-            console.error(`useLocalStorage error storing value of ${key}: ${error}`)
+            console.warn(`useLocalStorage error storing value of ${key}: ${error}`)
         }
 
     }, [key, serializer, readValue])
