@@ -10,10 +10,11 @@ import { TransactionReceipt } from "viem"
 import { serialize, useAccount } from "wagmi"
 
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
-import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
-import SwapQuoteExpiryTimer from "@/app/components/swapQuotes/SwapQuoteExpiryTimer"
-import SwapQuotePreviewSummary from "@/app/components/swapQuotes/SwapQuotePreviewSummary"
-import SwapSlippageInput from "@/app/components/swapQuotes/SwapSlippageInput"
+import QuoteExpiry from "@/app/components/swap/QuoteExpiry"
+import SwapEventTabs from "@/app/components/swap/SwapEventTabs"
+import SwapPreview from "@/app/components/swap/SwapPreview"
+import SwapRecipientInput from "@/app/components/swap/SwapRecipientInput"
+import SwapSlippageInput from "@/app/components/swap/SwapSlippageInput"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { iconSizes } from "@/app/config/styling"
@@ -48,7 +49,7 @@ const ReviewSwapPage = () => {
     const { getBalance, isInProgress: balanceIsInProgress } = useBalancesData
     const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
     const { getFirmQuote } = useApiData()
-    const { setSrcAmountInput, useSwapQuotesData, selectedQuote } = useQuoteData()
+    const { setSrcAmountInput, selectedQuote } = useQuoteData()
     const { setNotification, removeNotification } = useNotifications()
     const { openConnectModal } = useConnectModal()
     const router = useRouter()
@@ -378,7 +379,7 @@ const ReviewSwapPage = () => {
             {/* Review {SwapTypeLabel[quote.type]} (recipient: {quote.recipientAddress ? "yes" : "no"} / acc: {quote.accountAddress ? "yes" : "no"} / valid initiate: {serialize(isValidInitiate)}) */}
         </div>
         <div className="flex flex-row flex-none gap-4 absolute end-0 justify-end items-center">
-            <SwapQuoteExpiryTimer />
+            <QuoteExpiry />
         </div>
     </div>
 
@@ -403,27 +404,18 @@ const ReviewSwapPage = () => {
             backUrl="/swap"
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
-                <div
-                    className="container-select p-4"
-                    data-selected={true}
-                >
-                    <div className="flex flex-col flex-1 gap-4">
-                        {quote && (
-                            <SwapQuotePreviewSummary
-                                quote={quote}
-                                quoteData={useSwapQuotesData.data}
-                            />
-                        )}
-                    </div>
-                </div>
-
-
                 {quote && (
-                    <SwapHistoryEventSummary
-                        swap={quote}
-                        useSwapRecipientData={useSwapRecipientData}
-                        useSwapSlippageData={useSwapSlippageData}
-                    />
+                    <div className="flex flex-col flex-none gap-4">
+                        <SwapPreview
+                            swap={quote}
+                            isReviewPage={true}
+                        />
+                        <SwapEventTabs
+                            swap={quote}
+                            useSwapRecipientData={useSwapRecipientData}
+                            useSwapSlippageData={useSwapSlippageData}
+                        />
+                    </div>
                 )}
 
                 {/* Destination Address */}

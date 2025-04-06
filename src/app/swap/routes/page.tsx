@@ -9,8 +9,8 @@ import { useEffect } from "react"
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import SlideInOut from "@/app/components/animations/SlideInOut"
 import { defaultAnimations as slideInOutAnimations } from "@/app/components/animations/SlideInOut"
-import SwapQuotePreview from "@/app/components/swapQuotes/SwapQuotePreview"
 import { Page } from "@/app/components/ui/Page"
+import SwapPreview from "@/app/components/swap/SwapPreview"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import { PageType } from "@/app/types/navigation"
 
@@ -31,14 +31,15 @@ const routeAnimations: Variants = {
 
 const RoutesPage = () => {
 
-    const { useSwapQuotesData: { data: quoteData } } = useQuoteData()
     const router = useRouter()
+    const { useSwapQuotesData, selectedQuote, setSelectedQuote } = useQuoteData()
+    const { data: quoteData } = useSwapQuotesData
 
     useEffect(() => {
-        if (!quoteData || quoteData.quotes.length === 0) {
+        if (!quoteData || !quoteData.quotes.length) {
             router.push("/swap")
         }
-    }, [quoteData])
+    }, [router, quoteData])
 
     return (
         <Page
@@ -47,7 +48,7 @@ const RoutesPage = () => {
             backUrl="/swap"
         >
             <ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
-                {quoteData && quoteData.quotes.length > 0 && quoteData.quotes.map((quote, i) => (
+                {quoteData?.quotes.map((quote, i) => (
                     <SlideInOut
                         key={i}
                         from="right"
@@ -58,9 +59,11 @@ const RoutesPage = () => {
                             exit: (quoteData.quotes.length - 1 - i) * 0.1,
                         }}
                     >
-                        <SwapQuotePreview
+                        <SwapPreview
                             key={quote.id}
-                            quote={quote}
+                            swap={quote}
+                            isSelected={quote.id === selectedQuote?.id}
+                            onClick={setSelectedQuote.bind(this, quote)}
                         />
                     </SlideInOut>
                 ))}

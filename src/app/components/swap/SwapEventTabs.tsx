@@ -475,7 +475,7 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
                                                 value={bpsToPercent(getPreference(PreferenceType.Slippage))}
                                                 valueClass="font-mono text-base"
                                             />
-                                            <SwapParameter
+                                            {/* <SwapParameter
                                                 icon=<RecipientIcon className={iconSizes.sm} />
                                                 label=<>
                                                     Recipient
@@ -497,7 +497,7 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
                                                 labelClass="gap-4"
                                                 value={swap.recipientAddress ? toShort(swap.recipientAddress) : "0x..."}
                                                 valueClass={twMerge("font-mono text-base", !swap.recipientAddress ? "text-muted-500" : undefined)}
-                                            />
+                                            /> */}
                                             {swapFees?.map((data, i) => (
                                                 <SwapParameter
                                                     key={data.type}
