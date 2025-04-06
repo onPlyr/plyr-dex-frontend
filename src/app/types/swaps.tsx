@@ -82,6 +82,24 @@ export const SwapSource = {
 } as const
 export type SwapSource = (typeof SwapSource)[keyof typeof SwapSource]
 
+export const SwapMsgType = {
+    SelectTokens: "Select Tokens",
+    Amount: "Enter Amount",
+    IsFetching: "Fetching Quotes",
+    NoQuotesFound: "No Quotes Available",
+    SelectQuote: "Select Quote",
+    InsufficientBalance: "Insufficient Balance",
+    IsError: "Error Fetching Quotes",
+} as const
+export type SwapMsgType = (typeof SwapMsgType)[keyof typeof SwapMsgType]
+
+export interface SwapMsgData {
+    type: SwapMsgType,
+    msg: React.ReactNode,
+    icon: React.ReactNode,
+    isShowErrorWithQuote?: boolean,
+}
+
 export const isSwapType = (type: SwapType): type is typeof SwapType.Swap => {
     return type === SwapType.Swap
 }

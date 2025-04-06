@@ -2,7 +2,14 @@
 
 import { createContext, useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import { formatUnits, parseUnits } from "viem"
+import { useAccount } from "wagmi"
 
+import AccountIcon from "@/app/components/icons/AccountIcon"
+import CheckIcon, { CheckIconVariant } from "@/app/components/icons/CheckIcon"
+import CoinsIcon from "@/app/components/icons/CoinsIcon"
+import ErrorIcon from "@/app/components/icons/ErrorIcon"
+import InfoIcon from "@/app/components/icons/InfoIcon"
+import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import { DefaultUserPreferences } from "@/app/config/preferences"
 import { DefaultSwapRouteConfig } from "@/app/config/swaps"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
@@ -12,11 +19,12 @@ import useDebounce from "@/app/hooks/utils/useDebounce"
 import useEventListener from "@/app/hooks/utils/useEventListener"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
 import { getChain, getNetworkModeChainIds } from "@/app/lib/chains"
+import { getSwapNativeTokenAmount } from "@/app/lib/swaps"
 import { getTokenAddress } from "@/app/lib/tokens"
 import { NetworkMode, PreferenceType } from "@/app/types/preferences"
 import { StorageKey } from "@/app/types/storage"
-import { SwapQuote, SwapRoute, SwapRouteJson } from "@/app/types/swaps"
-import { Token } from "@/app/types/tokens"
+import { SwapMsgData, SwapMsgType, SwapQuote, SwapRoute, SwapRouteJson } from "@/app/types/swaps"
+import { isNativeToken, isValidTokenAmount, Token, TokenAmount } from "@/app/types/tokens"
 
 const SwapRouteActionType = {
     SetSrcToken: "token-set-src",
@@ -24,7 +32,7 @@ const SwapRouteActionType = {
     SetBothTokens: "token-set-both",
     SetSrcAmount: "amount-set-src",
 } as const
-export type SwapRouteActionType = (typeof SwapRouteActionType)[keyof typeof SwapRouteActionType]
+type SwapRouteActionType = (typeof SwapRouteActionType)[keyof typeof SwapRouteActionType]
 
 interface SwapRouteAction {
     srcToken?: Token,
@@ -42,6 +50,7 @@ interface QuoteDataContextType {
     useSwapQuotesData: UseSwapQuotesReturnType,
     selectedQuote?: SwapQuote,
     setSelectedQuote: (quote?: SwapQuote) => void,
+    swapMsgData?: SwapMsgData,
 }
 
 export const QuoteDataContext = createContext({} as QuoteDataContextType)
@@ -55,9 +64,10 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
             const swapRoute: SwapRoute = {
                 ...state,
                 srcData: {
-                    ...state.srcData,
+                    // ...state.srcData,
                     chain: action.srcToken && getChain(action.srcToken.chainId),
                     token: action.srcToken,
+                    amount: state.srcData.amount && state.srcData.token && action.srcToken && state.srcData.token.decimals !== action.srcToken.decimals ? parseUnits(formatUnits(state.srcData.amount, state.srcData.token.decimals), action.srcToken.decimals) : state.srcData.amount,
                 },
             }
 
@@ -119,6 +129,87 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
     }
 }
 
+export const getSwapMsgData = ({
+    route,
+    isConnected,
+    isFetching,
+    error,
+    numQuotes,
+    selectedQuote,
+    srcBalance,
+    nativeAmount,
+    nativeBalance,
+}: {
+    route: SwapRoute,
+    isConnected: boolean,
+    isFetching: boolean,
+    error?: string,
+    numQuotes?: number,
+    selectedQuote?: SwapQuote,
+    srcBalance?: TokenAmount,
+    nativeAmount?: bigint,
+    nativeBalance?: TokenAmount,
+}): SwapMsgData | undefined => {
+
+    let msgType: SwapMsgType | undefined = undefined
+    let msg: React.ReactNode | undefined = undefined
+    let icon: React.ReactNode | undefined = undefined
+    let isShowErrorWithQuote = false
+    let isConnectAccountError = false
+
+    if (!route.srcData.token || !route.srcData.chain || !route.dstData.token || !route.dstData.chain) {
+        msgType = SwapMsgType.SelectTokens
+        msg = "Please select the tokens you would like to swap or transfer."
+        icon = <CoinsIcon />
+    }
+    else if (!route.srcData.amount || route.srcData.amount === BigInt(0)) {
+        msgType = SwapMsgType.Amount
+        msg = `Please enter the amount of ${route.srcData.token.symbol} you would like to sell or transfer.`
+        icon = <CoinsIcon />
+    }
+    else if (isFetching) {
+        msgType = selectedQuote ? SwapMsgType.IsUpdating : SwapMsgType.IsFetching
+        msg = `Finding the best quotes from ${route.srcData.token.symbol} on ${route.srcData.chain.name} to ${route.dstData.token.symbol} on ${route.dstData.chain.name}.`
+        icon = <LoadingIcon />
+    }
+    else if (!numQuotes) {
+        msgType = SwapMsgType.NoQuotesFound
+        msg = "Please try entering a different amount, adjusting your slippage tolerance or selecting different tokens."
+        icon = <InfoIcon highlight={false} />
+    }
+    else if (!selectedQuote) {
+        msgType = SwapMsgType.SelectQuote
+        msg = "Please select your preferred quote."
+        icon = <CheckIcon variant={CheckIconVariant.SquareOffset} />
+    }
+    else if (!isConnected) {
+        msgType = SwapMsgType.NoAccountConnected
+        msg = "Please connect your account to complete this transaction."
+        icon = <AccountIcon />
+        isShowErrorWithQuote = true
+        isConnectAccountError = true
+    }
+    else if (!isValidTokenAmount(srcBalance) || srcBalance.amount < selectedQuote.srcAmount || !isValidTokenAmount(nativeBalance) || (nativeAmount !== undefined && nativeBalance.amount < nativeAmount)) {
+        msgType = SwapMsgType.InsufficientBalance
+        msg = `The connected account does not have enough ${route.srcData.token.symbol} to complete this transaction.`
+        icon = <AccountIcon />
+        isShowErrorWithQuote = true
+    }
+    else if (error) {
+        msgType = SwapMsgType.IsError
+        msg = error
+        icon = <ErrorIcon highlight={false} />
+    }
+
+    return msgType && msg && icon ? {
+        type: msgType,
+        msg: msg,
+        icon: icon,
+        isShowErrorWithQuote: isShowErrorWithQuote,
+        isConnectAccountError: isConnectAccountError,
+    } : undefined
+}
+
 const isNetworkModeToken = (networkMode: NetworkMode, token?: Token) => {
     return !!token && getNetworkModeChainIds(networkMode).includes(token.chainId)
 }
@@ -129,7 +220,9 @@ const QuoteDataProvider = ({
     children: React.ReactNode,
 }) => {
 
-    const { getToken, getNativeToken } = useTokens()
+    const { isConnected } = useAccount()
+    const { getToken, getNativeToken, useBalancesData } = useTokens()
+    const { getBalance } = useBalancesData
     const { preferences } = usePreferences()
     const networkMode = useMemo(() => preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode], [preferences])
 
@@ -231,7 +324,7 @@ const QuoteDataProvider = ({
     }, [])
 
     const useSwapQuotesData = useSwapQuotes(swapRoute)
-    const { data: swapQuotesData } = useSwapQuotesData
+    const { data: swapQuotesData, isFetching: quotesIsFetching, error: quotesError } = useSwapQuotesData
     const [selectedQuote, setSelectedQuoteState] = useState<SwapQuote>()
 
     const setSelectedQuote = useCallback((quote?: SwapQuote) => {
@@ -250,6 +343,25 @@ const QuoteDataProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => setSelectedQuote(swapQuotesData?.quotes.at(0)), [swapQuotesData])
 
+    const swapMsgData = useMemo(() => {
+
+        const srcBalance = getBalance(swapRoute.srcData.token)
+        const nativeBalance = isNativeToken(swapRoute.srcData.token) ? srcBalance : getBalance(getNativeToken(swapRoute.srcData.chain?.id))
+
+        return getSwapMsgData({
+            route: swapRoute,
+            isConnected: isConnected,
+            isFetching: quotesIsFetching,
+            error: quotesError,
+            numQuotes: swapQuotesData?.quotes.length,
+            selectedQuote: selectedQuote,
+            srcBalance: srcBalance,
+            nativeAmount: getSwapNativeTokenAmount(selectedQuote),
+            nativeBalance: nativeBalance,
+        })
+
+    }, [isConnected, swapRoute, quotesIsFetching, quotesError, swapQuotesData?.quotes.length, selectedQuote, getNativeToken, getBalance])
+
     useEventListener("beforeunload", () => dispatchSwapRoute({
         srcAmount: "",
         type: SwapRouteActionType.SetSrcAmount,
@@ -264,6 +376,7 @@ const QuoteDataProvider = ({
         useSwapQuotesData: useSwapQuotesData,
         selectedQuote: selectedQuote,
         setSelectedQuote: setSelectedQuote,
+        swapMsgData: swapMsgData,
     }
 
     return (

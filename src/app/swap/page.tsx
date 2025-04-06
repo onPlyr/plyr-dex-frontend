@@ -159,12 +159,15 @@ const SwapPage = () => {
                                     variants={{
                                         initial: {
                                             backdropFilter: "blur(0px)",
+                                            WebkitBackdropFilter: "blur(0px)",
                                         },
                                         showIntro: {
                                             backdropFilter: "blur(4px)",
+                                            WebkitBackdropFilter: "blur(4px)",
                                         },
                                         hover: {
                                             backdropFilter: "blur(0px)",
+                                            WebkitBackdropFilter: "blur(0px)",
                                             transition: {
                                                 type: "tween",
                                                 ease: "easeOut",

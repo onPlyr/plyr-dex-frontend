@@ -1,24 +1,39 @@
-import { Check, CheckCircle, CheckSquare } from "@phosphor-icons/react"
-import * as React from "react"
+import { Check, CheckCircle, CheckSquare, CheckSquareOffset, ListChecks } from "@phosphor-icons/react"
+import React from "react"
 
-import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
-import { StyleShape } from "@/app/types/styling"
+import { BaseIcon } from "@/app/components/icons/BaseIcon"
 
-const shapeIcons: Record<StyleShape, React.ReactNode> = {
-    [StyleShape.Circle]: <CheckCircle />,
-    [StyleShape.Square]: <CheckSquare />,
+export const CheckIconVariant = {
+    Default: "default",
+    Circle: "plus",
+    Square: "minus",
+    SquareOffset: "square-offset",
+    List: "list",
+} as const
+export type CheckIconVariant = (typeof CheckIconVariant)[keyof typeof CheckIconVariant]
+
+const checkIcons: Record<CheckIconVariant, React.ReactNode> = {
+    [CheckIconVariant.Default]: <Check />,
+    [CheckIconVariant.Circle]: <CheckCircle />,
+    [CheckIconVariant.Square]: <CheckSquare />,
+    [CheckIconVariant.SquareOffset]: <CheckSquareOffset />,
+    [CheckIconVariant.List]: <ListChecks />,
 }
 
-const CheckIcon = React.forwardRef<React.ElementRef<typeof BaseIcon>, BaseIconProps>(({
+interface CheckIconProps extends React.ComponentPropsWithoutRef<typeof BaseIcon> {
+    variant?: CheckIconVariant,
+}
+
+const CheckIcon = React.forwardRef<React.ComponentRef<typeof BaseIcon>, CheckIconProps>(({
     children,
-    shape,
+    variant,
     ...props
 }, ref) => (
     <BaseIcon
         ref={ref}
         {...props}
     >
-        {children ?? (shape ? shapeIcons[shape] : <Check />)}
+        {children ?? checkIcons[variant ?? CheckIconVariant.Default]}
     </BaseIcon>
 ))
 CheckIcon.displayName = "CheckIcon"
