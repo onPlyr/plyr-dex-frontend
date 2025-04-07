@@ -9,6 +9,7 @@ import { CurrencyIcon } from "@/app/components/icons/CurrencyIcon"
 import { DecimalInput } from "@/app/components/ui/DecimalInput"
 import { Page } from "@/app/components/ui/Page"
 import { SelectItem } from "@/app/components/ui/SelectItem"
+import { DefaultUserPreferences } from "@/app/config/preferences"
 import { getNetworkModeLabel } from "@/app/config/chains"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
@@ -83,6 +84,10 @@ const PreferencesPage = () => {
         }))
     }, [setPreference, setErrorMsgs])
 
+    // todo: remove filter to allow all currencies again once supported in price api service
+    const currencies = Object.values(Currency).filter((currency) => currency === DefaultUserPreferences[PreferenceType.Currency])
+
+
     ////////////////////////////////////////////////////////////////////////////////
     // network mode
 
@@ -142,7 +147,7 @@ const PreferencesPage = () => {
                 </div>
                 <div className="flex flex-row flex-1 gap-4 justify-between items-center">
                     <div className="flex flex-row flex-1 flex-wrap gap-x-4 gap-y-2">
-                        {Object.values(Currency).map((option) => (
+                        {currencies.map((option) => (
                             <SelectItem
                                 key={option}
                                 className="container-select flex flex-row flex-none ps-3 pe-4 py-2 gap-2 justify-center items-center rounded-lg before:rounded-lg font-bold"

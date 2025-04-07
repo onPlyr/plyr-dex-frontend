@@ -85,9 +85,11 @@ export type SwapSource = (typeof SwapSource)[keyof typeof SwapSource]
 export const SwapMsgType = {
     SelectTokens: "Select Tokens",
     Amount: "Enter Amount",
+    IsUpdating: "Updating Quotes",
     IsFetching: "Fetching Quotes",
     NoQuotesFound: "No Quotes Available",
     SelectQuote: "Select Quote",
+    NoAccountConnected: "Connect Account",
     InsufficientBalance: "Insufficient Balance",
     IsError: "Error Fetching Quotes",
 } as const
@@ -98,6 +100,7 @@ export interface SwapMsgData {
     msg: React.ReactNode,
     icon: React.ReactNode,
     isShowErrorWithQuote?: boolean,
+    isConnectAccountError?: boolean,
 }
 
 export const isSwapType = (type: SwapType): type is typeof SwapType.Swap => {
