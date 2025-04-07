@@ -22,7 +22,7 @@ const SwapButton = React.forwardRef<React.ComponentRef<typeof Button>, React.Com
     const { swapMsgData } = useQuoteData()
     const { msg, isDisabled, isReview } = useMemo(() => {
 
-        const isDisabled = isConnected && !swapMsgData?.isConnectAccountError && (disabled || !!swapMsgData)
+        const isDisabled = isConnected && (disabled || !!swapMsgData)
         const isReview = isConnected && !isDisabled
 
         return {

@@ -5,9 +5,9 @@ import "@/app/styles/globals.css"
 import { AnimatePresence } from "motion/react"
 import { useRouter } from "next/navigation"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { TransactionReceipt } from "viem"
-import { serialize, useAccount } from "wagmi"
+import { useAccount } from "wagmi"
 
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import QuoteExpiry from "@/app/components/swap/QuoteExpiry"
@@ -32,7 +32,6 @@ import useTokens from "@/app/hooks/tokens/useTokens"
 import useWriteApprove from "@/app/hooks/tokens/useWriteApprove"
 import { getInitiatedBlockNumber, getInitiateSwapError, getSwapChainIds } from "@/app/lib/swaps"
 import { getTxActionLabel } from "@/app/lib/txs"
-import { ChainId } from "@/app/types/chains"
 import { PageType } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { InitiateSwapAction, isTransferType, isValidInitiateSwapQuote, isValidSwapQuote, SwapHistory, SwapQuote, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
@@ -55,28 +54,25 @@ const ReviewSwapPage = () => {
     const router = useRouter()
 
     const [quote, setQuote] = useState(selectedQuote)
-    const [isConfirmQuote, setIsConfirmQuote] = useState(!quote?.isConfirmed)
+    const [confirmedQuoteId, setConfirmedQuoteId] = useState<string>()
+    const [initiatePromptedId, setInitiatePromptedId] = useState<string>()
     const useSwapRecipientData = useSwapRecipient({
         swap: quote,
         setSwap: setQuote,
+        initialRecipient: accountAddress,
     })
-
     const useSwapSlippageData = useSwapSlippage({
         swap: quote,
         setSwap: setQuote,
     })
 
-    const [quoteChainIds, setQuoteChainIds] = useState<ChainId[]>([])
+    const quoteChainIds = useMemo(() => quote ? getSwapChainIds(quote) : [], [quote])
     const { getLatestBlock } = useLatestBlocks(quoteChainIds)
 
     useAlternativeSwapQuote({
         quote: quote,
         setQuote: setQuote,
     })
-
-    useEffect(() => {
-        setQuoteChainIds(quote ? getSwapChainIds(quote) : [])
-    }, [quote?.id])
 
     useEffect(() => {
         if (quote) {
@@ -111,12 +107,9 @@ const ReviewSwapPage = () => {
             return
         }
 
-
-
         if (address === '' && isEdited) {
             address = accountAddress || '';
         }
-
 
         // Load from local storage
         const localInfo = localStorage.getItem('plyrswapInfo-' + address);
@@ -203,8 +196,18 @@ const ReviewSwapPage = () => {
     }, [destinationAddress])
 
     const { srcData, dstData } = quote ?? {}
-    const srcBalance = getBalance(srcData?.token)
-    const nativeBalance = isNativeToken(srcData?.token) ? srcBalance : getBalance(getNativeToken(srcData?.chain.id))
+    const { srcBalance, nativeBalance } = useMemo(() => {
+
+        const srcBalance = getBalance(srcData?.token)
+        const nativeBalance = isNativeToken(srcData?.token) ? srcBalance : getBalance(getNativeToken(srcData?.chain.id))
+
+        return {
+            srcBalance,
+            nativeBalance,
+        }
+
+    }, [getBalance, getNativeToken, srcData])
+
     const isValidQuote = quote && isValidSwapQuote(quote)
     const isValidInitiate = isValidQuote && isValidInitiateSwapQuote(quote)
 
@@ -214,12 +217,7 @@ const ReviewSwapPage = () => {
         if (!isValidQuote) {
             router.push("/swap")
         }
-    }, [isValidQuote])
-
-    useEffect(() => {
-        setIsConfirmQuote(!quote?.isConfirmed)
-    }, [quote?.id])
-
+    }, [router, isValidQuote])
 
     const { data: allowance, refetch: refetchAllowance, isInProgress: allowanceIsInProgress } = useReadAllowance({
         chain: srcData?.chain,
@@ -230,7 +228,8 @@ const ReviewSwapPage = () => {
     })
 
     const enabled = isConnected && !(!accountAddress || !isValidQuote || !srcData || !dstData)
-    const isApprove = enabled && !isNativeToken(srcData.token) && (!allowance || allowance < quote.srcAmount)
+    const isApprove = useMemo(() => enabled && !isNativeToken(srcData.token) && (!allowance || allowance < quote.srcAmount), [enabled, srcData?.token, allowance, quote?.srcAmount])
+    const isConfirmQuote = useMemo(() => !quote?.isConfirmed, [quote?.isConfirmed])
 
     const initiateOnSettled = useCallback((receipt?: TransactionReceipt) => {
 
@@ -266,7 +265,7 @@ const ReviewSwapPage = () => {
 
         router.push(`/swap/${receipt.transactionHash}/${swap.srcData.chain.id}${quote?.recipientAddress && quote?.recipientAddress !== accountAddress ? `?plyrId=${plyrId}` : ""}`)
 
-    }, [enabled, isValidInitiate, router, quote, refetchTokens, accountAddress, refetchAllowance, setSrcAmountInput, setSwapHistory, setInitiateSwapData, getLatestBlock])
+    }, [enabled, isValidInitiate, router, quote, refetchTokens, refetchAllowance, setSrcAmountInput, setSwapHistory, setInitiateSwapData, getLatestBlock, accountAddress])
 
     const { write: writeInitiate, isInProgress: initiateIsInProgress } = useWriteInitiateSwap({
         quote: quote,
@@ -299,6 +298,9 @@ const ReviewSwapPage = () => {
 
             if (confirmedQuote) {
                 switchQuote(confirmedQuote)
+                if (confirmedQuote.isConfirmed) {
+                    setConfirmedQuoteId(confirmedQuote.id)
+                }
             }
 
             setNotification({
@@ -309,12 +311,20 @@ const ReviewSwapPage = () => {
                 status: error ? NotificationStatus.Error : NotificationStatus.Success,
             })
 
-            if (!error) {
-                writeInitiate()
-            }
+            // if (!error) {
+            //     writeInitiate()
+            // }
         }
 
-    }, [enabled, quote, isConfirmQuote, getFirmQuote, switchQuote, setNotification, writeInitiate])
+    }, [enabled, quote, isConfirmQuote, getFirmQuote, setConfirmedQuoteId, switchQuote, setNotification])
+
+    useEffect(() => {
+        if (quote?.isConfirmed && quote.id === confirmedQuoteId && quote.id !== initiatePromptedId) {
+            writeInitiate()
+            setInitiatePromptedId(quote.id)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [quote?.isConfirmed, confirmedQuoteId])
 
     const approveOnSettled = useCallback(() => {
         refetchAllowance()
@@ -333,9 +343,6 @@ const ReviewSwapPage = () => {
     })
 
     const isInProgress = balanceIsInProgress || allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
-
-    //console.log('srcBalance', srcBalance)
-
     const { errorMsg, isConnectError } = getInitiateSwapError({
         action: InitiateSwapAction.Initiate,
         isConnected: isConnected,
@@ -348,7 +355,6 @@ const ReviewSwapPage = () => {
     const approveLabel = getTxActionLabel(TxAction.Approve, approveIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
     const initiateLabel = getTxActionLabel(quote && isTransferType(quote.type) ? TxAction.Transfer : TxAction.Swap, initiateIsInProgress ? TxLabelType.InProgress : TxLabelType.Default)
 
-
     const handleInitiate = useCallback(() => {
 
         if (isConnectError || !isConnected) {
@@ -357,7 +363,6 @@ const ReviewSwapPage = () => {
         }
 
         else if (!enabled || !isValidInitiate || errorMsg) {
-
             setNotification({
                 id: quote?.id ?? "initiate-disabled",
                 type: NotificationType.Error,
@@ -376,7 +381,7 @@ const ReviewSwapPage = () => {
 
     const pageHeader = quote && <div className="relative flex flex-row flex-1 gap-4 justify-center items-center">
         <div className="flex flex-row flex-none justify-center items-center">
-            {/* Review {SwapTypeLabel[quote.type]} (recipient: {quote.recipientAddress ? "yes" : "no"} / acc: {quote.accountAddress ? "yes" : "no"} / valid initiate: {serialize(isValidInitiate)}) */}
+            Review {SwapTypeLabel[quote.type]}
         </div>
         <div className="flex flex-row flex-none gap-4 absolute end-0 justify-end items-center">
             <QuoteExpiry />

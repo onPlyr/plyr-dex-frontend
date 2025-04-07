@@ -93,7 +93,8 @@ export const GET = async (request: NextRequest) => {
             body: JSON.stringify(params),
         })
         if (!response.ok) {
-            console.log(`>>> dexalot firm quote ERROR response: ${serialize(response)} / params: ${serialize(params)} / response.body: ${serialize(response.body)} / response.text: ${serialize(response.text)} / response.statusText: ${serialize(response.statusText)} / params: ${JSON.stringify(params)}`)
+            const data = await response.json()
+            console.log(`>>> dexalot firm quote ERROR data: ${serialize(data)} / params: ${serialize(params)} / response.body: ${serialize(response.body)} / response.text: ${serialize(response.text)} / response.statusText: ${serialize(response.statusText)} / params: ${JSON.stringify(params)}`)
             result.error = `Bad response from endpoint: ${url.href}`
             throw new Error(result.error)
         }

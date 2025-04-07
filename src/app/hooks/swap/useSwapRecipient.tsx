@@ -30,12 +30,14 @@ interface ValidateRecipientResult {
 const useSwapRecipient = ({
     swap,
     setSwap,
+    initialRecipient,
 }: {
     swap?: SwapQuote,
     setSwap: Dispatch<SetStateAction<SwapQuote | undefined>>,
+    initialRecipient?: Address,
 }): UseSwapRecipientReturnType => {
 
-    const [recipient, setRecipient] = useState(swap?.recipientAddress)
+    const [recipient, setRecipient] = useState(swap?.recipientAddress ?? initialRecipient)
     const [recipientInput, setRecipientInputState] = useState(recipient ?? "")
     const [showRecipient, setShowRecipient] = useState(false)
 
@@ -108,6 +110,7 @@ const useSwapRecipient = ({
                 setWarningMsg(msg)
             }
         })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [recipientDebounced])
 
     const setSwapRecipient = useCallback(() => {

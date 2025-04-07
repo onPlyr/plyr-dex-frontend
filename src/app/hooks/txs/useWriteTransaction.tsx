@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { Abi, Address, Hash, TransactionReceipt } from "viem"
 import { UseSimulateContractParameters, useSwitchChain, useWriteContract, UseWriteContractReturnType } from "wagmi"
-import { getAccount, getChainId, simulateContract, waitForTransactionReceipt } from "@wagmi/core"
+import { getAccount, getChainId, serialize, simulateContract, waitForTransactionReceipt } from "@wagmi/core"
 
 import { DefaultNotificationTypeMsg } from "@/app/config/notifications"
 import { wagmiConfig } from "@/app/config/wagmi"
@@ -228,6 +228,7 @@ const useWriteTransaction = ({
                 txHash: txHash,
             })
             callbacks?.onError?.(txReceipt, useNotificationId, txHash)
+            console.warn(`useWriteTransaction error: ${serialize(err)}`)
         }
 
         finally {
