@@ -30,6 +30,9 @@ interface TokenDetailItemProps extends React.ComponentPropsWithoutRef<typeof Sel
 
 export const TokenDetailAnimation = React.forwardRef<React.ComponentRef<typeof motion.div>, TokenDetailAnimationProps>(({
     className,
+    delay = 0.025,
+    index,
+    numTokens,
     initial = "initial",
     animate = "animate",
     exit = "exit",
@@ -40,27 +43,38 @@ export const TokenDetailAnimation = React.forwardRef<React.ComponentRef<typeof m
     },
     variants = {
         initial: {
-            x: "-50%",
+            // x: "-50%",
+            x: -300,
             opacity: 0,
             scale: 0,
             height: 0,
+            transition: {
+                ...transition,
+                delay: (numTokens - index - 1) * delay,
+            },
         },
         animate: {
             x: 0,
             opacity: 1,
             scale: 1,
             height: "auto",
+            transition: {
+                ...transition,
+                delay: index * delay,
+            },
         },
         exit: {
-            x: "50%",
+            // x: "50%",
+            x: 300,
             opacity: 0,
             scale: 0,
             height: 0,
+            transition: {
+                ...transition,
+                delay: (numTokens - index - 1) * delay,
+            },
         },
     },
-    delay = 0.025,
-    index,
-    numTokens,
     ...props
 }, ref) => (
     <motion.div
@@ -71,30 +85,7 @@ export const TokenDetailAnimation = React.forwardRef<React.ComponentRef<typeof m
         initial={initial}
         animate={animate}
         exit={exit}
-        variants={{
-            ...variants,
-            initial: {
-                ...variants.initial,
-                transition: {
-                    ...transition,
-                    delay: (numTokens - index - 1) * delay,
-                },
-            },
-            animate: {
-                ...variants.animate,
-                transition: {
-                    ...transition,
-                    delay: index * delay,
-                },
-            },
-            exit: {
-                ...variants.exit,
-                transition: {
-                    ...transition,
-                    delay: (numTokens - index - 1) * delay,
-                },
-            },
-        }}
+        variants={variants}
         {...props}
     />
 ))

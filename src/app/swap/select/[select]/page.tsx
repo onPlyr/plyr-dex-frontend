@@ -1,20 +1,19 @@
 "use client"
 
-import { AnimatePresence, motion, Transition } from "motion/react"
+import { AnimatePresence, motion, Transition, useInView } from "motion/react"
 import { useRouter } from "next/navigation"
-import React, { use, useCallback } from "react"
+import React, { use, useCallback, useEffect, useRef } from "react"
 
 import SlideInOut from "@/app/components/animations/SlideInOut"
-import MinusIcon, { MinusIconVariant } from "@/app/components/icons/MinusIcon"
 import PlusIcon, { PlusIconVariant } from "@/app/components/icons/PlusIcon"
 import { ChainImage } from "@/app/components/images/ChainImage"
 import CustomTokenInput from "@/app/components/tokens/CustomTokenInput"
 import TokenDetailItem, { TokenDetailAnimation } from "@/app/components/tokens/TokenDetailItem"
-import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import SearchInput from "@/app/components/ui/SearchInput"
 import { SelectItemToggle } from "@/app/components/ui/SelectItemToggle"
 import { Tooltip } from "@/app/components/ui/Tooltip"
+import { iconSizes } from "@/app/config/styling"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useAddToken from "@/app/hooks/tokens/useAddToken"
 import useTokenFilters, { TokenFilterStepSize } from "@/app/hooks/tokens/useTokenFilters"
@@ -105,6 +104,16 @@ const SwapSelectPage = ({
     const clearQuery = useCallback(() => {
         setQuery(undefined)
     }, [setQuery])
+
+    const showMoreRef = useRef(null)
+    const showMoreInView = useInView(showMoreRef)
+    const showMoreTokens = useCallback((num: number = TokenFilterStepSize) => setMaxVisibleTokens((prev) => Math.min(filteredTokens.length, prev + num)), [filteredTokens.length, setMaxVisibleTokens])
+
+    useEffect(() => {
+        if (showMoreInView) {
+            showMoreTokens()
+        }
+    }, [showMoreInView, showMoreTokens])
 
     const useAddTokenData = useAddToken({
         addressInput: query,
@@ -208,65 +217,17 @@ const SwapSelectPage = ({
                                         showNotFoundMsg={true}
                                     />
                                 )}
-                            </AnimatePresence>
-                            <AnimatePresence>
-                                {filteredTokens.length && (
-                                    <motion.div
-                                        key="results-options"
-                                        className="flex flex-row flex-1 p-4 gap-4 justify-between items-center text-muted-500"
-                                        initial="hide"
-                                        animate="show"
-                                        exit="hide"
-                                        transition={{
-                                            type: "spring",
-                                            duration: 0.2,
-                                        }}
-                                        variants={{
-                                            show: {
-                                                y: 0,
-                                                opacity: 1,
-                                                height: "auto",
-                                            },
-                                            hide: {
-                                                y: "-50%",
-                                                opacity: 0,
-                                                height: 0,
-                                            },
-                                        }}
-                                    >
-                                        {maxVisibleTokens > TokenFilterStepSize && (
-                                            <Tooltip
-                                                trigger=<Button
-                                                    label="Show Less"
-                                                    className="icon-btn transition hover:text-white"
-                                                    replaceClass={true}
-                                                    onClick={() => setMaxVisibleTokens((prev) => prev - TokenFilterStepSize)}
-                                                >
-                                                    <MinusIcon variant={MinusIconVariant.Circle} />
-                                                </Button>
-                                            >
-                                                Show less
-                                            </Tooltip>
-                                        )}
-                                        <div className="flex flex-row flex-1 justify-center items-center">
-                                            Showing {maxVisibleTokens > filteredTokens.length ? filteredTokens.length : maxVisibleTokens} of {filteredTokens.length}
-                                        </div>
-                                        {filteredTokens.length > maxVisibleTokens && (
-                                            <Tooltip
-                                                trigger=<Button
-                                                    label="Show More"
-                                                    className="icon-btn transition hover:text-white"
-                                                    replaceClass={true}
-                                                    onClick={() => setMaxVisibleTokens((prev) => prev + TokenFilterStepSize)}
-                                                >
-                                                    <PlusIcon variant={PlusIconVariant.Circle} />
-                                                </Button>
-                                            >
-                                                Show more
-                                            </Tooltip>
-                                        )}
-                                    </motion.div>
-                                )}
+                                <motion.button
+                                    ref={showMoreRef}
+                                    className={filteredTokens.length > maxVisibleTokens ? "inline-flex flex-row p-4 gap-2 justify-center items-center text-muted-500" : "hidden"}
+                                    onClick={showMoreTokens.bind(this, TokenFilterStepSize)}
+                                >
+                                    Show more
+                                    <PlusIcon
+                                        className={iconSizes.sm}
+                                        variant={PlusIconVariant.Circle}
+                                    />
+                                </motion.button>
                             </AnimatePresence>
                         </div>
                     </div>

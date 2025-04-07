@@ -36,7 +36,7 @@ interface SortFunctionArgs {
 }
 type SortFunction = (args: SortFunctionArgs) => number
 
-export const TokenFilterStepSize = 20 as const
+export const TokenFilterStepSize = 10 as const
 const TokenFilterFields = [
     "symbol",
     "name",
@@ -142,6 +142,10 @@ const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
         setFilteredChains(getFilteredAndSortedChains(networkMode, filteredTokens, selectedChainId))
 
     }, [tokens, networkMode, selectedChainId, query, sortCompareFunction])
+
+    useEffect(() => {
+        setMaxVisibleTokens(TokenFilterStepSize)
+    }, [selectedChainId, query])
 
     return {
         filteredTokens: filteredTokens,

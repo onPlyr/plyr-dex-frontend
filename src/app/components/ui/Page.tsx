@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link"
 import { useAccountModal, useChainModal, useConnectModal } from "@rainbow-me/rainbowkit"
-import React from "react"
+import React, { useMemo } from "react"
 import { twMerge } from "tailwind-merge"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
@@ -11,13 +11,12 @@ import BackIcon from "@/app/components/icons/BackIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import WarningIcon from "@/app/components/icons/WarningIcon"
-import Button from "@/app/components/ui/Button"
-import ScrollArea from "@/app/components/ui/ScrollArea"
-import { defaultNetworkMode } from "@/app/config/chains"
-import { iconSizes } from "@/app/config/styling"
-import usePreferences from "@/app/hooks/preferences/usePreferences"
 import MainnetMessage from "@/app/components/messages/MainnetMessage"
 import TestnetMessage from "@/app/components/messages/TestnetMessage"
+import Button from "@/app/components/ui/Button"
+import ScrollArea from "@/app/components/ui/ScrollArea"
+import { iconSizes } from "@/app/config/styling"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { NetworkMode, PreferenceType } from "@/app/types/preferences"
 
 export interface PageMsgData {
@@ -173,8 +172,8 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
     isNestedPage = false,
     ...props
 }, ref) => {
-    const { preferences } = usePreferences()
-    const networkMode = preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode
+    const { getPreference } = usePreferences()
+    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
 
     const { accountModalOpen } = useAccountModal()
     const { chainModalOpen } = useChainModal()
