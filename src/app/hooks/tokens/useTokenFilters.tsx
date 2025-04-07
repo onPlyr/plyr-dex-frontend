@@ -1,6 +1,11 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from "react"
+import { useInView } from "motion/react"
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { twMerge } from "tailwind-merge"
 
+import PlusIcon, { PlusIconVariant } from "@/app/components/icons/PlusIcon"
+import Button from "@/app/components/ui/Button"
 import { DefaultUserPreferences } from "@/app/config/preferences"
+import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getFilteredChains } from "@/app/lib/chains"
@@ -20,8 +25,13 @@ export interface UseTokenFiltersReturnType {
     setSortType: (type?: TokenSortType) => void,
     sortDirection: SortDirection,
     setSortDirection: Dispatch<SetStateAction<SortDirection>>,
-    maxVisibleTokens: number,
-    setMaxVisibleTokens: Dispatch<SetStateAction<number>>,
+    maxResults: number,
+    showMoreResultsButton: React.ReactNode,
+}
+
+interface ShowMoreResultsButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
+    numFilteredTokens: number,
+    maxResults: number,
 }
 
 interface SortFunctionArgs {
@@ -36,7 +46,7 @@ interface SortFunctionArgs {
 }
 type SortFunction = (args: SortFunctionArgs) => number
 
-export const TokenFilterStepSize = 10 as const
+const ResultsPageSize = 10 as const
 const TokenFilterFields = [
     "symbol",
     "name",
@@ -71,6 +81,30 @@ const TokenSortFunctions: Record<TokenSortType, SortFunction> = {
     [TokenSortType.Symbol]: symbolSortFunction,
 } as const
 
+const ShowMoreResultsButton = React.forwardRef<React.ComponentRef<typeof Button>, ShowMoreResultsButtonProps>(({
+    className,
+    numFilteredTokens,
+    maxResults,
+    ...props
+}, ref) => (
+    <Button
+        ref={ref}
+        className={twMerge(
+            "clear-bg clear-border-outline inline-flex flex-row p-4 gap-2 justify-center items-center text-muted-500",
+            className,
+            numFilteredTokens <= maxResults ? "hidden" : undefined,
+        )}
+        {...props}
+    >
+        Show more
+        <PlusIcon
+            className={iconSizes.sm}
+            variant={PlusIconVariant.Circle}
+        />
+    </Button>
+))
+ShowMoreResultsButton.displayName = "ShowMoreResultsButton"
+
 const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
 
     const { getPreference } = usePreferences()
@@ -85,7 +119,7 @@ const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
     const [query, setQuery] = useState<string>()
     const [sortType, setSortTypeState] = useState(getPreference(PreferenceType.TokenSortType))
     const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Descending)
-    const [maxVisibleTokens, setMaxVisibleTokens] = useState<number>(TokenFilterStepSize)
+    const [maxResults, setMaxResults] = useState<number>(ResultsPageSize)
 
     const setSortType = useCallback((type?: TokenSortType) => {
         setSortTypeState(type ?? DefaultUserPreferences[PreferenceType.TokenSortType])
@@ -144,8 +178,24 @@ const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
     }, [tokens, networkMode, selectedChainId, query, sortCompareFunction])
 
     useEffect(() => {
-        setMaxVisibleTokens(TokenFilterStepSize)
+        setMaxResults(ResultsPageSize)
     }, [selectedChainId, query])
+
+    const moreResultsButtonRef = useRef(null)
+    const moreResultsButtonInView = useInView(moreResultsButtonRef)
+    const showMoreResults = useCallback((num: number = ResultsPageSize) => setMaxResults((prev) => prev + num), [setMaxResults])
+    const showMoreResultsButton = <ShowMoreResultsButton
+        ref={moreResultsButtonRef}
+        onClick={showMoreResults.bind(this, ResultsPageSize)}
+        numFilteredTokens={filteredTokens.length}
+        maxResults={maxResults}
+    />
+
+    useEffect(() => {
+        if (moreResultsButtonInView) {
+            showMoreResults()
+        }
+    }, [moreResultsButtonInView, showMoreResults])
 
     return {
         filteredTokens: filteredTokens,
@@ -158,8 +208,8 @@ const useTokenFilters = (tokens: Token[]): UseTokenFiltersReturnType => {
         setSortType: setSortType,
         sortDirection: sortDirection,
         setSortDirection: setSortDirection,
-        maxVisibleTokens: maxVisibleTokens,
-        setMaxVisibleTokens: setMaxVisibleTokens,
+        maxResults: maxResults,
+        showMoreResultsButton: showMoreResultsButton,
     }
 }
 

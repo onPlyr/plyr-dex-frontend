@@ -231,12 +231,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 name: "GoGoPool",
                 platform: "gogopool",
             },
-            // todo: check if the below is needed
-            // {
-            //     address: "0x5C4d23fd18Fc4128f77426F42237acFcE618D0b1",
-            //     name: "WAVAX",
-            //     platform: "wrappedavax",
-            // },
             {
                 address: "0xA05A3ebE5D0Ab59E449Fe34014f51948cb9F31dF",
                 name: "Pharaoh",

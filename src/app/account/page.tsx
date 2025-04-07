@@ -1,10 +1,10 @@
 "use client"
 
+import { AnimatePresence } from "motion/react"
 import { useMemo } from "react"
 import { formatUnits } from "viem"
 import { useAccount } from "wagmi"
 
-import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import { CurrencyIcon } from "@/app/components/icons/CurrencyIcon"
 import SwapParameter from "@/app/components/swap/SwapParameter"
 import TokenDetailItem, { TokenDetailAnimation } from "@/app/components/tokens/TokenDetailItem"
@@ -40,7 +40,7 @@ const AccountPage = () => {
     const { getAmountValue, isInProgress: priceIsInProgress } = useTokenPricesData
 
     const tokens = useMemo(() => allTokens.filter((token) => Boolean(getBalance(token)?.amount)), [allTokens, getBalance])
-    const { filteredTokens } = useTokenFilters(tokens)
+    const { filteredTokens, maxResults, showMoreResultsButton } = useTokenFilters(tokens)
 
     const totalValue = tokens.reduce((sum, token) => {
         const balance = getBalance(token)
@@ -65,7 +65,7 @@ const AccountPage = () => {
             header="My Account"
             backUrl="/swap"
         >
-            <ScaleInOut className="flex flex-col flex-none gap-4 w-full h-fit">
+            <div className="flex flex-col flex-none gap-4 w-full h-fit">
                 {accountAddress ? (<>
                     <div className="container flex flex-col flex-1 p-4 gap-4">
                         <div className="flex flex-col flex-1 gap-1">
@@ -107,21 +107,24 @@ const AccountPage = () => {
                             />
                         </div>
                     </div>
-                    <div className="flex flex-col flex-1 gap-1">
-                        {filteredTokens.map((token, i) => (
-                            <TokenDetailAnimation
-                                key={token.uid}
-                                index={i}
-                                numTokens={filteredTokens.length}
-                            >
-                                <TokenDetailItem
-                                    token={token}
-                                    className="container-select-transparent flex flex-row flex-1 p-4 gap-4 cursor-auto"
-                                    replaceClass={true}
-                                    isSelected={false}
-                                />
-                            </TokenDetailAnimation>
-                        ))}
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <AnimatePresence>
+                            {filteredTokens.slice(0, maxResults).map((token, i) => (
+                                <TokenDetailAnimation
+                                    key={token.uid}
+                                    index={i}
+                                    numTokens={filteredTokens.length}
+                                >
+                                    <TokenDetailItem
+                                        token={token}
+                                        className="container-select-transparent flex flex-row flex-1 p-4 gap-4 cursor-auto"
+                                        replaceClass={true}
+                                        isSelected={false}
+                                    />
+                                </TokenDetailAnimation>
+                            ))}
+                            {showMoreResultsButton}
+                        </AnimatePresence>
                     </div>
                 </>) : (
                     <AlertDetail
@@ -130,7 +133,7 @@ const AccountPage = () => {
                         msg="Please connect your wallet to view your account details."
                     />
                 )}
-            </ScaleInOut>
+            </div>
         </Page>
     )
 }
