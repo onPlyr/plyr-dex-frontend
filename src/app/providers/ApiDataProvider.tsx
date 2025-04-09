@@ -59,7 +59,10 @@ const ApiDataProvider = ({
     const { getPreference } = usePreferences()
     const { getSupportedTokenById } = useTokens()
     const apiTokenData = useApiTokenData()
-    const slippage = useMemo(() => BigInt(getPreference(PreferenceType.Slippage)), [getPreference])
+    const { slippage, networkMode } = useMemo(() => ({
+        slippage: BigInt(getPreference(PreferenceType.Slippage)),
+        networkMode: getPreference(PreferenceType.NetworkMode),
+    }), [getPreference])
     const cellRouteData: CellRouteData = useMemo(() => ({ [CellRouteDataParameter.SlippageBips]: slippage }), [slippage])
 
     const getApiTokenData: GetApiTokenDataFunction = useCallback((provider, chainId) => apiTokenData.data[provider]?.[chainId], [apiTokenData.data])
@@ -106,6 +109,7 @@ const ApiDataProvider = ({
 
                     const url = getApiUrl({
                         provider: hop.srcData.cell.apiData.provider,
+                        networkMode: networkMode,
                         route: ApiRoute.FirmQuote,
                         type: ApiRouteType.App,
                         params: {
@@ -187,6 +191,7 @@ const ApiDataProvider = ({
 
         catch (err) {
             error = getParsedError(err)
+            console.warn(`getFirmQuote error: ${error}`)
         }
 
         finally {
@@ -208,14 +213,14 @@ const ApiDataProvider = ({
             if (!error && swap.hops.every((hop) => hop.isConfirmed) && !swap.hops.some((hop) => hop.isError)) {
                 swap.isConfirmed = true
             }
-
-            return {
-                swap: swap,
-                error: error,
-            }
         }
 
-    }, [accountAddress, getSupportedTokenById, cellRouteData, getApiTokenPair, slippage])
+        return {
+            swap: swap,
+            error: error,
+        }
+
+    }, [accountAddress, getSupportedTokenById, networkMode, cellRouteData, getApiTokenPair, slippage])
 
     const context: ApiDataContextType = {
         getApiTokenData: getApiTokenData,

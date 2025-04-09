@@ -3,7 +3,7 @@ import { formatUnits, parseUnits } from "viem"
 import { serialize } from "wagmi"
 
 import { ApiProviderData } from "@/app/config/apis"
-import { getApiParamsData, getApiUrl } from "@/app/lib/apis"
+import { getApiParamsData, getApiUrl, hasApiKey, isApiKeyRequired } from "@/app/lib/apis"
 import { ApiProvider, ApiResult, ApiRoute, ApiRouteType, ApiSimpleQuoteResultData, ApiTokenPairName } from "@/app/types/apis"
 
 const channel = process.env.DEXALOT_API_CHANNEL || ""
@@ -23,12 +23,13 @@ interface SimpleQuoteResponseData {
 export const GET = async (request: NextRequest) => {
 
     const result: ApiResult = {}
-    const { chain, srcToken, srcAmount, dstToken, pair, isBase, _enabled } = getApiParamsData({
+    const { networkMode, chain, srcToken, srcAmount, dstToken, pair, isBase, _enabled } = getApiParamsData({
         provider: provider,
         searchParams: request.nextUrl.searchParams,
     })
     const url = getApiUrl({
         provider: provider,
+        networkMode: networkMode,
         route: route,
         type: ApiRouteType.Api,
         params: {
@@ -40,7 +41,7 @@ export const GET = async (request: NextRequest) => {
             channel: channel,
         },
     })
-    const enabled = !(!_enabled || !chain || !srcToken || !srcAmount || srcAmount === BigInt(0) || !dstToken || !pair || !url)
+    const enabled = !(!_enabled || !chain || !srcToken || !srcAmount || srcAmount === BigInt(0) || !dstToken || !pair || !url || (isApiKeyRequired(provider) && !hasApiKey(provider)))
 
     if (!enabled) {
         return Response.json(result)

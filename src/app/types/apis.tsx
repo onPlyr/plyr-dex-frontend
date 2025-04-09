@@ -2,6 +2,7 @@ import { Address, Hex } from "viem"
 
 import { Cell } from "@/app/types/cells"
 import { Chain, ChainId } from "@/app/types/chains"
+import { NetworkMode } from "@/app/types/preferences"
 import { Token, TokenApiData, TokenId } from "@/app/types/tokens"
 
 export const ApiProvider = {
@@ -23,7 +24,9 @@ export const ApiRouteType = {
 export type ApiRouteType = (typeof ApiRouteType)[keyof typeof ApiRouteType]
 
 export interface ApiProviderDataType {
-    baseApiUrl: `https://${string}`,
+    baseApiUrl: {
+        [mode in NetworkMode]: `https://${string}`
+    },
     apiFetchOptions?: RequestInit,
     routes: {
         [type in ApiRouteType]?: {
@@ -34,6 +37,7 @@ export interface ApiProviderDataType {
 }
 
 export interface BaseApiData {
+    networkMode?: NetworkMode,
     chain?: Chain,
     cell?: Cell,
     accountAddress?: Address,

@@ -190,17 +190,6 @@ const useWriteTransaction = ({
             })
 
             txHash = await wagmiWriteContract.writeContractAsync(simulateData.request)
-
-            // todo: remove, was used to force through dexalot txs while debugging cell issues
-            // txHash = await wagmiWriteContract.writeContractAsync({
-            //     chainId: txChain.id,
-            //     account: txParams.account,
-            //     address: txParams.address,
-            //     abi: txParams.abi,
-            //     functionName: txParams.functionName,
-            //     args: params.args,
-            //     value: params.value,
-            // })
             setTransactionNotification({
                 id: useNotificationId,
                 type: NotificationType.Submitted,

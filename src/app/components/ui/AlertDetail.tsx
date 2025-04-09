@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { twMerge } from "tailwind-merge"
 
 import ErrorIcon from "@/app/components/icons/ErrorIcon"

@@ -1,10 +1,14 @@
-import { avalancheFuji } from "viem/chains"
+import { avalanche, avalancheFuji } from "viem/chains"
 
 import { ApiProvider, ApiProviderDataType, ApiRoute, ApiRouteType } from "@/app/types/apis"
+import { NetworkMode } from "@/app/types/preferences"
 
 export const ApiProviderData: Record<ApiProvider, ApiProviderDataType> = {
     [ApiProvider.Dexalot]: {
-        baseApiUrl: "https://api.dexalot-test.com",
+        baseApiUrl: {
+            [NetworkMode.Mainnet]: "https://api.dexalot.com",
+            [NetworkMode.Testnet]: "https://api.dexalot-test.com",
+        },
         apiFetchOptions: {
             headers: {
                 "x-apikey": process.env.DEXALOT_API_KEY || "",
@@ -25,6 +29,7 @@ export const ApiProviderData: Record<ApiProvider, ApiProviderDataType> = {
             },
         },
         supportedChains: [
+            avalanche.id,
             avalancheFuji.id,
         ],
     },

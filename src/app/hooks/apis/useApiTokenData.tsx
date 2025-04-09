@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { QueryStatus } from "@tanstack/query-core"
 
 import { ApiProviderData } from "@/app/config/apis"
+import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { getApiUrl } from "@/app/lib/apis"
 import { ApiProvider, ApiProviderTokenData, ApiResult, ApiRoute, ApiRouteType, ApiTokenPairData } from "@/app/types/apis"
+import { PreferenceType } from "@/app/types/preferences"
 
 export interface UseApiTokenDataReturnType {
     data: ApiProviderTokenData,
@@ -14,6 +16,9 @@ export interface UseApiTokenDataReturnType {
 }
 
 const useApiTokenData = (): UseApiTokenDataReturnType => {
+
+    const { getPreference } = usePreferences()
+    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
 
     const [tokenData, setTokenData] = useState<ApiProviderTokenData>({})
     const [isInProgress, setIsInProgress] = useState(false)
@@ -41,6 +46,7 @@ const useApiTokenData = (): UseApiTokenDataReturnType => {
 
                     const url = getApiUrl({
                         provider: provider,
+                        networkMode: networkMode,
                         route: ApiRoute.Pairs,
                         type: ApiRouteType.App,
                         params: {
@@ -77,10 +83,11 @@ const useApiTokenData = (): UseApiTokenDataReturnType => {
             setErrorMsg(errorMsg)
         }
 
-    }, [setTokenData, setIsInProgress, setQueryStatus, setErrorMsg])
+    }, [networkMode, setTokenData, setIsInProgress, setQueryStatus, setErrorMsg])
 
     useEffect(() => {
         getApiTokenData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return {

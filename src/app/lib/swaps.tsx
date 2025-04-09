@@ -18,7 +18,7 @@ import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/a
 import { BridgeProvider } from "@/app/types/bridges"
 import { CellFeeType, CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
-import { SlippageConfig } from "@/app/types/preferences"
+import { NetworkMode, SlippageConfig } from "@/app/types/preferences"
 import {
     GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnData, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
     isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapId, SwapQuote,
@@ -816,6 +816,7 @@ export const getHopQueryData = ({
 
         const apiQueryUrl = getApiUrl({
             provider: srcData.cell.apiData.provider,
+            networkMode: srcData.chain.testnet ? NetworkMode.Testnet : NetworkMode.Mainnet,
             route: srcData.cell.apiData.getQuote,
             type: ApiRouteType.App,
             params: {

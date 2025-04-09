@@ -114,6 +114,10 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 ...cellTypeDefinitions[CellType.YakSwap],
                 address: "0x949A4DC0d6c6B261a648B5542F550aB9fb1acdf1",
             },
+            {
+                ...cellTypeDefinitions[CellType.Dexalot],
+                address: "0x64E10eB36D0662Bc7222dC0933cdCb2950CBB8a0",
+            },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
         minGasPrice: BigInt(1),
@@ -126,6 +130,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryNumBatches: 10,
         },
         adapters: [
+            // yak swap adapters
             {
                 address: "0x3614657EDc3cb90BA420E5f4F61679777e4974E3",
                 name: "Pangolin",
@@ -240,6 +245,12 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 address: "0x214617987145Ef7c5462870362FdCAe9cacdf3C8",
                 name: "LFJ Token Mill",
                 platform: "lfj",
+            },
+            // others
+            {
+                address: "0x64E10eB36D0662Bc7222dC0933cdCb2950CBB8a0",
+                name: "Dexalot",
+                platform: "dexalot",
             },
         ],
     },

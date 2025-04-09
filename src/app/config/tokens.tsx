@@ -42,6 +42,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x093783055F9047C2BfF99c4e414501F8A147bC69",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "ALOT",
+                    },
+                },
             },
             [avalancheFuji.id]: {
                 address: "0x9983F755Bbd60d1886CbfE103c98C272AA0F03d6",
@@ -230,6 +235,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x152b9d0FdC40C096757F570A51E494bd4b943E50",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "BTC.b",
+                    },
+                },
             },
         },
     },
@@ -267,6 +277,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x420FcA0121DC28039145009570975747295f2329",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "COQ",
+                    },
+                },
             },
             [plyrTau.id]: {
                 address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
@@ -374,6 +389,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0xC891EB4cbdEFf6e073e859e987815Ed1505c2ACD",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "EURC",
+                    },
+                },
             },
         },
     },
@@ -649,6 +669,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "QI",
+                    },
+                },
             },
         },
     },
@@ -685,6 +710,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "sAVAX",
+                    },
+                },
             },
         },
     },
@@ -709,6 +739,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0xd402298a793948698b9a63311404fbbee944eafd",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "SHRAP",
+                    },
+                },
             },
         },
     },
@@ -792,6 +827,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "USDC",
+                    },
+                },
             },
             [avalancheFuji.id]: {
                 address: "0x5425890298aed601595a70AB815c96711a31Bc65",
@@ -856,6 +896,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "USDt",
+                    },
+                },
             },
         },
     },
@@ -905,6 +950,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "WETH.e",
+                    },
+                },
             },
         },
     },
@@ -917,6 +967,11 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x7698A5311DA174A95253Ce86C21ca7272b9B05f8",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "WINK",
+                    },
+                },
             },
         },
     },

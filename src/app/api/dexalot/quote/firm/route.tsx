@@ -3,11 +3,11 @@ import { Address, Hex } from "viem"
 import { serialize } from "wagmi"
 
 import { ApiProviderData } from "@/app/config/apis"
-import { getApiParamsData, getApiUrl } from "@/app/lib/apis"
+import { getApiParamsData, getApiUrl, hasApiKey, isApiKeyRequired } from "@/app/lib/apis"
+import { getEncodedCellTrade } from "@/app/lib/cells"
 import { ApiFirmQuoteResultData, ApiProvider, ApiResult, ApiRoute, ApiRouteType } from "@/app/types/apis"
 import { ChainId } from "@/app/types/chains"
 import { CellTrade, CellTradeParameter } from "@/app/types/cells"
-import { getEncodedCellTrade } from "@/app/lib/cells"
 
 const channel = process.env.DEXALOT_API_CHANNEL || ""
 const provider = ApiProvider.Dexalot
@@ -59,16 +59,17 @@ interface FirmQuoteRequestData {
 export const GET = async (request: NextRequest) => {
 
     const result: ApiResult = {}
-    const { chain, cell, accountAddress, srcToken, srcAmount, dstToken, slippage, _enabled } = getApiParamsData({
+    const { networkMode, chain, cell, accountAddress, srcToken, srcAmount, dstToken, slippage, _enabled } = getApiParamsData({
         provider: provider,
         searchParams: request.nextUrl.searchParams,
     })
     const url = getApiUrl({
         provider: provider,
+        networkMode: networkMode,
         route: route,
         type: ApiRouteType.Api,
     })
-    const enabled = !(!_enabled || !chain || !cell || !accountAddress || !srcToken || !srcAmount || srcAmount === BigInt(0) || !dstToken || !slippage || !url)
+    const enabled = !(!_enabled || !chain || !cell || !accountAddress || !srcToken || !srcAmount || srcAmount === BigInt(0) || !dstToken || !slippage || !url || (isApiKeyRequired(provider) && !hasApiKey(provider)))
 
     console.log(`>>> dexalot firm quote enabled: ${serialize(enabled)} / chain: ${serialize(chain?.name)} / cell: ${serialize(cell?.address)} / accountAddress: ${serialize(accountAddress)} / srcToken: ${serialize(srcToken?.symbol)} / srcAmount: ${serialize(srcAmount)} / dstToken: ${serialize(dstToken?.symbol)} / slippage: ${serialize(slippage)} / url: ${serialize(url)}`)
 

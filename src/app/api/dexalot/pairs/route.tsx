@@ -30,12 +30,13 @@ export interface PairsResponseData {
 export const GET = async (request: NextRequest) => {
 
     const result: ApiResult = {}
-    const { chain, _enabled } = getApiParamsData({
+    const { networkMode, chain, _enabled } = getApiParamsData({
         provider: provider,
         searchParams: request.nextUrl.searchParams,
     })
     const url = getApiUrl({
         provider: provider,
+        networkMode: networkMode,
         route: route,
         type: ApiRouteType.Api,
         params: {
