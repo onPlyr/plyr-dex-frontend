@@ -55,8 +55,11 @@ const fetchQuotes = async ({
             getSupportedTokenById: getSupportedTokenById,
         })
 
-        if (error || !data) {
-            throw new Error(error || "getSwapQuoteData returned no data")
+        if (error) {
+            throw new Error(error)
+        }
+        else if (!data) {
+            return null
         }
 
         return data

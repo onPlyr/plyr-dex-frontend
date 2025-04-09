@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "motion/react"
-import React from "react"
+import React, { useMemo } from "react"
 import { twMerge } from "tailwind-merge"
 
 import { FavouriteIcon } from "@/app/components/icons/FavouriteIcon"
@@ -10,10 +10,11 @@ import { TokenImage } from "@/app/components/images/TokenImage"
 import TokenAmountValue from "@/app/components/tokens/TokenAmountValue"
 import TokenBalance from "@/app/components/tokens/TokenBalance"
 import { SelectItem } from "@/app/components/ui/SelectItem"
+import { Bold } from "@/app/components/ui/Typography"
 import { imgSizes } from "@/app/config/styling"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import { getChain } from "@/app/lib/chains"
-import { Token } from "@/app/types/tokens"
+import { isValidTokenAmount, Token } from "@/app/types/tokens"
 
 interface RequiredAnimationProps {
     index: number,
@@ -97,9 +98,12 @@ const TokenDetailItem = React.forwardRef<React.ComponentRef<typeof SelectItem>, 
 }, ref) => {
 
     const chain = getChain(token.chainId)
-    const { useBalancesData: { getBalance }, getIsFavouriteToken, setIsFavouriteToken } = useTokens()
-    const balance = getBalance(token)
-    const isFavourite = getIsFavouriteToken(token)
+    const { useBalancesData, getIsFavouriteToken, setIsFavouriteToken } = useTokens()
+    const { getBalance } = useBalancesData
+
+    const isFavourite = useMemo(() => getIsFavouriteToken(token), [token, getIsFavouriteToken])
+    const balance = useMemo(() => getBalance(token), [token, getBalance])
+    const showBalance = useMemo(() => Boolean(balance && isValidTokenAmount(balance) && balance.amount), [balance])
 
     const favouriteIcon = <FavouriteIcon
         className={twMerge("transition", isFavourite ? "text-brand-500 hover:text-brand-400" : "text-muted-500 hover:text-muted-300")}
@@ -115,50 +119,41 @@ const TokenDetailItem = React.forwardRef<React.ComponentRef<typeof SelectItem>, 
             ref={ref}
             {...props}
         >
-            <div className="flex flex-col sm:flex-row flex-1 gap-x-4 gap-y-2">
-                <div className="flex flex-row flex-1 gap-4">
-                    <div className="flex flex-col flex-none justify-center items-center">
-                        <TokenImage token={token} />
+            <div className="flex flex-row flex-1 gap-4 w-full items-center">
+                <TokenImage token={token} />
+                <div className="flex flex-col flex-1 w-full overflow-hidden">
+                    <div className="flex flex-row flex-1 gap-2 justify-between items-center">
+                        <Bold>{token.symbol}</Bold>
+                        <span className="hidden sm:inline w-full text-muted-500 truncate">{token.name}</span>
+                        {showBalance && (
+                            <TokenBalance
+                                className="flex flex-row flex-none justify-end items-center font-mono text-base text-end"
+                                token={token}
+                                balance={balance}
+                                hideSymbol={true}
+                            />
+                        )}
                     </div>
-                    <div className="flex flex-col flex-1">
-                        <div className="flex flex-row flex-1 gap-2 items-end">
-                            <div className="font-bold">
-                                {token.symbol}
-                            </div>
-                            <div className="hidden md:flex text-muted-500">
-                                {token.name}
-                            </div>
-                        </div>
+                    <div className="flex flex-row flex-1 gap-2 justify-between items-center">
                         {chain && (
-                            <div className="flex flex-row flex-1 gap-2 items-center text-muted-400">
+                            <div className="flex flex-row flex-1 gap-2 justify-start items-center overflow-hidden">
                                 <ChainImageInline
                                     chain={chain}
                                     className={imgSizes.xs}
                                 />
-                                {chain.name}
+                                <span className="text-muted-400 truncate">{chain.name}</span>
                             </div>
                         )}
-                    </div>
-                    <div className="flex sm:hidden flex-row flex-none justify-center items-center">
-                        {favouriteIcon}
-                    </div>
-                </div>
-                <div className="flex flex-row sm:flex-col flex-1 justify-center items-end">
-                    <TokenBalance
-                        className="text-end"
-                        token={token}
-                        balance={balance}
-                    />
-                    <div className="flex flex-row flex-1 h-full justify-end sm:justify-start items-center sm:items-end text-muted-500 text-end">
-                        <TokenAmountValue
-                            token={token}
-                            amount={balance}
-                        />
+                        {showBalance && (
+                            <TokenAmountValue
+                                className="flex flex-row flex-none justify-end items-center text-end text-muted-500"
+                                token={token}
+                                amount={balance}
+                            />
+                        )}
                     </div>
                 </div>
-                <div className="hidden sm:flex flex-row flex-none justify-center items-center">
-                    {favouriteIcon}
-                </div>
+                {favouriteIcon}
             </div>
         </SelectItem>
     )

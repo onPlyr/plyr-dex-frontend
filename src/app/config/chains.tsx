@@ -112,7 +112,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                address: "0x29B8791C0a87B7180970EF756137E08A123BFF03",
+                address: "0x949A4DC0d6c6B261a648B5542F550aB9fb1acdf1",
             },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
@@ -250,11 +250,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                address: "0x104483e25b2B4F413f08fcb718426a72d06e48a1",
+                address: "0xF4C4459b642dA4aeE87f80AD4A040a8C01807Da8",
             },
             {
                 ...cellTypeDefinitions[CellType.Dexalot],
-                address: "0xcab18F63d100845307931ad7040300C7F8F9627a",
+                address: "0xbf6bE308626E49108aB776cA4A8e42666aB28616",
             },
         ],
         blockchainId: "0x7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5",
@@ -284,7 +284,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "lfj",
             },
             {
-                address: "0xcab18F63d100845307931ad7040300C7F8F9627a",
+                address: "0xbf6bE308626E49108aB776cA4A8e42666aB28616",
                 name: "Dexalot",
                 platform: "dexalot",
             },
@@ -358,7 +358,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.HopOnly],
-                address: "0x3fCF1765aa2EfBd6916511000Fb11A2971804BFF",
+                address: "0xa7f586470CD7b70F9b5893eEe85C0b5354541A99",
             },
         ],
         blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
@@ -392,8 +392,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
         isDisabled: true,
     },
 } as const
-
-export const defaultNetworkMode = NetworkMode.Testnet
 
 const networkModeLabels: Record<NetworkMode, string> = {
     [NetworkMode.Mainnet]: "Mainnet",

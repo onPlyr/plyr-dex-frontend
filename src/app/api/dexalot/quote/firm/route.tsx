@@ -33,6 +33,18 @@ interface FirmQuoteResponseData {
     },
 }
 
+/**
+* @notice parameters for dexalot firm quote api endpoint
+* @dev https://docs.dexalot.com/en/apiv2/SimpleSwap.html#_4-request-firm-quote
+* @param chainid
+* @param takerAsset The ERC20 address of the asset Taker (The trader) is providing to the trade (source token)
+* @param makerAsset The ERC20 address of the asset Maker (Dexalot RFQ Contract) is providing to the trade (destination token)
+* @param takerAmount The amount of taker asset for the trade, provided for a sell swap. Should be multiplied by evm_decimals of the taker asset. e.g. for USDC evm_decimals = 6, for a 100 USD trade this number should be 100000000
+* @param userAddress The originating user performing the swap (not the executor contract), e.g. trader address: 0x05A1AAC00662ADda4Aa25E1FA658f4256ed881eD
+* @param executor The executor contract address which calls the mainnet rfq contract (if not provided userAddress is used as the executor) - in our case this is the cell address
+* @param slippage The slippage of the aggregator swap in bps, e.g. '100' for 1%
+* @param partner If applicable, a string identifier for the partner executing the swap on your platform - channel id
+*/
 interface FirmQuoteRequestData {
     chainid: ChainId,
     takerAsset: Address,
@@ -44,20 +56,10 @@ interface FirmQuoteRequestData {
     partner: string,
 }
 
-// chainid: chain?.id.toString(),
-// takerAsset: "The ERC20 address of the asset Taker (The trader) is providing to the trade (source token)",
-// makerAsset: "The ERC20 address of the asset Maker (Dexalot RFQ Contract) is providing to the trade (destination token)",
-// takerAmount?: "The amount of taker asset for the trade, provided for a sell swap. Should be multiplied by evm_decimals of the taker asset. e.g. for USDC evm_decimals = 6, for a 100 USD trade this number should be 100000000",
-// makerAmount?: "The amount of maker asset for the trade, provided for a buy swap. Should be multiplied by evm_decimals of the maker asset. e.g. for AVAX evm_decimals = 18, for a 100 AVAX trade this number should be 100000000000000000000",
-// userAddress: "The originating user performing the swap (not the executor contract), e.g. trader address: 0x05A1AAC00662ADda4Aa25E1FA658f4256ed881eD",
-// executor: "The executor contract address which calls the mainnet rfq contract (if not provided userAddress is used as the executor)",
-// slippage: "The slippage of the aggregator swap in bps, e.g. '100' for 1%",
-// partner: "If applicable, a string identifier for the partner executing the swap on your platform",
-
 export const GET = async (request: NextRequest) => {
 
     const result: ApiResult = {}
-    const { chain, cell, srcToken, srcAmount, dstToken, slippage, _enabled } = getApiParamsData({
+    const { chain, cell, accountAddress, srcToken, srcAmount, dstToken, slippage, _enabled } = getApiParamsData({
         provider: provider,
         searchParams: request.nextUrl.searchParams,
     })
@@ -66,9 +68,9 @@ export const GET = async (request: NextRequest) => {
         route: route,
         type: ApiRouteType.Api,
     })
-    const enabled = !(!_enabled || !chain || !cell || !srcToken || !srcAmount || srcAmount === BigInt(0) || !dstToken || !slippage || !url)
+    const enabled = !(!_enabled || !chain || !cell || !accountAddress || !srcToken || !srcAmount || srcAmount === BigInt(0) || !dstToken || !slippage || !url)
 
-    console.log(`>>> dexalot firm quote enabled: ${serialize(enabled)} / chain: ${serialize(chain?.name)} / cell: ${serialize(cell?.address)} / srcToken: ${serialize(srcToken?.symbol)} / srcAmount: ${serialize(srcAmount)} / dstToken: ${serialize(dstToken?.symbol)} / slippage: ${serialize(slippage)} / url: ${serialize(url)}`)
+    console.log(`>>> dexalot firm quote enabled: ${serialize(enabled)} / chain: ${serialize(chain?.name)} / cell: ${serialize(cell?.address)} / accountAddress: ${serialize(accountAddress)} / srcToken: ${serialize(srcToken?.symbol)} / srcAmount: ${serialize(srcAmount)} / dstToken: ${serialize(dstToken?.symbol)} / slippage: ${serialize(slippage)} / url: ${serialize(url)}`)
 
     if (!enabled) {
         return Response.json(result)
@@ -81,7 +83,8 @@ export const GET = async (request: NextRequest) => {
             takerAsset: srcToken.address,
             makerAsset: dstToken.address,
             takerAmount: srcAmount.toString(),
-            userAddress: cell.address,
+            // userAddress: cell.address,
+            userAddress: accountAddress,
             executor: cell.address,
             slippage: slippage,
             partner: channel,

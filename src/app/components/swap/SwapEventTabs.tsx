@@ -502,7 +502,7 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
                                                 <SwapParameter
                                                     key={data.type}
                                                     icon={i === 0 && <TesseractIcon className={iconSizes.sm} />}
-                                                    label={i === 0 && "Protocol Fee"}
+                                                    label={i === 0 && "Protocol fee"}
                                                     value=<TokenBalance
                                                         symbol={data.symbol}
                                                         decimals={data.decimals}

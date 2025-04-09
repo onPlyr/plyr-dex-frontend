@@ -86,14 +86,10 @@ const TokenDataProvider = ({
         },
     })
 
-    const setCustomToken = useCallback((token: Token) => setCustomTokenData((prev) => {
-        const data = new Map(prev)
-        data.set(token.uid, {
-            ...token,
-            isCustomToken: true,
-        })
-        return data
-    }), [setCustomTokenData])
+    const setCustomToken = useCallback((token: Token) => setCustomTokenData((prev) => new Map(prev).set(token.uid, {
+        ...token,
+        isCustomToken: true,
+    })), [setCustomTokenData])
 
     const removeCustomToken = useCallback((token: Token) => setCustomTokenData((prev) => {
         const data = new Map(prev)

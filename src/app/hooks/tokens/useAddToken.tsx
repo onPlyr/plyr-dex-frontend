@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Address, getAddress } from "viem"
 
-import { defaultNetworkMode } from "@/app/config/chains"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useTokens from "@/app/hooks/tokens/useTokens"
@@ -57,8 +56,8 @@ const useAddToken = ({
 
     const { getToken, setCustomToken, getContractTokenData } = useTokens()
     const { setNotification } = useNotifications()
-    const { preferences } = usePreferences()
-    const allChains = getFilteredChains(preferences[PreferenceType.NetworkMode] ?? defaultNetworkMode).filter((chain) => !chain.isDisabled)
+    const { getPreference } = usePreferences()
+    const allChains = useMemo(() => getFilteredChains(getPreference(PreferenceType.NetworkMode)).filter((chain) => !chain.isDisabled), [getPreference])
 
     const [address, setAddress] = useState<Address>()
     const addressDebounced = useDebounce(addressInput?.trim() ?? "")
@@ -193,12 +192,14 @@ const useAddToken = ({
 
     useEffect(() => {
         getCustomTokenQueryResults()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address, isTokenQueryEnabled])
 
     useEffect(() => {
         if (!tokenQueryStatus.isInProgress) {
             setSelectedResult(Object.values(tokenQueryResults).find((data) => !!data.token)?.chain)
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tokenQueryResults, tokenQueryStatus])
 
     const clearInput = useCallback(() => {

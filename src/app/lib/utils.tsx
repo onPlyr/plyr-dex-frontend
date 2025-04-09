@@ -20,8 +20,13 @@ export const getStatusLabel = (status: QueryStatus) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getParsedError = (error: any): string => {
+
     const parsed = error?.walk ? error.walk() : error
-    if (parsed instanceof BaseError) {
+
+    if (typeof parsed === "string") {
+        return parsed
+    }
+    else if (parsed instanceof BaseError) {
         if (parsed.details) {
             return parsed.details
         }
@@ -33,6 +38,7 @@ export const getParsedError = (error: any): string => {
         }
         return parsed.message ?? parsed.name ?? "An unknown error occurred"
     }
+
     return parsed?.message ?? "An unknown error occurred"
 }
 
@@ -46,15 +52,6 @@ export const getParsedReadContractError = (...results: ReadContractErrorData[]) 
 
 export const setTimeoutPromise = async (delay: number) => {
     return new Promise(resolve => setTimeout(resolve, delay))
-}
-
-export const getMutatedObject = <T,>(
-    obj: object,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutateFunction: (value: any) => T,
-    sortCompareFunction?: (a: [string, T], b: [string, T]) => number,
-) => {
-    return Object.fromEntries((sortCompareFunction ? Object.entries(obj).sort((a, b) => sortCompareFunction(a, b)) : Object.entries(obj)).map(([key, value]) => [key, mutateFunction(value)]))
 }
 
 export const isValidAddress = (address?: string, strict: boolean = false): address is Address => {

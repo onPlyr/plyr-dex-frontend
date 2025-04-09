@@ -308,8 +308,11 @@ export const getSwapQuoteData = async ({
             getSupportedTokenById: getSupportedTokenById,
         })
 
-        if (quoteError || !validHopData) {
-            throw new Error(quoteError || "getValidHopQuoteData returned no data")
+        if (quoteError) {
+            throw new Error(quoteError)
+        }
+        else if (!validHopData) {
+            return swapQuoteData
         }
 
         const { quoteTokenData } = await getUnconfirmedQuoteTokens({

@@ -32,18 +32,19 @@ interface FetchPricesParameters {
 }
 
 const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiIdPrefix, separator: string = ":") => {
-    if (token.isCustomToken) {
-        if (!token.uid) {
-            console.warn('[getPriceApiTokenId] Custom token has no uid');
-            return "";
-        }
-        return token.uid.toLowerCase();
-    }
-    if (!token.id) {
-        console.warn('[getPriceApiTokenId] Token has no id');
-        return `${prefix}${separator}undefined`.toLowerCase();
-    }
-    return `${prefix}${separator}${token.id}`.toLowerCase();
+    return (token.priceId ? `${prefix}${separator}${token.priceId}` : token.uid).toLowerCase()
+    // if (token.isCustomToken) {
+    //     if (!token.uid) {
+    //         console.warn('[getPriceApiTokenId] Custom token has no uid');
+    //         return "";
+    //     }
+    //     return token.uid.toLowerCase();
+    // }
+    // if (!token.id) {
+    //     console.warn('[getPriceApiTokenId] Token has no id');
+    //     return `${prefix}${separator}undefined`.toLowerCase();
+    // }
+    // return `${prefix}${separator}${token.id}`.toLowerCase();
 }
 
 const fetchPrices = async ({
@@ -58,20 +59,17 @@ const fetchPrices = async ({
 
     try {
 
-        if (!tokens || !tokens.length) {
-            return prices;
+        if (!tokens.length) {
+            return prices
         }
 
-        // Filter out any invalid tokens
-        const validTokens = tokens.filter(token => token && token.uid);
-        if (validTokens.length !== tokens.length) {
-            console.warn(`[fetchPrices] Filtered out ${tokens.length - validTokens.length} invalid tokens`);
-        }
+        // // Filter out any invalid tokens
+        // const validTokens = tokens.filter(token => token && token.uid);
+        // if (validTokens.length !== tokens.length) {
+        //     console.warn(`[fetchPrices] Filtered out ${tokens.length - validTokens.length} invalid tokens`);
+        // }
         
-        const tokenIdData: TokenIdMap = new Map(validTokens.map((token) => {
-            const apiId = getPriceApiTokenId(token);
-            return [token.uid, apiId];
-        }));
+        const tokenIdData: TokenIdMap = new Map(tokens.map((token) => [token.uid, getPriceApiTokenId(token)]))
         const tokenApiIds = Array.from(new Set(tokenIdData.values()))
 
         const urlParams = new URLSearchParams({
@@ -83,19 +81,19 @@ const fetchPrices = async ({
             urlParams.append("sources", sources.join(","))
         }
 
-        const baseUrl = getBaseUrl();
-        const apiPath = baseUrl.endsWith('/api') ? '' : '/api';
-        const url = new URL(`${apiPath}/prices/?${urlParams}`, baseUrl);
+        const baseUrl = getBaseUrl()
+        const apiPath = baseUrl.endsWith('/api') ? '' : '/api'
+        const url = new URL(`${apiPath}/prices/?${urlParams}`, baseUrl)
         
         const response = await fetch(url.href)
         
         if (!response.ok) {
-            console.error(`[fetchPrices] API error: ${response.status} ${response.statusText}`);
+            console.warn(`[fetchPrices] API error: ${response.status} ${response.statusText}`)
             try {
-                const errorText = await response.text();
-                console.error(`[fetchPrices] Error details: ${errorText}`);
+                const errorText = await response.text()
+                console.warn(`[fetchPrices] Error details: ${errorText}`)
             } catch (err) {
-                console.error(`[fetchPrices] Could not read error details:`, err);
+                console.warn(`[fetchPrices] Could not read error details:`, err)
             }
             throw new Error(`Failed to fetch token prices: ${response.statusText}`)
         }
@@ -109,7 +107,6 @@ const fetchPrices = async ({
         for (const priceData of responseData.data.prices) {
 
             const apiId = priceData.id
-             
             const tokenUids = Array.from(tokenIdData.entries()).filter(([uid, id]) => apiId === id && prices.has(uid)).map(([uid, _]) => uid)
 
             tokenUids.forEach((uid) => prices.set(uid, {
@@ -122,7 +119,7 @@ const fetchPrices = async ({
     }
 
     catch (err) {
-        console.error(`[fetchPrices] Error:`, err);
+        console.warn(`[fetchPrices] Error:`, err);
         throw new Error(getParsedError(err))
     }
 
