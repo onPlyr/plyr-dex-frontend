@@ -167,7 +167,7 @@ const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                     <TokenSelectDetail
                         href={selectUrl}
                         token={token}
-                        imgSize="xs"
+                        imgSize="sm"
                     />
                 </div>
                 <div className="flex flex-row flex-1 gap-2 justify-end items-center">
