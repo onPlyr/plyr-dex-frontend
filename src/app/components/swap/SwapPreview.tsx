@@ -134,7 +134,7 @@ const SwapPreview = React.forwardRef<HTMLDivElement, SwapPreviewProps>(({
     const preview = (
         <div
             ref={ref}
-            className={twMerge(isSwapWidget ? "" : "container-select", "flex flex-col flex-1 p-4 gap-2", className)}
+            className={twMerge(isSwapWidget ? "" : "container-select", "flex flex-col flex-1 p-6 gap-2", className)}
             data-selected={isSelected || isReviewPage}
             {...props}
         >

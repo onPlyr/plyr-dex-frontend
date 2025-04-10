@@ -158,7 +158,7 @@ const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     return (
         <div
             ref={ref}
-            className="input-container flex flex-col flex-1 px-4 py-3 gap-3 w-full"
+            className="input-container flex flex-col flex-1 px-5 py-4 gap-3 w-full"
             {...props}
         >
             <div className="flex flex-row flex-1 gap-4">

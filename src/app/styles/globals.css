@@ -119,7 +119,7 @@
     }
 
     .page-width {
-        @apply max-w-2xl w-full;
+        @apply max-w-3xl w-full;
     }
 
     .animate-fade-in-out {
