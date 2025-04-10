@@ -4,7 +4,7 @@ import "@/app/styles/globals.css"
 
 import { AnimatePresence } from "motion/react"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, useSearchParams } from "next/navigation"
 import { useEffect } from "react"
 import React, { use } from "react"
 import { twMerge } from "tailwind-merge"
@@ -37,7 +37,6 @@ import { getStatusLabel } from "@/app/lib/utils"
 import { PageType } from "@/app/types/navigation"
 import { CompletedSwapHistory, isCompletedSwapHistory, isSameChainSwap, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
-import { useSearchParams } from 'next/navigation'
 import { toTokens } from "thirdweb/utils"
 import { useRouter } from "next/navigation"
 
@@ -147,6 +146,7 @@ const SwapDetailPage = ({
 
     const router = useRouter()
     const searchParams = useSearchParams()
+    const backUrl = searchParams.get("from") === "history" ? "/swap/history" : "/swap"
     let plyrId = searchParams.get('plyrId');
 
     if (!chain || !txHash || !swap) {
@@ -225,7 +225,7 @@ const SwapDetailPage = ({
                     </Button>
                 </Link>
             )}
-            backUrl="/swap"
+            backUrl={backUrl}
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
                 <div className="container p-4">

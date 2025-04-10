@@ -21,12 +21,12 @@ import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import { StyleDirection, StyleToggleDirection } from "@/app/types/styling"
 
 interface SwapWidgetProps extends React.ComponentPropsWithoutRef<"div"> {
-    isShowIntro?: boolean,
+    showIntro?: boolean,
 }
 
 const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
     className,
-    isShowIntro,
+    showIntro,
     ...props
 }, ref) => {
 
@@ -46,7 +46,7 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
                 amount={swapRoute.srcData.amount}
                 feeData={selectedQuote?.feeData}
                 setValue={setSrcAmountInput}
-                isDisabled={isShowIntro}
+                isDisabled={showIntro}
             />
             <div className="z-30 flex flex-row flex-1 -my-8 justify-center items-center">
                 <Tooltip
@@ -68,65 +68,67 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
                 value={selectedQuote ? formatUnits(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals) : undefined}
                 amount={selectedQuote?.estDstAmount}
                 isDst={true}
-                isDisabled={isShowIntro}
+                isDisabled={showIntro}
             />
             <UnwrapNativeToken />
 
-            <div className="flex flex-col flex-1">
-                <div className="flex flex-row flex-1 px-4 pb-4 gap-4 font-bold">
-                    <div className="flex flex-row flex-1 gap-4 justify-start items-center">
-                        <RouteIcon />
-                        Quotes
+            {!showIntro && (
+                <div className="flex flex-col flex-1">
+                    <div className="flex flex-row flex-1 px-4 pb-4 gap-4 font-bold">
+                        <div className="flex flex-row flex-1 gap-4 justify-start items-center">
+                            <RouteIcon />
+                            Quotes
+                        </div>
+                        {!isPending && quoteData && quoteData.quotes.length > 1 && (
+                            <Link
+                                href="/swap/routes"
+                                className="flex flex-row flex-none gap-2 justify-end items-center text-end transition text-muted-500 hover:text-white"
+                            >
+                                View all {quoteData.quotes.length} quotes
+                                <ChevronIcon direction={StyleDirection.Right} className={iconSizes.xs} />
+                            </Link>
+                        )}
                     </div>
-                    {!isPending && quoteData && quoteData.quotes.length > 1 && (
-                        <Link
-                            href="/swap/routes"
-                            className="flex flex-row flex-none gap-2 justify-end items-center text-end transition text-muted-500 hover:text-white"
+                    <AnimatePresence mode="wait">
+                        {selectedQuote && swapMsgData?.isShowErrorWithQuote && (
+                            <SwapWidgetAnimation>
+                                <AlertDetail
+                                    className="mb-4"
+                                    type={AlertType.Error}
+                                    msg={swapMsgData.msg}
+                                />
+                            </SwapWidgetAnimation>
+                        )}
+                    </AnimatePresence>
+                    {(selectedQuote || swapMsgData) && (
+                        <div
+                            className="container-select overflow-hidden"
+                            data-selected={true}
                         >
-                            View all {quoteData.quotes.length} quotes
-                            <ChevronIcon direction={StyleDirection.Right} className={iconSizes.xs} />
-                        </Link>
+                            <AnimatePresence mode="wait">
+                                <SwapWidgetAnimation key={selectedQuote?.id ?? swapMsgData?.type ?? "empty"}>
+                                    {selectedQuote ? (
+                                        <SwapPreview
+                                            swap={selectedQuote}
+                                            isSelected={true}
+                                            isSwapWidget={true}
+                                        />
+                                    ) : swapMsgData && (
+                                        <div className="flex flex-row flex-1 p-4 gap-4">
+                                            <div className="flex flex-row flex-1 justify-start items-center">
+                                                {swapMsgData.msg}
+                                            </div>
+                                            <div className="flex flex-row flex-none justify-end items-center">
+                                                {swapMsgData.icon}
+                                            </div>
+                                        </div>
+                                    )}
+                                </SwapWidgetAnimation>
+                            </AnimatePresence>
+                        </div>
                     )}
                 </div>
-                <AnimatePresence mode="wait">
-                    {selectedQuote && swapMsgData?.isShowErrorWithQuote && (
-                        <SwapWidgetAnimation>
-                            <AlertDetail
-                                className="mb-4"
-                                type={AlertType.Error}
-                                msg={swapMsgData.msg}
-                            />
-                        </SwapWidgetAnimation>
-                    )}
-                </AnimatePresence>
-                {(selectedQuote || swapMsgData) && (
-                    <div
-                        className="container-select overflow-hidden"
-                        data-selected={true}
-                    >
-                        <AnimatePresence mode="wait">
-                            <SwapWidgetAnimation key={selectedQuote?.id ?? swapMsgData?.type ?? "empty"}>
-                                {selectedQuote ? (
-                                    <SwapPreview
-                                        swap={selectedQuote}
-                                        isSelected={true}
-                                        isSwapWidget={true}
-                                    />
-                                ) : swapMsgData && (
-                                    <div className="flex flex-row flex-1 p-4 gap-4">
-                                        <div className="flex flex-row flex-1 justify-start items-center">
-                                            {swapMsgData.msg}
-                                        </div>
-                                        <div className="flex flex-row flex-none justify-end items-center">
-                                            {swapMsgData.icon}
-                                        </div>
-                                    </div>
-                                )}
-                            </SwapWidgetAnimation>
-                        </AnimatePresence>
-                    </div>
-                )}
-            </div>
+            )}
         </div>
     )
 })

@@ -46,7 +46,7 @@ const HistoryPage = () => {
                         }}
                     >
                         <Link
-                            href={`/swap/${swap.txHash}/${swap.srcData.chain.id}`}
+                            href={`/swap/${swap.txHash}/${swap.srcData.chain.id}?from=history`}
                             className="container flex flex-col flex-1 p-4 gap-4"
                         >
                             <div className="flex flex-row flex-1 gap-4">

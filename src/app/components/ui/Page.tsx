@@ -11,9 +11,9 @@ import BackIcon from "@/app/components/icons/BackIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import WarningIcon from "@/app/components/icons/WarningIcon"
-import MainnetMessage from "@/app/components/messages/MainnetMessage"
 import TestnetMessage from "@/app/components/messages/TestnetMessage"
 import Button from "@/app/components/ui/Button"
+//import MarketingBanner from "@/app/components/ui/MarketingBanner"
 import ScrollArea from "@/app/components/ui/ScrollArea"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
@@ -53,6 +53,10 @@ interface PageHeaderProps extends React.ComponentPropsWithoutRef<"div"> {
     fromTab?: string,
     setTab?: (tab: string, fromTab: string) => void,
     icon?: React.ReactNode,
+}
+
+interface PageFooterProps extends React.ComponentPropsWithoutRef<typeof ScaleInOut> {
+    isNestedPage?: boolean,
 }
 
 interface PageMessageProps extends React.ComponentPropsWithoutRef<typeof ScaleInOut> {
@@ -102,13 +106,14 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(({
 ))
 PageHeader.displayName = "PageHeader"
 
-export const PageFooter = React.forwardRef<React.ComponentRef<typeof ScaleInOut>, React.ComponentPropsWithoutRef<typeof ScaleInOut>>(({
+export const PageFooter = React.forwardRef<React.ComponentRef<typeof ScaleInOut>, PageFooterProps>(({
     className,
+    isNestedPage,
     ...props
 }, ref) => (
     <ScaleInOut
         ref={ref}
-        className={twMerge("flex flex-col flex-1 p-4 gap-4 sm:px-0 page-width z-[125]", className)}
+        className={twMerge("flex flex-col flex-1 p-4 gap-4 sm:px-0 page-width z-[125]", isNestedPage ? "px-0" : undefined, className)}
         fadeInOut={true}
         {...props}
     />
@@ -172,6 +177,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
     isNestedPage = false,
     ...props
 }, ref) => {
+
     const { getPreference } = usePreferences()
     const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
 
@@ -183,6 +189,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
     return (
         <motion.main className="flex flex-col flex-1 w-full h-full justify-start items-center">
             <ScrollArea>
+                {/* {!isNestedPage && <MarketingBanner />} */}
                 <div
                     ref={ref}
                     className={twMerge(
@@ -200,8 +207,11 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                         isContainerPage ? "pt-0" : undefined,
                         pageWidth || "page-width",
                     )}>
-                        <div className="flex flex-col flex-1 px-4 sm:px-0 w-full h-full overflow-hidden">
-                            {!hideNetworkMsg && (networkMode === NetworkMode.Mainnet ? <MainnetMessage /> : <TestnetMessage />)}
+                        <div className={twMerge(
+                            "flex flex-col flex-1 w-full h-full overflow-hidden",
+                            isNestedPage ? undefined : "px-4 sm:px-0",
+                        )}>
+                            {!hideNetworkMsg && networkMode === NetworkMode.Testnet && <TestnetMessage />}
                             {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
                                 <PageHeader
                                     backUrl={backUrl}
@@ -220,7 +230,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
             </ScrollArea>
             <AnimatePresence mode="wait">
                 {(error || warning || info) && (
-                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width z-[125]", footer ? "pb-0" : undefined)}>
+                    <div className={twMerge("flex flex-col flex-none p-4 gap-4 sm:px-0 page-width z-[125]", footer ? "pb-0" : undefined, isNestedPage ? "px-0" : undefined)}>
                         {error && (
                             <PageMessage
                                 data={error}
@@ -244,7 +254,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
             </AnimatePresence>
             <AnimatePresence mode="wait">
                 {footer && !hideFooter && (
-                    <PageFooter>
+                    <PageFooter isNestedPage={isNestedPage}>
                         {footer}
                     </PageFooter>
                 )}

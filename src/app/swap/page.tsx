@@ -199,7 +199,7 @@ const SwapPage = () => {
                                 hideNetworkMsg={showIntro}
                                 isNestedPage={true}
                             >
-                                <SwapWidget isShowIntro={isShowIntro} />
+                                <SwapWidget showIntro={showIntro} />
                             </Page>
                         </motion.div>
                     </motion.div>
