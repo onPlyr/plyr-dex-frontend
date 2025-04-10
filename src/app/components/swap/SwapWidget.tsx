@@ -114,7 +114,7 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
                                             isSwapWidget={true}
                                         />
                                     ) : swapMsgData && (
-                                        <div className="flex flex-row flex-1 p-4 gap-4">
+                                        <div className="flex flex-row flex-1 p-6 gap-4">
                                             <div className="flex flex-row flex-1 justify-start items-center">
                                                 {swapMsgData.msg}
                                             </div>

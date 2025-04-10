@@ -211,7 +211,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                             "flex flex-col flex-1 w-full h-full overflow-hidden",
                             isNestedPage ? undefined : "px-4 sm:px-0",
                         )}>
-                            {!hideNetworkMsg && networkMode === NetworkMode.Testnet && <TestnetMessage />}
+                            {/* {!hideNetworkMsg && networkMode === NetworkMode.Testnet && <TestnetMessage />} */}
                             {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
                                 <PageHeader
                                     backUrl={backUrl}
