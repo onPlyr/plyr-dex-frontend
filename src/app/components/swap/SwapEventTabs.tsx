@@ -49,6 +49,7 @@ import { PreferenceType } from "@/app/types/preferences"
 import { StyleDirection } from "@/app/types/styling"
 import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQuote, Swap, SwapAction, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 import { ScrollText } from "lucide-react"
+import PlyrSwapBlackIcon from "../icons/PlyrSwapBlackIcon"
 
 interface SwapEventTabsProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: Swap,
@@ -232,8 +233,7 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
                         <Tooltip
                             trigger=<div className="group relative flex flex-row flex-1 p-2 justify-center items-center">
                                 {eventTab.toString() === statusTab.toString() && <TabIndicator />}
-                                {/* <TesseractIcon /> */}
-                                <ScrollText className="w-6 h-6 text-black" style={{ strokeWidth: 1.5 }} />
+                                <PlyrSwapBlackIcon />
                             </div>
                         >
                             {SwapTypeLabel[swap.type]} {isHistory && getStatusLabel(swap.status)}

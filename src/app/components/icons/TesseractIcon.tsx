@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { BaseIcon, BaseIconProps } from "@/app/components/icons/BaseIcon"
 
-import logoIcon from "@/public/logos/plyrswap.svg"
+import logoIcon from "@/public/logos/icon-white-square.svg"
 import Image from "next/image"
 import { twMerge } from "tailwind-merge"
 
