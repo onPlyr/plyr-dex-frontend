@@ -69,11 +69,6 @@ const ReviewSwapPage = () => {
     const quoteChainIds = useMemo(() => quote ? getSwapChainIds(quote) : [], [quote])
     const { getLatestBlock } = useLatestBlocks(quoteChainIds)
 
-    useAlternativeSwapQuote({
-        quote: quote,
-        setQuote: setQuote,
-    })
-
     useEffect(() => {
         if (quote) {
             quote.accountAddress = accountAddress
@@ -233,7 +228,6 @@ const ReviewSwapPage = () => {
 
     const initiateOnSettled = useCallback((receipt?: TransactionReceipt) => {
 
-        // todo: testing, may need updating, eg. error message
         if (!enabled || !receipt || !isValidInitiate) {
             return
         }
@@ -343,6 +337,11 @@ const ReviewSwapPage = () => {
     })
 
     const isInProgress = balanceIsInProgress || allowanceIsInProgress || approveIsInProgress || initiateIsInProgress
+    useAlternativeSwapQuote({
+        quote: quote,
+        setQuote: setQuote,
+        isInProgress: approveIsInProgress || initiateIsInProgress,
+    })
     const { errorMsg, isConnectError } = getInitiateSwapError({
         action: InitiateSwapAction.Initiate,
         isConnected: isConnected,

@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useEffect, useMemo } from "react"
-import { Address, Block, Hash, Hex, parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
+import { Address, Block, formatUnits, Hash, Hex, parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
 import { getBlock, getTransactionReceipt } from "@wagmi/core"
 
 import { uniV2AdapterAbi } from "@/app/abis/adapters/uniV2Adapter"
@@ -11,18 +11,18 @@ import { NotificationBody, NotificationHeader } from "@/app/components/notificat
 import { wagmiConfig } from "@/app/config/wagmi"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
-import useWatchSwapEvents, { EventQueryMap, getSwapEventQueryMap, isDstTxEventQueryResult, isHopEventQueryResult } from "@/app/hooks/swap/useWatchSwapEvents"
+import useWatchSwapEvents, { EventQueryMap, getSwapEventQueryMap, isDstTxEventQueryResult, isHopEventQueryResult, isRollbackTxEventQueryResult } from "@/app/hooks/swap/useWatchSwapEvents"
 import useTokens from "@/app/hooks/tokens/useTokens"
 import useLocalStorage from "@/app/hooks/utils/useLocalStorage"
 import { getCellAbi } from "@/app/lib/cells"
-import { getChain, getNetworkModeChainIds } from "@/app/lib/chains"
-import { getCellRoutedError, getCellRoutedLog, getInitiatedError, getInitiatedLog, getTokensWithdrawnLog, isCallFailed, isRollback } from "@/app/lib/events"
+import { getChain, getChainByBlockchainId, getNetworkModeChainIds } from "@/app/lib/chains"
+import { getCellRollbackLog, getCellRoutedError, getCellRoutedLog, getInitiatedError, getInitiatedLog, getTokensWithdrawnLog, isCallFailed } from "@/app/lib/events"
 import { getSwapAdapter, getSwapHopStatus, getSwapStatus } from "@/app/lib/swaps"
 import { getTokenAddress } from "@/app/lib/tokens"
 import { getParsedError, isEqualAddress } from "@/app/lib/utils"
 import { BridgeProvider } from "@/app/types/bridges"
 import { CellFeeType, CellType } from "@/app/types/cells"
-import { BaseData, BaseJson, HopHistory, isCrossChainHopType, isTransferType, SwapFeeData, SwapFeeJson, SwapHistory, SwapJson, SwapStatus, ValidSwapFeeData } from "@/app/types/swaps"
+import { BaseData, BaseJson, HopHistory, isCrossChainHopType, isRollbackQueryHop, isTransferType, RollbackData, RollbackJson, SwapFeeData, SwapFeeJson, SwapHistory, SwapJson, SwapStatus, ValidSwapFeeData } from "@/app/types/swaps"
 import { NotificationType } from "@/app/types/notifications"
 import { PreferenceType } from "@/app/types/preferences"
 import { StorageKey } from "@/app/types/storage"
@@ -79,6 +79,25 @@ const swapFeeJsonToData = (data: SwapFeeJson): SwapFeeData => ({
     [CellFeeType.Base]: BigInt(data[CellFeeType.Base].toString()),
 })
 
+const hopRollbackDataToJson = (data: RollbackData): RollbackJson => ({
+    chain: data.chain.id,
+    tokenAddress: getTokenAddress(data.token),
+    amount: data.amount.toString(),
+    msgId: data.msgId,
+    txHash: data.txHash,
+})
+
+const hopRollbackJsonToData = (data: RollbackJson, getToken: GetTokenFunction): RollbackData => ({
+    chain: getChain(data.chain)!,
+    token: getToken({
+        address: data.tokenAddress,
+        chainId: data.chain,
+    }),
+    amount: BigInt(data.amount),
+    msgId: data.msgId,
+    txHash: data.txHash,
+})
+
 const swapHistorySerializer = (data: SwapHistoryMap) => JSON.stringify(
     getSwapHistoriesFromMap(data).map((swap) => ({
         ...swap,
@@ -92,6 +111,7 @@ const swapHistorySerializer = (data: SwapHistoryMap) => JSON.stringify(
             estGasUnits: hop.estGasUnits?.toString(),
             initiatedBlock: hop.initiatedBlock?.toString(),
             lastCheckedBlock: hop.lastCheckedBlock?.toString(),
+            rollbackData: hop.rollbackData && hopRollbackDataToJson(hop.rollbackData),
         })),
         events: swap.events.map((event) => ({
             ...event,
@@ -122,6 +142,7 @@ const swapHistoryDeserializerFunction = (data: string, getToken: GetTokenFunctio
             dstData: swapBaseJsonToData(hop.dstData, getToken),
             initiatedBlock: hop.initiatedBlock ? BigInt(hop.initiatedBlock) : undefined,
             lastCheckedBlock: hop.lastCheckedBlock ? BigInt(hop.lastCheckedBlock) : undefined,
+            rollbackData: hop.rollbackData && hopRollbackJsonToData(hop.rollbackData, getToken),
         })),
         events: swap.events.map((event) => ({
             ...event,
@@ -230,18 +251,29 @@ const SwapHistoryProvider = ({
                 throw new Error(`Previous data for hop ${hop.index} not found`)
             }
 
-            if (prevHop && isRollback(receipt)) {
-                throw new Error(`Hop ${hop.index} rollback`)
-            }
-            else if (prevHop && isCallFailed(receipt)) {
-                throw new Error(`Hop ${hop.index} call failed`)
-            }
-
             const cellRoutedLog = getCellRoutedLog(receipt)
             const cellRoutedError = getCellRoutedError(hop, cellRoutedLog)
+            const cellRollbackLog = prevHop && !cellRoutedLog ? getCellRollbackLog(receipt) : undefined
 
-            if (!cellRoutedLog || cellRoutedError) {
-                throw new Error(cellRoutedError || "CellRouted event not found")
+            if (!cellRoutedLog) {
+                if (cellRollbackLog) {
+                    hop.rollbackData = {
+                        chain: prevHop?.srcData.chain ?? getChainByBlockchainId(cellRollbackLog.args.destinationBlockchainID)!,
+                        token: hop.srcData.token,
+                        amount: cellRollbackLog.args.amountOut,
+                        msgId: cellRollbackLog.args.messageID,
+                    }
+                    throw new Error(`CellRollback: ${formatUnits(hop.rollbackData.amount, hop.rollbackData.token.decimals)} ${hop.rollbackData.token.symbol} sent back to ${hop.rollbackData.chain.name}`)
+                }
+                else if (prevHop && isCallFailed(receipt)) {
+                    throw new Error(`Hop ${hop.index} call failed`)
+                }
+                else {
+                    throw new Error("CellRouted event not found")
+                }
+            }
+            else if (cellRoutedError) {
+                throw new Error(cellRoutedError)
             }
 
             hop.srcData.amount = cellRoutedLog.args.amountIn
@@ -427,14 +459,14 @@ const SwapHistoryProvider = ({
 
             hop = swap.hops.find((data) => data.index === hopIndex)
             if (!hop) {
-                throw new Error(`Invalid Hop Index: ${hopIndex}`)
+                throw new Error(`Invalid hop index: ${hopIndex}`)
             }
 
             hop.msgReceivedId = msgId
             hop.txHash = receipt.transactionHash
             hop.timestamp = Number(block.timestamp) * 1000
             hop.status = SwapStatus.Success
-            hop.lastCheckedBlock = block.number 
+            hop.lastCheckedBlock = block.number
 
             error = setHopHistoryLogData(swap, hop, receipt)
             setHopEventData(swap, hop, receipt)
@@ -442,10 +474,8 @@ const SwapHistoryProvider = ({
 
         catch (err) {
             error = getParsedError(err)
-            if (swap) {
-                swap.status = SwapStatus.Error
-                swap.error = error
-            }
+            swap.status = SwapStatus.Error
+            swap.error = error
             if (hop) {
                 hop.status = SwapStatus.Error
                 if (!hop.error) {
@@ -482,10 +512,7 @@ const SwapHistoryProvider = ({
 
             const tokensWithdrawnLog = getTokensWithdrawnLog(swap, receipt)
 
-            if (isRollback(receipt)) {
-                throw new Error("Destination transaction rollback")
-            }
-            else if (isCallFailed(receipt)) {
+            if (isCallFailed(receipt)) {
                 throw new Error("Destination transaction call failed")
             }
             else if (!tokensWithdrawnLog) {
@@ -512,10 +539,54 @@ const SwapHistoryProvider = ({
 
     }, [setSwapHistory])
 
+    const setSwapRollbackTxResult = useCallback((swap: SwapHistory, hopIndex: number, receipt: TransactionReceipt, block: Block) => {
+
+        let hop: HopHistory | undefined = undefined
+        let error: string | undefined = undefined
+
+        try {
+
+            if (!block.number) {
+                throw new Error("Rollback transaction block is unfinalised")
+            }
+
+            hop = swap.hops.find((data) => data.index === hopIndex)
+            if (!hop) {
+                throw new Error(`Invalid hop index: ${hopIndex}`)
+            }
+            else if (!isRollbackQueryHop(hop)) {
+                throw new Error(`Invalid rollback data for hop: ${hopIndex}`)
+            }
+
+            const prevHop = swap.hops.find((data) => data.index === hopIndex - 1)
+            if (!prevHop) {
+                throw new Error(`Invalid previous hop index: ${hopIndex - 1}`)
+            }
+
+            hop.rollbackData.txHash = receipt.transactionHash
+            hop.status = SwapStatus.Error
+            prevHop.lastCheckedBlock = block.number
+        }
+
+        catch (err) {
+            error = getParsedError(err)
+            swap.status = SwapStatus.Error
+            swap.error = error
+        }
+
+        finally {
+            setSwapHistory(swap, error)
+        }
+
+        return error
+
+    }, [setSwapHistory])
+
     const swapEventQueryMap: EventQueryMap = useMemo(() => getSwapEventQueryMap(swapHistories), [swapHistories])
     const { results: swapEventResultsMap, setResults: setSwapEventResultsMap } = useWatchSwapEvents(swapEventQueryMap)
 
     useEffect(() => {
+
         if (!swapEventResultsMap.size) {
             return
         }
@@ -528,6 +599,9 @@ const SwapHistoryProvider = ({
             else if (swap && isDstTxEventQueryResult(result)) {
                 setSwapDstTxResult(swap, result.txReceipt, result.block)
             }
+            else if (swap && isRollbackTxEventQueryResult(result)) {
+                setSwapRollbackTxResult(swap, result.hopIndex, result.txReceipt, result.block)
+            }
         })
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [swapEventResultsMap])
@@ -536,7 +610,6 @@ const SwapHistoryProvider = ({
 
     useEffect(() => {
         if (updatedSwapTxHashes.length) {
-             
             setSwapEventResultsMap((prev) => new Map(Array.from(prev.entries()).filter(([txHash, _]) => !updatedSwapTxHashes.includes(txHash))))
             refetchTokens()
         }

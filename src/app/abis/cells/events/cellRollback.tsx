@@ -1,24 +1,22 @@
 import { getAbiItem } from "viem"
 
 /**
-* @notice Emitted when Cell contract routes tokens to destination
-* @dev Logs all token movements for tracking and verification
+* @notice Emitted when tokens are returned due to operation failure
+* @dev Logs rollback operations for tracking failed transactions
 * @param tesseractID Unique identifier for the Tesseract operation (indexed)
 * @param messageID Unique identifier for the message (indexed)
-* @param action Type of action performed
 * @param transferrer Address of the token transferrer on source chain (indexed)
+* @param receiver Address of the receiver on source chain
 * @param destinationBlockchainID Destination blockchain identifier
-* @param destinationCell Cell contract address on destination chain
 * @param destinationTransferrer Address of the transferrer on destination chain
-* @param tokenIn Address of the input token
+* @param token Address of the input/output token
 * @param amountIn Number of input tokens
-* @param tokenOut Address of the output token
-* @param amountOut Number of output tokens
+* @param amountOut Number of output tokens (amountIn - rollbackTeleporterFee)
 */
-export const cellRoutedAbi = [
+export const cellRollbackAbi = [
     {
         "type": "event",
-        "name": "CellRouted",
+        "name": "CellRollback",
         "inputs": [
             {
                 "name": "tesseractID",
@@ -33,15 +31,15 @@ export const cellRoutedAbi = [
                 "internalType": "bytes32"
             },
             {
-                "name": "action",
-                "type": "uint8",
-                "indexed": false,
-                "internalType": "enum Action"
-            },
-            {
                 "name": "transferrer",
                 "type": "address",
                 "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "receiver",
+                "type": "address",
+                "indexed": false,
                 "internalType": "address"
             },
             {
@@ -51,19 +49,13 @@ export const cellRoutedAbi = [
                 "internalType": "bytes32"
             },
             {
-                "name": "destinationCell",
-                "type": "address",
-                "indexed": false,
-                "internalType": "address"
-            },
-            {
                 "name": "destinationTransferrer",
                 "type": "address",
                 "indexed": false,
                 "internalType": "address"
             },
             {
-                "name": "tokenIn",
+                "name": "token",
                 "type": "address",
                 "indexed": false,
                 "internalType": "address"
@@ -73,12 +65,6 @@ export const cellRoutedAbi = [
                 "type": "uint256",
                 "indexed": false,
                 "internalType": "uint256"
-            },
-            {
-                "name": "tokenOut",
-                "type": "address",
-                "indexed": false,
-                "internalType": "address"
             },
             {
                 "name": "amountOut",
@@ -91,7 +77,7 @@ export const cellRoutedAbi = [
     },
 ] as const
 
-export const cellRoutedEvent = getAbiItem({
-    abi: cellRoutedAbi,
-    name: "CellRouted",
+export const cellRollbackEvent = getAbiItem({
+    abi: cellRollbackAbi,
+    name: "CellRollback",
 })

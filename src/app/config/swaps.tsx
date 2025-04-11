@@ -38,7 +38,7 @@ export const YakSwapConfig = {
 
 export const GasUnits = {
     Est: BigInt(500000),
-    Buffer: BigInt(500000),
+    Buffer: BigInt(1000000),
 } as const
 
 export const HopTypeGasUnits: Record<HopType, HopGasUnitsData> = {
@@ -64,7 +64,7 @@ export const HopTypeGasUnits: Record<HopType, HopGasUnitsData> = {
         estBase: GasUnits.Buffer,
         estDefault: GasUnits.Est,
         recipientLimitBase: GasUnits.Buffer,
-        requiredLimitBase: GasUnits.Buffer,
+        requiredLimitBase: GasUnits.Buffer + GasUnits.Est,
     },
 } as const
 

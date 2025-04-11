@@ -166,6 +166,17 @@ export interface SwapFeeTokenData {
     amount: bigint,
 }
 
+export interface RollbackData extends Required<Omit<SwapBaseData, "cell" | "estAmount" | "minAmount">> {
+    amount: bigint,
+    msgId: Hex,
+    txHash?: Hash,
+}
+
+export interface RollbackJson extends Required<Omit<SwapBaseJson, "cell" | "estAmount" | "minAmount">> {
+    msgId: Hex,
+    txHash?: Hash,
+}
+
 export const isValidSwapFeeData = (data: SwapFeeData): data is ValidSwapFeeData => {
     return Object.values(CellFeeType).every((feeType) => feeType in data && data[feeType] !== undefined)
 }
@@ -229,7 +240,6 @@ interface BaseSwap<TSrcData = BaseData, TDstData = BaseData, THop = Hop, TEvent 
     dstTimestamp?: number,
     dstInitiatedBlock?: bigint,
     dstLastCheckedBlock?: bigint,
-    isDstQueryInProgress?: boolean,
     isConfirmed?: boolean,
     status?: SwapStatus,
     error?: string,
@@ -295,6 +305,10 @@ export const isSameChainSwap = (swap: Swap) => {
     return swap.srcData.chain.id === swap.dstData.chain.id && swap.hops.every((hop) => hop.srcData.chain.id === hop.dstData.chain.id)
 }
 
+export const isRollbackQuerySwap = (swap: Swap) => {
+    return swap.status === SwapStatus.Error && swap.hops.some((hop) => isRollbackQueryHop(hop))
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // hops
 
@@ -319,6 +333,8 @@ interface BaseHop<THopType = HopType, TBaseData = BaseData> {
     lastCheckedBlock?: bigint,
     isQueryInProgress?: boolean,
 
+    rollbackData?: RollbackData,
+
     isError?: boolean,
     isConfirmed?: boolean,
     status?: SwapStatus,
@@ -326,6 +342,7 @@ interface BaseHop<THopType = HopType, TBaseData = BaseData> {
 }
 type SwapHop = BaseHop<SwapHopType>
 type CrossChainHop = BaseHop<CrossChainHopType>
+type RollbackHop = WithRequired<BaseHop, "rollbackData">
 
 type BaseHopQuote<THopType = HopType, TBaseData = QuoteData> = WithRequired<BaseHop<THopType, TBaseData>, "estGasUnits">
 type SwapHopQuote = BaseHopQuote<SwapHopType>
@@ -338,13 +355,14 @@ type ValidCrossChainHopQuote = WithRequired<BaseValidHopQuote<CrossChainHopType>
 export type HopQuote = SwapHopQuote | CrossChainHopQuote
 export type ValidHopQuote = ValidSwapHopQuote | ValidCrossChainHopQuote
 export type HopHistory = WithRequired<BaseHop<HopType, HistoryBaseData>, "status">
-export type Hop = SwapHop | CrossChainHop | HopQuote | ValidHopQuote | HopHistory
+export type Hop = SwapHop | CrossChainHop | HopQuote | ValidHopQuote | HopHistory | RollbackHop
 
-export interface HopJson extends WithRequired<Omit<HopHistory, "srcData" | "dstData" | "trade" | "bridgePath" | "initiatedBlock" | "lastCheckedBlock">, "status"> {
+export interface HopJson extends WithRequired<Omit<HopHistory, "srcData" | "dstData" | "trade" | "bridgePath" | "initiatedBlock" | "lastCheckedBlock" | "rollbackData">, "status"> {
     srcData: SwapBaseJson,
     dstData: SwapBaseJson,
     initiatedBlock?: string,
     lastCheckedBlock?: string,
+    rollbackData?: RollbackJson,
 }
 
 export interface HopGasUnitsData {
@@ -372,6 +390,14 @@ export const isValidHopQuote = (hop: Hop): hop is ValidHopQuote => {
 
 export const isHopHistory = (hop: Hop): hop is HopHistory => {
     return "amount" in hop.srcData && "amount" in hop.dstData && !!hop.status
+}
+
+export const isRollbackHop = (hop: Hop): hop is RollbackHop => {
+    return hop.status === SwapStatus.Error && !!hop.rollbackData
+}
+
+export const isRollbackQueryHop = (hop: Hop): hop is RollbackHop => {
+    return isRollbackHop(hop) && !hop.rollbackData.txHash
 }
 
 ////////////////////////////////////////////////////////////////////////////////

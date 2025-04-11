@@ -5,40 +5,37 @@ import "@/app/styles/globals.css"
 import { AnimatePresence } from "motion/react"
 import Link from "next/link"
 import { notFound, useSearchParams } from "next/navigation"
-import { useEffect } from "react"
-import React, { use } from "react"
+import React, { use, useEffect } from "react"
 import { twMerge } from "tailwind-merge"
 import { isHex } from "viem"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
-
-import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
 import SwapStatusIndicator from "@/app/components/animations/SwapStatusIndicator"
 import ConfettiIcon from "@/app/components/icons/ConfettiIcon"
 import { RefreshIcon } from "@/app/components/icons/RefreshIcon"
 import SpeedIcon from "@/app/components/icons/SpeedIcon"
+import SwapStatusIcon from "@/app/components/icons/SwapStatusIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
-
 import SwapProgressBar from "@/app/components/swap/SwapProgressBar"
-import SwapHistoryEventSummary from "@/app/components/swapQuotes/SwapHistoryEventSummary"
+import SwapEventTabs from "@/app/components/swap/SwapEventTabs"
 import AlertDetail, { AlertType } from "@/app/components/ui/AlertDetail"
 import Button from "@/app/components/ui/Button"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Page } from "@/app/components/ui/Page"
 import { Tooltip } from "@/app/components/ui/Tooltip"
-import { NumberFormatType } from "@/app/types/numbers"
 import { iconSizes } from "@/app/config/styling"
 import useSwapHistory from "@/app/hooks/swap/useSwapHistory"
 import { getChain } from "@/app/lib/chains"
 import { formatDuration } from "@/app/lib/datetime"
-import { getPercentDifferenceFormatted } from "@/app/lib/numbers"
 import { getStatusLabel } from "@/app/lib/utils"
 import { PageType } from "@/app/types/navigation"
+import { NumberFormatType } from "@/app/types/numbers"
 import { CompletedSwapHistory, isCompletedSwapHistory, isSameChainSwap, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 
 import { toTokens } from "thirdweb/utils"
 import { useRouter } from "next/navigation"
+
 
 interface Params {
     txHash: string,
@@ -73,13 +70,14 @@ const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut
                     {SwapTypeLabel[swap.type]} {getStatusLabel(swap.status)}!
                 </div>
                 <div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
-                    You {SwapActionLabel[swap.type].sent.toLowerCase()}{' '}
+                    You {SwapActionLabel[swap.type].sent.toLowerCase()}
                     <DecimalAmount
                         amount={swap.srcAmount}
                         symbol={swap.srcData.token.symbol}
                         token={swap.srcData.token}
                         type={NumberFormatType.Precise}
                         className="font-mono font-bold text-base"
+                        isInline={true}
                     />
                     <TokenImage
                         token={swap.srcData.token}
@@ -140,13 +138,11 @@ const SwapDetailPage = ({
     const chainId = parseInt(pageParams.chainId)
     const chain = getChain(chainId)
     const txHash = isHex(pageParams.txHash) ? pageParams.txHash : undefined
-
     const { getSwapHistory, refetchSwapHistory } = useSwapHistory()
     const swap = txHash && getSwapHistory(txHash)
-
-    const router = useRouter()
     const searchParams = useSearchParams()
     const backUrl = searchParams.get("from") === "history" ? "/swap/history" : "/swap"
+    const router = useRouter()
     let plyrId = searchParams.get('plyrId');
 
     if (!chain || !txHash || !swap) {
@@ -263,15 +259,12 @@ const SwapDetailPage = ({
                                 </div>
                                 <div className={twMerge("flex flex-row flex-1 gap-2 flex-wrap justify-center items-center font-bold font-mono text-base text-center", swap.status === SwapStatus.Success ? "text-success-500" : "text-muted-500")}>
                                     <DecimalAmount
-                                        amount={swap.status === SwapStatus.Success ? swap.dstAmount && swap.dstAmount - swap.minDstAmount : swap.minDstAmount}
+                                        amount={swap.minDstAmount}
                                         symbol={swap.dstData.token.symbol}
                                         token={swap.dstData.token}
-                                        type={swap.status === SwapStatus.Success ? NumberFormatType.PreciseWithSign : NumberFormatType.Precise}
+                                        type={NumberFormatType.Precise}
                                         className="hidden sm:flex"
                                     />
-                                    <div className="flex sm:hidden">
-                                        {swap.status === SwapStatus.Success && swap.dstAmount && `${getPercentDifferenceFormatted(swap.minDstAmount, swap.dstAmount, swap.dstData.token.decimals, true)} ${swap.dstData.token.symbol}`}
-                                    </div>
                                 </div>
                                 <div className="flex flex-row flex-1 gap-2 justify-center items-center font-bold">
                                     <ChainImageInline chain={swap.dstData.chain} size="xs" />
@@ -289,7 +282,7 @@ const SwapDetailPage = ({
                         msg={swap.error ?? `An unknown error was encountered confirming your ${SwapTypeLabel[swap.type]}.`}
                     />
                 )}
-                <SwapHistoryEventSummary swap={swap} />
+                <SwapEventTabs swap={swap} />
             </div>
         </Page>
     )

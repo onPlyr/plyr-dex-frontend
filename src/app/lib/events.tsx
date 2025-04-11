@@ -1,15 +1,16 @@
 import { parseEventLogs, TransactionReceipt, zeroAddress } from "viem"
 
+import { cellRollbackAbi, cellRollbackEvent } from "@/app/abis/cells/events/cellRollback"
 import { cellRoutedAbi, cellRoutedEvent } from "@/app/abis/cells/events/cellRouted"
+import { cellSwapFailedAbi, cellSwapFailedEvent } from "@/app/abis/cells/events/cellSwapFailed"
 import { initiatedAbi, initiatedEvent } from "@/app/abis/cells/events/initiated"
-import { rollbackAbi, rollbackEvent } from "@/app/abis/cells/events/rollback"
 import { callFailedAbi, callFailedEvent } from "@/app/abis/ictt/events/callFailed"
 import { tokensWithdrawnAbi, tokensWithdrawnEvent } from "@/app/abis/ictt/events/tokensWithdrawn"
 import { Tokens } from "@/app/config/tokens"
 import { getTokenAddress } from "@/app/lib/tokens"
 import { isEqualAddress } from "@/app/lib/utils"
 import { CellHopAction } from "@/app/types/cells"
-import { CellRoutedLog, InitiatedLog, TokensWithdrawnLog } from "@/app/types/events"
+import { CellRollbackLog, CellRoutedLog, CellSwapFailedLog, InitiatedLog, TokensWithdrawnLog } from "@/app/types/events"
 import { HopHistory, isCrossChainHopType, SwapHistory } from "@/app/types/swaps"
 
 export const getCellRoutedLog = <TStrict extends boolean = true>(receipt?: TransactionReceipt, strict?: TStrict): CellRoutedLog<TStrict> | undefined => {
@@ -26,21 +27,6 @@ export const getCellRoutedLog = <TStrict extends boolean = true>(receipt?: Trans
     }).at(0)
 }
 
-/**
-* @notice Emitted when Cell contract routes tokens to destination
-* @dev Logs all token movements for tracking and verification
-* @param tesseractID Unique identifier for the Tesseract operation (indexed)
-* @param messageID Unique identifier for the message (indexed)
-* @param action Type of action performed
-* @param transferrer Address of the token transferrer on source chain (indexed)
-* @param destinationBlockchainID Destination blockchain identifier
-* @param destinationCell Cell contract address on destination chain
-* @param destinationTransferrer Address of the transferrer on destination chain
-* @param tokenIn Address of the input token
-* @param amountIn Number of input tokens
-* @param tokenOut Address of the output token
-* @param amountOut Number of output tokens
-*/
 export const getCellRoutedError = (hop: HopHistory, log?: CellRoutedLog) => {
 
     let error: string | undefined = undefined
@@ -88,19 +74,6 @@ export const getInitiatedLog = <TStrict extends boolean = true>(receipt?: Transa
     }).at(0)
 }
 
-/**
-* @notice Emitted when a new cross-chain operation is initiated
-* @dev Logs the start of a new operation for tracking
-* @param tesseractId Unique identifier for the Tesseract operation (indexed)
-* @param sourceId Unique identifier for the source frontend (indexed)
-* @param origin Address initiating the operation (indexed)
-* @param sender Msg.sender initiating the operation
-* @param receiver Final receiver of the tokens
-* @param token Address of input token
-* @param amount Number of tokens being processed
-* @param nativeFeeAmount Amount of native fee
-* @param baseFeeAmount Amount of base fee
-*/
 export const getInitiatedError = (swap: SwapHistory, hop: HopHistory, log?: InitiatedLog) => {
 
     let error: string | undefined = undefined
@@ -127,16 +100,30 @@ export const getInitiatedError = (swap: SwapHistory, hop: HopHistory, log?: Init
     return error
 }
 
-export const getRollbackLog = (receipt?: TransactionReceipt, strict: boolean = true) => {
+export const getCellRollbackLog = <TStrict extends boolean = true>(receipt?: TransactionReceipt, strict?: TStrict): CellRollbackLog<TStrict> | undefined => {
 
     if (!receipt || receipt.status !== "success") {
         return
     }
 
     return parseEventLogs({
-        abi: rollbackAbi,
+        abi: cellRollbackAbi,
         logs: receipt.logs,
-        eventName: rollbackEvent.name,
+        eventName: cellRollbackEvent.name,
+        strict: strict,
+    }).at(0)
+}
+
+export const getCellSwapFailedLog = <TStrict extends boolean = true>(receipt?: TransactionReceipt, strict?: TStrict): CellSwapFailedLog<TStrict> | undefined => {
+
+    if (!receipt || receipt.status !== "success") {
+        return
+    }
+
+    return parseEventLogs({
+        abi: cellSwapFailedAbi,
+        logs: receipt.logs,
+        eventName: cellSwapFailedEvent.name,
         strict: strict,
     }).at(0)
 }
@@ -155,7 +142,7 @@ export const getCallFailedLog = (receipt?: TransactionReceipt, strict: boolean =
     }).at(0)
 }
 
-export const isRollback = (receipt?: TransactionReceipt) => !!getRollbackLog(receipt)
+export const isCellRollback = (receipt?: TransactionReceipt) => !!getCellRollbackLog(receipt)
 export const isCallFailed = (receipt?: TransactionReceipt) => !!getCallFailedLog(receipt)
 
 export const getTokensWithdrawnLog = <TStrict extends boolean = true>(swap: SwapHistory, receipt?: TransactionReceipt, strict?: TStrict): TokensWithdrawnLog<TStrict> | undefined => {

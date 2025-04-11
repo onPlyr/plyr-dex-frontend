@@ -1,7 +1,6 @@
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react"
 
 import Button from "@/app/components/ui/Button"
-import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { SwapQuoteConfig } from "@/app/config/swaps"
 import useNotifications from "@/app/hooks/notifications/useNotifications"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
@@ -13,9 +12,11 @@ import { SwapQuote } from "@/app/types/swaps"
 const useAlternativeSwapQuote = ({
     quote,
     setQuote,
+    isInProgress,
 }: {
     quote?: SwapQuote,
     setQuote: Dispatch<SetStateAction<SwapQuote | undefined>>,
+    isInProgress: boolean,
 }) => {
 
     const { selectedQuote } = useQuoteData()
@@ -40,12 +41,13 @@ const useAlternativeSwapQuote = ({
             })
         }
 
-        if (alternativeQuote && (isAlternative || isExpired)) {
+        if (alternativeQuote && (!selectedQuote || isAlternative || isExpired)) {
             removeNotification(`alternative-${alternativeQuote.id}`)
         }
 
         setAlternativeQuote(isAlternative ? selectedQuote : undefined)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedQuote])
 
     const onSuccess = useCallback(() => {
@@ -66,16 +68,7 @@ const useAlternativeSwapQuote = ({
         setNotification({
             id: `alternative-${alternativeQuote.id}`,
             type: NotificationType.Success,
-            header: <div className="flex flex-row flex-1">
-                <DecimalAmount
-                    amount={alternativeQuote.estDstAmount - quote.estDstAmount}
-                    symbol={alternativeQuote.dstData.token.symbol}
-                    token={alternativeQuote.dstData.token}
-                    withSign={true}
-                    className="font-bold text-success-500"
-                />
-                &nbsp;Selected
-            </div>,
+            header: `Quote Updated`,
             body: `Successfully switched to quote returning more ${alternativeQuote.dstData.token.symbol}.`,
             status: NotificationStatus.Success,
         })
@@ -112,16 +105,7 @@ const useAlternativeSwapQuote = ({
         setNotification({
             id: `alternative-${alternativeQuote.id}`,
             type: NotificationType.Pending,
-            header: <div className="flex flex-row flex-1">
-                <DecimalAmount
-                    amount={alternativeQuote.estDstAmount - quote.estDstAmount}
-                    symbol={alternativeQuote.dstData.token.symbol}
-                    token={alternativeQuote.dstData.token}
-                    withSign={true}
-                    className="font-bold text-success-500"
-                />
-                &nbsp;Available
-            </div>,
+            header: `More ${quote.dstData.token.symbol} Available`,
             body: `Automatically switching to alternative quote in ${formatDuration(ms)}.`,
             action: <div className="flex flex-row flex-1 gap-4 justify-center items-center">
                 <Button
@@ -145,11 +129,12 @@ const useAlternativeSwapQuote = ({
     }, [setNotification, quote, alternativeQuote, onSuccess, onCancel])
 
     useEffect(() => {
-        if (quote && alternativeQuote) {
+        if (quote && alternativeQuote && !isInProgress) {
             setIntervalMs(1000)
             setCountdownMs(SwapQuoteConfig.AlternativeQuoteSwitchDelayMs)
             setCountdownNotification(SwapQuoteConfig.AlternativeQuoteSwitchDelayMs)
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [alternativeQuote])
 
     useInterval(() => {

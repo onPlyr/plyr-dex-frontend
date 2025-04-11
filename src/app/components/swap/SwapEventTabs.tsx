@@ -48,8 +48,7 @@ import { NumberFormatType } from "@/app/types/numbers"
 import { Platform } from "@/app/types/platforms"
 import { PreferenceType } from "@/app/types/preferences"
 import { StyleDirection } from "@/app/types/styling"
-import { Hop, HopEvent, isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQuote, Swap, SwapAction, SwapActionLabel, SwapFeeTokenData, SwapId, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
-
+import { Hop, HopEvent, isEventHistory, isRollbackHop, isSwapHistory, isSwapType, isTransferType, isValidSwapQuote, Swap, SwapAction, SwapActionLabel, SwapFeeTokenData, SwapId, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
 import PlyrSwapBlackIcon from "../icons/PlyrSwapBlackIcon"
 
 type SummaryTabKey = `${SwapId}-summary`
@@ -64,6 +63,7 @@ interface EventTabData {
     platform?: Platform,
     platformName?: string,
     txUrl?: string,
+    rollbackTxUrl?: string,
 }
 type EventTabDataMap = Map<TabKey, EventTabData>
 
@@ -387,7 +387,7 @@ const SummaryTabContent = React.forwardRef<React.ComponentRef<typeof TabContent>
                 value={bpsToPercent(slippage)}
                 valueClass="font-mono text-base"
             />
-            <SwapParameter
+            {/* <SwapParameter
                 icon=<RecipientIcon className={iconSizes.sm} />
                 label=<>
                     Recipient
@@ -409,7 +409,7 @@ const SummaryTabContent = React.forwardRef<React.ComponentRef<typeof TabContent>
                 labelClass="gap-4"
                 value={swap.recipientAddress ? toShort(swap.recipientAddress) : "0x..."}
                 valueClass={twMerge("font-mono text-base", !swap.recipientAddress ? "text-muted-500" : undefined)}
-            />
+            /> */}
             {swapFees?.map((data, i) => (
                 <SwapParameter
                     key={data.type}
@@ -486,6 +486,8 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
 
         const key = getEventTabKey(event)
         const hop = swap.hops.find((hop) => hop.index === event.hopIndex)
+        const isRollback = hop && isRollbackHop(hop)
+        const prevHop = isRollback ? swap.hops.find((data) => data.index === hop.index - 1) : undefined
         const { platform, platformName } = getHopEventPlatformData(event)
 
         return [key, {
@@ -498,6 +500,10 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
                 chain: event.srcData.chain,
                 tx: hop.txHash,
             }),
+            rollbackTxUrl: isRollback && prevHop ? getBlockExplorerLink({
+                chain: prevHop.srcData.chain,
+                tx: hop.rollbackData.txHash,
+            }) : undefined,
         }]
 
     })), [swap.hops, swap.events])
@@ -620,7 +626,17 @@ const SwapEventTabs = React.forwardRef<HTMLDivElement, SwapEventTabsProps>(({
                         <AlertDetail
                             type={AlertType.Error}
                             header={`${SwapTypeLabel[selectedEventTabData.event.type]} Error`}
-                            msg={selectedEventTabData.hop.error ?? `An unknown error was encountered confirming this ${SwapTypeLabel[selectedEventTabData.event.type]}.`}
+                            msg=<>
+                                {selectedEventTabData.hop.error ?? `An unknown error was encountered confirming this ${SwapTypeLabel[selectedEventTabData.event.type]}.`}
+                                {selectedEventTabData.rollbackTxUrl && (<>
+                                    &nbsp;<ExternalLink
+                                        href={selectedEventTabData.rollbackTxUrl}
+                                        iconSize="xs"
+                                    >
+                                        View tx
+                                    </ExternalLink>
+                                </>)}
+                            </>
                         />
                     )}
                 </TabsContainer>
