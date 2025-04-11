@@ -21,7 +21,7 @@ import { Chain } from "@/app/types/chains"
 import { NetworkMode, SlippageConfig } from "@/app/types/preferences"
 import {
     GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnData, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
-    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapId, SwapQuote,
+    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapFeeTokenData, SwapId, SwapQuote,
     SwapQuoteData, SwapRoute, SwapStatus, SwapType,
 } from "@/app/types/swaps"
 import { GetNativeTokenFunction, GetSupportedTokenByIdFunction, GetTokenFunction, isNativeToken, isValidTokenAmount, Token, TokenAmount, TokenDataMap } from "@/app/types/tokens"
@@ -140,7 +140,7 @@ export const getSwapNativeTokenAmount = (swap?: Swap) => {
     return swap.feeData[CellFeeType.FixedNative] + swap.srcAmount
 }
 
-export const getSwapFeeTokenData = (swap: Swap, getNativeToken: GetNativeTokenFunction) => {
+export const getSwapFeeTokenData = (swap: Swap, getNativeToken: GetNativeTokenFunction): SwapFeeTokenData[] | undefined => {
 
      
     const displayFees = isValidSwapFeeData(swap.feeData) && Object.entries(swap.feeData).filter(([_, amount]) => amount > BigInt(0))
@@ -155,7 +155,7 @@ export const getSwapFeeTokenData = (swap: Swap, getNativeToken: GetNativeTokenFu
     }
 
     return displayFees.map(([type, amount]) => ({
-        type: type,
+        type: type as CellFeeType,
         symbol: type === CellFeeType.FixedNative ? nativeTokenData.symbol : swap.srcData.token.symbol,
         decimals: type === CellFeeType.FixedNative ? nativeTokenData.decimals : swap.srcData.token.decimals,
         amount: amount,
@@ -768,12 +768,12 @@ export const getValidHopQuoteData = async ({
     finally {
         hopQuoteData.data = {}
         for (const [swapId, hops] of Object.entries(hopData)) {
-            if (hops.length > 0 && hops.every((hop) => isValidHopQuote(hop))) {
-                hopQuoteData.data[swapId] = hops.map((hop, i) => {
-                    const prevHop = i > 0 ? hops.at(i - 1) : undefined
+            if (hops.length && hops.every((hop) => isValidHopQuote(hop))) {
+                hopQuoteData.data[swapId] = hops.map((hop) => {
+                    const prevHop = hop.index > 0 ? hops.at(hop.index - 1) : undefined
                     return {
                         ...hop,
-                        isConfirmed: !hop.srcData.cell.apiData || (prevHop && !prevHop.isConfirmed),
+                        isConfirmed: !(isSwapHopType(hop.type) && hop.srcData.cell.apiData) && !(prevHop && isSwapHopType(prevHop.type) && prevHop.srcData.cell.apiData),
                     }
                 })
             }

@@ -490,7 +490,13 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x26deBD39D5eD069770406FCa10A0E4f8d2c743eB",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "GUN",
+                    },
+                },
             },
+            
         },
     },
     {

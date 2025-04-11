@@ -205,6 +205,9 @@ const SwapHistoryProvider = ({
         if (swap.status === SwapStatus.Success && firstHop?.timestamp && swap.dstTimestamp) {
             swap.duration = swap.dstTimestamp - firstHop.timestamp
         }
+        else if (swap.status === SwapStatus.Error && error) {
+            swap.error = error
+        }
 
         setSwapHistoryData((prev) => new Map(prev).set(swap.txHash, swap))
         updatePendingSwapNotification(swap)
@@ -223,15 +226,8 @@ const SwapHistoryProvider = ({
             }
 
             const prevHop = swap.hops.find((data) => data.index === hop.index - 1)
-            if (hop.index > 0 && !prevHop) {
+            if (hop.index && !prevHop) {
                 throw new Error(`Previous data for hop ${hop.index} not found`)
-            }
-
-            const cellRoutedLog = getCellRoutedLog(receipt)
-            const cellRoutedError = getCellRoutedError(hop, cellRoutedLog)
-
-            if (!cellRoutedLog || cellRoutedError) {
-                throw new Error(cellRoutedError || "CellRouted event not found")
             }
 
             if (prevHop && isRollback(receipt)) {
@@ -239,6 +235,13 @@ const SwapHistoryProvider = ({
             }
             else if (prevHop && isCallFailed(receipt)) {
                 throw new Error(`Hop ${hop.index} call failed`)
+            }
+
+            const cellRoutedLog = getCellRoutedLog(receipt)
+            const cellRoutedError = getCellRoutedError(hop, cellRoutedLog)
+
+            if (!cellRoutedLog || cellRoutedError) {
+                throw new Error(cellRoutedError || "CellRouted event not found")
             }
 
             hop.srcData.amount = cellRoutedLog.args.amountIn

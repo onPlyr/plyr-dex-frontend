@@ -159,6 +159,13 @@ export type SwapFeeJson = {
     [type in CellFeeType]: string
 }
 
+export interface SwapFeeTokenData {
+    type: CellFeeType,
+    symbol: string,
+    decimals: number,
+    amount: bigint,
+}
+
 export const isValidSwapFeeData = (data: SwapFeeData): data is ValidSwapFeeData => {
     return Object.values(CellFeeType).every((feeType) => feeType in data && data[feeType] !== undefined)
 }

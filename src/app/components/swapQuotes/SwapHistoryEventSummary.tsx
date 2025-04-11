@@ -48,6 +48,7 @@ import { NumberFormatType } from "@/app/types/numbers"
 import { PreferenceType } from "@/app/types/preferences"
 import { StyleDirection } from "@/app/types/styling"
 import { isEventHistory, isSwapHistory, isSwapType, isTransferType, isValidSwapQuote, Swap, SwapAction, SwapActionLabel, SwapStatus, SwapTypeLabel } from "@/app/types/swaps"
+import PlyrSwapBlackIcon from "../icons/PlyrSwapBlackIcon"
 
 interface SwapHistoryEventSummaryProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: Swap,
@@ -231,7 +232,7 @@ const SwapHistoryEventSummary = React.forwardRef<HTMLDivElement, SwapHistoryEven
                         <Tooltip
                             trigger=<div className="group relative flex flex-row flex-1 p-2 justify-center items-center">
                                 {eventTab.toString() === statusTab.toString() && <TabIndicator />}
-                                <TesseractIcon />
+                                <PlyrSwapBlackIcon />
                             </div>
                         >
                             {SwapTypeLabel[swap.type]} {isHistory && getStatusLabel(swap.status)}

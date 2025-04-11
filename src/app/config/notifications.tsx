@@ -3,7 +3,7 @@ import { NotificationStatus, NotificationType, NotificationTypeMsg } from "@/app
 export const DefaultNotificationRemoveDelay: Record<NotificationStatus, number> = {
     [NotificationStatus.Pending]: 60000,
     [NotificationStatus.Success]: 5000,
-    [NotificationStatus.Error]: 10000,
+    [NotificationStatus.Error]: 5000,
     [NotificationStatus.Info]: 5000,
 } as const
 

@@ -44,7 +44,7 @@ import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
 const ReviewSwapPage = () => {
 
     const { address: accountAddress, isConnected } = useAccount()
-    const { getNativeToken, useBalancesData, refetch: refetchTokens } = useTokens()
+    const { getNativeToken, getSupportedTokenById, useBalancesData, refetch: refetchTokens } = useTokens()
     const { getBalance, isInProgress: balanceIsInProgress } = useBalancesData
     const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
     const { getFirmQuote } = useApiData()
@@ -294,7 +294,7 @@ const ReviewSwapPage = () => {
                 status: NotificationStatus.Pending,
             })
 
-            const { swap: confirmedQuote, error } = await getFirmQuote(quote) ?? {}
+            const { swap: confirmedQuote, error } = await getFirmQuote(quote, getSupportedTokenById) ?? {}
 
             if (confirmedQuote) {
                 switchQuote(confirmedQuote)
@@ -316,7 +316,7 @@ const ReviewSwapPage = () => {
             // }
         }
 
-    }, [enabled, quote, isConfirmQuote, getFirmQuote, setConfirmedQuoteId, switchQuote, setNotification])
+    }, [enabled, getSupportedTokenById, quote, isConfirmQuote, getFirmQuote, setConfirmedQuoteId, switchQuote, setNotification])
 
     useEffect(() => {
         if (quote?.isConfirmed && quote.id === confirmedQuoteId && quote.id !== initiatePromptedId) {

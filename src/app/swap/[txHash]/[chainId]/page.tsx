@@ -73,7 +73,7 @@ const SwapCompleteDetail = React.forwardRef<React.ComponentRef<typeof ScaleInOut
                     {SwapTypeLabel[swap.type]} {getStatusLabel(swap.status)}!
                 </div>
                 <div className="relative flex flex-row flex-1 gap-2 justify-center items-center">
-                    You {SwapActionLabel[swap.type].sent.toLowerCase()}
+                    You {SwapActionLabel[swap.type].sent.toLowerCase()}{' '}
                     <DecimalAmount
                         amount={swap.srcAmount}
                         symbol={swap.srcData.token.symbol}
@@ -289,7 +289,6 @@ const SwapDetailPage = ({
                         msg={swap.error ?? `An unknown error was encountered confirming your ${SwapTypeLabel[swap.type]}.`}
                     />
                 )}
-                {/*@ts-ignore*/}
                 <SwapHistoryEventSummary swap={swap} />
             </div>
         </Page>

@@ -7,7 +7,6 @@ import { getGasPrice, readContract } from "@wagmi/core"
 import { wagmiConfig } from "@/app/config/wagmi"
 import useApiTokenData from "@/app/hooks/apis/useApiTokenData"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
-import useTokens from "@/app/hooks/tokens/useTokens"
 import { getApiUrl } from "@/app/lib/apis"
 import { getDecodedCellTradeData } from "@/app/lib/cells"
 import { getHopQueryData, getHopTypeEstGasUnits, getMinAmount, setNextHopAmounts } from "@/app/lib/swaps"
@@ -17,7 +16,7 @@ import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app
 import { ChainId } from "@/app/types/chains"
 import { PreferenceType } from "@/app/types/preferences"
 import { SwapQuote } from "@/app/types/swaps"
-import { TokenId } from "@/app/types/tokens"
+import { GetSupportedTokenByIdFunction, TokenId } from "@/app/types/tokens"
 
 export type GetApiTokenDataFunction = (provider: ApiProvider, chainId: ChainId) => ApiTokenPairData | undefined
 export type GetApiTokenPairFunction = ({
@@ -39,7 +38,7 @@ export interface GetFirmQuoteReturnType {
     swap: SwapQuote,
     error?: string,
 }
-export type GetFirmQuoteFunction = (swap: SwapQuote) => Promise<GetFirmQuoteReturnType | undefined>
+export type GetFirmQuoteFunction = (swap: SwapQuote, getSupportedTokenById: GetSupportedTokenByIdFunction) => Promise<GetFirmQuoteReturnType | undefined>
 
 interface ApiDataContextType {
     getApiTokenData: GetApiTokenDataFunction,
@@ -57,7 +56,6 @@ const ApiDataProvider = ({
 
     const { address: accountAddress } = useAccount()
     const { getPreference } = usePreferences()
-    const { getSupportedTokenById } = useTokens()
     const apiTokenData = useApiTokenData()
     const { slippage, networkMode } = useMemo(() => ({
         slippage: BigInt(getPreference(PreferenceType.Slippage)),
@@ -84,10 +82,12 @@ const ApiDataProvider = ({
 
     }, [getApiTokenData])
 
-    const getFirmQuote: GetFirmQuoteFunction = useCallback(async (swap) => {
+    const getFirmQuote: GetFirmQuoteFunction = useCallback(async (swap, getSupportedTokenById) => {
 
         let error: string | undefined = undefined
         let gasPrice: bigint | undefined = undefined
+
+        const hops = swap.hops.map((hop) => ({ ...hop }))
 
         try {
 
@@ -95,11 +95,10 @@ const ApiDataProvider = ({
                 return
             }
 
-            for (let i = 0; i < swap.hops.length; i++) {
+            for (const hop of hops) {
 
-                const hop = swap.hops[i]
-                const prevHop = i > 0 ? swap.hops.at(i - 1) : undefined
-                const nextHop = swap.hops.at(i + 1)
+                const prevHop = hop.index > 0 ? hops.at(hop.index - 1) : undefined
+                const nextHop = hops.at(hop.index + 1)
 
                 if (hop.isConfirmed || (prevHop && !prevHop.isConfirmed)) {
                     continue
@@ -154,6 +153,7 @@ const ApiDataProvider = ({
                     })
 
                     if (!contractQuery) {
+                        console.log(`>>> getFirmQuote CONTINUE 2`)
                         continue
                     }
 
@@ -196,13 +196,13 @@ const ApiDataProvider = ({
 
         finally {
 
-            const firstHop = swap.hops.at(0)
+            const [firstHop, finalHop] = [hops.at(0), hops.at(-1)]
+
             if (firstHop && gasPrice) {
                 swap.estGasUnits = firstHop.estGasUnits
                 swap.estGasFee = firstHop.estGasUnits * gasPrice
             }
 
-            const finalHop = swap.hops.at(-1)
             if (finalHop) {
                 swap.estDstAmount = finalHop.dstData.estAmount
                 swap.minDstAmount = finalHop.dstData.minAmount
@@ -210,9 +210,11 @@ const ApiDataProvider = ({
                 swap.dstData.minAmount = finalHop.dstData.minAmount
             }
 
-            if (!error && swap.hops.every((hop) => hop.isConfirmed) && !swap.hops.some((hop) => hop.isError)) {
+            if (!error && hops.every((hop) => hop.isConfirmed) && !hops.some((hop) => hop.isError)) {
                 swap.isConfirmed = true
             }
+
+            swap.hops = hops
         }
 
         return {
@@ -220,7 +222,7 @@ const ApiDataProvider = ({
             error: error,
         }
 
-    }, [accountAddress, getSupportedTokenById, networkMode, cellRouteData, getApiTokenPair, slippage])
+    }, [accountAddress, networkMode, cellRouteData, getApiTokenPair, slippage])
 
     const context: ApiDataContextType = {
         getApiTokenData: getApiTokenData,

@@ -6,12 +6,14 @@ import { twMerge } from "tailwind-merge"
 export const TabsContainer = React.forwardRef<React.ComponentRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(({
     className,
     orientation = "horizontal",
+    activationMode = "manual",
     ...props
 }, ref) => (
     <TabsPrimitive.Root
         ref={ref}
         className={twMerge("flex flex-col flex-none overflow-hidden", className)}
         orientation={orientation}
+        activationMode={activationMode}
         {...props}
     />
 ))
@@ -31,13 +33,13 @@ TabsList.displayName = TabsPrimitive.List.displayName
 
 export const TabIndicator = React.forwardRef<React.ComponentRef<typeof motion.div>, React.ComponentPropsWithoutRef<typeof motion.div>>(({
     className,
-    layoutId,
+    layoutId = "tab-indicator",
     ...props
 }, ref) => (
     <motion.div
         ref={ref}
         className={twMerge("tab-indicator", className)}
-        layoutId={layoutId ?? "tabIndicator"}
+        layoutId={layoutId}
         {...props}
     />
 ))
