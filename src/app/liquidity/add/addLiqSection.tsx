@@ -518,7 +518,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         <>
             <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
 
-                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-8">
+                <Card className="w-full max-w-3xl mx-auto bg-[#ffffff0d] rounded-[12px] border-none p-8">
                     <div className="flex flex-col items-start justify-center">
                         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>LIQUIDITY</div>
                         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>BUILDER</div>
@@ -528,14 +528,14 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                         </div>
                     </div>
                 </Card>
-                {info && (<Card className="w-full flex flex-row items-center gap-2 max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-6">
+                {info && (<Card className="w-full flex flex-row items-center gap-2 max-w-3xl mx-auto bg-[#ffffff0d] rounded-[12px] border-none p-6">
                     <Info className="min-w-8 min-h-8 text-[#daff00]" />
                     <div className="text-lg text-white">{info}</div>
                 </Card>
                 )}
                 <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                     {/* Add Liquidity */}
-                    <Card className="w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
+                    <Card className="w-full bg-[#ffffff0d] rounded-[12px] border-none p-6">
                         <div className="flex flex-col">
                             <div className="text-lg font-bold leading-none text-white">CREATE YOUR LIQUIDITY PAIR</div>
                             <div className="text-xs text-[#9B9A98]">Select tokens and enter amounts to add liquidity. New pairs will be created automatically if they don't exist.</div>
@@ -697,11 +697,11 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                         </div>
                     </Card>
                     {/* Summarize */}
-                    <Card className="relative w-full flex flex-row h-96 md:h-auto bg-[#ffffff0d] rounded-3xl border-none">
+                    <Card className="relative w-full flex flex-row h-96 md:h-auto bg-[#ffffff0d] rounded-[12px] border-none">
                         {/*LEFT RIGTH BG*/}
-                        <div className="flex-1 h-full rounded-l-3xl flex flex-col items-center justify-between" style={{ background: token0Color || '#000000' }}>
+                        <div className="flex-1 h-full rounded-l-[12px] flex flex-col items-center justify-between" style={{ background: token0Color || '#000000' }}>
                         </div>
-                        <div className="flex-1 h-full rounded-r-3xl flex flex-col items-center justify-between" style={{ background: token1Color || '#000000' }}>
+                        <div className="flex-1 h-full rounded-r-[12px] flex flex-col items-center justify-between" style={{ background: token1Color || '#000000' }}>
                         </div>
 
                         <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-between py-6">

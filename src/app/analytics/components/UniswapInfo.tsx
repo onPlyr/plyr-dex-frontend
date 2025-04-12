@@ -60,7 +60,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
         <>
             <div className="space-y-8">
                 {factory && (
-                    <Card className="bg-[#ffffff0d] rounded-3xl p-4 border-0">
+                    <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
                         <CardHeader>
                             <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Overall Statistics</CardTitle>
                         </CardHeader>
@@ -88,7 +88,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                 )}
 
                 {topPairsTokens?.topPairs && (
-                    <Card className="bg-[#ffffff0d] rounded-3xl p-4 border-0">
+                    <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
                         <CardHeader>
                             <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Top Pairs</CardTitle>
                         </CardHeader>
@@ -127,7 +127,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                 )}
 
                 {topPairsTokens?.topTokens && (
-                    <Card className="bg-[#ffffff0d] rounded-3xl p-4 border-0">
+                    <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
                         <CardHeader>
                             <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Top Tokens</CardTitle>
                         </CardHeader>

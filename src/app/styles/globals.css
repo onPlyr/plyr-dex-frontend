@@ -29,6 +29,12 @@
 }
 
 @layer utilities {
+
+    .text-sm
+    {
+        font-size: 1rem !important;
+    }
+
     .clear-bg {
         @apply bg-transparent hover:bg-transparent group-hover:bg-transparent active:bg-transparent focus:bg-transparent focus-within:bg-transparent;
     }
@@ -56,7 +62,7 @@
 
 
     .gradient-btn {
-        @apply rounded-[36px] bg-gradient-btn hover:bg-gradient-btn;
+        @apply rounded-[12px] bg-gradient-btn hover:bg-gradient-btn;
     }
 
     .icon-btn {
@@ -182,17 +188,17 @@
 @layer components {
 
     .gradient-border-rounded {
-        @apply relative rounded-[36px] transition container-bg;
+        @apply relative rounded-[12px] transition container-bg;
     }
 
     .gradient-border-rounded:before {
-        @apply gradient-border-mask content-[""] absolute -z-[1] inset-0 border-2 border-transparent rounded-[36px] transition;
+        @apply gradient-border-mask content-[""] absolute -z-[1] inset-0 border-2 border-transparent rounded-[12px] transition;
         @apply data-[selected=true]:gradient-border-bg data-[selected=true]:animate-rotate data-[selected=true]:running data-[selected=false]:container-border-as-bg data-[selected=false]:paused data-[selected=true]:supports-[color:oklch(0_0_0)]:gradient-border-bg-oklch;
         @apply data-[state=open]:gradient-border-bg data-[state=open]:animate-rotate data-[state=open]:running data-[state=closed]:container-border-as-bg data-[state=closed]:paused data-[state=closed]:supports-[color:oklch(0_0_0)]:gradient-border-bg-oklch;
     }
 
     .container {
-        @apply rounded-[36px] transition container-bg container-border p-4;
+        @apply rounded-[12px] transition container-bg container-border p-4;
     }
 
     .container-select {
@@ -216,14 +222,14 @@
     }
 
     .container-btn {
-        @apply container rounded-[36px] px-4 py-3 gap-3 flex flex-row flex-none w-fit justify-center items-center rounded-lg font-bold text-xs uppercase text-muted-300;
+        @apply container rounded-[12px] px-4 py-3 gap-3 flex flex-row flex-none w-fit justify-center items-center rounded-lg font-bold text-xs uppercase text-muted-300;
         @apply hover:text-white focus:text-white focus-within:text-white active:text-white;
         @apply hover:container-bg-hover focus:container-bg-hover focus-within:container-bg-hover active:container-bg-hover data-[selected=true]:container-bg-hover;
         @apply hover:container-border-hover focus:container-border-hover focus-within:container-border-hover active:container-border-hover data-[selected=true]:container-border-hover;
     }
 
     .input-container {
-        @apply container rounded-[36px] focus:bg-layout-200/15 focus:border-layout-600 focus-within:bg-layout-200/15 focus-within:border-layout-600 active:bg-layout-200/15 active:border-layout-600;
+        @apply container rounded-[12px] focus:bg-layout-200/15 focus:border-layout-600 focus-within:bg-layout-200/15 focus-within:border-layout-600 active:bg-layout-200/15 active:border-layout-600;
         @apply data-[error=true]:text-error-600 data-[error=true]:hover:text-error-500 data-[error=true]:focus:text-error-500 data-[error=true]:focus-within:text-error-500 data-[error=true]:active:text-error-500;
         @apply data-[error=true]:border-error-600 data-[error=true]:hover:border-error-500 data-[error=true]:focus:border-error-500 data-[error=true]:focus-within:border-error-500 data-[error=true]:active:border-error-500;
         @apply data-[success=true]:border-success-600 data-[success=true]:hover:border-success-500 data-[success=true]:focus:border-success-500 data-[success=true]:focus-within:border-success-500 data-[success=true]:active:border-success-500;

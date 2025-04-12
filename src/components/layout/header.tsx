@@ -29,14 +29,14 @@ const NavList = () => {
     return (
         <>
             <Link href="/swap/" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-[12px] bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <ChartCandlestick className="w-6 h-6 text-[#daff00]" />
                     SWAP
                     <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
                 </div>
             </Link>
             <Link href="/swap/history/" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-[12px] bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <History className="w-6 h-6 text-[#daff00]" />
                     HISTORY
                     <div className="block lg:hidden absolute w-[1px] top-[2px] right-0 h-[calc(100%-4px)] bg-black/50"></div>
@@ -45,7 +45,7 @@ const NavList = () => {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="w-full lg:w-fit flex-1 lg:flex-auto outline-none">
-                        <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                        <div className="px-4 relative flex-1 w-full lg:w-36 py-2 lg:rounded-[12px] bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                             <CircleDollarSign className="min-w-6 min-h-6 text-[#daff00]" />
                             LIQUIDITY
                             <ChevronDown className="hidden lg:block min-w-6 min-h-6 text-[#daff00]" />
@@ -53,17 +53,17 @@ const NavList = () => {
                         </div>
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="rounded-2xl backdrop-blur-lg bg-[#ffffff0d] border-none text-white">
-                    <DropdownMenuItem className="rounded-2xl !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
+                <DropdownMenuContent className="rounded-[12px] backdrop-blur-lg bg-[#ffffff0d] border-none text-white">
+                    <DropdownMenuItem className="rounded-[12px] !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
                         <Link href="/liquidity/manage" className="flex flex-row items-center gap-2"><Box className="w-6 h-6 text-[#daff00]" />MY LIQUIDITY</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-2xl !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
+                    <DropdownMenuItem className="rounded-[12px] !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
                         <Link href="/liquidity/add" className="flex flex-row items-center gap-2"><PaintBucket className="w-6 h-6 text-[#daff00]" />ADD LIQUIDITY</Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
             <Link href="/analytics" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                <div className="px-4 flex-1 w-full lg:w-36 py-2 lg:rounded-3xl bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
+                <div className="px-4 flex-1 w-full lg:w-36 py-2 lg:rounded-[12px] bg-[#ffffff10] text-white text-xs flex flex-col lg:flex-row items-center justify-start gap-2">
                     <ChartNoAxesCombined className="w-6 h-6 text-[#daff00]" />
                     ANALYTICS
                 </div>

@@ -436,7 +436,7 @@ const ReviewSwapPage = () => {
                         e.stopPropagation();
                         if (approveIsInProgress || initiateIsInProgress) return;
                         setDestinationAddress(accountAddress as `0x${string}` || undefined)
-                    }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === quote?.recipientAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                    }} className={`w-full flex flex-row items-center justify-center p-2 md:p-4 flex-1 border-2 ${accountAddress === quote?.recipientAddress ? "border-[#daff00]" : "border-transparent"} rounded-[12px] bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                         <Wallet2 className="w-8 h-8 md:w-10 md:h-10 text-white mr-2 md:mr-4 ml-1" />
                         <div className="flex flex-col flex-1 justify-center items-start gap-0">
                             <div className="font-bold text-[10px] md:text-xs">EVM ADDRESS</div>
@@ -451,7 +451,7 @@ const ReviewSwapPage = () => {
                             //alert(mirrorAddress)
                             if (approveIsInProgress || initiateIsInProgress) return;
                             setDestinationAddress(mirrorAddress as `0x${string}` || undefined)
-                        }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${quote?.recipientAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-3xl bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                        }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${quote?.recipientAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-[12px] bg-[#ffffff10] text-white text-xs cursor-pointer`}>
                             <button onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();

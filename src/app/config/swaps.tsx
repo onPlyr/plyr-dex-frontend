@@ -1,6 +1,6 @@
 import { avalanche, avalancheFuji } from "viem/chains"
 
-import { coqnet, plyrTau, SupportedChains } from "@/app/config/chains"
+import { coqnet, plyrPhi, plyrTau, SupportedChains } from "@/app/config/chains"
 import { HopGasUnitsData, HopType } from "@/app/types/swaps"
 import { NetworkMode } from "@/app/types/preferences"
 
@@ -71,7 +71,7 @@ export const HopTypeGasUnits: Record<HopType, HopGasUnitsData> = {
 export const DefaultSwapRouteConfig = {
     [NetworkMode.Mainnet]: {
         srcChain: SupportedChains[avalanche.id],
-        dstChain: SupportedChains[coqnet.id],
+        dstChain: SupportedChains[plyrPhi.id],
     },
     [NetworkMode.Testnet]: {
         srcChain: SupportedChains[avalancheFuji.id],

@@ -1,7 +1,7 @@
 import { getAddress, zeroAddress } from "viem"
 import { avalanche, avalancheFuji } from "wagmi/chains"
 
-import { coqnet, coqnetFuji, plyrTau, SupportedChains, teschain } from "@/app/config/chains"
+import { coqnet, coqnetFuji, plyrPhi, plyrTau, SupportedChains, teschain } from "@/app/config/chains"
 import { getTokenAddress, getTokenFilterData, getTokenUid } from "@/app/lib/tokens"
 import { ApiProvider } from "@/app/types/apis"
 import { BridgePath, BridgeProvider, BridgeType } from "@/app/types/bridges"
@@ -615,6 +615,10 @@ const baseTokens: BaseToken[] = [
         decimals: 18,
         icon: "plyr.png",
         chains: {
+            [avalanche.id]: {
+                displayName: "PLYR",
+                address: "0xC09a033927f9fD558C92CF7AeAbE34B71ce4B31E",
+            },
             [avalancheFuji.id]: {
                 displayName: "PLYR",
                 address: "0x8A0E57eBd39F3e9b883200B0C8daFd9117Aa8A74",
@@ -625,8 +629,27 @@ const baseTokens: BaseToken[] = [
                 wrappedAddress: "0xAAAaBe49A72EcF0804292CE8e889016d9D05767c",
                 wrappedToken: "wPLYR",
             },
+            [plyrPhi.id]: {
+                address: zeroAddress,
+                isNative: true,
+                wrappedAddress: "0xAAAaBe49A72EcF0804292CE8e889016d9D05767c",
+                wrappedToken: "wPLYR",
+            },
         },
         bridges: [
+            {
+                home: {
+                    chainId: plyrPhi.id,
+                    address: "0x8fa3B51e876CE26eA43c6d0Cf886050bF580118e",
+                    type: BridgeType.NativeHome,
+                },
+                remote: {
+                    chainId: avalanche.id,
+                    address: "0xC09a033927f9fD558C92CF7AeAbE34B71ce4B31E",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
             {
                 home: {
                     chainId: plyrTau.id,

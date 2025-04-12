@@ -353,8 +353,8 @@ export const SupportedChains: Record<ChainId, Chain> = {
         isDisabled: true,
     },
     [plyrPhi.id]: {
-        ...plyrTau,
-        icon: `${plyrTau.id}.png`,
+        ...plyrPhi,
+        icon: `${plyrPhi.id}.png`,
         iconBackground: "#ff6600",
         cells: [
             {

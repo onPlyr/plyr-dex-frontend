@@ -45,7 +45,7 @@ export default function PairPage() {
     return (
         <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
             <div className="container mx-auto px-4 py-8 space-y-8">
-                <Card className="bg-[#ffffff0d] border-none rounded-2xl">
+                <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                     <CardHeader>
                         <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Liquidity History</CardTitle>
                     </CardHeader>
@@ -54,7 +54,7 @@ export default function PairPage() {
                     </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Card className="bg-[#ffffff0d] border-none rounded-2xl">
+                    <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                         <CardHeader>
                             <CardTitle className="text-4xl text-white font-normal leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-road-rage)' }}>
 
@@ -65,24 +65,24 @@ export default function PairPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 gap-4">
-                                <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
+                                <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
                                     <h3 className="text-lg font-medium mb-2">Liquidity (USD)</h3>
                                     <p className="text-2xl font-bold">${parseFloat(pairData.reserveUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
+                                <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
                                     <h3 className="text-lg font-medium mb-2">Volume (USD)</h3>
                                     <p className="text-2xl font-bold">${parseFloat(pairData.untrackedVolumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
+                                <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
                                     <h3 className="text-lg font-medium mb-2">{pairData.token0.symbol} Reserves</h3>
                                     <p className="text-2xl font-bold">{parseFloat(pairData.reserve0).toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
                                 </div>
-                                <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
+                                <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
                                     <h3 className="text-lg font-medium mb-2">{pairData.token1.symbol} Reserves</h3>
                                     <p className="text-2xl font-bold">{parseFloat(pairData.reserve1).toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
                                 </div>
 
-                                <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
+                                <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
                                     <h3 className="text-lg font-medium mb-2">Transaction Count</h3>
                                     <p className="text-2xl font-bold">{parseInt(pairData.txCount)}</p>
                                 </div>

@@ -218,7 +218,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         <>
             <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
 
-                <Card className="w-full flex flex-row items-center justify-between max-w-3xl mx-auto bg-[#ffffff0d] rounded-3xl border-none p-8">
+                <Card className="w-full flex flex-row items-center justify-between max-w-3xl mx-auto bg-[#ffffff0d] rounded-[12px] border-none p-8">
                     <div className="flex flex-col items-start justify-center">
                         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>MY LP</div>
                         <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>POSITIONS</div>
@@ -238,14 +238,14 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 {
                     isLoading && <div className="w-full flex items-center justify-center">
                         <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
-                            <Skeleton className="md:w-3/5 w-full h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
-                            <Skeleton className="md:w-2/5 w-full h-80 bg-[#ffffff0d] rounded-3xl border-none p-6" />
+                            <Skeleton className="md:w-3/5 w-full h-80 bg-[#ffffff0d] rounded-[12px] border-none p-6" />
+                            <Skeleton className="md:w-2/5 w-full h-80 bg-[#ffffff0d] rounded-[12px] border-none p-6" />
                         </div>
                     </div>
                 }
                 {
                     !isLoading && myLpTokens.length === 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
-                        <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
+                        <Card className="w-full bg-[#ffffff0d] h-80 rounded-[12px] border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white text-center text-2xl font-black leading-none">NO LIQUIDITY POSITIONS</div>
                             <Link href={`/liquidity/add/`} className="relative w-fit px-6 py-2 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
                                 ADD LIQUIDITY
@@ -255,7 +255,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 }
                 {
                     !isLoading && (!activeAccount || !activeWallet || activeChain?.id !== CHAIN_ID) && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
-                        <Card className="w-full bg-[#ffffff0d] h-80 rounded-3xl border-none p-6 flex flex-col items-center justify-center">
+                        <Card className="w-full bg-[#ffffff0d] h-80 rounded-[12px] border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white flex flex-col gap-2 items-center justify-center text-center text-2xl font-black leading-none">{activeChain?.id !== CHAIN_ID && activeAccount ? <>
 
                                 PLEASE SWITCH TO PLYR NETWORK
@@ -268,7 +268,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 {
                     !isLoading && myLpTokens.length > 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         {/* My Liquidity */}
-                        <Card className="md:w-3/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6">
+                        <Card className="md:w-3/5 w-full bg-[#ffffff0d] rounded-[12px] border-none p-6">
                             {/* Dropdown */}
                             <Select value={selectedLpToken ?? ''} onValueChange={(value) => {
                                 setSelectedLpToken(value);
@@ -323,15 +323,15 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
                                 {
                                     selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
-                                        <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                        <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <Image src={selectedLpTokenInfo.token0.logoURI} alt={selectedLpTokenInfo.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                             <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                                         </div>
-                                        <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                        <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <Image src={selectedLpTokenInfo.token1.logoURI} alt={selectedLpTokenInfo.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                             <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                                         </div>
-                                        <div className="bg-[#1e1d1b] w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                                        <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <div className="h-7 w-7 bg-white rounded-full font-bold flex flex-row items-center justify-center text-black">
                                                 LP
                                             </div>
@@ -350,7 +350,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
 
                         {/* Remove Liquidity */}
-                        <Card className="md:w-2/5 w-full bg-[#ffffff0d] rounded-3xl border-none p-6 flex flex-col">
+                        <Card className="md:w-2/5 w-full bg-[#ffffff0d] rounded-[12px] border-none p-6 flex flex-col">
                             <div className="text-xl text-white font-bold">REMOVE LIQUIDITY</div>
                             {
                                 selectedLpTokenInfo && <RemoveLiq mySelectedLpToken={selectedLpTokenInfo} getMyLpToken={getMyLpTokens} />

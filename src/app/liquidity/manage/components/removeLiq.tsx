@@ -299,20 +299,20 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
                             {/* button to toggle on slider 10% 25% 50% 75% max*/}
                             <div className="flex flex-row justify-between gap-2">
-                                <button onClick={() => setSliderValue([10])} className={`${sliderValue[0] === 10 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-3xl p-2`}>10%</button>
-                                <button onClick={() => setSliderValue([25])} className={`${sliderValue[0] === 25 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-3xl p-2`}>25%</button>
-                                <button onClick={() => setSliderValue([50])} className={`${sliderValue[0] === 50 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-3xl p-2`}>50%</button>
-                                <button onClick={() => setSliderValue([75])} className={`${sliderValue[0] === 75 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-3xl p-2`}>75%</button>
-                                <button onClick={() => setSliderValue([100])} className={`${sliderValue[0] === 100 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-3xl p-2`}>MAX</button>
+                                <button onClick={() => setSliderValue([10])} className={`${sliderValue[0] === 10 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-[12px] p-2`}>10%</button>
+                                <button onClick={() => setSliderValue([25])} className={`${sliderValue[0] === 25 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-[12px] p-2`}>25%</button>
+                                <button onClick={() => setSliderValue([50])} className={`${sliderValue[0] === 50 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-[12px] p-2`}>50%</button>
+                                <button onClick={() => setSliderValue([75])} className={`${sliderValue[0] === 75 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-[12px] p-2`}>75%</button>
+                                <button onClick={() => setSliderValue([100])} className={`${sliderValue[0] === 100 ? 'bg-white text-black' : 'text-white'} border flex-1 transition-colors duration-300 border-gray-200 text-xs rounded-[12px] p-2`}>MAX</button>
                             </div>
                         </div>
 
                         <div className="flex flex-row justify-between gap-2 mt-2">
-                            <div className="bg-black w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                            <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                 <Image src={mySelectedLpToken.token0.logoURI} alt={mySelectedLpToken.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                 <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[0], mySelectedLpToken.token0.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                             </div>
-                            <div className="bg-black w-full rounded-3xl p-2 gap-2 flex flex-row items-center justify-start">
+                            <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                 <Image src={mySelectedLpToken.token1.logoURI} alt={mySelectedLpToken.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                 <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[1], mySelectedLpToken.token1.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                             </div>

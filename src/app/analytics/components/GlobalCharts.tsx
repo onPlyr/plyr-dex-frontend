@@ -36,7 +36,7 @@ function CustomTooltip({ active, payload, label }: any) {
 
 function ChartCard({ title, data, dataKey, color }: { title: string, data: any[], dataKey: string, color: string }) {
     return (
-        <Card className="bg-[#ffffff0d] rounded-3xl p-4 border-0">
+        <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
             <CardHeader>
                 <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>{title}</CardTitle>
             </CardHeader>
