@@ -7,7 +7,7 @@ import { durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteC
 import { wagmiConfig } from "@/app/config/wagmi"
 import { getApiUrl } from "@/app/lib/apis"
 import { getBridgePathHops } from "@/app/lib/bridges"
-import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getQuoteCellInstructions, getSwapCells } from "@/app/lib/cells"
+import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getEncodedCellTradeData, getQuoteCellInstructions, getSwapCells } from "@/app/lib/cells"
 import { MathBigInt } from "@/app/lib/numbers"
 import { getPlatform } from "@/app/lib/platforms"
 import { toShort } from "@/app/lib/strings"
@@ -16,7 +16,7 @@ import { getParsedError, isEqualAddress } from "@/app/lib/utils"
 import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
 import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/apis"
 import { BridgeProvider } from "@/app/types/bridges"
-import { CellFeeType, CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
+import { CellFeeType, CellRouteData, CellRouteDataParameter, CellTradeData, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
 import { NetworkMode, SlippageConfig } from "@/app/types/preferences"
 import {
@@ -733,17 +733,29 @@ export const getValidHopQuoteData = async ({
 
                 else {
 
-                    const { encodedTrade, estGasUnits } = contractData[hop.queryIndex]
-                    const trade = getDecodedCellTradeData(srcData.cell, encodedTrade)?.trade
-                    const dstAmount = trade?.[CellTradeParameter.AmountOut] ?? trade?.[CellTradeParameter.MinAmountOut]
-                    if (!encodedTrade || !trade || !dstAmount || dstAmount === BigInt(0)) {
+                    const { encodedTrade: estEncodedTrade, estGasUnits } = contractData[hop.queryIndex]
+                    const estTradeData = getDecodedCellTradeData(srcData.cell, estEncodedTrade)
+                    const estTrade = estTradeData?.trade
+                    const estAmount = estTrade?.[CellTradeParameter.AmountOut] ?? estTrade?.[CellTradeParameter.MinAmountOut]
+                    const minAmount = getMinAmount(estAmount, slippageBps)
+
+                    const tradeData: CellTradeData | undefined = estTradeData && estTrade && {
+                        ...estTradeData,
+                        trade: {
+                            ...estTrade,
+                            [CellTradeParameter.MinAmountOut in estTrade ? CellTradeParameter.MinAmountOut : CellTradeParameter.AmountOut]: minAmount,
+                        },
+                    }
+                    const encodedTrade = tradeData && (srcData.cell.tradeDataParams ? getEncodedCellTradeData(srcData.cell, tradeData) : getEncodedCellTrade(srcData.cell, tradeData.trade))
+
+                    if (!encodedTrade || !tradeData || !estAmount || estAmount === BigInt(0) || !minAmount || minAmount === BigInt(0)) {
                         hop.isError = true
                         continue
                     }
 
-                    hop.dstData.estAmount = dstAmount
-                    hop.dstData.minAmount = getMinAmount(hop.dstData.estAmount, slippageBps)
-                    hop.trade = trade
+                    hop.dstData.estAmount = estAmount
+                    hop.dstData.minAmount = minAmount
+                    hop.trade = tradeData.trade
                     hop.encodedTrade = encodedTrade
                     hop.estGasUnits = getHopTypeEstGasUnits(hop.type, estGasUnits)
                 }

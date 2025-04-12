@@ -137,6 +137,23 @@ export const getEncodedCellTrade = (cell?: Cell, trade?: CellTrade, tradeParams?
     return encodeAbiParameters(params, [args])
 }
 
+export const getEncodedCellTradeData = (cell?: Cell, tradeData?: CellTradeData) => {
+
+    const tradeParams = getCellTradeParams(cell)
+    const tradeParamNames = cell?.tradeParams
+    const tradeArgs = tradeParams && tradeParamNames && tradeData ? tradeParamNames.map((name) => tradeData.trade[name]) : undefined
+
+    const params = getCellTradeDataParams(cell)
+    const paramNames = cell?.tradeDataParams
+    const args = params && paramNames && tradeData && tradeArgs ? [tradeArgs, ...paramNames.map((name) => tradeData[name])] : undefined
+
+    if (!params || params.length === 0 || !args || args.length === 0 || args.some((data) => data === undefined)) {
+        return
+    }
+
+    return encodeAbiParameters(params, [args])
+}
+
 export const getInitiateCellInstructions = (quote?: SwapQuote, swapSource: SwapSource = SwapSource.Tesseract): CellInstructions | undefined => {
 
     if (!quote || !isValidInitiateSwapQuote(quote)) {

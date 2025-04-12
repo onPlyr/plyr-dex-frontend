@@ -84,7 +84,6 @@ export const GET = async (request: NextRequest) => {
             takerAsset: srcToken.address,
             makerAsset: dstToken.address,
             takerAmount: srcAmount.toString(),
-            // userAddress: cell.address,
             userAddress: accountAddress,
             executor: cell.address,
             slippage: slippage,

@@ -49,6 +49,28 @@ export const plyrTau = {
     },
 } as const satisfies RainbowKitChain
 
+export const plyrPhi = {
+    id: 16180,
+    name: "PLYR PHI",
+    testnet: false,
+    nativeCurrency: {
+        name: "PLYR",
+        symbol: "PLYR",
+        decimals: 18,
+    },
+    rpcUrls: {
+        default: {
+            http: ["https://subnets.avax.network/plyr/mainnet/rpc"],
+        },
+    },
+    blockExplorers: {
+        default: {
+            name: "PLYR PHI Explorer",
+            url: "https://explorer.plyr.network",
+        },
+    },
+} as const satisfies RainbowKitChain
+
 export const coqnet = {
     id: 42069,
     name: "Coqnet",
@@ -98,6 +120,7 @@ export const wagmiChains = [
     avalancheFuji,
     teschain,
     plyrTau,
+    plyrPhi,
     coqnet,
     coqnetFuji,
 ] as const
@@ -116,7 +139,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
             {
                 ...cellTypeDefinitions[CellType.Dexalot],
-                address: "0x64E10eB36D0662Bc7222dC0933cdCb2950CBB8a0",
+                address: "0xe00D8999adf582D766de1e45Bf1E30CE75F171ae",
             },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
@@ -248,7 +271,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
             // others
             {
-                address: "0x64E10eB36D0662Bc7222dC0933cdCb2950CBB8a0",
+                address: "0xe00D8999adf582D766de1e45Bf1E30CE75F171ae",
                 name: "Dexalot",
                 platform: "dexalot",
             },
@@ -328,6 +351,34 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
         ],
         isDisabled: true,
+    },
+    [plyrPhi.id]: {
+        ...plyrTau,
+        icon: `${plyrTau.id}.png`,
+        iconBackground: "#ff6600",
+        cells: [
+            {
+                ...cellTypeDefinitions[CellType.UniV2],
+                address: "0x2b7DcD9E57D1893d455FB3239F83a3745Bb912e8",
+            },
+        ],
+        blockchainId: "0x256c7bda2ac1afff9fa39e76ead0a2fae122c73ee0143402fe128fc463c9ce1b",
+        minGasPrice: BigInt(25),
+        gasPriceExponent: 9,
+        avgBlockTimeMs: 500,
+        avgBlockTimeSampleRange: BigInt(10000),
+        clientData: {
+            maxQueryChunkSize: 100,
+            maxQueryBatchSize: 10,
+            maxQueryNumBatches: 10,
+        },
+        adapters: [
+            {
+                address: "0x2b7DcD9E57D1893d455FB3239F83a3745Bb912e8",
+                name: "PLYR[SWAP]",
+                platform: "plyr",
+            },
+        ],
     },
     [plyrTau.id]: {
         ...plyrTau,

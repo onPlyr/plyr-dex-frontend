@@ -4,6 +4,6 @@ import { NetworkMode, PreferenceType, SlippageConfig, TokenSortType, ValidUserPr
 export const DefaultUserPreferences: ValidUserPreferences = {
     [PreferenceType.Slippage]: SlippageConfig.DefaultBps,
     [PreferenceType.Currency]: Currency.USD,
-    [PreferenceType.NetworkMode]: process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet" ? NetworkMode.Mainnet : NetworkMode.Testnet,
+    [PreferenceType.NetworkMode]: process.env.NEXT_PUBLIC_NETWORK_TYPE === "mainnet" ? NetworkMode.Mainnet : NetworkMode.Testnet,
     [PreferenceType.TokenSortType]: TokenSortType.Value,
 } as const

@@ -8,11 +8,11 @@ import { wagmiConfig } from "@/app/config/wagmi"
 import useApiTokenData from "@/app/hooks/apis/useApiTokenData"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { getApiUrl } from "@/app/lib/apis"
-import { getDecodedCellTradeData } from "@/app/lib/cells"
+import { getDecodedCellTradeData, getEncodedCellTrade, getEncodedCellTradeData } from "@/app/lib/cells"
 import { getHopQueryData, getHopTypeEstGasUnits, getMinAmount, setNextHopAmounts } from "@/app/lib/swaps"
 import { getParsedError } from "@/app/lib/utils"
 import { ApiFirmQuoteResultData, ApiProvider, ApiResult, ApiRoute, ApiRouteType, ApiTokenPairData, ApiTokenPairName } from "@/app/types/apis"
-import { CellRouteData, CellRouteDataParameter, CellTradeParameter } from "@/app/types/cells"
+import { CellRouteData, CellRouteDataParameter, CellTradeData, CellTradeParameter } from "@/app/types/cells"
 import { ChainId } from "@/app/types/chains"
 import { PreferenceType } from "@/app/types/preferences"
 import { SwapQuote } from "@/app/types/swaps"
@@ -136,7 +136,7 @@ const ApiDataProvider = ({
                     const minAmount = BigInt(result.amount)
                     if (!minAmount || minAmount < hop.dstData.minAmount) {
                         hop.isError = true
-                        throw new Error("Invalid Minimum Amount")
+                        throw new Error("Invalid minimum amount")
                     }
 
                     hop.encodedTrade = result.encodedTrade
@@ -153,27 +153,35 @@ const ApiDataProvider = ({
                     })
 
                     if (!contractQuery) {
-                        console.log(`>>> getFirmQuote CONTINUE 2`)
                         continue
                     }
 
-                    const [encodedTrade, estGasUnits] = await readContract(wagmiConfig, contractQuery)
-                    const trade = getDecodedCellTradeData(hop.srcData.cell, encodedTrade)?.trade
-                    const estAmount = trade?.[CellTradeParameter.AmountOut] ?? trade?.[CellTradeParameter.MinAmountOut]
+                    const [estEncodedTrade, estGasUnits] = await readContract(wagmiConfig, contractQuery)
+                    const estTradeData = getDecodedCellTradeData(hop.srcData.cell, estEncodedTrade)
+                    const estTrade = estTradeData?.trade
+                    const estAmount = estTrade?.[CellTradeParameter.AmountOut] ?? estTrade?.[CellTradeParameter.MinAmountOut]
                     const minAmount = getMinAmount(estAmount, slippage)
 
-                    if (!encodedTrade || !trade || !estAmount || estAmount === BigInt(0)) {
-                        hop.isError = true
-                        throw new Error("Invalid Route Response")
+                    const tradeData: CellTradeData | undefined = estTradeData && estTrade && {
+                        ...estTradeData,
+                        trade: {
+                            ...estTrade,
+                            [CellTradeParameter.MinAmountOut in estTrade ? CellTradeParameter.MinAmountOut : CellTradeParameter.AmountOut]: minAmount,
+                        },
                     }
+                    const encodedTrade = tradeData && (hop.srcData.cell.tradeDataParams ? getEncodedCellTradeData(hop.srcData.cell, tradeData) : getEncodedCellTrade(hop.srcData.cell, tradeData.trade))
 
+                    if (!encodedTrade || !tradeData || !estAmount || estAmount === BigInt(0)) {
+                        hop.isError = true
+                        throw new Error("Invalid route response")
+                    }
                     else if (!minAmount || minAmount < hop.dstData.minAmount) {
                         hop.isError = true
-                        throw new Error("Invalid Minimum Amount")
+                        throw new Error("Invalid minimum amount")
                     }
 
                     hop.dstData.estAmount = estAmount
-                    hop.trade = trade
+                    hop.trade = tradeData.trade
                     hop.encodedTrade = encodedTrade
                     hop.estGasUnits = getHopTypeEstGasUnits(hop.type, estGasUnits)
                     hop.isConfirmed = true
