@@ -38,6 +38,9 @@ export interface ClientData {
     maxQueryChunkSize: number,
     maxQueryBatchSize: number,
     maxQueryNumBatches: number,
+    fetchOptions?: RequestInit,
+    onFetchRequest?: (request: Request) => void,
+    onFetchResponse?: (response: Response) => void,
 }
 
 export type ClientTransportsType = {

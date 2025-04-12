@@ -121,7 +121,8 @@ export const useWatchSwapEvents = (queryMap: EventQueryMap) => {
                                 messageID: queries.map((query) => query.msgId),
                             },
                             fromBlock: fromBlockData.get(chainId) || (fromBlockNumbers.length && MathBigInt.min(fromBlockNumbers)) || MathBigInt.max([BigInt(1), block.number - BigInt(chain.clientData.maxQueryChunkSize)]),
-                            toBlock: block.number,
+                            // toBlock: block.number,
+                            toBlock: "finalized",
                             strict: true,
                         })
 

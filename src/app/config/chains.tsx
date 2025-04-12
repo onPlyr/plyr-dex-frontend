@@ -149,7 +149,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         avgBlockTimeSampleRange: BigInt(100000),
         clientData: {
             maxQueryChunkSize: 1000,
-            maxQueryBatchSize: 10,
+            maxQueryBatchSize: 20,
             maxQueryNumBatches: 10,
         },
         adapters: [
@@ -298,7 +298,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         avgBlockTimeSampleRange: BigInt(100000),
         clientData: {
             maxQueryChunkSize: 1000,
-            maxQueryBatchSize: 10,
+            maxQueryBatchSize: 20,
             maxQueryNumBatches: 10,
         },
         adapters: [
@@ -463,7 +463,7 @@ const networkModeLabels: Record<NetworkMode, string> = {
 export const getNetworkModeLabel = (networkMode: NetworkMode) => {
     return networkModeLabels[networkMode]
 }
-        
+
 const clientTransportsData: ClientTransportsType = {}
 Object.values(SupportedChains).forEach((chain) => {
     clientTransportsData[chain.id] = fallback([
@@ -471,6 +471,9 @@ Object.values(SupportedChains).forEach((chain) => {
             batch: {
                 batchSize: chain.clientData.maxQueryBatchSize,
             },
+            fetchOptions: chain.clientData.fetchOptions,
+            onFetchRequest: chain.clientData.onFetchRequest,
+            onFetchResponse: chain.clientData.onFetchResponse,
         }),
         http(),
     ])

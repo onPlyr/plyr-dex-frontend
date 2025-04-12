@@ -28,5 +28,5 @@ export const wagmiConfig = getDefaultConfig({
     ssr: true,
     storage: createStorage({
         storage: cookieStorage,
-    })
+    }),
 })

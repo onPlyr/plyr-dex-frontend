@@ -27,6 +27,7 @@ import { NotificationType } from "@/app/types/notifications"
 import { PreferenceType } from "@/app/types/preferences"
 import { StorageKey } from "@/app/types/storage"
 import { GetTokenFunction } from "@/app/types/tokens"
+import { isRetryError } from "@/app/types/errors"
 
 type GetSwapHistoryFunction = (txHash?: Hash) => SwapHistory | undefined
 type GetSwapHistoriesFunction = (accountAddress?: Address) => SwapHistory[]
@@ -427,13 +428,15 @@ const SwapHistoryProvider = ({
         }
 
         catch (err) {
-            error = getParsedError(err)
-            swap.status = SwapStatus.Error
-            swap.error = error
-            if (hop) {
-                hop.status = SwapStatus.Error
-                if (!hop.error) {
-                    hop.error = error
+            if (!isRetryError(error)) {
+                error = getParsedError(err)
+                swap.status = SwapStatus.Error
+                swap.error = error
+                if (hop) {
+                    hop.status = SwapStatus.Error
+                    if (!hop.error) {
+                        hop.error = error
+                    }
                 }
             }
         }

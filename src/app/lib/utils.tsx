@@ -4,16 +4,6 @@ import { Address, BaseError, ContractFunctionRevertedError, isAddress, isAddress
 import { TxStatusLabel } from "@/app/config/txs"
 import { ReadContractErrorData } from "@/app/types/utils"
 
-export const isEqualObj = (objA?: object, objB?: object) => {
-    if (objA === undefined && objB === undefined) {
-        return undefined
-    }
-    else if (objA === undefined || objB === undefined) {
-        return false
-    }
-    return (Object.keys(objA) as (keyof typeof objA)[]).every((key) => objA[key] === objB[key])
-}
-
 export const getStatusLabel = (status: QueryStatus) => {
     return TxStatusLabel[status]
 }
@@ -66,11 +56,11 @@ export const isEqualAddress = (a?: string, b?: string, strict: boolean = false) 
  * Gets the base URL for API requests, using the current origin
  */
 export function getBaseUrl(): string {
-  // In the browser, use the current origin
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  
-  // On the server, use the environment variable as fallback
-  return process.env.BASE_API_URL || '';
+    // In the browser, use the current origin
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+
+    // On the server, use the environment variable as fallback
+    return process.env.BASE_API_URL || '';
 }
