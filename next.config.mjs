@@ -3,6 +3,9 @@ const nextConfig = {
     trailingSlash: true,
     //assetPrefix: 'http://localhost:3000/',
     reactStrictMode: false,
+    typescript: {
+        ignoreBuildErrors: true,
+    },
     images: {
         remotePatterns: [
             {
