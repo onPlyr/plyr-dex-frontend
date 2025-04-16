@@ -47,7 +47,6 @@
     "bignumber.js": "^9.1.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "eslint": "^9.24.0",
     "ethers": "^5.7.2",
     "fast-average-color": "^9.4.0",
     "framer-motion": "^11.1.7",
