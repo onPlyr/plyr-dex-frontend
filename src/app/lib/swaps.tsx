@@ -1082,6 +1082,7 @@ export const getHopEventData = ({
                             type: SwapType.Swap,
                             index: i,
                             hopIndex: hop.index,
+                            //@ts-ignore
                             adapter: adapter,
                             adapterAddress: adapterAddress,
                         })
