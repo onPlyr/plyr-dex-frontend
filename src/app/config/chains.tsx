@@ -139,7 +139,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
             {
                 ...cellTypeDefinitions[CellType.Dexalot],
-                address: "0xe00D8999adf582D766de1e45Bf1E30CE75F171ae",
+                address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
             },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
@@ -271,7 +271,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             },
             // others
             {
-                address: "0xe00D8999adf582D766de1e45Bf1E30CE75F171ae",
+                address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
                 name: "Dexalot",
                 platform: "dexalot",
             },
