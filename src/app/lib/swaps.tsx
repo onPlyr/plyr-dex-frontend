@@ -1036,6 +1036,8 @@ export const getHopEventData = ({
             address: tokenOut,
             chainId: hop.srcData.chain.id,
         })
+
+        //@ts-ignore
         const tradeDstToken = (tradeDstTokenData?.isUnconfirmed && quoteTokens.get(tradeDstTokenData.uid)) || tradeDstTokenData
         const prevHop = hops.at(hop.index - 1)
 
