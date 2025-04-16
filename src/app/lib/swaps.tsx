@@ -1036,8 +1036,6 @@ export const getHopEventData = ({
             address: tokenOut,
             chainId: hop.srcData.chain.id,
         })
-
-        //@ts-ignore
         const tradeDstToken = (tradeDstTokenData?.isUnconfirmed && quoteTokens.get(tradeDstTokenData.uid)) || tradeDstTokenData
         const prevHop = hops.at(hop.index - 1)
 
@@ -1082,7 +1080,6 @@ export const getHopEventData = ({
                             type: SwapType.Swap,
                             index: i,
                             hopIndex: hop.index,
-                            //@ts-ignore
                             adapter: adapter,
                             adapterAddress: adapterAddress,
                         })
@@ -1109,7 +1106,6 @@ export const getHopEventData = ({
                     type: SwapType.Swap,
                     index: 0,
                     hopIndex: hop.index,
-                    //@ts-ignore
                     adapter: getSwapAdapter(hop.srcData.chain, hop.srcData.cell.address),
                     adapterAddress: hop.srcData.cell.address,
                 })
