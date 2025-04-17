@@ -22,12 +22,13 @@ import { getTokenAddress } from "@/app/lib/tokens"
 import { getParsedError, isEqualAddress } from "@/app/lib/utils"
 import { BridgeProvider } from "@/app/types/bridges"
 import { CellFeeType, CellType } from "@/app/types/cells"
-import { BaseData, BaseJson, HopHistory, isCrossChainHopType, isRollbackQueryHop, isTransferType, RollbackData, RollbackJson, SwapFeeData, SwapFeeJson, SwapHistory, SwapJson, SwapStatus, ValidSwapFeeData } from "@/app/types/swaps"
+import { isSupportedChainId } from "@/app/types/chains"
+import { isRetryError } from "@/app/types/errors"
 import { NotificationType } from "@/app/types/notifications"
 import { PreferenceType } from "@/app/types/preferences"
 import { StorageKey } from "@/app/types/storage"
+import { BaseData, BaseJson, HopHistory, isCrossChainHopType, isRollbackQueryHop, isTransferType, RollbackData, RollbackJson, SwapFeeData, SwapFeeJson, SwapHistory, SwapJson, SwapStatus, ValidSwapFeeData } from "@/app/types/swaps"
 import { GetTokenFunction } from "@/app/types/tokens"
-import { isRetryError } from "@/app/types/errors"
 
 type GetSwapHistoryFunction = (txHash?: Hash) => SwapHistory | undefined
 type GetSwapHistoriesFunction = (accountAddress?: Address) => SwapHistory[]
@@ -99,6 +100,8 @@ const hopRollbackJsonToData = (data: RollbackJson, getToken: GetTokenFunction): 
     txHash: data.txHash,
 })
 
+const isSupportedSwapJson = (swap: SwapJson) => isSupportedChainId(swap.srcData.chain) && isSupportedChainId(swap.dstData.chain) && swap.hops.every((hop) => isSupportedChainId(hop.srcData.chain) && isSupportedChainId(hop.dstData.chain))
+
 const swapHistorySerializer = (data: SwapHistoryMap) => JSON.stringify(
     getSwapHistoriesFromMap(data).map((swap) => ({
         ...swap,
@@ -133,7 +136,7 @@ const swapHistorySerializer = (data: SwapHistoryMap) => JSON.stringify(
 )
 
 const swapHistoryDeserializerFunction = (data: string, getToken: GetTokenFunction) => getSwapHistoryMap(
-    (JSON.parse(data) as SwapJson[]).map((swap) => ({
+    (JSON.parse(data) as SwapJson[]).filter((swap) => isSupportedSwapJson(swap)).map((swap) => ({
         ...swap,
         srcData: swapBaseJsonToData(swap.srcData, getToken),
         dstData: swapBaseJsonToData(swap.dstData, getToken),
