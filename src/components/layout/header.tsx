@@ -53,7 +53,7 @@ const NavList = () => {
                         </div>
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="rounded-[12px] backdrop-blur-lg bg-[#ffffff0d] border-none text-white">
+                <DropdownMenuContent className="z-[200] rounded-[12px] backdrop-blur-lg bg-[#ffffff0d] border-none text-white">
                     <DropdownMenuItem className="rounded-[12px] !text-white hover:bg-black/50 focus:bg-black/50 active:bg-black/50">
                         <Link href="/liquidity/manage" className="flex flex-row items-center gap-2"><Box className="w-6 h-6 text-[#daff00]" />MY LIQUIDITY</Link>
                     </DropdownMenuItem>
@@ -158,7 +158,7 @@ export default function Header() {
             </section>
 
 
-            <section className={`${process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' ? 'bottom-5' : ''} flex lg:hidden fixed z-50 bottom-0 flex-col items-center justify-center w-full`}>
+            <section className={`${process.env.NEXT_PUBLIC_NETWORK_TYPE !== 'mainnet' ? 'bottom-5' : ''} flex lg:hidden fixed z-[150] bottom-0 flex-col items-center justify-center w-full`}>
                 <div className={`${styles.footerHeader} text-white w-full flex flex-row items-center justify-center`}>
                     <NavList />
                 </div>

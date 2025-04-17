@@ -47,7 +47,7 @@ export const NotificationContainer = React.forwardRef<HTMLDivElement, React.Comp
 }, ref) => (
     <div
         ref={ref}
-        className={twMerge("z-[250] flex flex-col-reverse flex-1 fixed bottom-0 end-0 max-w-screen sm:max-w-96 w-full max-h-screen h-fit p-4 gap-4 justify-end items-end", className)}
+        className={twMerge("z-[250] mb-16 lg:mb-0 flex flex-col-reverse flex-1 fixed bottom-0 end-0 max-w-screen sm:max-w-96 w-full max-h-screen h-fit p-4 gap-4 justify-end items-end", className)}
         {...props}
     />
 ))
@@ -282,7 +282,7 @@ export const NotificationContent = React.forwardRef<HTMLDivElement, Notification
         >
             <div
                 ref={ref}
-                className={twMerge("container flex flex-col flex-1 p-4 gap-4 w-full max-h-fit overflow-hidden", className)}
+                className={twMerge("container bg-black hover:bg-black flex flex-col flex-1 p-4 gap-4 w-full max-h-fit overflow-hidden", className)}
                 {...props}
             >
                 <AnimatePresence mode="wait">
