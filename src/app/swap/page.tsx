@@ -151,7 +151,7 @@ const SwapPage = () => {
                         }}
                         // onClick={showIntro ? setShowIntro.bind(this, false) : undefined}
                     >
-                        <AnimatePresence mode="wait">
+                        {/* <AnimatePresence mode="wait">
                             {showIntro && (
                                 <motion.div
                                     className="z-[50] flex flex-col flex-1 w-full h-full absolute start-0 top-0"
@@ -181,7 +181,7 @@ const SwapPage = () => {
                                     }}
                                 />
                             )}
-                        </AnimatePresence>
+                        </AnimatePresence> */}
                         <motion.div
                             transition={defaultIntroTransition}
                             variants={{
@@ -202,6 +202,7 @@ const SwapPage = () => {
                                 footer={!showIntro && <SwapButton />}
                                 hideNetworkMsg={showIntro}
                                 isNestedPage={true}
+                                className={showIntro ? "transition blur-sm pb-6" : "transition blur-none"}
                             >
                                 <SwapWidget showIntro={showIntro} />
                             </Page>
