@@ -281,7 +281,7 @@ const SwapPage = () => {
                                             hideIcon={true}
                                         >
                                             <motion.div
-                                                className="flex flex-row flex-none justify-center items-center rounded-full bg-white text-black"
+                                                className="flex flex-row flex-none justify-center items-center rounded-full bg-black text-[#daff00]"
                                                 initial="initial"
                                                 whileHover="hover"
                                                 whileTap="hover"
