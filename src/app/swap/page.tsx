@@ -72,7 +72,7 @@ const SwapPage = () => {
     }, [quotesError])
 
     const pageHeader = <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-        <div className="text-white text-4xl font-black leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>SWAP</div>
+        <div className="text-white text-5xl -ml-4 leading-none font-thin" style={{ fontFamily: 'var(--font-bold-finger)' }}>SWAP</div>
         <div className="flex flex-row gap-4">
             <Tooltip
                 trigger=<Button

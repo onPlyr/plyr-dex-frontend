@@ -62,7 +62,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                 {factory && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
                         <CardHeader>
-                            <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Overall Statistics</CardTitle>
+                            <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Overall Statistics</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,7 +90,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                 {topPairsTokens?.topPairs && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
                         <CardHeader>
-                            <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Top Pairs</CardTitle>
+                            <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Pairs</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
@@ -129,7 +129,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                 {topPairsTokens?.topTokens && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
                         <CardHeader>
-                            <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Top Tokens</CardTitle>
+                            <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Tokens</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">

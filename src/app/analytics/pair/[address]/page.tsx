@@ -47,7 +47,7 @@ export default function PairPage() {
             <div className="container mx-auto px-4 py-8 space-y-8">
                 <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                     <CardHeader>
-                        <CardTitle className="text-4xl text-white font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Liquidity History</CardTitle>
+                        <CardTitle className="text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Liquidity History</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-8">
                         <LiquidityChart data={liquidityData} />
@@ -56,7 +56,7 @@ export default function PairPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                         <CardHeader>
-                            <CardTitle className="text-4xl text-white font-normal leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-road-rage)' }}>
+                            <CardTitle className="text-5xl text-white font-thin leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-bold-finger)' }}>
 
                                 {pairData.token0.symbol}/{pairData.token1.symbol}
                                 <img src={tokenList.find(t => t.address.toLowerCase() === pairData.token0.id.toLowerCase())?.logoURI} alt={pairData.token0.symbol} width={28} height={28} className="rounded-full w-10 h-10 ml-4" />
