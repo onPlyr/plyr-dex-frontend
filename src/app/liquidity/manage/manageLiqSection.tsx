@@ -313,7 +313,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                                                 strokeDasharray={`${(selectedLpTokenInfo.poolShare * 100) * 3.375}, 337.5`}
                                             />
                                         </svg>
-                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[81px] w-[81px] flex flex-col items-center justify-center">
+                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[108px] w-[108px] flex flex-col items-center justify-center">
                                             <div className="text-xl font-bold">{Number(selectedLpTokenInfo.poolShare * 100).toFixed(1)}%</div>
                                             <div className="text-[10px]">Pool Share</div>
                                         </div>

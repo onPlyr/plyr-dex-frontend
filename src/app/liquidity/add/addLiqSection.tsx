@@ -781,7 +781,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                                 strokeDasharray={`${poolShareInfo.sharePercent * 3}, 300`}
                                             />
                                         </svg>
-                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[72px] w-[72px] flex flex-col items-center justify-center">
+                                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center bg-[#1e1d1b] rounded-full h-[92px] w-[92px] flex flex-col items-center justify-center">
                                             <div className="text-xl font-bold">{Number(poolShareInfo.sharePercent).toFixed(1)}%</div>
                                             <div className="text-[10px]">Share</div>
                                         </div>
