@@ -18,7 +18,7 @@ import { Providers } from "@/app/providers/providers"
 //import logoBrand from "@/public/logos/logo-white.png"
 
 const chivo = Chivo({ subsets: ["latin"] });
-const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
+//const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
 const boldFinger = localFont({ src: "./Boldfinger.ttf", variable: "--font-bold-finger" });
 //const disableBgParticles = true;
 
@@ -75,7 +75,7 @@ const RootLayout = ({
     children: React.ReactNode;
 }>) => {
     return (
-        <html lang="en" className={`${chivo.className} ${roadRage.variable} ${boldFinger.variable}`}>
+        <html lang="en" className={`${chivo.className} ${boldFinger.variable}`}>
             <body className="text-sm">
                 <Toaster />
                 <Providers>

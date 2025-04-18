@@ -84,7 +84,7 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
     return (
         <Card className="bg-[#ffffff0d] rounded-[12px] p-2 pr-0 border-0">
             <CardHeader>
-                <CardTitle className="text-white text-4xl font-normal leading-none" style={{ fontFamily: 'var(--font-road-rage)' }}>Latest Txs</CardTitle>
+                <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Latest Txs</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">

@@ -220,8 +220,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
             <Card className="w-full max-w-3xl mx-auto rounded-[12px] border-none p-8" style={{ background: "url('/liquidity/my.png') no-repeat 80% center", backgroundSize: "cover" }}>
                     <div className="flex flex-col items-start justify-center">
-                        <div className="text-white text-5xl font-black leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>MY LP</div>
-                        <div className="text-[#daff00] text-5xl font-black leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>POSITIONS</div>
+                        <div className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>MY LP</div>
+                        <div className="text-[#daff00] text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>POSITIONS</div>
                         <div className="flex flex-row gap-2 mt-4">
                             <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
                         </div>
