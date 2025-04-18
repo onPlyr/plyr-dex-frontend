@@ -669,7 +669,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                 {/*Disclaimer*/}
                                 <div className="text-xs text-[#9B9A98]">
                                     <div className="font-bold uppercase">Disclaimer</div>
-                                    <div className="text-[10px] leading-none">This is a demo app. Liquidity will not be added to the pool. The tokens will be displayed in the pool.</div>
+                                    <div className="text-[10px] leading-none">Providing liquidity to a decentralized exchange (DEX) involves risks, including impermanent loss. While trading fees may offset this, please assess your risk tolerance carefully before providing liquidity. This is not financial advice.</div>
                                 </div>
 
                                 {
