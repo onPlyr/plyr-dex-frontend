@@ -8,6 +8,7 @@ import "./globals.css";
 
 
 import { Toaster } from "@/src/components/ui/toaster";
+import BProgress from "@/app/bprogress";
 
 import Header from "@/src/components/layout/header";
 //import AccountDetailButton from "@/app/components/account/AccountDetailButton"
@@ -78,10 +79,12 @@ const RootLayout = ({
             <body className="text-sm">
                 <Toaster />
                 <Providers>
-                    <Header />
-                    <div className="flex flex-col pt-8 pb-24 lg:pb-8  items-center overflow-x-hidden">
-                        {children}
-                    </div>
+                    <BProgress>
+                        <Header />
+                        <div className="flex flex-col pt-8 pb-24 lg:pb-8  items-center overflow-x-hidden">
+                            {children}
+                        </div>
+                    </BProgress>
                 </Providers>
 
                 {
