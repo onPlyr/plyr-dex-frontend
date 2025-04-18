@@ -3,9 +3,6 @@ const nextConfig = {
     trailingSlash: true,
     //assetPrefix: 'http://localhost:3000/',
     reactStrictMode: false,
-    typescript: {
-        ignoreBuildErrors: true,
-    },
     images: {
         remotePatterns: [
             {
@@ -13,6 +10,10 @@ const nextConfig = {
             },
         ],
     },
+    typescript: {
+        ignoreBuildErrors: true,
+    },
+    
     // redirect / to /swap
     async redirects() {
         return [

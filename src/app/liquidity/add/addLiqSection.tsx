@@ -409,6 +409,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
                 setAmount0('')
                 setAmount1('')
+                handlePairData();
 
             }
             else {
@@ -491,6 +492,10 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     title: 'Liquidity added successfully!',
                     description: <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>,
                 })
+
+                setAmount0('')
+                setAmount1('')
+                handlePairData();
             }
 
         } catch (error: any) {
@@ -788,17 +793,17 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                                         <div className="text-white text-xs font-bold mt-1">
                                             {/* SharePercent of 3% */}
                                             <NumericFormat
-                                                value={((Number(poolShareInfo.sharePercent) / 100) * (0.03))}
+                                                value={((Number(poolShareInfo.sharePercent) / 100) * (0.3))}
                                                 displayType={"text"}
                                                 thousandSeparator={true}
                                                 decimalScale={3}
                                                 className="leading-none font-bold text-xl"
                                             /> %
-                                            <div className="text-[10px] leading-none">EARNED</div>
-                                            <div className="text-[10px] leading-none">TO EACH TRADE</div>
+                                            <div className="text-[10px] leading-none">REWARDED ON EVERY</div>
+                                            <div className="text-[10px] leading-none">{token0.symbol}/{token1.symbol} TRADE</div>
                                         </div>
                                         <div className="text-[#9B9A98] text-[10px] font-light mt-1 leading-none">
-                                            3% distributed through all {token0.symbol}/{token1.symbol} LPs.
+                                            0.3% distributed through all {token0.symbol}/{token1.symbol} LPs.
                                         </div>
                                     </div>
                                 </div>

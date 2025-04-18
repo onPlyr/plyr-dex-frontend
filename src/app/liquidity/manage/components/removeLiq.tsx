@@ -307,14 +307,14 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                             </div>
                         </div>
 
-                        <div className="flex flex-row justify-between gap-2 mt-2">
-                            <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
+                        <div className="flex flex-col justify-between gap-2 mt-2">
+                            <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start overflow-hidden">
                                 <Image src={mySelectedLpToken.token0.logoURI} alt={mySelectedLpToken.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[0], mySelectedLpToken.token0.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[0], mySelectedLpToken.token0.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={3} className="text-white text-lg font-bold" />
                             </div>
-                            <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
+                            <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start overflow-hidden">
                                 <Image src={mySelectedLpToken.token1.logoURI} alt={mySelectedLpToken.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[1], mySelectedLpToken.token1.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[1], mySelectedLpToken.token1.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={3} className="text-white text-lg font-bold" />
                             </div>
                         </div>
 

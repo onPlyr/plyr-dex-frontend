@@ -268,7 +268,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 {
                     !isLoading && myLpTokens.length > 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         {/* My Liquidity */}
-                        <Card className="md:w-3/5 w-full bg-[#ffffff0d] rounded-[12px] border-none p-6">
+                        <Card className="md:w-3/5 flex flex-col justify-between w-full bg-[#ffffff0d] rounded-[12px] border-none p-6">
                             {/* Dropdown */}
                             <Select value={selectedLpToken ?? ''} onValueChange={(value) => {
                                 setSelectedLpToken(value);
