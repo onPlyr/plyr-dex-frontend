@@ -133,7 +133,7 @@ export default function Header() {
 
                     <div className="flex flex-1 flex-row items-center justify-start gap-2">
                         <Link href="/swap" className="w-full lg:w-fit flex-1 lg:flex-auto">
-                            <Image src="/plyrswap.svg" alt="PLYR[SWAP]" width={100} height={100} className="w-12 h-12" />
+                            <Image src="/plyrswap.svg" alt="PLYR[SWAP]" width={100} height={100} className="w-12 h-12 transition hover:rotate-[360deg]" />
                         </Link>
                     </div>
 
