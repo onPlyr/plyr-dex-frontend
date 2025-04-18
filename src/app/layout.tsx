@@ -19,7 +19,7 @@ import { Providers } from "@/app/providers/providers"
 
 const chivo = Chivo({ subsets: ["latin"] });
 const roadRage = localFont({ src: "./Road_Rage.otf", variable: "--font-road-rage" });
-
+const boldFinger = localFont({ src: "./Boldfinger.ttf", variable: "--font-bold-finger" });
 //const disableBgParticles = true;
 
 const metaName = "PLYR[SWAP]"
@@ -75,7 +75,7 @@ const RootLayout = ({
     children: React.ReactNode;
 }>) => {
     return (
-        <html lang="en" className={`${chivo.className} ${roadRage.variable}`}>
+        <html lang="en" className={`${chivo.className} ${roadRage.variable} ${boldFinger.variable}`}>
             <body className="text-sm">
                 <Toaster />
                 <Providers>

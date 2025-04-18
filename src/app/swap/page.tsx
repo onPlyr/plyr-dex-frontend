@@ -28,6 +28,10 @@ import { PageType, SocialLink } from "@/app/types/navigation"
 import { NotificationStatus, NotificationType } from "@/app/types/notifications"
 import { StorageKey } from "@/app/types/storage"
 
+// Boldy //
+import BoldySwap from "@/public/boldy/BoldySwap.png"
+import PLYRSWAP from "@/public/boldy/PLYRSWAP.svg"
+
 const defaultIntroTransition: Transition = {
     type: "spring",
     duration: 1,
@@ -120,10 +124,10 @@ const SwapPage = () => {
             pageWidth="max-w-screen-lg w-full"
             isContainerPage={true}
         >
-            <div className="flex flex-col flex-none w-full h-fit">
+            <div className="flex flex-col flex-none w-full h-screen">
                 <div className="relative flex flex-row flex-none justify-center overflow-hidden">
                     <motion.div
-                        className={twMerge("relative flex flex-col flex-1 w-full h-full", showIntro ? "cursor-pointer" : undefined)}
+                        className={twMerge("relative flex flex-col flex-1 w-full h-full", showIntro ? "" : undefined)}
                         initial={showIntro ? "showIntro" : "initial"}
                         animate={showIntro ? "showIntro" : "initial"}
                         exit="initial"
@@ -140,12 +144,12 @@ const SwapPage = () => {
                                 paddingTop: "10%",
                                 paddingBottom: 0,
                             },
-                            hover: {
-                                paddingTop: "7.5%",
-                                paddingBottom: "2.5%",
-                            },
+                            // hover: {
+                            //     paddingTop: "7.5%",
+                            //     paddingBottom: "2.5%",
+                            // },
                         }}
-                        onClick={showIntro ? setShowIntro.bind(this, false) : undefined}
+                        // onClick={showIntro ? setShowIntro.bind(this, false) : undefined}
                     >
                         <AnimatePresence mode="wait">
                             {showIntro && (
@@ -165,15 +169,15 @@ const SwapPage = () => {
                                             backdropFilter: "blur(4px)",
                                             WebkitBackdropFilter: "blur(4px)",
                                         },
-                                        hover: {
-                                            backdropFilter: "blur(0px)",
-                                            WebkitBackdropFilter: "blur(0px)",
-                                            transition: {
-                                                type: "tween",
-                                                ease: "easeOut",
-                                                duration: defaultIntroTransition.duration * 0.5,
-                                            },
-                                        },
+                                        // hover: {
+                                        //     backdropFilter: "blur(0px)",
+                                        //     WebkitBackdropFilter: "blur(0px)",
+                                        //     transition: {
+                                        //         type: "tween",
+                                        //         ease: "easeOut",
+                                        //         duration: defaultIntroTransition.duration * 0.5,
+                                        //     },
+                                        // },
                                     }}
                                 />
                             )}
@@ -187,9 +191,9 @@ const SwapPage = () => {
                                 showIntro: {
                                     scale: 0.9,
                                 },
-                                hover: {
-                                    scale: 1,
-                                },
+                                // hover: {
+                                //     scale: 1,
+                                // },
                             }}
                         >
                             <Page
@@ -213,25 +217,50 @@ const SwapPage = () => {
                             transition={defaultIntroTransition}
                             variants={{
                                 initial: {
-                                    y: "25%",
+                                    y: "0%",
                                     opacity: 0,
-                                    scale: 0.8,
+                                    scale: 1,
+                                    zoom: 0.8,
                                 },
                                 showIntro: {
-                                    y: 0,
+                                    y: "0%",
                                     opacity: 1,
                                     scale: 1,
+                                    zIndex: 100,
+                                    zoom: 1,
                                 },
                             }}
                         >
-                            <div className="flex flex-col flex-1 p-4 my-4 gap-4">
-                                <div className="flex flex-row flex-1 justify-center font-bold text-center text-3xl">
-                                    {"Avalanche's Liquidity Marketplace"}
+                            {/*absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  */}
+                            <div className="flex flex-col w-full justify-start p-4 gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-h-fit">
+                                <div className="flex flex-row justify-center items-center">
+                                    <div className="relative flex mb-6 flex-row w-full h-96" onClick={setShowIntro.bind(this, false)}>
+                                        <Image
+                                            src={PLYRSWAP}
+                                            alt="PLYR SWAP"
+                                            style={{
+                                                objectFit: "contain",
+                                                objectPosition: "center center",
+                                                maxWidth: "500px",
+                                                width: "100%",
+                                                margin: "0 auto",
+                                            }}
+                                        />
+                                        <Image
+                                            src={BoldySwap}
+                                            alt="Boldy Swap"
+                                            style={{
+                                                objectFit: "contain",
+                                                objectPosition: "center center",
+                                            }}
+                                            sizes="256px, 512px"
+                                            quality={100}
+                                            fill={true}
+                                            priority={true}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="flex flex-row flex-1 justify-center font-bold text-center text-muted-500">
-                                    <div className="page-width">{"Move & Swap Any Asset Instantly: Tapping Every Avalanche Liquidity Source."}</div>
-                                </div>
-                                <div className="flex flex-row flex-1 gap-4 justify-center items-center">
+                                <div className="flex flex-row gap-4 justify-center items-center">
                                     <Button
                                         className="gradient-btn"
                                         onClick={setShowIntro.bind(this, false)}
@@ -240,8 +269,7 @@ const SwapPage = () => {
                                         Start Swapping
                                     </Button>
                                 </div>
-
-                                <div className="flex flex-row flex-1 flex-wrap gap-4 justify-center items-center">
+                                <div className="flex flex-row flex-wrap gap-4 justify-center items-center">
                                     {Object.entries(SocialLink).map(([type, data]) => (
                                         <ExternalLink
                                             key={type}
