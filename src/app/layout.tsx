@@ -53,7 +53,7 @@ export const metadata: Metadata = {
         siteName: metaName,
         type: "website",
         images: [
-            'https://plyr.network/social_share/global.png'
+            'https://plyr.network/social_share/plyrswap.png'
         ]
     },
     twitter: {
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
         title: metaName,
         description: metaDescription,
         images: [
-            'https://plyr.network/social_share/global.png'
+            'https://plyr.network/social_share/plyrswap.png'
         ]
     },
 }
