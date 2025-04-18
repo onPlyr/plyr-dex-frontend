@@ -202,7 +202,7 @@ const SwapPage = () => {
                                 footer={!showIntro && <SwapButton />}
                                 hideNetworkMsg={showIntro}
                                 isNestedPage={true}
-                                className={showIntro ? "transition blur-sm pb-6" : "transition blur-none"}
+                                className={showIntro ? "transition blur-sm pb-6" : ""}
                             >
                                 <SwapWidget showIntro={showIntro} />
                             </Page>
