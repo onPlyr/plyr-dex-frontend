@@ -234,14 +234,14 @@ const SwapPage = () => {
                             {/*absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2  */}
                             <div className="flex flex-col w-full justify-start p-4 gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-h-fit">
                                 <div className="flex flex-row justify-center items-center">
-                                    <div className="relative flex mb-6 flex-row w-full h-96" onClick={setShowIntro.bind(this, false)}>
+                                    <div className="relative flex mb-6 flex-row w-full h-screen max-h-[260px] md:h-screen md:max-h-[480px]" onClick={setShowIntro.bind(this, false)}>
                                         <Image
                                             src={PLYRSWAP}
                                             alt="PLYR SWAP"
                                             style={{
                                                 objectFit: "contain",
                                                 objectPosition: "center center",
-                                                maxWidth: "500px",
+                                                maxWidth: "600px",
                                                 width: "100%",
                                                 margin: "0 auto",
                                             }}
@@ -251,9 +251,11 @@ const SwapPage = () => {
                                             alt="Boldy Swap"
                                             style={{
                                                 objectFit: "contain",
-                                                objectPosition: "center center",
+                                                maxWidth: "600px",
+                                                width: "100%",
+                                                margin: "0 auto",
                                             }}
-                                            sizes="256px, 512px"
+                                            sizes="400px, 600px"
                                             quality={100}
                                             fill={true}
                                             priority={true}
