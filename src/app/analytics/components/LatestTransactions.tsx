@@ -91,7 +91,7 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
                     {transactions.map((tx) => (
                         <div key={tx.id} className="bg-[#3A3935] p-4 rounded-2xl text-white">
                             <div className="flex justify-between items-center">
-                                <span className="font-medium text-[#daff00] uppercase flex flex-row items-center gap-2">
+                                <span className="font-medium text-[#daff00] text-xs uppercase flex flex-row items-center gap-2">
                                     {tx.type === 'swap' ? <SwapIcon /> : tx.type === 'add' ? <PaintBucket style={{strokeWidth: 1.5}} /> : <CircleX style={{strokeWidth: 1.5}}/>}
                                     {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Liquidity Added' : 'Liquidity Removed'}
                                 </span>
