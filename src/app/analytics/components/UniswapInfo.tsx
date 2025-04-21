@@ -108,7 +108,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                                                     <Link href={`/analytics/pair/${pair.id}`} className="text-white flex flex-row items-center gap-2">
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === pair.token0.id.toLowerCase())?.logoURI} alt={pair.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === pair.token1.id.toLowerCase())?.logoURI} alt={pair.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
-                                                        {pair.token0.symbol}/{pair.token1.symbol}
+                                                        {pair.token0.symbol === 'WPLYR' ? 'PLYR' : pair.token0.symbol}/{pair.token1.symbol === 'WPLYR' ? 'PLYR' : pair.token1.symbol}
                                                     </Link>
                                                 </td>
                                                 <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(pair.reserveUSD).toLocaleString()}</td>
@@ -148,7 +148,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                                                     <Link href={`/analytics/token/${token.id}`} className="text-white flex flex-row items-center gap-2">
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === token.id.toLowerCase())?.logoURI} alt={token.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                                         
-                                                        {token.symbol} 
+                                                        {token.symbol === 'WPLYR' ? 'PLYR' : token.symbol} 
                                                         {/* ({token.name}) */}
                                                     </Link>
                                                 </td>

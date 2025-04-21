@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { fetchLatestTransactions, fetchLatestTransactionsByPairAddress } from './UniswapInfoFetcher'
 import Link from 'next/link'
-import { ArrowRight, CircleChevronRight, CirclePlus, CircleX, Loader2 } from 'lucide-react'
+import { ArrowRight, CircleChevronRight, CirclePlus, CircleX, Loader2, PaintBucket } from 'lucide-react'
 import SwapIcon from '@/app/components/icons/SwapIcon'
 
 interface Transaction {
@@ -92,8 +92,8 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
                         <div key={tx.id} className="bg-[#3A3935] p-4 rounded-2xl text-white">
                             <div className="flex justify-between items-center">
                                 <span className="font-medium text-[#daff00] uppercase flex flex-row items-center gap-2">
-                                    {tx.type === 'swap' ? <SwapIcon /> : tx.type === 'add' ? <CirclePlus style={{strokeWidth: 1.5}} /> : <CircleX style={{strokeWidth: 1.5}}/>}
-                                    {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Add Liquidity' : 'Remove Liquidity'}
+                                    {tx.type === 'swap' ? <SwapIcon /> : tx.type === 'add' ? <PaintBucket style={{strokeWidth: 1.5}} /> : <CircleX style={{strokeWidth: 1.5}}/>}
+                                    {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Liquidity Added' : 'Liquidity Removed'}
                                 </span>
                                 <span className="text-sm text-gray-500">
                                     {formatTimestamp(tx.timestamp)}
@@ -108,25 +108,25 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
                                                 tx.isToken0ToToken1 ?
                                                     <div className="flex items-center gap-2">
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === tx.token0Id.toLowerCase())?.logoURI} alt={tx.token0Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                        {tx.token0Symbol}
+                                                        {tx.token0Symbol === 'WPLYR' ? 'PLYR' : tx.token0Symbol}
                                                         <ArrowRight className="w-4 h-4" />
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === tx.token1Id.toLowerCase())?.logoURI} alt={tx.token1Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                        {tx.token1Symbol}
+                                                        {tx.token1Symbol === 'WPLYR' ? 'PLYR' : tx.token1Symbol}
                                                     </div>
 
                                                     :
                                                     <div className="flex items-center gap-2">
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === tx.token1Id.toLowerCase())?.logoURI} alt={tx.token1Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                        {tx.token1Symbol}
+                                                        {tx.token1Symbol === 'WPLYR' ? 'PLYR' : tx.token1Symbol}
                                                         <ArrowRight className="w-4 h-4" />
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === tx.token0Id.toLowerCase())?.logoURI} alt={tx.token0Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                        {tx.token0Symbol}
+                                                        {tx.token0Symbol === 'WPLYR' ? 'PLYR' : tx.token0Symbol}
                                                     </div>
                                             ) : (
                                                 <div className="flex items-center gap-2">
                                                     <img src={tokenList.find(t => t.address.toLowerCase() === tx.token0Id.toLowerCase())?.logoURI} alt={tx.token0Symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                                     <img src={tokenList.find(t => t.address.toLowerCase() === tx.token1Id.toLowerCase())?.logoURI} alt={tx.token1Symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
-                                                    {tx.token0Symbol}/{tx.token1Symbol}
+                                                    {tx.token0Symbol === 'WPLYR' ? 'PLYR' : tx.token0Symbol}/{tx.token1Symbol === 'WPLYR' ? 'PLYR' : tx.token1Symbol}
                                                 </div>
                                                 
                                             )}

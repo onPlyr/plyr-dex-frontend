@@ -58,7 +58,7 @@ export default function PairPage() {
                         <CardHeader>
                             <CardTitle className="text-5xl text-white font-thin leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-bold-finger)' }}>
 
-                                {pairData.token0.symbol}/{pairData.token1.symbol}
+                                {pairData.token0.symbol === 'WPLYR' ? 'PLYR' : pairData.token0.symbol}/{pairData.token1.symbol === 'WPLYR' ? 'PLYR' : pairData.token1.symbol}
                                 <img src={tokenList.find(t => t.address.toLowerCase() === pairData.token0.id.toLowerCase())?.logoURI} alt={pairData.token0.symbol} width={28} height={28} className="rounded-full w-10 h-10 ml-4" />
                                 <img src={tokenList.find(t => t.address.toLowerCase() === pairData.token1.id.toLowerCase())?.logoURI} alt={pairData.token1.symbol} width={28} height={28} className="rounded-full w-10 h-10 ml-[-10px]" />
                             </CardTitle>
@@ -74,11 +74,11 @@ export default function PairPage() {
                                     <p className="text-2xl font-bold">${parseFloat(pairData.untrackedVolumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
-                                    <h3 className="text-lg font-medium mb-2">{pairData.token0.symbol} Reserves</h3>
+                                    <h3 className="text-lg font-medium mb-2">{pairData.token0.symbol === 'WPLYR' ? 'PLYR' : pairData.token0.symbol} Reserves</h3>
                                     <p className="text-2xl font-bold">{parseFloat(pairData.reserve0).toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
-                                    <h3 className="text-lg font-medium mb-2">{pairData.token1.symbol} Reserves</h3>
+                                    <h3 className="text-lg font-medium mb-2">{pairData.token1.symbol === 'WPLYR' ? 'PLYR' : pairData.token1.symbol} Reserves</h3>
                                     <p className="text-2xl font-bold">{parseFloat(pairData.reserve1).toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
                                 </div>
 
