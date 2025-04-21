@@ -22,9 +22,9 @@ const chivo = Chivo({ subsets: ["latin"] });
 const boldFinger = localFont({ src: "./Boldfinger.ttf", variable: "--font-bold-finger" });
 //const disableBgParticles = true;
 
-const metaName = "PLYR[SWAP]"
-const metaDescription = "Explore the future of gaming with PLYR Chain. Empowering developers and gamers alike, our blockchain platform revolutionizes the gaming experience."
-const metaUrl = "https://plyr.network"
+const metaName = "PLYR[SWAP] – Multichain DEX for Gamers"
+const metaDescription = "PLYR[SWAP] is a multichain DEX powering the PLYR Gaming Universe. Add liquidity, earn rewards, and enable seamless swaps across Avalanche L1s."
+const metaUrl = "https://swap.onplyr.com"
 
 export const metadata: Metadata = {
     title: {

@@ -70,8 +70,8 @@ export const HopTypeGasUnits: Record<HopType, HopGasUnitsData> = {
 
 export const DefaultSwapRouteConfig = {
     [NetworkMode.Mainnet]: {
-        srcChain: SupportedChains[avalanche.id],
-        dstChain: SupportedChains[plyrPhi.id],
+        srcChain: SupportedChains[plyrPhi.id],
+        dstChain: SupportedChains[avalanche.id],
     },
     [NetworkMode.Testnet]: {
         srcChain: SupportedChains[avalancheFuji.id],
