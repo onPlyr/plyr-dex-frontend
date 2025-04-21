@@ -23,7 +23,7 @@ export const SocialLinkType = {
     Twitter: "twitter",
     Discord: "discord",
     Telegram: "telegram",
-    //Blog: "blog",
+    Blog: "blog",
     Docs: "docs",
 } as const
 export type SocialLinkType = (typeof SocialLinkType)[keyof typeof SocialLinkType]
@@ -54,12 +54,12 @@ export const SocialLink: Record<SocialLinkType, SocialLinkData> = {
         icon: <TelegramIcon />,
         order: 300,
     },
-    // [SocialLinkType.Blog]: {
-    //     name: "Blog",
-    //     href: "https://blog.tesseract.finance/",
-    //     icon: <BlogIcon />,
-    //     order: 400,
-    // },
+    [SocialLinkType.Blog]: {
+        name: "Blog",
+        href: "https://onplyr.medium.com/",
+        icon: <BlogIcon />,
+        order: 400,
+    },
     [SocialLinkType.Docs]: {
         name: "Documentation",
         href: "https://medium.com/@onplyr/play-earn-swap-how-plyr-swap-keeps-you-in-the-game-5cacb11b6d5c",
