@@ -68,7 +68,7 @@ export default function TokenPage() {
                         <CardHeader>
                             <CardTitle className="text-5xl text-white font-thin leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-bold-finger)' }}>
                                 <img src={tokenList.find(t => t.address.toLowerCase() === tokenData.id.toLowerCase())?.logoURI} alt={tokenData.symbol} width={28} height={28} className="rounded-full w-10 h-10" />
-                                {tokenData.symbol}
+                                {tokenData.symbol === 'WPLYR' ? 'PLYR' : tokenData.symbol}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -111,7 +111,7 @@ export default function TokenPage() {
                                                     <Link href={`/analytics/pair/${pair.id}`} className="text-white flex flex-row items-center gap-2">
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === pair.token0.id.toLowerCase())?.logoURI} alt={pair.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
                                                         <img src={tokenList.find(t => t.address.toLowerCase() === pair.token1.id.toLowerCase())?.logoURI} alt={pair.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 ml-[-10px]" />
-                                                        {pair.token0.symbol}/{pair.token1.symbol}
+                                                        {pair.token0.symbol === 'WPLYR' ? 'PLYR' : pair.token0.symbol}/{pair.token1.symbol === 'WPLYR' ? 'PLYR' : pair.token1.symbol}
                                                     </Link>
                                                 </td>
                                                 <td className="px-4 py-2 text-right">${parseFloat(pair.reserveUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>

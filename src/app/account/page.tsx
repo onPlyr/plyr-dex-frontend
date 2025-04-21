@@ -62,7 +62,7 @@ const AccountPage = () => {
     return (
         <Page
             key={PageType.Account}
-            header="My Account"
+            header={<div className="text-2xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>My Account</div>}
             backUrl="/swap"
         >
             <div className="flex flex-col flex-none gap-4 w-full h-fit">
