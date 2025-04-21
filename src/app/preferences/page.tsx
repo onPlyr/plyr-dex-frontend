@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import React from "react"
 import { useCallback, useEffect, useState } from "react"
 import { twMerge } from "tailwind-merge"

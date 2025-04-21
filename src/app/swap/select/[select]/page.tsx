@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import { AnimatePresence, motion, Transition } from "motion/react"
 import { useRouter } from "next/navigation"
 import React, { use, useCallback } from "react"

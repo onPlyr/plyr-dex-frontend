@@ -3,6 +3,7 @@ import DiscordIcon from "@/app/components/icons/social/DiscordIcon"
 import DocsIcon from "@/app/components/icons/social/DocsIcon"
 import GithubIcon from "@/app/components/icons/social/GithubIcon"
 import XTwitterIcon from "@/app/components/icons/social/XTwitterIcon"
+import TelegramIcon from "../components/icons/social/TelegramIcon"
 
 export const PageType = {
     Swap: "swap",
@@ -21,8 +22,8 @@ export type PageType = (typeof PageType)[keyof typeof PageType]
 export const SocialLinkType = {
     Twitter: "twitter",
     Discord: "discord",
-    Github: "github",
-    Blog: "blog",
+    Telegram: "telegram",
+    //Blog: "blog",
     Docs: "docs",
 } as const
 export type SocialLinkType = (typeof SocialLinkType)[keyof typeof SocialLinkType]
@@ -37,31 +38,31 @@ export interface SocialLinkData {
 export const SocialLink: Record<SocialLinkType, SocialLinkData> = {
     [SocialLinkType.Twitter]: {
         name: "X / Twitter",
-        href: "https://x.com/Tesseract_avax",
+        href: "https://x.com/OnPlyr",
         icon: <XTwitterIcon />,
         order: 100,
     },
     [SocialLinkType.Discord]: {
         name: "Discord",
-        href: "https://discord.gg/44MRN24ksj",
+        href: "https://discord.gg/plyr",
         icon: <DiscordIcon />,
         order: 200,
     },
-    [SocialLinkType.Github]: {
-        name: "GitHub",
-        href: "https://github.com/tesseract-protocol",
-        icon: <GithubIcon />,
+    [SocialLinkType.Telegram]: {
+        name: "Telegram",
+        href: "https://t.me/plyrchain",
+        icon: <TelegramIcon />,
         order: 300,
     },
-    [SocialLinkType.Blog]: {
-        name: "Blog",
-        href: "https://blog.tesseract.finance/",
-        icon: <BlogIcon />,
-        order: 400,
-    },
+    // [SocialLinkType.Blog]: {
+    //     name: "Blog",
+    //     href: "https://blog.tesseract.finance/",
+    //     icon: <BlogIcon />,
+    //     order: 400,
+    // },
     [SocialLinkType.Docs]: {
         name: "Documentation",
-        href: "https://docs.tesseract.finance/",
+        href: "https://medium.com/@onplyr/play-earn-swap-how-plyr-swap-keeps-you-in-the-game-5cacb11b6d5c",
         icon: <DocsIcon />,
         order: 500,
     },
