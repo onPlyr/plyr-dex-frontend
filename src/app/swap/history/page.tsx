@@ -66,7 +66,7 @@ const HistoryPage = () => {
     return (
         <Page
             key={PageType.SwapHistoryList}
-            header="Transactions"
+            header={<div className="text-2xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Transactions</div>}
             backUrl="/swap"
         >
             <motion.div

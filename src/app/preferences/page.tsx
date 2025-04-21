@@ -103,7 +103,7 @@ const PreferencesPage = () => {
     return (
         <Page
             key={PageType.Preferences}
-            header="My Preferences"
+            header={<div className="text-2xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>My Preferences</div>}
             backUrl="/swap"
         >
             <ScaleInOut className="container flex flex-col flex-none p-4 gap-4 w-full h-fit">
