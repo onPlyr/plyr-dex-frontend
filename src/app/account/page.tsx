@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/styles/globals.css"
+
 import { AnimatePresence } from "motion/react"
 import { useMemo } from "react"
 import { formatUnits } from "viem"
