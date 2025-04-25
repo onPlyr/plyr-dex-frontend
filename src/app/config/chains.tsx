@@ -137,10 +137,10 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 ...cellTypeDefinitions[CellType.YakSwap],
                 address: "0x949A4DC0d6c6B261a648B5542F550aB9fb1acdf1",
             },
-            {
-                ...cellTypeDefinitions[CellType.Dexalot],
-                address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
-            },
+            // {
+            //     ...cellTypeDefinitions[CellType.Dexalot],
+            //     address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
+            // },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
         minGasPrice: BigInt(1),
@@ -276,6 +276,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "dexalot",
             },
         ],
+        //isDisabled: true,
     },
     [avalancheFuji.id]: {
         ...avalancheFuji,
