@@ -221,7 +221,7 @@ const QuoteDataProvider = ({
 }) => {
 
     const { isConnected } = useAccount()
-    const { getToken, getNativeToken, useBalancesData } = useTokens()
+    const { getToken, getNativeToken, useBalancesData, getSupportedTokenById } = useTokens()
     const { getBalance } = useBalancesData
     const { preferences } = usePreferences()
     const networkMode = useMemo(() => preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode], [preferences])
@@ -271,7 +271,11 @@ const QuoteDataProvider = ({
             },
             dstData: {
                 chain: DefaultSwapRouteConfig[networkMode].dstChain,
-                token: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain.id),
+                //token: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain.id),
+                token: getSupportedTokenById({
+                    id: 'gamr',
+                    chainId: DefaultSwapRouteConfig[networkMode].dstChain.id,
+                }),
             },
         },
         options: {
@@ -284,7 +288,7 @@ const QuoteDataProvider = ({
 
     useEffect(() => {
         setSwapRouteData(swapRoute)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [swapRoute])
 
     const [srcAmountInput, setSrcAmountInputState] = useState("")
@@ -312,7 +316,7 @@ const QuoteDataProvider = ({
             })
             setSrcAmountInput("")
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [networkMode])
 
     const setSelectedToken = useCallback((token?: Token, isDst?: boolean) => {
