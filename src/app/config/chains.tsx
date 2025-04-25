@@ -435,6 +435,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
             maxQueryNumBatches: 10,
         },
         adapters: [],
+        isDisabled: true,
     },
     [coqnetFuji.id]: {
         ...coqnetFuji,

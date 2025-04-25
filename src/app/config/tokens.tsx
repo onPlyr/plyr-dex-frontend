@@ -380,6 +380,7 @@ const baseTokens: BaseToken[] = [
     
     {
         id: "gamr",
+        priceId: "gamr",
         symbol: "GAMR",
         name: "GAMR",
         decimals: 18,
@@ -502,6 +503,7 @@ const baseTokens: BaseToken[] = [
     
     {
         id: "plyr",
+        priceId: "plyr",
         symbol: "PLYR",
         name: "Native PLYR",
         decimals: 18,
