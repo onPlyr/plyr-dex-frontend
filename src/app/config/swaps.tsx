@@ -22,8 +22,8 @@ export const TokenInputPercentOptions = [
 ] as const
 
 export const SwapQuoteConfig = {
-    MaxHops: 3,
-    DefaultMaxHops: 3,
+    MaxHops: 2,
+    DefaultMaxHops: 2,
     QuoteValidMs: 30000,
     AlternativeQuoteSwitchDelayMs: 5000,
     InitiatedBlockBuffer: BigInt(10),
