@@ -32,7 +32,7 @@ export const SwapQuoteConfig = {
 } as const
 
 export const YakSwapConfig = {
-    DefaultMaxSteps: 3,
+    DefaultMaxSteps: 2,
     Fee: BigInt(0),
 }
 
