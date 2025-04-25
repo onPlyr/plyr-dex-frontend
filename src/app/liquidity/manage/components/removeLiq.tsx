@@ -33,7 +33,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
     const { toast } = useToast();
 
-    const [sliderValue, setSliderValue] = useState([50])
+    const [sliderValue, setSliderValue] = useState([0])
 
     const [isLoading, setIsLoading] = useState(false)
     const [isRemovingLiquidity, setIsRemovingLiquidity] = useState(false)
@@ -284,7 +284,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                                         value={Number(toTokens(mySelectedLpToken.lpTokens, 18))}
                                         displayType={"text"}
                                         thousandSeparator={true}
-                                        decimalScale={4}
+                                        decimalScale={8}
                                         suffix={' LPs'}
                                     />
                                 </div>
@@ -319,7 +319,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                         </div>
 
 
-                        <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity} className="relative w-full rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">REMOVE LIQUIDITY</Button>
+                        <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity || sliderValue[0] === 0} className="relative w-full rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">REMOVE LIQUIDITY</Button>
                     </div>
                 )
             }

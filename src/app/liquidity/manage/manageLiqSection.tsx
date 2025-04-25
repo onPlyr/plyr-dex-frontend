@@ -21,6 +21,7 @@ import { getContract, readContract, toTokens } from 'thirdweb';
 import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
+import { BigNumber } from 'bignumber.js';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -320,16 +321,16 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
                                     </div>
                                 }
-
+                                
                                 {
                                     selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <Image src={selectedLpTokenInfo.token0.logoURI} alt={selectedLpTokenInfo.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                            <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                            <NumericFormat value={BigNumber(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals)).multipliedBy(selectedLpTokenInfo.poolShare).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                                         </div>
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <Image src={selectedLpTokenInfo.token1.logoURI} alt={selectedLpTokenInfo.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                            <NumericFormat value={Number(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals))} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                            <NumericFormat value={BigNumber(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals)).multipliedBy(selectedLpTokenInfo.poolShare).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                                         </div>
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <div className="h-7 w-7 bg-white rounded-full font-bold flex flex-row items-center justify-center text-black">
