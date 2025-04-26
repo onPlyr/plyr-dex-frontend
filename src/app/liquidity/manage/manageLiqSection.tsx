@@ -22,7 +22,7 @@ import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
 import { BigNumber } from 'bignumber.js';
-import { CirclePlus } from 'lucide-react';
+import { ArrowLeftRight, CirclePlus, SquarePlus } from 'lucide-react';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -249,7 +249,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                     !isLoading && myLpTokens.length === 0 && activeAccount && activeWallet && activeChain?.id === CHAIN_ID && <div className="w-full flex md:flex-row flex-col gap-2 max-w-3xl mx-auto">
                         <Card className="w-full bg-[#ffffff0d] h-80 rounded-[12px] border-none p-6 flex flex-col items-center justify-center">
                             <div className="text-white text-center text-2xl font-black leading-none">NO LIQUIDITY POSITIONS</div>
-                            <Link href={`/liquidity/add/`} className="relative w-fit px-6 py-2 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                            <Link href={`/liquidity/add/`} className="relative w-fit gap-2 px-6 py-3 pl-12 mx-auto rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                                <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
                                 ADD LIQUIDITY
                             </Link>
                         </Card>
@@ -261,7 +262,10 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                             <div className="text-white flex flex-col gap-2 items-center justify-center text-center text-2xl font-black leading-none">{activeChain?.id !== CHAIN_ID && activeAccount ? <>
 
                                 PLEASE SWITCH TO PLYR NETWORK
-                                <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2 relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" onClick={() => switchChain(CHAIN)}>SWITCH TO PLYR NETWORK</Button>
+                                <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2 !pl-12 sm:!pl-4 relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300" onClick={() => switchChain(CHAIN)}>
+                                <ArrowLeftRight className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
+                                    SWITCH TO PLYR NETWORK
+                                </Button>
 
                             </> : 'PLEASE CONNECT YOUR WALLET'}</div>
                         </Card>
@@ -345,8 +349,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                             {/* Add more liquidity */}
                             {
                                 selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0.symbol}&currencyB=${selectedLpTokenInfo.token1.symbol}`}>
-                                    <Button className="relative text-xs sm:text-sm flex flex-row items-center justify-center gap-2 w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
-                                        <CirclePlus className='!w-6 !h-6' style={{strokeWidth: 1.5}}/>
+                                    <Button className="relative text-xs sm:text-sm flex flex-row items-center justify-center gap-2 w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300 !pl-12 sm:!pl-4 ">
+                                        <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
                                         <div>
                                             ADD MORE <span className="font-bold border-b-1 border-white border-dashed">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY
                                         </div>

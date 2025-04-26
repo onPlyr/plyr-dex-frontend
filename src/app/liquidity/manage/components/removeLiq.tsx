@@ -9,7 +9,7 @@ import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/re
 
 import { client, tauChain, phiChain } from '@/src/lib/thirdweb_client';
 
-import { AlertCircle, CircleX } from 'lucide-react'
+import { AlertCircle, CircleX, SquareMinus } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/src/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
@@ -319,8 +319,8 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                         </div>
 
 
-                        <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity || sliderValue[0] === 0} className="relative w-full text-xs sm:text-sm flex flex-row items-center justify-center rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
-                            <CircleX className='!w-6 !h-6' style={{ strokeWidth: 1.5 }} />
+                        <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity || sliderValue[0] === 0} className="relative w-full text-xs sm:text-sm flex flex-row items-center justify-center rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300 !pl-12 sm:!pl-4">
+                        <SquareMinus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
                             REMOVE LIQUIDITY
                         </Button>
                     </div>
