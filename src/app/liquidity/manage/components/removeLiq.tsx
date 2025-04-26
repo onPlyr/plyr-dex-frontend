@@ -320,7 +320,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
 
                         <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity || sliderValue[0] === 0} className="relative w-full text-xs sm:text-sm flex flex-row items-center justify-center rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300 !pl-12 sm:!pl-4">
-                        <SquareMinus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
+                        <SquareMinus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-red-500" />
                             REMOVE LIQUIDITY
                         </Button>
                     </div>
