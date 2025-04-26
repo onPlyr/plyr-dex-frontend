@@ -230,7 +230,21 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         try {
             const inputAmount = new TokenAmount(input === 0 ? Token0 : Token1, ethers.utils.parseUnits(value, input === 0 ? token0.decimals : token1.decimals).toString());
             const price = pair.priceOf(input === 0 ? Token0 : Token1);
-            const outputAmount = inputAmount.multiply(price);
+            
+            // Calculate output amount considering decimals
+            const inputToken = input === 0 ? Token0 : Token1;
+            const outputToken = input === 0 ? Token1 : Token0;
+            
+            // Get reserves from the pair
+            const pairReserve0 = pair.reserve0;
+            const pairReserve1 = pair.reserve1;
+            
+            // Determine which reserve corresponds to input and output tokens
+            const inputReserve = inputToken.equals(pairReserve0.token) ? pairReserve0 : pairReserve1;
+            const outputReserve = inputToken.equals(pairReserve0.token) ? pairReserve1 : pairReserve0;
+            
+            // Calculate output amount using the constant product formula
+            const outputAmount = inputAmount.multiply(outputReserve).divide(inputReserve.add(inputAmount));
 
             const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(token0.decimals);
             const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(token1.decimals);

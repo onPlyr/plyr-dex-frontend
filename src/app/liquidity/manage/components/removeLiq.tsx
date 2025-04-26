@@ -9,7 +9,7 @@ import { useActiveAccount, useActiveWallet, useWalletBalance } from 'thirdweb/re
 
 import { client, tauChain, phiChain } from '@/src/lib/thirdweb_client';
 
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CircleX } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/src/components/ui/alert"
 
 import { NumericFormat } from "react-number-format";
@@ -33,7 +33,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
     const { toast } = useToast();
 
-    const [sliderValue, setSliderValue] = useState([50])
+    const [sliderValue, setSliderValue] = useState([0])
 
     const [isLoading, setIsLoading] = useState(false)
     const [isRemovingLiquidity, setIsRemovingLiquidity] = useState(false)
@@ -284,7 +284,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                                         value={Number(toTokens(mySelectedLpToken.lpTokens, 18))}
                                         displayType={"text"}
                                         thousandSeparator={true}
-                                        decimalScale={4}
+                                        decimalScale={8}
                                         suffix={' LPs'}
                                     />
                                 </div>
@@ -319,7 +319,10 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                         </div>
 
 
-                        <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity} className="relative w-full rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">REMOVE LIQUIDITY</Button>
+                        <Button onClick={handleRemoveLiquidity} disabled={isRemovingLiquidity || sliderValue[0] === 0} className="relative w-full text-xs sm:text-sm flex flex-row items-center justify-center rounded-xl font-light uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                            <CircleX className='!w-6 !h-6' style={{ strokeWidth: 1.5 }} />
+                            REMOVE LIQUIDITY
+                        </Button>
                     </div>
                 )
             }

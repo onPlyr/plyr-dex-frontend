@@ -91,11 +91,11 @@ export default function LatestTransactions({ pairAddress, tokenList }: { pairAdd
                     {transactions.map((tx) => (
                         <div key={tx.id} className="bg-[#3A3935] p-4 rounded-2xl text-white">
                             <div className="flex justify-between items-center">
-                                <span className="font-medium text-[#daff00] text-xs uppercase flex flex-row items-center gap-2">
-                                    {tx.type === 'swap' ? <SwapIcon /> : tx.type === 'add' ? <PaintBucket style={{strokeWidth: 1.5}} /> : <CircleX style={{strokeWidth: 1.5}}/>}
+                                <span className="font-medium text-[#daff00] text-[9px] uppercase flex flex-row items-center gap-1">
+                                    {tx.type === 'swap' ? <SwapIcon className='w-4 h-4' style={{strokeWidth: 1.5}}/> : tx.type === 'add' ? <PaintBucket className='w-4 h-4' style={{strokeWidth: 1.5}}/> : <CircleX className='w-4 h-4' style={{strokeWidth: 1.5}}/>}
                                     {tx.type === 'swap' ? 'Swap' : tx.type === 'add' ? 'Liquidity Added' : 'Liquidity Removed'}
                                 </span>
-                                <span className="text-sm text-gray-500">
+                                <span className="text-[9px] text-[#808080] text-right">
                                     {formatTimestamp(tx.timestamp)}
                                 </span>
                             </div>
