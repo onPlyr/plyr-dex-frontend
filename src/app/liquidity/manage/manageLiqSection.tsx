@@ -22,6 +22,7 @@ import RemoveLiq from './components/removeLiq';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
 import { BigNumber } from 'bignumber.js';
+import { CirclePlus } from 'lucide-react';
 
 const CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? 16180 : 62831;
 const CHAIN = process.env.NEXT_PUBLIC_NETWORK_TYPE === 'mainnet' ? phiChain : tauChain;
@@ -219,7 +220,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
         <>
             <section className="w-full flex flex-col items-center justify-center py-8 space-y-2 ">
 
-            <Card className="w-full max-w-3xl mx-auto rounded-[12px] border-none p-8" style={{ background: "url('/liquidity/my.png') no-repeat 80% center", backgroundSize: "cover" }}>
+                <Card className="w-full max-w-3xl mx-auto rounded-[12px] border-none p-8" style={{ background: "url('/liquidity/my.png') no-repeat 80% center", backgroundSize: "cover" }}>
                     <div className="flex flex-col items-start justify-center">
                         <div className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>MY LP</div>
                         <div className="text-[#daff00] text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>POSITIONS</div>
@@ -321,7 +322,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
 
                                     </div>
                                 }
-                                
+
                                 {
                                     selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
@@ -344,7 +345,12 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                             {/* Add more liquidity */}
                             {
                                 selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0.symbol}&currencyB=${selectedLpTokenInfo.token1.symbol}`}>
-                                    <Button className="relative w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">ADD MORE <span className="font-bold">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY</Button>
+                                    <Button className="relative text-xs sm:text-sm flex flex-row items-center justify-center gap-2 w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300">
+                                        <CirclePlus className='!w-6 !h-6' style={{strokeWidth: 1.5}}/>
+                                        <div>
+                                            ADD MORE <span className="font-bold border-b-1 border-white border-dashed">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY
+                                        </div>
+                                    </Button>
                                 </Link>
                             }
                         </Card>
