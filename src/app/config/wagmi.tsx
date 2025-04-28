@@ -11,7 +11,7 @@ declare module 'wagmi' {
     }
 }
 
-const appName = "Tesseract"
+const appName = "PLYR[SWAP]"
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || ""
 
 export const wagmiConfig = getDefaultConfig({
