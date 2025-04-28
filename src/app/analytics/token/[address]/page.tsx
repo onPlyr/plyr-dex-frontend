@@ -105,7 +105,13 @@ export default function TokenPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {relatedPairs.slice(pairStart, pairStart + ITEMS_PER_PAGE).map((pair: any) => (
+                                        {relatedPairs
+                                            .filter((pair: any) => 
+                                                pair.token0.symbol !== 'USDC' && 
+                                                pair.token1.symbol !== 'USDC'
+                                            )
+                                            .slice(pairStart, pairStart + ITEMS_PER_PAGE)
+                                            .map((pair: any) => (
                                             <tr key={pair.id} className="hover:border-transparent hover:bg-[#ffffff0d] transition-all duration-300 text-white">
                                                 <td className="px-4 py-4 rounded-l-2xl">
                                                     <Link href={`/analytics/pair/${pair.id}`} className="text-white flex flex-row items-center gap-2">

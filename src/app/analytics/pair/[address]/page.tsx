@@ -25,6 +25,7 @@ export default function PairPage() {
                 setTokenList(tokenList)
 
                 const data = await fetchPairData(address as string)
+                //console.log('pairData', data)
                 setPairData(data)
                 const liquidityHistory = await fetchPairLiquidityData(address as string)
                 setLiquidityData(liquidityHistory)
