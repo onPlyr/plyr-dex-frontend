@@ -278,3 +278,7 @@ body {
 {
   max-width: 100px !important;
 }
+
+.recharts-tooltip-wrapper * {
+  color: #000000 !important;
+}
