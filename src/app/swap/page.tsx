@@ -124,7 +124,7 @@ const SwapPage = () => {
             pageWidth="max-w-screen-lg w-full"
             isContainerPage={true}
         >
-            <div className="flex flex-col flex-none w-full h-screen">
+            <div className={twMerge("flex flex-col flex-none w-full h-full", showIntro ? "h-screen" : "h-full")}>
                 <div className="relative flex flex-row flex-none justify-center overflow-hidden">
                     <motion.div
                         className={twMerge("relative flex flex-col flex-1 w-full h-full", showIntro ? "" : undefined)}
