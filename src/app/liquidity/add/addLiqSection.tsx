@@ -100,6 +100,8 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             return;
         }
         handlePairData();
+        setAmount0('');
+        setAmount1('');
         // Set token colors
         const fac = new FastAverageColor();
         fac.getColorAsync(token0.logoURI)
@@ -159,8 +161,8 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         }
         finally {
             setIsLoading(false);
-            setAmount0('');
-            setAmount1('');
+           //setAmount0('');
+            //setAmount1('');
         }
     }
 
@@ -275,11 +277,17 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                 setError('Insufficient balance')
             }
 
+            if (input === 0) {
+                return newAmount1;
+            }
+            else {
+                return newAmount0;
+            }
+
         }
         catch (error: any) {
             setError('Unknown Error')
         }
-
     }
 
     const handleAddLiquidity = async (e: React.FormEvent) => {
@@ -310,24 +318,36 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
         setIsAddingLiquidity(true);
 
-        const Token0 = new Token(CHAIN_ID, token0.address, token0.decimals, token0.symbol)
-        const Token1 = new Token(CHAIN_ID, token1.address, token1.decimals, token1.symbol)
+        //const Token0 = new Token(CHAIN_ID, token0.address, token0.decimals, token0.symbol)
+        //const Token1 = new Token(CHAIN_ID, token1.address, token1.decimals, token1.symbol)
 
         // Use the SDK provider to get the reserves
-        const pairAddress = Pair.getAddress(Token0 as any, Token1 as any)
+        //const pairAddress = Pair.getAddress(Token0 as any, Token1 as any)
 
-        console.log(Token0, Token1, process.env.NEXT_PUBLIC_UNISWAP_FACTORY, process.env.NEXT_PUBLIC_UNISWAP_INIT_CODE_HASH)
+        //console.log(Token0, Token1, process.env.NEXT_PUBLIC_UNISWAP_FACTORY, process.env.NEXT_PUBLIC_UNISWAP_INIT_CODE_HASH)
 
-        console.log(pairAddress)
+        //console.log(pairAddress)
 
 
         try {
+
+            // Refresh pair data and amounts before proceeding
+            await handlePairData();
+            
+            // Recalculate amounts based on current market conditions
+            let a = amount1;
+            if (amount0 && amount1) {
+                //alert(amount0)
+                a = await handleAmountChange(0, amount0) || amount1;
+                //alert(a)
+            }
+
             const isEthPair = token0.symbol === 'PLYR' || token1.symbol === 'PLYR'
             const ethToken = token0.symbol === 'PLYR' ? token0 : token1
             const otherToken = token0.symbol === 'PLYR' ? token1 : token0
 
             const amount0Desired = BigNumber(amount0)
-            const amount1Desired = BigNumber(amount1)
+            const amount1Desired = BigNumber(a)
 
             console.log('amount0Desired', amount0Desired.toString())
             console.log('amount1Desired', amount1Desired.toString())
@@ -415,7 +435,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     title: 'Liquidity added successfully!',
                     description:
                         <>
-                            <strong>Added:</strong> {amount0} {token0.symbol} and {amount1} {token1.symbol}
+                            <strong>Added:</strong> {amount0Desired.toString()} {token0.symbol} and {amount1Desired.toString()} {token1.symbol}
                             <br />
                             <strong>TxHash:</strong> <a href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`} target="_blank">{truncatedTxHash}</a>
                         </>
