@@ -24,7 +24,7 @@ function CustomTooltip({ active, payload, label }: any) {
                     day: 'numeric',
                     year: 'numeric',
                 })}`}</p>
-                <p className="text-sm font-bold">{`${payload[0].name.includes('volume') ? 'Volume' : 'Liquidity'}: ${payload[0].value.toLocaleString(undefined, {
+                <p className="text-sm font-bold">{`${payload[0].name.includes('dailyVolumeUntracked') ? 'Volume' : 'Liquidity'}: ${payload[0].value.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 })} ${payload[0].name.includes('USD') ? 'USD' : 'USD'}`}</p>
@@ -88,6 +88,8 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
 
 export default function GlobalCharts({ data }: { data: ChartData[] }) {
     const [chartData, setChartData] = useState<any[]>([])
+
+    console.log('chartData', chartData)
 
     useEffect(() => {
         const formattedData = data.map(item => ({
