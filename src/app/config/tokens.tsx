@@ -560,80 +560,80 @@ const baseTokens: BaseToken[] = [
         ],
     },
     
-    {
-        id: "usdc",
-        priceId: "usdc.avax",
-        symbol: "USDC",
-        name: "Native USDC",
-        decimals: 6,
-        icon: "usdc.svg",
-        chains: {
-            [avalanche.id]: {
-                address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
-                apiData: {
-                    [ApiProvider.Dexalot]: {
-                        id: "USDC",
-                    },
-                },
-            },
-            [avalancheFuji.id]: {
-                address: "0x5425890298aed601595a70AB815c96711a31Bc65",
-            },
-            [coqnet.id]: {
-                displayName: "USDC",
-                address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
-            },
-            [plyrPhi.id]: {
-                displayName: "USDC",
-                address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
-            },
-            [teschain.id]: {
-                displayName: "USDC",
-                address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
-            },
-        },
-        bridges: [
-            {
-                home: {
-                    chainId: avalanche.id,
-                    address: "0x97bBA61F61f2b0eEF60428947b990457f8eCb3a3",
-                    type: BridgeType.Erc20Home,
-                },
-                remote: {
-                    chainId: coqnet.id,
-                    address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
-                    type: BridgeType.Erc20Remote,
-                },
-                provider: BridgeProvider.ICTT,
-            },
-            {
-                home: {
-                    chainId: avalancheFuji.id,
-                    address: "0x00ba05e110e333243bb0e68b64f28166059ff7ce",
-                    type: BridgeType.Erc20Home,
-                },
-                remote: {
-                    chainId: teschain.id,
-                    address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
-                    type: BridgeType.Erc20Remote,
-                },
-                provider: BridgeProvider.ICTT,
-            },
-            {
-                home: {
-                    chainId: avalanche.id,
-                    address: "0x3EC673E78355bF2470b6d6DAE2555E2Beb74C5A8",
-                    type: BridgeType.Erc20Home,
-                },
-                remote: {
-                    chainId: plyrPhi.id,
-                    address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
-                    type: BridgeType.Erc20Remote,
-                },
-                provider: BridgeProvider.ICTT,
-            },
-        ],
-    },
+    // {
+    //     id: "usdc",
+    //     priceId: "usdc.avax",
+    //     symbol: "USDC",
+    //     name: "Native USDC",
+    //     decimals: 6,
+    //     icon: "usdc.svg",
+    //     chains: {
+    //         [avalanche.id]: {
+    //             address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+    //             apiData: {
+    //                 [ApiProvider.Dexalot]: {
+    //                     id: "USDC",
+    //                 },
+    //             },
+    //         },
+    //         [avalancheFuji.id]: {
+    //             address: "0x5425890298aed601595a70AB815c96711a31Bc65",
+    //         },
+    //         [coqnet.id]: {
+    //             displayName: "USDC",
+    //             address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
+    //         },
+    //         [plyrPhi.id]: {
+    //             displayName: "USDC",
+    //             address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
+    //         },
+    //         [teschain.id]: {
+    //             displayName: "USDC",
+    //             address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
+    //         },
+    //     },
+    //     bridges: [
+    //         {
+    //             home: {
+    //                 chainId: avalanche.id,
+    //                 address: "0x97bBA61F61f2b0eEF60428947b990457f8eCb3a3",
+    //                 type: BridgeType.Erc20Home,
+    //             },
+    //             remote: {
+    //                 chainId: coqnet.id,
+    //                 address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
+    //                 type: BridgeType.Erc20Remote,
+    //             },
+    //             provider: BridgeProvider.ICTT,
+    //         },
+    //         {
+    //             home: {
+    //                 chainId: avalancheFuji.id,
+    //                 address: "0x00ba05e110e333243bb0e68b64f28166059ff7ce",
+    //                 type: BridgeType.Erc20Home,
+    //             },
+    //             remote: {
+    //                 chainId: teschain.id,
+    //                 address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
+    //                 type: BridgeType.Erc20Remote,
+    //             },
+    //             provider: BridgeProvider.ICTT,
+    //         },
+    //         {
+    //             home: {
+    //                 chainId: avalanche.id,
+    //                 address: "0x3EC673E78355bF2470b6d6DAE2555E2Beb74C5A8",
+    //                 type: BridgeType.Erc20Home,
+    //             },
+    //             remote: {
+    //                 chainId: plyrPhi.id,
+    //                 address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
+    //                 type: BridgeType.Erc20Remote,
+    //             },
+    //             provider: BridgeProvider.ICTT,
+    //         },
+    //     ],
+    // },
     
     // {
     //     id: "wink",
