@@ -267,7 +267,7 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
                                         }
                                     }}
                                     suffix="%"
-                                    disabled={mySelectedLpToken.token0.symbol === mySelectedLpToken.token1.symbol || isLoading}
+                                    disabled={mySelectedLpToken.token0?.symbol === mySelectedLpToken.token1?.symbol || isLoading}
                                     placeholder="0"
                                     className={`text-white w-full h-10 font-bold bg-transparent text-3xl rounded-none border-[#9B9A98] border-b border-t-0 border-r-0 border-l-0 !ring-offset-0 focus:!ring-offset-0 focus-visible:!ring-0 focus-visible:!outline-none px-0 !outline-none !ring-0 placeholder:text-[#9B9A98]`}
                                     allowNegative={false}
@@ -309,12 +309,12 @@ export default function removeLiqSection({ mySelectedLpToken, getMyLpToken }: { 
 
                         <div className="flex flex-col justify-between gap-2 mt-2">
                             <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start overflow-hidden">
-                                <Image src={mySelectedLpToken.token0.logoURI} alt={mySelectedLpToken.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[0], mySelectedLpToken.token0.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={3} className="text-white text-lg font-bold" />
+                                <Image src={mySelectedLpToken.token0?.logoURI} alt={mySelectedLpToken.token0?.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[0], mySelectedLpToken.token0?.decimals ?? (mySelectedLpToken.token0Address === "0x63F551298862f306B689724519D95eDA3dCDE5b8" ? 6 : 18))).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={3} className="text-white text-lg font-bold" />
                             </div>
                             <div className="bg-black w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start overflow-hidden">
-                                <Image src={mySelectedLpToken.token1.logoURI} alt={mySelectedLpToken.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[1], mySelectedLpToken.token1.decimals)).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={3} className="text-white text-lg font-bold" />
+                                <Image src={mySelectedLpToken.token1?.logoURI} alt={mySelectedLpToken.token1?.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                <NumericFormat value={BigNumber(toTokens(mySelectedLpToken.reserves[1], mySelectedLpToken.token1?.decimals ?? (mySelectedLpToken.token1Address === "0x63F551298862f306B689724519D95eDA3dCDE5b8" ? 6 : 18))).multipliedBy(mySelectedLpToken.poolShare).multipliedBy(sliderValue[0]).dividedBy(100).toString()} displayType={"text"} thousandSeparator={true} decimalScale={3} className="text-white text-lg font-bold" />
                             </div>
                         </div>
 
