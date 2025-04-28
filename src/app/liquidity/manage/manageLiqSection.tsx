@@ -155,9 +155,27 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
             const poolShare = Number(toTokens(lpTokens, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)) / Number((toTokens(lpSupply, tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase())?.decimals ?? 0)));
 
             // @ts-ignore
-            const token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
+            let token0Info = token0.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token0.toLowerCase());
             // @ts-ignore
-            const token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
+            let token1Info = token1.toLowerCase() === process.env.NEXT_PUBLIC_UNISWAP_WPLYR?.toLowerCase() ? tokenList.find(t => t.symbol === 'PLYR') : tokenList.find(t => t.address.toLowerCase() === token1.toLowerCase());
+
+            if (token0 === "0x63F551298862f306B689724519D95eDA3dCDE5b8") {
+                token0Info = {
+                    address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
+                    symbol: "USDC",
+                    logoURI: "https://tokenlist.onplyr.com/token_icons/16180/USDC.png",
+                    decimals: 6,
+                }
+            }
+
+            if (token1 === "0x63F551298862f306B689724519D95eDA3dCDE5b8") {
+                token1Info = {
+                    address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
+                    symbol: "USDC",
+                    logoURI: "https://tokenlist.onplyr.com/token_icons/16180/USDC.png",
+                    decimals: 6,
+                }
+            }
 
             return {
                 pairAddress: pairAddress,
