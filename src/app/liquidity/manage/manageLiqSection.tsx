@@ -164,6 +164,8 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                 lpTokens: lpTokens,
                 poolShare: poolShare,
                 reserves: reserves,
+                token0Address: token0,
+                token1Address: token1,
                 token0: token0Info,
                 token1: token1Info,
                 lpSupply: lpSupply,
@@ -287,10 +289,10 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                                         <SelectItem key={token.pairAddress} value={token.pairAddress}>
                                             <div className="flex flex-row gap-2 items-center font-bold">
                                                 <div className="flex flex-row gap-2 items-center">
-                                                    <Image src={token.token0.logoURI} alt={token.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                                    <Image src={token.token1.logoURI} alt={token.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7 relative ml-[-10px]" />
+                                                    <Image src={token.token0?.logoURI} alt={token.token0?.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                                    <Image src={token.token1?.logoURI} alt={token.token1?.symbol} width={28} height={28} className="rounded-full w-7 h-7 relative ml-[-10px]" />
                                                 </div>
-                                                {token.token0.symbol}+{token.token1.symbol}
+                                                {token.token0?.symbol}+{token.token1?.symbol}
                                             </div>
                                         </SelectItem>
                                     ))}
@@ -330,12 +332,12 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                                 {
                                     selectedLpTokenInfo && <div className="flex flex-1 flex-col items-center justify-center gap-1">
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
-                                            <Image src={selectedLpTokenInfo.token0.logoURI} alt={selectedLpTokenInfo.token0.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                            <NumericFormat value={BigNumber(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0.decimals)).multipliedBy(selectedLpTokenInfo.poolShare).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                            <Image src={selectedLpTokenInfo.token0?.logoURI} alt={selectedLpTokenInfo.token0?.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                            <NumericFormat value={BigNumber(toTokens(selectedLpTokenInfo.reserves[0], selectedLpTokenInfo.token0?.decimals ?? (selectedLpTokenInfo.token0Address === "0x63F551298862f306B689724519D95eDA3dCDE5b8" ? 6 : 18))).multipliedBy(selectedLpTokenInfo.poolShare).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                                         </div>
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
-                                            <Image src={selectedLpTokenInfo.token1.logoURI} alt={selectedLpTokenInfo.token1.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
-                                            <NumericFormat value={BigNumber(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1.decimals)).multipliedBy(selectedLpTokenInfo.poolShare).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
+                                            <Image src={selectedLpTokenInfo.token1?.logoURI} alt={selectedLpTokenInfo.token1?.symbol} width={28} height={28} className="rounded-full w-7 h-7" />
+                                            <NumericFormat value={BigNumber(toTokens(selectedLpTokenInfo.reserves[1], selectedLpTokenInfo.token1?.decimals ?? (selectedLpTokenInfo.token1Address === "0x63F551298862f306B689724519D95eDA3dCDE5b8" ? 6 : 18))).multipliedBy(selectedLpTokenInfo.poolShare).toString()} displayType={"text"} thousandSeparator={true} decimalScale={4} className="text-white text-lg font-bold" />
                                         </div>
                                         <div className="bg-[#1e1d1b] w-full rounded-[12px] p-2 gap-2 flex flex-row items-center justify-start">
                                             <div className="h-7 w-7 bg-white rounded-full font-bold flex flex-row items-center justify-center text-black">
@@ -348,11 +350,11 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                             </div>
                             {/* Add more liquidity */}
                             {
-                                selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0.symbol}&currencyB=${selectedLpTokenInfo.token1.symbol}`}>
+                                selectedLpTokenInfo && <Link href={`/liquidity/add/?currencyA=${selectedLpTokenInfo.token0?.symbol}&currencyB=${selectedLpTokenInfo.token1?.symbol}`}>
                                     <Button className="relative text-xs sm:text-sm flex flex-row items-center justify-center gap-2 w-full rounded-xl font-light mt-6 uppercase text-white bg-black hover:bg-black shadow-grow-gray hover:scale-105 transition-transform duration-300 !pl-12 sm:!pl-4 ">
                                         <SquarePlus className="min-w-8 min-h-8 absolute left-2 top-1/2 transform -translate-y-1/2 text-[#daff00]" />
                                         <div>
-                                            ADD MORE <span className="font-bold border-b-1 border-white border-dashed">{selectedLpTokenInfo.token0.symbol}+{selectedLpTokenInfo.token1.symbol}</span> LIQUIDITY
+                                            ADD MORE <span className="font-bold border-b-1 border-white border-dashed">{selectedLpTokenInfo.token0?.symbol}+{selectedLpTokenInfo.token1?.symbol}</span> LIQUIDITY
                                         </div>
                                     </Button>
                                 </Link>
