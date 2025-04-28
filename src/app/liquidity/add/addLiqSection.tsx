@@ -185,13 +185,10 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
     }, [token0, token1]) // allPairs
 
     const handleAmountChange = async (input: number, value: string) => {
-
         if (!activeAccount || !activeWallet) {
             setError('Please connect your wallet')
             return;
         }
-
-
 
         if (value[value.length - 1] !== '.') {
             if (value === '' || Number(value) <= 0) {
@@ -207,8 +204,6 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         }
 
         setError('')
-
-        //alert(value)
 
         if (!token0.address || !token1.address) {
             return;
@@ -228,28 +223,46 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             ? new Token(CHAIN_ID, process.env.NEXT_PUBLIC_UNISWAP_WPLYR || '', 18, 'WPLYR')
             : new Token(CHAIN_ID, token1.address, token1.decimals, token1.symbol);
 
-
         try {
             const inputAmount = new TokenAmount(input === 0 ? Token0 : Token1, ethers.utils.parseUnits(value, input === 0 ? token0.decimals : token1.decimals).toString());
+            
+            // Get current reserves and price
+            const reserve0 = pair.reserve0;
+            const reserve1 = pair.reserve1;
             const price = pair.priceOf(input === 0 ? Token0 : Token1);
             
-            // Calculate output amount considering decimals
-            const inputToken = input === 0 ? Token0 : Token1;
-            const outputToken = input === 0 ? Token1 : Token0;
+            // Calculate the optimal output amount based on current price
+            const optimalOutputAmount = new TokenAmount(
+                input === 0 ? Token1 : Token0,
+                ethers.utils.parseUnits(
+                    (Number(value) * Number(price.toSignificant(18))).toFixed(18),
+                    input === 0 ? token1.decimals : token0.decimals
+                ).toString()
+            );
             
-            // Get reserves from the pair
-            const pairReserve0 = pair.reserve0;
-            const pairReserve1 = pair.reserve1;
-            
-            // Determine which reserve corresponds to input and output tokens
-            const inputReserve = inputToken.equals(pairReserve0.token) ? pairReserve0 : pairReserve1;
-            const outputReserve = inputToken.equals(pairReserve0.token) ? pairReserve1 : pairReserve0;
-            
-            // Calculate output amount using the constant product formula
-            const outputAmount = inputAmount.multiply(outputReserve).divide(inputReserve.add(inputAmount));
+            // Calculate the maximum allowed deviation (0.5% slippage)
+            const slippageTolerance = 0.005;
+            const maxDeviation = new TokenAmount(
+                input === 0 ? Token1 : Token0,
+                ethers.utils.parseUnits(
+                    (Number(optimalOutputAmount.toExact()) * (1 + slippageTolerance)).toFixed(18),
+                    input === 0 ? token1.decimals : token0.decimals
+                ).toString()
+            );
 
-            const newAmount0 = input === 0 ? inputAmount.toExact() : outputAmount.toSignificant(token0.decimals);
-            const newAmount1 = input === 1 ? inputAmount.toExact() : outputAmount.toSignificant(token1.decimals);
+            console.log('maxDeviation', maxDeviation.toExact())
+            console.log('optimalOutputAmount', optimalOutputAmount.toExact())
+            
+            // Calculate actual price impact
+            const priceImpact = Number(maxDeviation.toExact()) / Number(optimalOutputAmount.toExact()) - 1;
+            //console.log('priceImpact', priceImpact)
+            if (Math.abs(priceImpact) > slippageTolerance) {
+                setError('Price impact too high. Try a smaller amount.');
+                return;
+            }
+
+            const newAmount0 = input === 0 ? inputAmount.toExact() : maxDeviation.toSignificant(token0.decimals);
+            const newAmount1 = input === 1 ? inputAmount.toExact() : maxDeviation.toSignificant(token1.decimals);
 
             if (input === 0) {
                 setAmount1(newAmount1);
@@ -258,35 +271,37 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                 setAmount0(newAmount0);
             }
 
-
-            /// Calculate share of pool in percent
-            const reserve0 = pair.reserve0;
-            const reserve1 = pair.reserve1;
-
-            const newReserve = inputAmount.token.symbol === reserve0.token.symbol ? reserve0.add(inputAmount) : reserve1.add(inputAmount);
-
-            let sharePercent = inputAmount.divide(newReserve).multiply(BigInt(100)).toSignificant(4);
+            // Calculate share of pool in percent
+            const inputValue = Number(inputAmount.toExact());
+            const outputValue = Number(maxDeviation.toExact());
+            const reserve0Value = Number(reserve0.toExact());
+            const reserve1Value = Number(reserve1.toExact());
+            
+            const sharePercent = Math.min(
+                (inputValue / (reserve0Value + inputValue)) * 100,
+                (outputValue / (reserve1Value + outputValue)) * 100
+            );
 
             setPoolShareInfo((prevInfo: any) => ({
                 ...prevInfo,
-                sharePercent: Number(sharePercent),
+                sharePercent: sharePercent,
             }));
-
 
             if (Number(newAmount0) > Number(myBalance0?.displayValue || 0) || Number(newAmount1) > Number(myBalance1?.displayValue || 0)) {
                 setError('Insufficient balance')
             }
 
-            if (input === 0) {
-                return newAmount1;
-            }
-            else {
-                return newAmount0;
-            }
+            // if (input === 0) {
+            //     return newAmount1;
+            // }
+            // else {
+            //     return newAmount0;
+            // }
 
         }
         catch (error: any) {
-            setError('Unknown Error')
+            console.error('Error in handleAmountChange:', error);
+            setError('Error calculating amounts')
         }
     }
 
@@ -331,23 +346,23 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
         try {
 
-            // Refresh pair data and amounts before proceeding
-            await handlePairData();
+            // // Refresh pair data and amounts before proceeding
+            // await handlePairData();
             
-            // Recalculate amounts based on current market conditions
-            let a = amount1;
-            if (amount0 && amount1) {
-                //alert(amount0)
-                a = await handleAmountChange(0, amount0) || amount1;
-                //alert(a)
-            }
+            // // Recalculate amounts based on current market conditions
+            // let a = amount1;
+            // if (amount0 && amount1) {
+            //     //alert(amount0)
+            //     a = await handleAmountChange(0, amount0) || amount1;
+            //     //alert(a)
+            // }
 
             const isEthPair = token0.symbol === 'PLYR' || token1.symbol === 'PLYR'
             const ethToken = token0.symbol === 'PLYR' ? token0 : token1
             const otherToken = token0.symbol === 'PLYR' ? token1 : token0
 
             const amount0Desired = BigNumber(amount0)
-            const amount1Desired = BigNumber(a)
+            const amount1Desired = BigNumber(amount1)
 
             console.log('amount0Desired', amount0Desired.toString())
             console.log('amount1Desired', amount1Desired.toString())
