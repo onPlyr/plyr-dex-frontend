@@ -246,6 +246,7 @@ const SwapPage = () => {
                                                 width: "100%",
                                                 margin: "0 auto",
                                             }}
+                                            className="animate-float-up-down-slow"
                                         />
                                         <Image
                                             src={BoldySwap}
@@ -260,6 +261,7 @@ const SwapPage = () => {
                                             quality={100}
                                             fill={true}
                                             priority={true}
+                                            className="animate-float-up-down"
                                         />
                                     </div>
                                 </div>

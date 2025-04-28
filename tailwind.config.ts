@@ -205,11 +205,29 @@ const config: Config = {
                         "opacity": "0",
                     },
                 },
+                "float-up-down": {
+                    "0%, 100%": {
+                        "transform": "translateY(0)",
+                    },
+                    "50%": {
+                        "transform": "translateY(-20px)",
+                    },
+                },
+                "float-up-down-slow": {
+                    "0%, 100%": {
+                        "transform": "translateY(0)",
+                    },
+                    "50%": {
+                        "transform": "translateY(-10px)",
+                    },
+                },
             },
             animation: {
                 "bg-wave": "bg-wave 10s ease infinite",
                 "rotate": "5s rotate linear infinite",
                 "float-up": "float-up 5s ease-in-out infinite",
+                "float-up-down": "float-up-down 3s ease-in-out infinite",
+                "float-up-down-slow": "float-up-down-slow 3s ease-in-out infinite",
                 // "gradient-btn": "gradient-btn 2s ease-in-out",
             },
             colors: {
