@@ -254,12 +254,12 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
             console.log('optimalOutputAmount', optimalOutputAmount.toExact())
             
             // Calculate actual price impact
-            const priceImpact = Number(maxDeviation.toExact()) / Number(optimalOutputAmount.toExact()) - 1;
-            //console.log('priceImpact', priceImpact)
-            if (Math.abs(priceImpact) > slippageTolerance) {
-                setError('Price impact too high. Try a smaller amount.');
-                return;
-            }
+            // const priceImpact = Number(maxDeviation.toExact()) / Number(optimalOutputAmount.toExact()) - 1;
+            // //console.log('priceImpact', priceImpact)
+            // if (Math.abs(priceImpact) > slippageTolerance) {
+            //     setError('Price impact too high. Try a smaller amount.');
+            //     return;
+            // }
 
             const newAmount0 = input === 0 ? inputAmount.toExact() : maxDeviation.toSignificant(token0.decimals);
             const newAmount1 = input === 1 ? inputAmount.toExact() : maxDeviation.toSignificant(token1.decimals);
