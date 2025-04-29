@@ -56,7 +56,7 @@ export default function TokenPage() {
         <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
             <div className="container mx-auto px-0 py-8 space-y-8">
                 <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
-                    <CardHeader>
+                    <CardHeader className="px-5 md:px-8">
                         <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Price History</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
@@ -65,7 +65,7 @@ export default function TokenPage() {
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
-                        <CardHeader>
+                        <CardHeader className="px-5 md:px-8">
                             <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-bold-finger)' }}>
                                 <img src={tokenList.find(t => t.address.toLowerCase() === tokenData.id.toLowerCase())?.logoURI} alt={tokenData.symbol} width={28} height={28} className="rounded-full md:w-10 md:h-10 w-8 h-8" />
                                 {tokenData.symbol === 'WPLYR' ? 'PLYR' : tokenData.symbol}
@@ -92,7 +92,7 @@ export default function TokenPage() {
                     </Card>
 
                     <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
-                        <CardHeader>
+                        <CardHeader className="px-5 md:px-8">
                             <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Related Pairs</CardTitle>
                         </CardHeader>
                         <CardContent className="px-4 md:px-6">

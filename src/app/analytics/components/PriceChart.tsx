@@ -50,22 +50,20 @@ export default function PriceChart({ data, tokenSymbol }: PriceChartProps) {
 
         <div className="h-[300px] my-auto">
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <LineChart data={chartData} margin={{ top: 0, right: 0, left: -15, bottom: -15 }}>
                     <XAxis
                         dataKey="date"
                         tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                         })}
-                        tick={{ fill: '#fff' }}
                         angle={-45}
                         textAnchor="end"
-                        style={{ fontSize: '11px' }}
+                        style={{ fontSize: '10px' }}
                         height={70}
                     />
                     <YAxis
-                        style={{ fontSize: '11px' }}
-                        tick={{ fill: '#fff' }}
+                        style={{ fontSize: '10px' }}
                         tickFormatter={(value) => `$${value.toFixed(4)}`}
                     />
                     <ChartTooltip content={<CustomTooltip />} />

@@ -64,7 +64,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                         <CardHeader className="px-0 md:px-4 py-2">
                             <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Overall Statistics</CardTitle>
                         </CardHeader>
-                        <CardContent className="px-0 md:px-4 py-2">
+                        <CardContent className="px-0 md:px-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
                                     <h3 className="text-lg font-medium md:mb-2">Total Volume (USD)</h3>
@@ -89,7 +89,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
 
                 {topPairsTokens?.topPairs && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
-                        <CardHeader className="px-0 md:px-4 py-2">
+                        <CardHeader className="px-0 md:px-4 py-4">
                             <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Pairs</CardTitle>
                         </CardHeader>
                         <CardContent className="px-0 md:px-4 py-2">
@@ -131,7 +131,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
 
                 {topPairsTokens?.topTokens && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
-                        <CardHeader className="px-0 md:px-4 py-2">
+                        <CardHeader className="px-0 md:px-4 py-4">
                             <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Tokens</CardTitle>
                         </CardHeader>
                         <CardContent className="px-0 md:px-4 py-2">

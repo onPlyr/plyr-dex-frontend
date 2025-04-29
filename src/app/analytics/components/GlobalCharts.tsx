@@ -37,28 +37,28 @@ function CustomTooltip({ active, payload, label }: any) {
 function ChartCard({ title, data, dataKey, color }: { title: string, data: any[], dataKey: string, color: string }) {
     return (
         <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
-            <CardHeader>
+            <CardHeader className="px-0 md:px-4 py-2">
                 <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>{title}</CardTitle>
             </CardHeader>
-            <CardContent className="px-0 py-2">
-                <div className="h-[300px]">
+            <CardContent className="px-0 py-4">
+                <div className="h-[300px] mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={data.map(entry => ({...entry, [dataKey]: entry[dataKey]}))} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <LineChart data={data.map(entry => ({...entry, [dataKey]: entry[dataKey]}))} margin={{ top: 0, right: 0, left: -10, bottom: -15 }}>
                             <XAxis
                                 dataKey="date"
                                 tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
                                 })}
-                                tick={{ fill: '#fff' }}
+                            
                                 angle={-45}
                                 textAnchor="end"
-                                style={{ fontSize: '11px' }}
+                                style={{ fontSize: '10px' }}
                                 height={70}
                             />
                             <YAxis
-                                style={{ fontSize: '11px' }}
-                                tick={{ fill: '#fff' }}
+                                style={{ fontSize: '10px' }}
+
                                 tickFormatter={(value) => {
                                     const units = ['', 'K', 'M', 'B'];
                                     let unitIndex = 0;
@@ -89,7 +89,7 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
 export default function GlobalCharts({ data }: { data: ChartData[] }) {
     const [chartData, setChartData] = useState<any[]>([])
 
-    console.log('chartData', chartData)
+    //console.log('chartData', chartData)
 
     useEffect(() => {
         const formattedData = data.map(item => ({
