@@ -45,7 +45,7 @@ export default function PairPage() {
 
     return (
         <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
-            <div className="container mx-auto px-0 py-8 space-y-8">
+            <div className="w-full  mx-auto px-0 py-8 space-y-8">
                 <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                     <CardHeader className="px-5 md:px-8">
                         <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Liquidity History</CardTitle>
