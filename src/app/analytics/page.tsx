@@ -20,7 +20,7 @@ export default async function Main() {
   return (
     <>
       <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
-        <main className="w-full mx-auto px-0 py-8">
+        <main className="w-full max-w-[1536px] mx-auto px-0 py-8">
           <div className="mb-8">
             <Suspense fallback={<Loader2 className="w-24 h-24 animate-spin text-[#daff00]" />}>
               <GlobalCharts data={chartData} />
