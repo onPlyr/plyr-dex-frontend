@@ -38,9 +38,9 @@ function ChartCard({ title, data, dataKey, color }: { title: string, data: any[]
     return (
         <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
             <CardHeader>
-                <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>{title}</CardTitle>
+                <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>{title}</CardTitle>
             </CardHeader>
-            <CardContent className="px-2 py-2">
+            <CardContent className="px-0 py-2">
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={data.map(entry => ({...entry, [dataKey]: entry[dataKey]}))} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>

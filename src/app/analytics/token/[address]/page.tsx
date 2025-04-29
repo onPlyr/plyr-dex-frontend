@@ -54,36 +54,36 @@ export default function TokenPage() {
 
     return (
         <div className="flex w-full px-6 flex-col items-center justify-center pt-[6.5rem] pb-24 lg:pb-12">
-            <div className="container mx-auto px-4 py-8 space-y-8">
+            <div className="container mx-auto px-0 py-8 space-y-8">
                 <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                     <CardHeader>
-                        <CardTitle className="text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Price History</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Price History</CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-8">
+                    <CardContent className="pt-4">
                         <PriceChart data={priceData} tokenSymbol={tokenData.symbol} />
                     </CardContent>
                 </Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                         <CardHeader>
-                            <CardTitle className="text-5xl text-white font-thin leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-bold-finger)' }}>
-                                <img src={tokenList.find(t => t.address.toLowerCase() === tokenData.id.toLowerCase())?.logoURI} alt={tokenData.symbol} width={28} height={28} className="rounded-full w-10 h-10" />
+                            <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none flex flex-row items-center gap-2" style={{ fontFamily: 'var(--font-bold-finger)' }}>
+                                <img src={tokenList.find(t => t.address.toLowerCase() === tokenData.id.toLowerCase())?.logoURI} alt={tokenData.symbol} width={28} height={28} className="rounded-full md:w-10 md:h-10 w-8 h-8" />
                                 {tokenData.symbol === 'WPLYR' ? 'PLYR' : tokenData.symbol}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-4 md:px-6">
                             <div className="grid grid-cols-1 gap-4">
                                 <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
-                                    <h3 className="text-lg font-medium mb-2">Price (PLYR)</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Price (PLYR)</h3>
                                     <p className="text-2xl font-bold">{parseFloat(tokenData.derivedETH).toLocaleString(undefined, { maximumFractionDigits: 4 })} PLYR</p>
                                     <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.derivedETH) * ethPrice).toLocaleString(undefined, { maximumFractionDigits: 4 })} USD</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
-                                    <h3 className="text-lg font-medium mb-2">Trade Volume (USD)</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Trade Volume (USD)</h3>
                                     <p className="text-2xl font-bold">${parseFloat(tokenData.untrackedVolumeUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-[12px] text-white">
-                                    <h3 className="text-lg font-medium mb-2">Total Liquidity</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Total Liquidity</h3>
                                     <p className="text-2xl font-bold">{parseFloat(tokenData.totalLiquidity).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                                     <p className="text-sm text-gray-500">≈ ${(parseFloat(tokenData.totalLiquidity) * tokenData.derivedETH * ethPrice).toFixed(2)} USD</p>
                                 </div>
@@ -93,15 +93,15 @@ export default function TokenPage() {
 
                     <Card className="bg-[#ffffff0d] border-none rounded-[12px]">
                         <CardHeader>
-                            <CardTitle className="text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Related Pairs</CardTitle>
+                            <CardTitle className="text-xl md:text-2xl lg:text-5xl text-white font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Related Pairs</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-4 md:px-6">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full">
                                     <thead>
                                         <tr className="bg-[#3A393580] text-white">
                                             <th className="px-4 py-4 text-left rounded-l-2xl">Pair</th>
-                                            <th className="px-4 py-4 text-right rounded-r-2xl">Liquidity (USD)</th>
+                                            <th className="px-4 py-4 text-right rounded-r-2xl whitespace-nowrap">Liquidity (USD)</th>
                                         </tr>
                                     </thead>
                                     <tbody>

@@ -245,7 +245,7 @@ export default function manageLiqSection({ tokenList }: { tokenList: any[] }) {
                         <div className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>MY LP</div>
                         <div className="text-[#daff00] text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>POSITIONS</div>
                         <div className="flex flex-row gap-2 mt-4">
-                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="/liquidity/manage">Read DOC</a>
+                            <a className="flex flex-row items-center justify-center text-white text-[10px] leading-none uppercase px-3 py-1.5 rounded-full shadow-grow-gray bg-black hover:scale-105 transition-transform duration-300" href="https://onplyr.medium.com/plyr-swap-the-multichain-engine-fueling-the-future-of-gaming-5cacb11b6d5c" target="_blank">Read DOC</a>
                         </div>
                     </div>
                     {/* <div className="flex flex-col flex-1 items-center justify-center">

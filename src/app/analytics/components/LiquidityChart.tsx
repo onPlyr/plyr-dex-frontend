@@ -51,6 +51,10 @@ export default function LiquidityChart({ data }: LiquidityChartProps) {
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                     <XAxis
+                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                        })}
                         dataKey="date"
                         angle={-45}
                         textAnchor="end"
@@ -62,7 +66,7 @@ export default function LiquidityChart({ data }: LiquidityChartProps) {
                         tickFormatter={(value) => `$${value.toLocaleString()}`}
                     />
                     <ChartTooltip content={<CustomTooltip />} />
-                    <Line  type="monotone" dataKey="liquidity" stroke="#daff00" dot={false} strokeWidth={2} />
+                    <Line type="monotone" dataKey="liquidity" stroke="#daff00" dot={false} strokeWidth={2} />
                 </LineChart>
             </ResponsiveContainer>
         </div>

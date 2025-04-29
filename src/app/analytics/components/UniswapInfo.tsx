@@ -61,25 +61,25 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
             <div className="space-y-8">
                 {factory && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
-                        <CardHeader>
-                            <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Overall Statistics</CardTitle>
+                        <CardHeader className="px-0 md:px-4 py-2">
+                            <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Overall Statistics</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-0 md:px-4 py-2">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
-                                    <h3 className="text-lg font-medium mb-2">Total Volume (USD)</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Total Volume (USD)</h3>
                                     <p className="text-2xl font-bold">${parseFloat(factory.untrackedVolumeUSD).toLocaleString()}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
-                                    <h3 className="text-lg font-medium mb-2">Total Liquidity (USD)</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Total Liquidity (USD)</h3>
                                     <p className="text-2xl font-bold">${parseFloat(factory.totalLiquidityUSD).toLocaleString()}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
-                                    <h3 className="text-lg font-medium mb-2">Pair Count</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Pair Count</h3>
                                     <p className="text-2xl font-bold">{parseInt(factory.pairCount).toLocaleString()}</p>
                                 </div>
                                 <div className="bg-[#3A3935] p-4 rounded-2xl text-white">
-                                    <h3 className="text-lg font-medium mb-2">Transaction Count</h3>
+                                    <h3 className="text-lg font-medium md:mb-2">Transaction Count</h3>
                                     <p className="text-2xl font-bold">{parseInt(factory.txCount).toLocaleString()}</p>
                                 </div>
                             </div>
@@ -89,10 +89,10 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
 
                 {topPairsTokens?.topPairs && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
-                        <CardHeader>
-                            <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Pairs</CardTitle>
+                        <CardHeader className="px-0 md:px-4 py-2">
+                            <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Pairs</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-0 md:px-4 py-2">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full">
                                     <thead>
@@ -131,10 +131,10 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
 
                 {topPairsTokens?.topTokens && (
                     <Card className="bg-[#ffffff0d] rounded-[12px] p-4 border-0">
-                        <CardHeader>
-                            <CardTitle className="text-white text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Tokens</CardTitle>
+                        <CardHeader className="px-0 md:px-4 py-2">
+                            <CardTitle className="text-white text-xl md:text-2xl lg:text-5xl font-thin leading-none" style={{ fontFamily: 'var(--font-bold-finger)' }}>Top Tokens</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-0 md:px-4 py-2">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full">
                                     <thead>
@@ -157,7 +157,7 @@ export default function UniswapInfo({ tokenList }: { tokenList: any[] }) {
                                                         {/* ({token.name}) */}
                                                     </Link>
                                                 </td>
-                                                <td className="px-4 py-4 text-right rounded-r-2xl">${parseFloat(token.untrackedVolumeUSD).toLocaleString()}</td>
+                                                <td className="px-4 py-4 text-right">${parseFloat(token.untrackedVolumeUSD).toLocaleString()}</td>
                                                 <td className="px-4 py-4 text-right rounded-r-2xl">${(parseFloat(token.derivedETH) * topPairsTokens.ethPrice).toFixed(4)}</td>
                                             </tr>
                                         ))}
