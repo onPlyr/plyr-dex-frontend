@@ -207,17 +207,21 @@ const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
             <div className="flex flex-row flex-1 gap-4">
                 <div className="flex flex-row flex-1 justify-end items-center font-bold text-end">
                     {isDst ? (
-                        <AnimateNumber
-                            className={twMerge("p-0 m-0 text-2xl", !value ? "text-muted-500" : undefined)}
-                            format={NumberFormatOptions[value ? NumberFormatType.Input : NumberFormatType.ZeroWithDecimal] as AnimatedNumberFormatOptions}
-                            transition={{
-                                type: "spring",
-                                bounce: 0,
-                                duration: 0.5,
-                            }}
-                        >
-                            {value ?? ""}
-                        </AnimateNumber>
+                        <div className={twMerge("p-0 m-0 text-2xl", !value ? "text-muted-500" : undefined)}>
+                            {value ?? "0"}
+                        </div>
+                        // <AnimateNumber
+                        //     className={twMerge("p-0 m-0 text-2xl", !value ? "text-muted-500" : undefined)}
+                        //     format={NumberFormatOptions[value ? NumberFormatType.Input : NumberFormatType.ZeroWithDecimal] as AnimatedNumberFormatOptions}
+                        //     transition={{
+                        //         type: "spring",
+                        //         bounce: 0,
+                        //         duration: 0.5,
+                        //     }}
+
+                        // >
+                        //     {value ?? " "}
+                        // </AnimateNumber>
                     ) : (
                         <DecimalInput
                             id="srcAmount"
