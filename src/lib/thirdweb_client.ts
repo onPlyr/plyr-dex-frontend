@@ -28,8 +28,8 @@ export const tauChain = defineChain({
   },
   blockExplorers: [
     {
-      name: "Avax Explorers",
-      url: "https://subnets-test.avax.network/plyr",
+      name: "PLYR TAU Explorer",
+      url: "https://explorer-testnet.plyr.network",
     }
   ],
   testnet: true,
@@ -52,8 +52,8 @@ export const phiChain = defineChain({
   },
   blockExplorers: [
     {
-      name: "Avax Explorers",
-      url: "https://subnets.avax.network/plyr",
+      name: "PLYR PHI Explorer",
+      url: "https://explorer.plyr.network",
     }
   ],
   testnet: true,
