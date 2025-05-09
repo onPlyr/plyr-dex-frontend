@@ -102,91 +102,91 @@ const baseTokens: BaseToken[] = [
     //         },
     //     ],
     // },
-    // {
-    //     id: "avax",
-    //     priceId: "avax",
-    //     symbol: "AVAX",
-    //     name: "Native AVAX",
-    //     decimals: 18,
-    //     icon: "avax.svg",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: zeroAddress,
-    //             apiData: {
-    //                 [ApiProvider.Dexalot]: {
-    //                     id: "AVAX",
-    //                 },
-    //             },
-    //             isNative: true,
-    //             wrappedAddress: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
-    //             wrappedToken: "WAVAX",
-    //         },
-    //         [avalancheFuji.id]: {
-    //             address: zeroAddress,
-    //             apiData: {
-    //                 [ApiProvider.Dexalot]: {
-    //                     id: "AVAX",
-    //                 },
-    //             },
-    //             isNative: true,
-    //             wrappedAddress: "0xd00ae08403B9bbb9124bB305C09058E32C39A48c",
-    //             wrappedToken: "WAVAX",
-    //         },
-    //         [teschain.id]: {
-    //             displayName: "AVAX",
-    //             address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
-    //         },
-    //         [coqnet.id]: {
-    //             displayName: "AVAX",
-    //             address: "0x28af629a9f3ece3c8d9f0b7ccf6349708cec8cfb",
-    //         },
-    //         [plyrPhi.id]: {
-    //             displayName: "AVAX",
-    //             address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x30CdA6AF61c3A07ca81909699C85307DEF4398E5",
-    //                 type: BridgeType.NativeHome,
-    //             },
-    //             remote: {
-    //                 chainId: coqnet.id,
-    //                 address: "0x28af629a9f3ece3c8d9f0b7ccf6349708cec8cfb",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //         {
-    //             home: {
-    //                 chainId: avalancheFuji.id,
-    //                 address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
-    //                 type: BridgeType.NativeHome,
-    //             },
-    //             remote: {
-    //                 chainId: teschain.id,
-    //                 address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x4D9c836d404629Ab44ef92acDD7e167ea8d4BdD7",
-    //                 type: BridgeType.NativeHome,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
+    {
+        id: "avax",
+        priceId: "avax",
+        symbol: "AVAX",
+        name: "Native AVAX",
+        decimals: 18,
+        icon: "avax.svg",
+        chains: {
+            [avalanche.id]: {
+                address: zeroAddress,
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "AVAX",
+                    },
+                },
+                isNative: true,
+                wrappedAddress: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+                wrappedToken: "WAVAX",
+            },
+            [avalancheFuji.id]: {
+                address: zeroAddress,
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "AVAX",
+                    },
+                },
+                isNative: true,
+                wrappedAddress: "0xd00ae08403B9bbb9124bB305C09058E32C39A48c",
+                wrappedToken: "WAVAX",
+            },
+            [teschain.id]: {
+                displayName: "AVAX",
+                address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
+            },
+            [coqnet.id]: {
+                displayName: "AVAX",
+                address: "0x28af629a9f3ece3c8d9f0b7ccf6349708cec8cfb",
+            },
+            // [plyrPhi.id]: {
+            //     displayName: "AVAX",
+            //     address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
+            // },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x30CdA6AF61c3A07ca81909699C85307DEF4398E5",
+                    type: BridgeType.NativeHome,
+                },
+                remote: {
+                    chainId: coqnet.id,
+                    address: "0x28af629a9f3ece3c8d9f0b7ccf6349708cec8cfb",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+            {
+                home: {
+                    chainId: avalancheFuji.id,
+                    address: "0xf37a2b936f214f9e72156ce5e340514b21799f7d",
+                    type: BridgeType.NativeHome,
+                },
+                remote: {
+                    chainId: teschain.id,
+                    address: "0x4730d16278c5bfb6f4326b8d2d2a9b3ad3fef098",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+            // {
+            //     home: {
+            //         chainId: avalanche.id,
+            //         address: "0x4D9c836d404629Ab44ef92acDD7e167ea8d4BdD7",
+            //         type: BridgeType.NativeHome,
+            //     },
+            //     remote: {
+            //         chainId: plyrPhi.id,
+            //         address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
+            //         type: BridgeType.Erc20Remote,
+            //     },
+            //     provider: BridgeProvider.ICTT,
+            // },
+        ],
+    },
     // {
     //     id: "big",
     //     symbol: "BIG",
@@ -391,6 +391,9 @@ const baseTokens: BaseToken[] = [
             },
             [plyrTau.id]: {
                 address: "0xa875625fe8A955406523E52E485f351b92908ce1",
+            },
+            [avalanche.id]: {
+                address: "0xEcB70d85aA4dAc4102688c313588710A3f143529",
             },
         },
         bridges: [
