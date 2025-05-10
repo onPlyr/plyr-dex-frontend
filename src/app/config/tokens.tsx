@@ -8,6 +8,447 @@ import { BridgePath, BridgeProvider, BridgeType } from "@/app/types/bridges"
 import { BaseToken, Token, TokenId } from "@/app/types/tokens"
 
 const baseTokens: BaseToken[] = [
+    // EXTRA TOKEN ON AVALANCHE //
+    // AUSD //
+    {
+        id: "ausd",
+        symbol: "AUSD",
+        name: "Agora AUSD",
+        decimals: 6,
+        icon: "ausd.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
+            },
+        },
+    },
+    // avUSD //
+    {
+        id: "avusd",
+        symbol: "avUSD",
+        name: "avUSD",
+        decimals: 18,
+        icon: "avusd.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x24dE8771bC5DdB3362Db529Fc3358F2df3A0E346",
+            },
+        },
+    },
+    // BEAM //
+    {
+        id: "beam",
+        symbol: "BEAM",
+        name: "Beam",
+        decimals: 18,
+        icon: "beam.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x62d0a8458ed7719fdaf978fe5929c6d342b0bfce",
+            },
+        },
+    },
+    // CAI //
+    {
+        id: "cai",
+        symbol: "CAI",
+        name: "CAI",
+        decimals: 18,
+        icon: "cai.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x48f88A3fE843ccb0b5003e70B4192c1d7448bEf0",
+            },
+        },
+    },
+    // CLY //
+    {
+        id: "cly",
+        symbol: "CLY",
+        name: "Colony",
+        decimals: 18,
+        icon: "cly.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xec3492a2508DDf4FDc0cD76F31f340b30d1793e6",
+            },
+        },
+    },
+    // DAI //
+    {
+        id: "dai",
+        priceId: "dai.avax",
+        symbol: "DAI.e",
+        name: "DAI",
+        decimals: 18,
+        icon: "dai.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70",
+            },
+        },
+    },
+    // EURC //
+    {
+        id: "eurc",
+        symbol: "EURC",
+        name: "Euro Coin",
+        decimals: 6,
+        icon: "eurc.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xC891EB4cbdEFf6e073e859e987815Ed1505c2ACD",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "EURC",
+                    },
+                },
+            },
+        },
+    },
+    // FRAX //
+    {
+        id: "frax",
+        symbol: "FRAX",
+        name: "Frax",
+        decimals: 18,
+        icon: "frax.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64",
+            },
+        },
+    },
+    // FXS //
+    {
+        id: "fxs",
+        symbol: "FXS",
+        name: "Frax Share",
+        decimals: 18,
+        icon: "fxs.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x214db107654ff987ad859f34125307783fc8e387",
+            },
+        },
+    },
+    // GGP -- GOGOPOOL //
+    {
+        id: "ggp",
+        symbol: "GGP",
+        name: "GoGoPool",
+        decimals: 18,
+        icon: "ggp.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x69260B9483F9871ca57f81A90D91E2F96c2Cd11d",
+            },
+        },
+    },
+    // GMX //
+    {
+        id: "gmx",
+        symbol: "GMX",
+        name: "GMX",
+        decimals: 18,
+        icon: "gmx.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x62edc0692BD897D2295872a9FFCac5425011c661",
+            },
+        },
+    },
+    // GUN //
+    {
+        id: "gun",
+        symbol: "GUN",
+        name: "GUNZ",
+        decimals: 18,
+        icon: "gun.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x26deBD39D5eD069770406FCa10A0E4f8d2c743eB",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "GUN",
+                    },
+                },
+            },
+        },
+    },
+    // GYD //
+    {
+        id: "gyd",
+        symbol: "GYD",
+        name: "Gyro Dollar",
+        decimals: 18,
+        icon: "gyd.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xCA5d8F8a8d49439357d3CF46Ca2e720702F132b8",
+            },
+        },
+    },
+    // HUSKY //
+    {
+        id: "husky",
+        symbol: "HUSKY",
+        name: "Husky",
+        decimals: 18,
+        icon: "husky.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x65378b697853568da9ff8eab60c13e1ee9f4a654",
+            },
+        },
+    },
+    // JUICY //
+    {
+        id: "juicy",
+        symbol: "JUICY",
+        name: "Juicy",
+        decimals: 18,
+        icon: "juicy.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xC654721fBf1F374fd9FfA3385Bba2F4932A6af55",
+            },
+        },
+    },
+    // LINK //
+    {
+        id: "link",
+        priceId: "link.avax",
+        symbol: "LINK.e",
+        name: "Chainlink",
+        decimals: 18,
+        icon: "link.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x5947BB275c521040051D82396192181b413227A3",
+            },
+        },
+    },
+    // MIM //
+    {
+        id: "mim",
+        symbol: "MIM",
+        name: "Magic Internet Money",
+        decimals: 18,
+        icon: "mim.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x130966628846BFd36ff31a822705796e8cb8C18D",
+            },
+        },
+    },
+    // NOCHILL //
+    {
+        id: "nochill",
+        symbol: "NOCHILL",
+        name: "NOCHILL",
+        decimals: 18,
+        icon: "nochill.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xAcFb898Cff266E53278cC0124fC2C7C94C8cB9a5",
+            },
+        },
+    },
+    // PNG //
+    {
+        id: "png",
+        symbol: "PNG",
+        name: "Pangolin",
+        decimals: 18,
+        icon: "png.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x60781C2586D68229fde47564546784ab3fACA982",
+            },
+        },
+    },
+    // PRIME //
+    {
+        id: "prime",
+        symbol: "PRIME",
+        name: "DeltaPrime",
+        decimals: 18,
+        icon: "prime.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x33C8036E99082B0C395374832FECF70c42C7F298",
+            },
+        },
+    },
+    // QI //
+    {
+        id: "qi",
+        symbol: "QI",
+        name: "BENQI",
+        decimals: 18,
+        icon: "qi.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "QI",
+                    },
+                },
+            },
+        },
+    },
+    // SHRAP //
+    {
+        id: "shrap",
+        symbol: "SHRAP",
+        name: "Shrapnel",
+        decimals: 18,
+        icon: "shrap.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xd402298a793948698b9a63311404fbbee944eafd",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "SHRAP",
+                    },
+                },
+            },
+        },
+    },
+    // STEAK //
+    {
+        id: "steak",
+        symbol: "STEAK",
+        name: "STEAK",
+        decimals: 18,
+        icon: "steak.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xb279f8DD152B99Ec1D84A489D32c35bC0C7F5674",
+            },
+        },
+    },
+    // STG //
+    {
+        id: "stg",
+        symbol: "STG",
+        name: "Stargate",
+        decimals: 18,
+        icon: "stg.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x2f6f07cdcf3588944bf4c42ac74ff24bf56e7590",
+            },
+        },
+    },
+    // USDT //
+    {
+        id: "usdt",
+        priceId: "usdt.avax",
+        symbol: "USDT",
+        name: "Native USDT",
+        decimals: 6,
+        icon: "usdt.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "USDt",
+                    },
+                },
+            },
+        },
+    },
+    // WAIFU //
+    {
+        id: "waifu",
+        symbol: "WAIFU",
+        name: "Waifu",
+        decimals: 18,
+        icon: "waifu.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xFF24003428Fb2E969C39EdEe4e9F464b0b78313d",
+            },
+        },
+    },
+    // WBTC.e //
+    {
+        id: "wbtce",
+        symbol: "WBTC.e",
+        name: "Avalanche Bridge Wrapped BTC",
+        decimals: 8,
+        icon: "wbtce.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x50b7545627a5162F82A992c33b87aDc75187B218",
+            },
+        },
+    },
+    // WETH.e //
+    {
+        id: "wethe",
+        priceId: "eth.avax",
+        symbol: "WETH.e",
+        name: "Avalanche Bridge ETH",
+        decimals: 18,
+        icon: "wethe.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "WETH.e",
+                    },
+                },
+            },
+        },
+    },
+    // WOO //
+    {
+        id: "woo",
+        symbol: "WOO.e",
+        name: "WOO",
+        decimals: 18,
+        icon: "woo.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xabc9547b534519ff73921b1fba6e672b5f58d083",
+            },
+        },
+    },
+    // YAK //
+    {
+        id: "yak",
+        symbol: "YAK",
+        name: "YAK",
+        decimals: 18,
+        icon: "yak.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7",
+            },
+        },
+    },
+    // ZRO //
+    {
+        id: "zro",
+        symbol: "ZRO",
+        name: "LayerZero",
+        decimals: 18,
+        icon: "zro.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x6985884C4392D348587B19cb9eAAf157F13271cd",
+            },
+        },
+    },
+    
+
+    // All bridgable tokens on PLYR and AVALANCHE
     // AMI //
     {
         id: "ami",
