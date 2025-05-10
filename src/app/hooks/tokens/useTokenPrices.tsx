@@ -32,16 +32,33 @@ interface FetchPricesParameters {
 }
 
 const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiIdPrefix, separator: string = ":") => {
-    
-    // if (!token.priceId){
-    //     if (token.uid === '16180:0x528B5C9f4a401B230F6e15014522e1b60a15f342')
-    //     {
-    //         return '43114:0x0f669808d88B2b0b3D23214DCD2a1cc6A8B1B5cd'.toLowerCase()
-    //     }
-    // }
-    
-    
-    
+
+    if (!token.priceId) {
+        switch (token.uid) {
+            // BLUB
+            case '16180:0x528B5C9f4a401B230F6e15014522e1b60a15f342':
+                return '43114:0x0f669808d88B2b0b3D23214DCD2a1cc6A8B1B5cd'.toLowerCase()
+            // KIMBO
+            case '16180:0xcEf949Aaf9a0d91892eb452FB03914F40eAc16dd':
+                return '43114:0x184ff13B3EBCB25Be44e860163A5D8391Dd568c1'.toLowerCase()
+            // WINK
+            case '16180:0x3433DC3a55D9C77315CD939AD775000D31F426D5':
+                return '43114:0x7698A5311DA174A95253Ce86C21ca7272b9B05f8'.toLowerCase()
+            // APEX
+            case '16180:0x612A487212710fCDc022935Ae5757FaCABD2881a':
+                return '43114:0x98B172A09102869adD73116FC92A0A60BFF4778F'.toLowerCase()
+            // JOE
+            case '16180:0xef40C286c6D7c90C19ffcEb54d8C225DAa554C3F':
+                return '43114:0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd'.toLowerCase()
+            // KEY
+            case '16180:0x78DE1332ef4775811fff5000D5A9eBF70a665B5b':
+                return '43114:0xFFFF003a6BAD9b743d658048742935fFFE2b6ED7'.toLowerCase()
+        }
+
+    }
+
+
+
     return (token.priceId ? `${prefix}${separator}${token.priceId}` : token.uid).toLowerCase()
     // if (token.isCustomToken) {
     //     if (!token.uid) {
@@ -78,7 +95,7 @@ const fetchPrices = async ({
         // if (validTokens.length !== tokens.length) {
         //     console.warn(`[fetchPrices] Filtered out ${tokens.length - validTokens.length} invalid tokens`);
         // }
-        
+
         const tokenIdData: TokenIdMap = new Map(tokens.map((token) => [token.uid, getPriceApiTokenId(token)]))
         const tokenApiIds = Array.from(new Set(tokenIdData.values()))
 
@@ -94,9 +111,9 @@ const fetchPrices = async ({
         const baseUrl = getBaseUrl()
         const apiPath = baseUrl.endsWith('/api') ? '' : '/api'
         const url = new URL(`${apiPath}/prices/?${urlParams}`, baseUrl)
-        
+
         const response = await fetch(url.href)
-        
+
         if (!response.ok) {
             console.warn(`[fetchPrices] API error: ${response.status} ${response.statusText}`)
             try {
@@ -109,7 +126,7 @@ const fetchPrices = async ({
         }
 
         const responseData: PriceResponse = await response.json()
-        
+
         if (!responseData.data.prices) {
             throw new Error(`Invalid API response structure: missing data.prices`)
         }
