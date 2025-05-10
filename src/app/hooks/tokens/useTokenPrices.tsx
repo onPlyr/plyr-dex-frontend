@@ -32,6 +32,16 @@ interface FetchPricesParameters {
 }
 
 const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiIdPrefix, separator: string = ":") => {
+    
+    // if (!token.priceId){
+    //     if (token.uid === '16180:0x528B5C9f4a401B230F6e15014522e1b60a15f342')
+    //     {
+    //         return '43114:0x0f669808d88B2b0b3D23214DCD2a1cc6A8B1B5cd'.toLowerCase()
+    //     }
+    // }
+    
+    
+    
     return (token.priceId ? `${prefix}${separator}${token.priceId}` : token.uid).toLowerCase()
     // if (token.isCustomToken) {
     //     if (!token.uid) {
