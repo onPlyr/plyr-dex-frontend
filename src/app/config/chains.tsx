@@ -276,7 +276,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "dexalot",
             },
         ],
-        isDisabled: true,
+        //isDisabled: true,
     },
     [avalancheFuji.id]: {
         ...avalancheFuji,

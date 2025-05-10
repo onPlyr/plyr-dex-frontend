@@ -8,100 +8,103 @@ import { BridgePath, BridgeProvider, BridgeType } from "@/app/types/bridges"
 import { BaseToken, Token, TokenId } from "@/app/types/tokens"
 
 const baseTokens: BaseToken[] = [
-
-    // {
-    //     id: "ami",
-    //     symbol: "AMI",
-    //     name: "AVAX Meme Index",
-    //     decimals: 18,
-    //     icon: "ami.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0xC139Aa91399600f6b72975AC3317b6d49Cb30a69",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x8D5dEadEEc6B9118313FFee8fe3dff788a40e4EA",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xaABae47f41fee8f877c7F2641A306A01F7d8A2FA",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x8D5dEadEEc6B9118313FFee8fe3dff788a40e4EA",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "apex",
-    //     symbol: "APEX",
-    //     name: "APEX",
-    //     decimals: 18,
-    //     icon: "apex.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x98B172A09102869adD73116FC92A0A60BFF4778F",
-    //         },
-    //         [avalancheFuji.id]: {
-    //             address: "0x2468a9B0fD297CA7411aF891b5C86A212fD2a519",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x612A487212710fCDc022935Ae5757FaCABD2881a",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xbBac9D0c3f3D3B74fbB2a43acf218014a3614986",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x612A487212710fCDc022935Ae5757FaCABD2881a",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "arena",
-    //     symbol: "ARENA",
-    //     name: "Arena",
-    //     decimals: 18,
-    //     icon: "arena.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0xB8d7710f7d8349A506b75dD184F05777c82dAd0C",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x3D1307f5C85D06B1C31253A12A87c1a83391d137",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xD5bD19580DcA877B296cF9C41664C8Aa108Fe709",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x3D1307f5C85D06B1C31253A12A87c1a83391d137",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
+    // AMI //
+    {
+        id: "ami",
+        symbol: "AMI",
+        name: "AVAX Meme Index",
+        decimals: 18,
+        icon: "ami.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xC139Aa91399600f6b72975AC3317b6d49Cb30a69",
+            },
+            [plyrPhi.id]: {
+                address: "0x8D5dEadEEc6B9118313FFee8fe3dff788a40e4EA",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xaABae47f41fee8f877c7F2641A306A01F7d8A2FA",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x8D5dEadEEc6B9118313FFee8fe3dff788a40e4EA",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // APEX //
+    {
+        id: "apex",
+        symbol: "APEX",
+        name: "APEX",
+        decimals: 18,
+        icon: "apex.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x98B172A09102869adD73116FC92A0A60BFF4778F",
+            },
+            [avalancheFuji.id]: {
+                address: "0x2468a9B0fD297CA7411aF891b5C86A212fD2a519",
+            },
+            [plyrPhi.id]: {
+                address: "0x612A487212710fCDc022935Ae5757FaCABD2881a",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xbBac9D0c3f3D3B74fbB2a43acf218014a3614986",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x612A487212710fCDc022935Ae5757FaCABD2881a",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // ARENA //
+    {
+        id: "arena",
+        symbol: "ARENA",
+        name: "Arena",
+        decimals: 18,
+        icon: "arena.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xB8d7710f7d8349A506b75dD184F05777c82dAd0C",
+            },
+            [plyrPhi.id]: {
+                address: "0x3D1307f5C85D06B1C31253A12A87c1a83391d137",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xD5bD19580DcA877B296cF9C41664C8Aa108Fe709",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x3D1307f5C85D06B1C31253A12A87c1a83391d137",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // AVAX //
     {
         id: "avax",
         priceId: "avax",
@@ -140,10 +143,10 @@ const baseTokens: BaseToken[] = [
                 displayName: "AVAX",
                 address: "0x28af629a9f3ece3c8d9f0b7ccf6349708cec8cfb",
             },
-            // [plyrPhi.id]: {
-            //     displayName: "AVAX",
-            //     address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
-            // },
+            [plyrPhi.id]: {
+                displayName: "AVAX",
+                address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
+            },
         },
         bridges: [
             {
@@ -172,212 +175,215 @@ const baseTokens: BaseToken[] = [
                 },
                 provider: BridgeProvider.ICTT,
             },
-            // {
-            //     home: {
-            //         chainId: avalanche.id,
-            //         address: "0x4D9c836d404629Ab44ef92acDD7e167ea8d4BdD7",
-            //         type: BridgeType.NativeHome,
-            //     },
-            //     remote: {
-            //         chainId: plyrPhi.id,
-            //         address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
-            //         type: BridgeType.Erc20Remote,
-            //     },
-            //     provider: BridgeProvider.ICTT,
-            // },
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x4D9c836d404629Ab44ef92acDD7e167ea8d4BdD7",
+                    type: BridgeType.NativeHome,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
         ],
     },
-    // {
-    //     id: "big",
-    //     symbol: "BIG",
-    //     name: "Believe in Greatness",
-    //     decimals: 18,
-    //     icon: "big.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x2d0aFed89a6D6A100273Db377dBA7a32C739E314",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x0eF4cF2298BA3dd3840B96561749826B05D386Aa",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xab55a89Fb353546AbE5d965Fd2e1Ef72fcdff1ea",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x0eF4cF2298BA3dd3840B96561749826B05D386Aa",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "bls",
-    //     symbol: "BLS",
-    //     name: "BloodLoop Shard",
-    //     decimals: 18,
-    //     icon: "bls.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x46B9144771Cb3195D66e4EDA643a7493fADCAF9D",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0xa28028081804b05fe8e7B3b78dD5dAF2A0488DB4",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xBcc8965B645B0AD73399D4DC0eEB3876D3714614",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0xa28028081804b05fe8e7B3b78dD5dAF2A0488DB4",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "blub",
-    //     symbol: "BLUB",
-    //     name: "Blub",
-    //     decimals: 18,
-    //     icon: "blub.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x0f669808d88B2b0b3D23214DCD2a1cc6A8B1B5cd",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x528B5C9f4a401B230F6e15014522e1b60a15f342",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x2EFA08d8643f341e5FDf03C04389cAab595dF64b",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x528B5C9f4a401B230F6e15014522e1b60a15f342",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "btcb",
-    //     priceId: "btc.avax",
-    //     symbol: "BTC.b",
-    //     name: "Bitcoin",
-    //     decimals: 8,
-    //     icon: "btcb.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x152b9d0FdC40C096757F570A51E494bd4b943E50",
-    //             apiData: {
-    //                 [ApiProvider.Dexalot]: {
-    //                     id: "BTC.b",
-    //                 },
-    //             },
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0xF7Df8Ea81caEE397B15c84763F23343977652a11",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x799B0c114707b731a868b54403c2C7DC3f648f73",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0xF7Df8Ea81caEE397B15c84763F23343977652a11",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    
-    // {
-    //     id: "coq",
-    //     priceId: "coq",
-    //     symbol: "COQ",
-    //     name: "COQ",
-    //     decimals: 18,
-    //     icon: "coq.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x420FcA0121DC28039145009570975747295f2329",
-    //             apiData: {
-    //                 [ApiProvider.Dexalot]: {
-    //                     id: "COQ",
-    //                 },
-    //             },
-    //         },
-    //         [coqnet.id]: {
-    //             address: zeroAddress,
-    //             isNative: true,
-    //             wrappedAddress: "0x2c76Ab64981E1d4304fC064a7dC3Be4aA3266c98",
-    //             wrappedToken: "WCOQ",
-    //         },
-    //         [coqnetFuji.id]: {
-    //             address: zeroAddress,
-    //             isNative: true,
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x17563c474A5c3FfD51808FDcdDe3457b6dc38932",
-    //         },
-    //         [plyrTau.id]: {
-    //             address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x7D5041b9e8F144b2b3377A722dF5DD6eaF447cF2",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: coqnet.id,
-    //                 address: "0x2c76Ab64981E1d4304fC064a7dC3Be4aA3266c98",
-    //                 type: BridgeType.NativeRemote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x5b4Efb72e4e96485a5f8a24a9FE9758162c711B0",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x17563c474A5c3FfD51808FDcdDe3457b6dc38932",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    
-    
+    // BIG //
+    {
+        id: "big",
+        symbol: "BIG",
+        name: "Believe in Greatness",
+        decimals: 18,
+        icon: "big.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x2d0aFed89a6D6A100273Db377dBA7a32C739E314",
+            },
+            [plyrPhi.id]: {
+                address: "0x0eF4cF2298BA3dd3840B96561749826B05D386Aa",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xab55a89Fb353546AbE5d965Fd2e1Ef72fcdff1ea",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x0eF4cF2298BA3dd3840B96561749826B05D386Aa",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // BLS //
+    {
+        id: "bls",
+        symbol: "BLS",
+        name: "BloodLoop Shard",
+        decimals: 18,
+        icon: "bls.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x46B9144771Cb3195D66e4EDA643a7493fADCAF9D",
+            },
+            [plyrPhi.id]: {
+                address: "0xa28028081804b05fe8e7B3b78dD5dAF2A0488DB4",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xBcc8965B645B0AD73399D4DC0eEB3876D3714614",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xa28028081804b05fe8e7B3b78dD5dAF2A0488DB4",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // BLUB //
+    {
+        id: "blub",
+        symbol: "BLUB",
+        name: "Blub",
+        decimals: 18,
+        icon: "blub.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x0f669808d88B2b0b3D23214DCD2a1cc6A8B1B5cd",
+            },
+            [plyrPhi.id]: {
+                address: "0x528B5C9f4a401B230F6e15014522e1b60a15f342",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x2EFA08d8643f341e5FDf03C04389cAab595dF64b",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x528B5C9f4a401B230F6e15014522e1b60a15f342",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // BTC.b //
+    {
+        id: "btcb",
+        priceId: "btc.avax",
+        symbol: "BTC.b",
+        name: "Bitcoin",
+        decimals: 8,
+        icon: "btcb.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x152b9d0FdC40C096757F570A51E494bd4b943E50",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "BTC.b",
+                    },
+                },
+            },
+            [plyrPhi.id]: {
+                address: "0xF7Df8Ea81caEE397B15c84763F23343977652a11",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x799B0c114707b731a868b54403c2C7DC3f648f73",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xF7Df8Ea81caEE397B15c84763F23343977652a11",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // COQ //
+    {
+        id: "coq",
+        priceId: "coq",
+        symbol: "COQ",
+        name: "COQ",
+        decimals: 18,
+        icon: "coq.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x420FcA0121DC28039145009570975747295f2329",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "COQ",
+                    },
+                },
+            },
+            [coqnet.id]: {
+                address: zeroAddress,
+                isNative: true,
+                wrappedAddress: "0x2c76Ab64981E1d4304fC064a7dC3Be4aA3266c98",
+                wrappedToken: "WCOQ",
+            },
+            [coqnetFuji.id]: {
+                address: zeroAddress,
+                isNative: true,
+            },
+            [plyrPhi.id]: {
+                address: "0x17563c474A5c3FfD51808FDcdDe3457b6dc38932",
+            },
+            [plyrTau.id]: {
+                address: "0x9b7ecaBE00D41eF37434975db8Fb7323dd596F1c",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x7D5041b9e8F144b2b3377A722dF5DD6eaF447cF2",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: coqnet.id,
+                    address: "0x2c76Ab64981E1d4304fC064a7dC3Be4aA3266c98",
+                    type: BridgeType.NativeRemote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x5b4Efb72e4e96485a5f8a24a9FE9758162c711B0",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x17563c474A5c3FfD51808FDcdDe3457b6dc38932",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // GAMR //
     {
         id: "gamr",
         priceId: "gamr",
@@ -412,98 +418,131 @@ const baseTokens: BaseToken[] = [
             },
         ],
     },
-    
-    // {
-    //     id: "joe",
-    //     symbol: "JOE",
-    //     name: "JOE",
-    //     decimals: 18,
-    //     icon: "joe.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0xef40C286c6D7c90C19ffcEb54d8C225DAa554C3F",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x624d0e724fc3eDACd82aE747DF526Cd21f41EbC2",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0xef40C286c6D7c90C19ffcEb54d8C225DAa554C3F",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "ket",
-    //     symbol: "KET",
-    //     name: "yellow ket",
-    //     decimals: 18,
-    //     icon: "ket.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0xFFFF003a6BAD9b743d658048742935fFFE2b6ED7",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x78DE1332ef4775811fff5000D5A9eBF70a665B5b",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xB699674870e2cf583f51C63Be29DA9F113ce6B3B",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x78DE1332ef4775811fff5000D5A9eBF70a665B5b",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    // {
-    //     id: "kimbo",
-    //     symbol: "KIMBO",
-    //     name: "Kimbo",
-    //     decimals: 18,
-    //     icon: "kimbo.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x184ff13B3EBCB25Be44e860163A5D8391Dd568c1",
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0xcEf949Aaf9a0d91892eb452FB03914F40eAc16dd",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x1E0516f22a5a26C3C7Bf646d8D8F4129E858AA79",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0xcEf949Aaf9a0d91892eb452FB03914F40eAc16dd",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    
+    // JOE //
+    {
+        id: "joe",
+        symbol: "JOE",
+        name: "JOE",
+        decimals: 18,
+        icon: "joe.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd",
+            },
+            [plyrPhi.id]: {
+                address: "0xef40C286c6D7c90C19ffcEb54d8C225DAa554C3F",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x624d0e724fc3eDACd82aE747DF526Cd21f41EbC2",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xef40C286c6D7c90C19ffcEb54d8C225DAa554C3F",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // KET //
+    {
+        id: "ket",
+        symbol: "KET",
+        name: "yellow ket",
+        decimals: 18,
+        icon: "ket.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xFFFF003a6BAD9b743d658048742935fFFE2b6ED7",
+            },
+            [plyrPhi.id]: {
+                address: "0x78DE1332ef4775811fff5000D5A9eBF70a665B5b",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xB699674870e2cf583f51C63Be29DA9F113ce6B3B",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x78DE1332ef4775811fff5000D5A9eBF70a665B5b",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // KIMBO //
+    {
+        id: "kimbo",
+        symbol: "KIMBO",
+        name: "Kimbo",
+        decimals: 18,
+        icon: "kimbo.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x184ff13B3EBCB25Be44e860163A5D8391Dd568c1",
+            },
+            [plyrPhi.id]: {
+                address: "0xcEf949Aaf9a0d91892eb452FB03914F40eAc16dd",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x1E0516f22a5a26C3C7Bf646d8D8F4129E858AA79",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xcEf949Aaf9a0d91892eb452FB03914F40eAc16dd",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // PHAR //
+    {
+        id: "phar",
+        symbol: "PHAR",
+        name: "Pharaoh",
+        decimals: 18,
+        icon: "phar.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xAAAB9D12A30504559b0C5a9A5977fEE4A6081c6b",
+            },
+            [plyrPhi.id]: {
+                address: "0x02B7A3a5f4108EBd43681F1ee50cA9a13226db78",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xeF9F06A009FdeD634DDCA78D49b0f4ACa3f3B73D",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x02B7A3a5f4108EBd43681F1ee50cA9a13226db78",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // PLYR //
     {
         id: "plyr",
         priceId: "plyr",
@@ -562,118 +601,117 @@ const baseTokens: BaseToken[] = [
             },
         ],
     },
-    
-    // {
-    //     id: "usdc",
-    //     priceId: "usdc.avax",
-    //     symbol: "USDC",
-    //     name: "Native USDC",
-    //     decimals: 6,
-    //     icon: "usdc.svg",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
-    //             apiData: {
-    //                 [ApiProvider.Dexalot]: {
-    //                     id: "USDC",
-    //                 },
-    //             },
-    //         },
-    //         [avalancheFuji.id]: {
-    //             address: "0x5425890298aed601595a70AB815c96711a31Bc65",
-    //         },
-    //         [coqnet.id]: {
-    //             displayName: "USDC",
-    //             address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
-    //         },
-    //         [plyrPhi.id]: {
-    //             displayName: "USDC",
-    //             address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
-    //         },
-    //         [teschain.id]: {
-    //             displayName: "USDC",
-    //             address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x97bBA61F61f2b0eEF60428947b990457f8eCb3a3",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: coqnet.id,
-    //                 address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //         {
-    //             home: {
-    //                 chainId: avalancheFuji.id,
-    //                 address: "0x00ba05e110e333243bb0e68b64f28166059ff7ce",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: teschain.id,
-    //                 address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0x3EC673E78355bF2470b6d6DAE2555E2Beb74C5A8",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    
-    // {
-    //     id: "wink",
-    //     symbol: "WINK",
-    //     name: "Wink",
-    //     decimals: 18,
-    //     icon: "wink.png",
-    //     chains: {
-    //         [avalanche.id]: {
-    //             address: "0x7698A5311DA174A95253Ce86C21ca7272b9B05f8",
-    //             apiData: {
-    //                 [ApiProvider.Dexalot]: {
-    //                     id: "WINK",
-    //                 },
-    //             },
-    //         },
-    //         [plyrPhi.id]: {
-    //             address: "0x3433DC3a55D9C77315CD939AD775000D31F426D5",
-    //         },
-    //     },
-    //     bridges: [
-    //         {
-    //             home: {
-    //                 chainId: avalanche.id,
-    //                 address: "0xB42F326F8A352B85fE5b5B0889348EcA1cE6BcF0",
-    //                 type: BridgeType.Erc20Home,
-    //             },
-    //             remote: {
-    //                 chainId: plyrPhi.id,
-    //                 address: "0x3433DC3a55D9C77315CD939AD775000D31F426D5",
-    //                 type: BridgeType.Erc20Remote,
-    //             },
-    //             provider: BridgeProvider.ICTT,
-    //         },
-    //     ],
-    // },
-    
+    // USDC //
+    {
+        id: "usdc",
+        priceId: "usdc.avax",
+        symbol: "USDC",
+        name: "Native USDC",
+        decimals: 6,
+        icon: "usdc.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "USDC",
+                    },
+                },
+            },
+            [avalancheFuji.id]: {
+                address: "0x5425890298aed601595a70AB815c96711a31Bc65",
+            },
+            [coqnet.id]: {
+                displayName: "USDC",
+                address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
+            },
+            [plyrPhi.id]: {
+                displayName: "USDC",
+                address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
+            },
+            [teschain.id]: {
+                displayName: "USDC",
+                address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x97bBA61F61f2b0eEF60428947b990457f8eCb3a3",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: coqnet.id,
+                    address: "0x00396774d1E5b1C2B175B0F0562f921887678771",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+            {
+                home: {
+                    chainId: avalancheFuji.id,
+                    address: "0x00ba05e110e333243bb0e68b64f28166059ff7ce",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: teschain.id,
+                    address: "0xc4726bee045a2e0d447a8b1acb088da03bf1a5dd",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x3EC673E78355bF2470b6d6DAE2555E2Beb74C5A8",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x63F551298862f306B689724519D95eDA3dCDE5b8",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
+    // WINK //
+    {
+        id: "wink",
+        symbol: "WINK",
+        name: "Wink",
+        decimals: 18,
+        icon: "wink.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x7698A5311DA174A95253Ce86C21ca7272b9B05f8",
+                apiData: {
+                    [ApiProvider.Dexalot]: {
+                        id: "WINK",
+                    },
+                },
+            },
+            [plyrPhi.id]: {
+                address: "0x3433DC3a55D9C77315CD939AD775000D31F426D5",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xB42F326F8A352B85fE5b5B0889348EcA1cE6BcF0",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x3433DC3a55D9C77315CD939AD775000D31F426D5",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
 ] as const
 
 export const Tokens: Token[] = Object.values(SupportedChains).filter((chain) => !chain.isDisabled).map((chain) => baseTokens.filter((baseToken) => !!baseToken.chains[chain.id]).map((baseToken) => {
