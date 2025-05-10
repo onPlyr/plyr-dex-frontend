@@ -9,6 +9,19 @@ import { BaseToken, Token, TokenId } from "@/app/types/tokens"
 
 const baseTokens: BaseToken[] = [
     // EXTRA TOKEN ON AVALANCHE //
+    // AAVE.e //
+    {
+        id: "aave",
+        symbol: "AAVE.e",
+        name: "Aave",
+        decimals: 18,
+        icon: "aave.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x63a72806098Bd3D9520cC43356dD78afe5D386D9",
+            },
+        },
+    },
     // AUSD //
     {
         id: "ausd",
@@ -215,7 +228,7 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
-    // LINK //
+    // LINK.e //
     {
         id: "link",
         priceId: "link.avax",
