@@ -11,13 +11,15 @@ import BackIcon from "@/app/components/icons/BackIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import WarningIcon from "@/app/components/icons/WarningIcon"
-import TestnetMessage from "@/app/components/messages/TestnetMessage"
+//import TestnetMessage from "@/app/components/messages/TestnetMessage"
+import AnnouncementMessage from "@/app/components/messages/AnnouncementMessage"
 import Button from "@/app/components/ui/Button"
 //import MarketingBanner from "@/app/components/ui/MarketingBanner"
 import ScrollArea from "@/app/components/ui/ScrollArea"
 import { iconSizes } from "@/app/config/styling"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import { NetworkMode, PreferenceType } from "@/app/types/preferences"
+import TestnetMessage from "../messages/TestnetMessage"
 
 export interface PageMsgData {
     header: React.ReactNode,
@@ -179,7 +181,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
 }, ref) => {
 
     const { getPreference } = usePreferences()
-    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
+    //const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
 
     const { accountModalOpen } = useAccountModal()
     const { chainModalOpen } = useChainModal()
@@ -207,11 +209,14 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                         isContainerPage ? "pt-0" : undefined,
                         pageWidth || "page-width",
                     )}>
+                        
                         <div className={twMerge(
                             "flex flex-col flex-1 w-full h-full overflow-hidden",
                             isNestedPage ? undefined : "px-4 sm:px-0",
                         )}>
                             {/* {!hideNetworkMsg && networkMode === NetworkMode.Testnet && <TestnetMessage />} */}
+                            
+                            {/* {!hideNetworkMsg && <AnnouncementMessage />} */}
                             {(header || backUrl || (backTab && setTab && fromTab) || headerIcon) && (
                                 <PageHeader
                                     backUrl={backUrl}
@@ -223,6 +228,7 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(({
                                     {header}
                                 </PageHeader>
                             )}
+                            
                             {children}
                         </div>
                     </div>

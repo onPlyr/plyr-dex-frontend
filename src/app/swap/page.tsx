@@ -31,6 +31,7 @@ import { StorageKey } from "@/app/types/storage"
 // Boldy //
 import BoldySwap from "@/public/boldy/BoldySwap.png"
 import PLYRSWAP from "@/public/boldy/PLYRSWAP.svg"
+import AnnouncementMessage from "../components/messages/AnnouncementMessage"
 
 const defaultIntroTransition: Transition = {
     type: "spring",
@@ -71,52 +72,54 @@ const SwapPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quotesError])
 
-    const pageHeader = <div className="flex flex-row flex-1 gap-4 justify-between items-center">
-        <div className="text-white text-5xl -ml-4 leading-none font-thin" style={{ fontFamily: 'var(--font-bold-finger)' }}>SWAP</div>
-        <div className="flex flex-row gap-4">
-            <Tooltip
-                trigger=<Button
-                    label="My Account"
-                    className="icon-btn transition hover:rotate-[360deg]"
-                    replaceClass={true}
-                >
-                    <Link href="/account">
-                        <AccountIcon className={iconSizes.sm} />
-                    </Link>
-                </Button>
-            >
-                My Account
-            </Tooltip>
-            <Tooltip
-                trigger=<Button
-                    label="My Transactions"
-                    className="icon-btn transition hover:-rotate-[360deg]"
-                    replaceClass={true}
-                >
-                    <Link href="/swap/history">
-                        <HistoryIcon className={iconSizes.sm} />
-                    </Link>
-                </Button>
-            >
-                My Transactions
-            </Tooltip>
-            <Tooltip
-                trigger=<Button
-                    label="My Preferences"
-                    className="icon-btn transition hover:rotate-90"
-                    replaceClass={true}
-                >
-                    <Link href="/preferences">
-                        <SettingsIcon className={iconSizes.sm} />
-                    </Link>
-                </Button>
-            >
-                My Preferences
-            </Tooltip>
-            <SwapQuoteExpiryTimer />
-        </div>
-    </div>
-
+    const pageHeader =
+        <>
+            <div className="flex flex-row flex-1 gap-4 justify-between items-center">
+                <div className="text-white text-5xl -ml-4 leading-none font-thin" style={{ fontFamily: 'var(--font-bold-finger)' }}>SWAP</div>
+                <div className="flex flex-row gap-4">
+                    <Tooltip
+                        trigger=<Button
+                            label="My Account"
+                            className="icon-btn transition hover:rotate-[360deg]"
+                            replaceClass={true}
+                        >
+                            <Link href="/account">
+                                <AccountIcon className={iconSizes.sm} />
+                            </Link>
+                        </Button>
+                    >
+                        My Account
+                    </Tooltip>
+                    <Tooltip
+                        trigger=<Button
+                            label="My Transactions"
+                            className="icon-btn transition hover:-rotate-[360deg]"
+                            replaceClass={true}
+                        >
+                            <Link href="/swap/history">
+                                <HistoryIcon className={iconSizes.sm} />
+                            </Link>
+                        </Button>
+                    >
+                        My Transactions
+                    </Tooltip>
+                    <Tooltip
+                        trigger=<Button
+                            label="My Preferences"
+                            className="icon-btn transition hover:rotate-90"
+                            replaceClass={true}
+                        >
+                            <Link href="/preferences">
+                                <SettingsIcon className={iconSizes.sm} />
+                            </Link>
+                        </Button>
+                    >
+                        My Preferences
+                    </Tooltip>
+                    <SwapQuoteExpiryTimer />
+                </div>
+            </div>
+        </>
     return (
         <Page
             key={PageType.Swap}
@@ -124,6 +127,7 @@ const SwapPage = () => {
             pageWidth="max-w-screen-lg w-full"
             isContainerPage={true}
         >
+
             <div className={twMerge("flex flex-col flex-none w-full h-full", showIntro ? "h-screen" : "h-full")}>
                 <div className="relative flex flex-row flex-none justify-center overflow-hidden">
                     <motion.div
@@ -149,7 +153,7 @@ const SwapPage = () => {
                             //     paddingBottom: "2.5%",
                             // },
                         }}
-                        // onClick={showIntro ? setShowIntro.bind(this, false) : undefined}
+                    // onClick={showIntro ? setShowIntro.bind(this, false) : undefined}
                     >
                         {/* <AnimatePresence mode="wait">
                             {showIntro && (
@@ -182,6 +186,7 @@ const SwapPage = () => {
                                 />
                             )}
                         </AnimatePresence> */}
+
                         <motion.div
                             transition={defaultIntroTransition}
                             variants={{
@@ -196,6 +201,7 @@ const SwapPage = () => {
                                 // },
                             }}
                         >
+
                             <Page
                                 key={PageType.Swap}
                                 header={pageHeader}
@@ -204,6 +210,7 @@ const SwapPage = () => {
                                 isNestedPage={true}
                                 className={showIntro ? "transition blur-sm pb-6" : ""}
                             >
+                                <AnnouncementMessage />
                                 <SwapWidget showIntro={showIntro} />
                             </Page>
                         </motion.div>
