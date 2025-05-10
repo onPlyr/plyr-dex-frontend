@@ -2,17 +2,25 @@
 
 import React from "react"
 import ExternalLink from "@/app/components/ui/ExternalLink"
+import Image from "next/image"
 
 export const AnnouncementMessage = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(({
     ...props
 }, ref) => (
-    <div 
+    <div
         ref={ref}
-        className="container-select flex flex-row p-4 gap-2 w-full mt-4 mb-4 sm:mt-0 justify-between"
+        className="flex flex-row  gap-2 w-full mt-4 mb-4 sm:mt-0 justify-between"
         data-selected={true}
         {...props}
     >
-        <div className="flex flex-row flex-1 flex-wrap">
+        <ExternalLink
+            href="https://pharaoh.exchange/liquidity/v2/add"
+            className=""
+            iconSize="sm"
+        >
+            <Image src="/banner/pharaonBanner_plyrSwap.png" alt="Announcement" width={1536} height={300} className="rounded-lg" />
+        </ExternalLink>
+        {/* <div className="flex flex-row flex-1 flex-wrap">
             Announcement here .... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce suscipit, lectus eu aliquet viverra, sem nisl convallis lectus, et bibendum eros tortor eget ante. Nunc leo orci, venenatis id tellus vitae, hendrerit iaculis neque.
         </div>
         <div className="flex flex-row flex-none items-center">
@@ -23,7 +31,7 @@ export const AnnouncementMessage = React.forwardRef<HTMLDivElement, React.Compon
             >
                 Read More
             </ExternalLink>
-        </div>
+        </div> */}
     </div>
 ))
 AnnouncementMessage.displayName = "AnnouncementMessage"
