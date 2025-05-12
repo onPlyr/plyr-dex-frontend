@@ -40,6 +40,7 @@ import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
+import Image from "next/image"
 
 const ReviewSwapPage = () => {
 
@@ -446,31 +447,32 @@ const ReviewSwapPage = () => {
                     {
                         (quote?.dstData.token.chainId.toString() === '62831' || quote?.dstData.token.chainId.toString() === '16180') &&
                         <div onClick={(e) => {
-                            return; // TMP disable mirror address
+                            //return; // TMP disable mirror address
                             e.preventDefault();
                             e.stopPropagation();
                             //alert(mirrorAddress)
                             if (approveIsInProgress || initiateIsInProgress) return;
                             setDestinationAddress(mirrorAddress as `0x${string}` || undefined)
-                        }} className={`opacity-50 grayscale blur-sm cursor-not-allowed w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${quote?.recipientAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-[12px] bg-[#ffffff10] text-white text-xs cursor-pointer`}>
-                            {/* <button onClick={(e) => {
+                            //opacity-50 grayscale blur-sm cursor-not-allowed 
+                        }} className={`w-full relative flex flex-row items-center justify-start p-2 md:p-4 flex-1 border-2 ${quote?.recipientAddress === mirrorAddress ? "border-[#daff00]" : "border-transparent"} rounded-[12px] bg-[#ffffff10] text-white text-xs cursor-pointer`}>
+                            <button onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 if (approveIsInProgress || initiateIsInProgress) return;
                                 getUserInfo(accountAddress || '', true)
                             }} className="absolute top-2 right-3">
                                 <RefreshCcw className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
-                            </button> */}
+                            </button>
                             {
-                                // !isEditingPlyrId && <button onClick={() => {
-                                //     if (approveIsInProgress || initiateIsInProgress) return;
-                                //     setIsEditingPlyrId(true)
-                                // }} className="absolute top-2 right-10">
-                                //     <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
-                                // </button>
+                                !isEditingPlyrId && <button onClick={() => {
+                                    if (approveIsInProgress || initiateIsInProgress) return;
+                                    setIsEditingPlyrId(true)
+                                }} className="absolute top-2 right-10">
+                                    <Pencil className="w-4 h-4 text-white" style={{ strokeWidth: 2 }} />
+                                </button>
                             }
                             {
-                                plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
+                                plyrId && plyrAvatar && <Image src={plyrAvatar+'?img-width=40'} width={40} height={40} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
                             }
                             {
                                 !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
