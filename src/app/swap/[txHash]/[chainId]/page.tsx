@@ -173,9 +173,9 @@ const SwapDetailPage = ({
             // get last event dst token //
             //const lastEventDstToken = swap.events[swap.events.length - 1]
 
-            if (swap.dstData && swap.dstData.token.id && swap.dstAmount) {
+            if (swap.dstData && swap.dstData.token.id && swap.dstAmount && swap.dstTxHash) {
 
-                addDepositLog(plyrId, swap.dstData.token.id, toTokens(swap.dstAmount, swap.dstData.token.decimals), txHash)
+                addDepositLog(plyrId, swap.dstData.token.id, toTokens(swap.dstAmount, swap.dstData.token.decimals), swap.dstTxHash)
 
                 // remove plyrId from search params
                 router.replace(`/swap/${txHash}/${swap.srcData.chain.id}`)
