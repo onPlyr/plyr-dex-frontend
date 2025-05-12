@@ -162,6 +162,7 @@ export const getInitiateCellInstructions = (quote?: SwapQuote, swapSource: SwapS
 
     return {
         receiver: quote.recipientAddress,
+        rollbackReceiver: getCellRollbackReceiverAddress(quote),
         payableReceiver: isNativeToken(quote.dstData.token),
         rollbackTeleporterFee: TeleporterFee.Rollback,
         rollbackGasLimit: GasUnits.Est,
@@ -192,6 +193,7 @@ export const getQuoteCellInstructions = (route?: SwapRoute, cell?: Cell, hops?: 
 
     return {
         receiver: zeroAddress,
+        rollbackReceiver: getCellRollbackReceiverAddress(),
         payableReceiver: isNativeToken(route.dstData.token),
         rollbackTeleporterFee: TeleporterFee.Rollback,
         rollbackGasLimit: GasUnits.Est,
@@ -212,4 +214,8 @@ export const getQuoteCellInstructions = (route?: SwapRoute, cell?: Cell, hops?: 
             },
         })),
     }
+}
+
+export const getCellRollbackReceiverAddress = (quote?: SwapQuote) => {
+    return quote?.accountAddress || zeroAddress
 }

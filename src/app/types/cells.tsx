@@ -161,6 +161,7 @@ export type CellHop = {
 
 export interface CellInstructions {
     receiver: Address,
+    rollbackReceiver: Address,
     payableReceiver: boolean,
     rollbackTeleporterFee: bigint,
     rollbackGasLimit: bigint,

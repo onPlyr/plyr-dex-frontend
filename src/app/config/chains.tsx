@@ -135,11 +135,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.YakSwap],
-                address: "0x949A4DC0d6c6B261a648B5542F550aB9fb1acdf1",
+                address: "0x87260775905e83689958a1491bc0c47396b2b21c",
             },
             // {
             //     ...cellTypeDefinitions[CellType.Dexalot],
-            //     address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
+            //     address: "0xe47d355aebf2e2107b97650457fb9091f28be1c3",
             // },
         ],
         blockchainId: "0x0427d4b22a2a78bcddd456742caf91b56badbff985ee19aef14573e7343fd652",
@@ -360,7 +360,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.UniV2],
-                address: "0x2b7DcD9E57D1893d455FB3239F83a3745Bb912e8",
+                address: "0xB952F9f97aECB40659386Af83957aE8D730f7EBD",
             },
         ],
         blockchainId: "0x256c7bda2ac1afff9fa39e76ead0a2fae122c73ee0143402fe128fc463c9ce1b",
@@ -421,7 +421,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.HopOnly],
-                address: "0xa7f586470CD7b70F9b5893eEe85C0b5354541A99",
+                address: "0xcf18a919dd14f789b0552e024d8a87fc68929822",
             },
         ],
         blockchainId: "0x898b8aa8353f2b79ee1de07c36474fcee339003d90fa06ea3a90d9e88b7d7c33",
