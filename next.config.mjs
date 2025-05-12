@@ -8,6 +8,9 @@ const nextConfig = {
             {
                 hostname: 'tokenlist.onplyr.com',
             },
+            {
+                hostname: 'ipfs.plyr.network',
+            },
         ],
     },
     typescript: {

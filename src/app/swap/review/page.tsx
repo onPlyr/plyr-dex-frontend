@@ -40,6 +40,7 @@ import { TxAction, TxLabelType } from "@/app/types/txs"
 
 import { shortenAddress } from 'thirdweb/utils';
 import { Pencil, RefreshCcw, Wallet2, X } from "lucide-react"
+import Image from "next/image"
 
 const ReviewSwapPage = () => {
 
@@ -471,7 +472,7 @@ const ReviewSwapPage = () => {
                                 </button>
                             }
                             {
-                                plyrId && <img src={plyrAvatar} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
+                                plyrId && plyrAvatar && <Image src={plyrAvatar+'?img-width=40'} width={40} height={40} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
                             }
                             {
                                 !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
