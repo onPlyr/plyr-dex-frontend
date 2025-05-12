@@ -215,6 +215,19 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // ID //
+    {
+        id: "id",
+        symbol: "ID",
+        name: "Integrity DAO",
+        decimals: 18,
+        icon: "id.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x34a528Da3b2EA5c6Ad1796Eba756445D1299a577",
+            },
+        },
+    },
     // JUICY //
     {
         id: "juicy",
@@ -736,6 +749,19 @@ const baseTokens: BaseToken[] = [
                 provider: BridgeProvider.ICTT,
             },
         ],
+    },
+    // BNANA //
+    {
+        id: "bnana",
+        symbol: "BNANA",
+        name: "Eat the Banana",
+        decimals: 18,
+        icon: "bnana.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x386905718368aDeD7e544a40cA2Bd60cEb4D28B0",
+            },
+        },
     },
     // BTC.b //
     {
