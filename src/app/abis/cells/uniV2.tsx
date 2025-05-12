@@ -144,6 +144,11 @@ export const uniV2CellAbi = [
                         "internalType": "bool"
                     },
                     {
+                        "name": "rollbackReceiver",
+                        "type": "address",
+                        "internalType": "address"
+                    },
+                    {
                         "name": "rollbackTeleporterFee",
                         "type": "uint256",
                         "internalType": "uint256"
@@ -380,6 +385,11 @@ export const uniV2CellAbi = [
                         "name": "payableReceiver",
                         "type": "bool",
                         "internalType": "bool"
+                    },
+                    {
+                        "name": "rollbackReceiver",
+                        "type": "address",
+                        "internalType": "address"
                     },
                     {
                         "name": "rollbackTeleporterFee",

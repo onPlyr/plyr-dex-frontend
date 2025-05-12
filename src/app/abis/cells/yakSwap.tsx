@@ -111,6 +111,11 @@ export const yakSwapCellAbi = [
                         "internalType": "bool"
                     },
                     {
+                        "name": "rollbackReceiver",
+                        "type": "address",
+                        "internalType": "address"
+                    },
+                    {
                         "name": "rollbackTeleporterFee",
                         "type": "uint256",
                         "internalType": "uint256"
@@ -302,6 +307,11 @@ export const yakSwapCellAbi = [
                         "name": "payableReceiver",
                         "type": "bool",
                         "internalType": "bool"
+                    },
+                    {
+                        "name": "rollbackReceiver",
+                        "type": "address",
+                        "internalType": "address"
                     },
                     {
                         "name": "rollbackTeleporterFee",

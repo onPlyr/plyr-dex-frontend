@@ -106,6 +106,11 @@ export const hopOnlyCellAbi = [
                         "internalType": "bool"
                     },
                     {
+                        "name": "rollbackReceiver",
+                        "type": "address",
+                        "internalType": "address"
+                    },
+                    {
                         "name": "rollbackTeleporterFee",
                         "type": "uint256",
                         "internalType": "uint256"
@@ -297,6 +302,11 @@ export const hopOnlyCellAbi = [
                         "name": "payableReceiver",
                         "type": "bool",
                         "internalType": "bool"
+                    },
+                    {
+                        "name": "rollbackReceiver",
+                        "type": "address",
+                        "internalType": "address"
                     },
                     {
                         "name": "rollbackTeleporterFee",
