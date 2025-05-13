@@ -53,6 +53,9 @@ const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiI
             // KEY
             case '16180:0x78DE1332ef4775811fff5000D5A9eBF70a665B5b':
                 return '43114:0xFFFF003a6BAD9b743d658048742935fFFE2b6ED7'.toLowerCase()
+            // GAMR
+            case '16180:0x413F1a8F0A2Bd9b6D31B2CA91c4aa7bC08266731':
+                return '43114:0xEcB70d85aA4dAc4102688c313588710A3f143529'.toLowerCase()
         }
 
     }
