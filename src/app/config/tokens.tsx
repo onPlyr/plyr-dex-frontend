@@ -472,7 +472,7 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
-    
+
 
     // All bridgable tokens on PLYR and AVALANCHE
     // AMI //
@@ -866,7 +866,6 @@ const baseTokens: BaseToken[] = [
     // GAMR //
     {
         id: "gamr",
-        priceId: "gamr",
         symbol: "GAMR",
         name: "GAMR",
         decimals: 18,
@@ -1191,6 +1190,19 @@ const baseTokens: BaseToken[] = [
                 provider: BridgeProvider.ICTT,
             },
         ],
+    },
+    // ZOO //
+    {
+        id: "zoo",
+        symbol: "ZOO",
+        name: "ZooKeeper",
+        decimals: 18,
+        icon: "zoo.svg",
+        chains: {
+            [avalanche.id]: {
+                address: "0x1B88D7aD51626044Ec62eF9803EA264DA4442F32",
+            },
+        },
     },
 ] as const
 
