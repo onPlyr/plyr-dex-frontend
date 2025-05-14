@@ -8,7 +8,7 @@ import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
 import { Card } from "@/src/components/ui/card"
-import { useActiveAccount, useActiveWallet, useActiveWalletChain,  useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet, useActiveWalletChain, useSwitchActiveWalletChain, useWalletBalance } from 'thirdweb/react';
 
 import { client, tauChain, phiChain } from '@/src/lib/thirdweb_client';
 
@@ -161,7 +161,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
         }
         finally {
             setIsLoading(false);
-           //setAmount0('');
+            //setAmount0('');
             //setAmount1('');
         }
     }
@@ -225,12 +225,12 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
         try {
             const inputAmount = new TokenAmount(input === 0 ? Token0 : Token1, ethers.utils.parseUnits(value, input === 0 ? token0.decimals : token1.decimals).toString());
-            
+
             // Get current reserves and price
             const reserve0 = pair.reserve0;
             const reserve1 = pair.reserve1;
             const price = pair.priceOf(input === 0 ? Token0 : Token1);
-            
+
             // Calculate the optimal output amount based on current price
             const optimalOutputAmount = new TokenAmount(
                 input === 0 ? Token1 : Token0,
@@ -239,7 +239,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
                     input === 0 ? token1.decimals : token0.decimals
                 ).toString()
             );
-            
+
             // Calculate the maximum allowed deviation (0.5% slippage)
             const slippageTolerance = 0.005;
             const maxDeviation = new TokenAmount(
@@ -252,7 +252,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
             console.log('maxDeviation', maxDeviation.toExact())
             console.log('optimalOutputAmount', optimalOutputAmount.toExact())
-            
+
             // Calculate actual price impact
             // const priceImpact = Number(maxDeviation.toExact()) / Number(optimalOutputAmount.toExact()) - 1;
             // //console.log('priceImpact', priceImpact)
@@ -273,19 +273,38 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
             // Calculate share of pool in percent
             const inputValue = Number(inputAmount.toExact());
-            const outputValue = Number(maxDeviation.toExact());
             const reserve0Value = Number(reserve0.toExact());
             const reserve1Value = Number(reserve1.toExact());
-            
-            const sharePercent = Math.min(
-                (inputValue / (reserve0Value + inputValue)) * 100,
-                (outputValue / (reserve1Value + outputValue)) * 100
-            );
 
-            setPoolShareInfo((prevInfo: any) => ({
-                ...prevInfo,
-                sharePercent: sharePercent,
-            }));
+            // console.log('inputValue', inputValue)
+            // console.log('reserve0Value', reserve0Value)
+            // console.log('reserve1Value', reserve1Value)
+            // //alert(input);
+            // console.log('Token0', Token0)
+            // console.log('Token1', Token1)
+            
+
+            // console.log('pair', pair)
+
+
+            if (pair.reserve0.token.address === (input === 0 ? Token0.address : Token1.address)) {
+                
+                const sharePercent = (inputValue / (reserve0Value + inputValue)) * 100
+                console.log('here',sharePercent)
+                setPoolShareInfo((prevInfo: any) => ({
+                    ...prevInfo,
+                    sharePercent: sharePercent,
+                }));
+            }
+            if (pair.reserve1.token.address === (input === 0 ? Token0.address : Token1.address)) {
+                const sharePercent = (inputValue / (reserve1Value + inputValue)) * 100
+                setPoolShareInfo((prevInfo: any) => ({
+                    ...prevInfo,
+                    sharePercent: sharePercent,
+                }));
+            }
+
+
 
             if (Number(newAmount0) > Number(myBalance0?.displayValue || 0) || Number(newAmount1) > Number(myBalance1?.displayValue || 0)) {
                 setError('Insufficient balance')
@@ -348,7 +367,7 @@ export default function addLiqSection({ tokenList }: { tokenList: any[] }) {
 
             // // Refresh pair data and amounts before proceeding
             // await handlePairData();
-            
+
             // // Recalculate amounts based on current market conditions
             // let a = amount1;
             // if (amount0 && amount1) {
