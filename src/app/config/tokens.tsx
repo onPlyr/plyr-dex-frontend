@@ -281,6 +281,19 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // NXPC -- Maplestory //
+    {
+        id: "nxpc",
+        symbol: "NXPC",
+        name: "Nexpace",
+        decimals: 18,
+        icon: "nxpc.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x5E0E90E268BC247Cc850c789A0DB0d5c7621fb59",
+            },
+        },
+    },
     // PNG //
     {
         id: "png",
