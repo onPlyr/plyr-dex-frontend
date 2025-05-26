@@ -48,6 +48,19 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // ai404 //
+    {
+        id: "ai404",
+        symbol: "ERROR",
+        name: "AI 404",
+        decimals: 18,
+        icon: "ai404.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xa77d05fd853af120cD4dB48e73498E0cAbD3F628",
+            },
+        },
+    },
     // BEAM //
     {
         id: "beam",
@@ -58,6 +71,32 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x62d0a8458ed7719fdaf978fe5929c6d342b0bfce",
+            },
+        },
+    },
+    // Bigred //
+    {
+        id: "bigred",
+        symbol: "TD",
+        name: "Big Red",
+        decimals: 9,
+        icon: "bigred.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x87bbFc9DCB66Caa8ce7582A3F17B60a25cd8A248",
+            },
+        },
+    },
+    // BOI //
+    {
+        id: "boi",
+        symbol: "BOI",
+        name: "Boi the Bear",
+        decimals: 18,
+        icon: "boi.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xACC95Afa65768aa74044E6f6e267AD6417CD3e55",
             },
         },
     },
@@ -265,6 +304,19 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0x130966628846BFd36ff31a822705796e8cb8C18D",
+            },
+        },
+    },
+    // MYST //
+    {
+        id: "myst",
+        symbol: "MYST",
+        name: "MyStandard",
+        decimals: 18,
+        icon: "myst.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x0256B279D973C8d687264AC3eB36bE09232D4474",
             },
         },
     },
