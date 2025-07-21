@@ -87,6 +87,37 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // BLACK //
+    {
+        id: "black",
+        symbol: "BLACK",
+        name: "BLACKHOLE",
+        decimals: 18,
+        icon: "black.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xcd94a87696FAC69Edae3a70fE5725307Ae1c43f6",
+            },
+            [plyrPhi.id]: {
+                address: "0x5d790B78a8EE6DC986c329eA8Db8C2a2c4fFFDc0",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x89C695dD0E385F7D3d82c14840dF775201dbBaBB",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x5d790B78a8EE6DC986c329eA8Db8C2a2c4fFFDc0",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
     // BOI //
     {
         id: "boi",
