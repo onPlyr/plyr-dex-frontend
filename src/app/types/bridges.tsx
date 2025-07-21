@@ -87,3 +87,5 @@ export interface BridgePathHopData {
     hop: Hop,
     isNextHop?: boolean,
 }
+
+export type ChainBridgePathData = Map<ChainId, BridgePath[]>

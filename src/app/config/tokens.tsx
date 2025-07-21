@@ -2,10 +2,10 @@ import { getAddress, zeroAddress } from "viem"
 import { avalanche, avalancheFuji } from "wagmi/chains"
 
 import { coqnet, coqnetFuji, plyrPhi, plyrTau, SupportedChains, teschain } from "@/app/config/chains"
-import { getTokenAddress, getTokenFilterData, getTokenUid } from "@/app/lib/tokens"
+import { getBridgeTokens, getDefaultSwapRouteTokens, getNativeTokens, getSwapPathTokens, getTokenAddress, getTokenFilterData, getTokenUid } from "@/app/lib/tokens"
 import { ApiProvider } from "@/app/types/apis"
-import { BridgePath, BridgeProvider, BridgeType } from "@/app/types/bridges"
-import { BaseToken, Token, TokenId } from "@/app/types/tokens"
+import { BridgePath, BridgeProvider, BridgeType, ChainBridgePathData } from "@/app/types/bridges"
+import { BaseToken, DefaultSwapRouteTokenData, isBaseBridgeToken, Token, TokenId } from "@/app/types/tokens"
 
 const baseTokens: BaseToken[] = [
     // EXTRA TOKEN ON AVALANCHE //
@@ -966,6 +966,7 @@ const baseTokens: BaseToken[] = [
         name: "GAMR",
         decimals: 18,
         icon: "gamr.png",
+        
         chains: {
             [plyrPhi.id]: {
                 address: "0x413F1a8F0A2Bd9b6D31B2CA91c4aa7bC08266731",
@@ -1333,7 +1334,7 @@ export const Tokens: Token[] = Object.values(SupportedChains).filter((chain) => 
 export const TokenBridgePaths: Record<TokenId, BridgePath[]> = {}
 for (const baseToken of baseTokens) {
 
-    if (!baseToken.bridges) {
+    if (!baseToken.bridges || !baseToken.bridges.length) {
         continue
     }
 
@@ -1377,3 +1378,52 @@ for (const baseToken of baseTokens) {
 
     TokenBridgePaths[baseToken.id] = tokenPaths
 }
+
+const enabledChains = Object.values(SupportedChains).filter((chain) => !chain.isDisabled)
+const enabledChainIds = new Set(enabledChains.map((chain) => chain.id.toString()))
+const baseBridgeTokens = baseTokens.filter((token) => Object.keys(token.chains).some((chainId) => enabledChainIds.has(chainId))).filter((token) => isBaseBridgeToken(token))
+const bridgeTokens = getBridgeTokens(Tokens).filter((token) => enabledChainIds.has(token.chainId.toString()))
+
+export const chainBridgePaths: ChainBridgePathData = new Map(enabledChains.map((chain) => [chain.id, []]))
+baseBridgeTokens.forEach((bridgeToken) => bridgeToken.bridges.forEach((bridge) => {
+
+    const homeToken = bridgeTokens.find((token) => token.id === bridgeToken.id && token.chainId === bridge.home.chainId)
+    const remoteToken = bridgeTokens.find((token) => token.id === bridgeToken.id && token.chainId === bridge.remote.chainId)
+
+    if (!homeToken || !remoteToken) {
+        return
+    }
+
+    const homePath: BridgePath = {
+        srcData: {
+            ...bridge.home,
+            token: homeToken,
+        },
+        dstData: {
+            ...bridge.remote,
+            token: remoteToken,
+        },
+        provider: bridge.provider,
+    }
+    chainBridgePaths.set(homeToken.chainId, [...chainBridgePaths.get(homeToken.chainId) ?? [], homePath])
+
+    const remotePath: BridgePath = {
+        srcData: {
+            ...bridge.remote,
+            token: remoteToken,
+        },
+        dstData: {
+            ...bridge.home,
+            token: homeToken,
+        },
+        provider: bridge.provider,
+    }
+    chainBridgePaths.set(remoteToken.chainId, [...chainBridgePaths.get(remoteToken.chainId) ?? [], remotePath])
+}))
+
+export const swapPathTokens = getSwapPathTokens(Tokens).filter((token) => enabledChainIds.has(token.chainId.toString()))
+
+const defaultSwapRouteChainIds = Array.from(enabledChainIds).map((id) => parseInt(id))
+const defaultSwapRouteTokens = getDefaultSwapRouteTokens(Tokens).filter((token) => defaultSwapRouteChainIds.includes(token.chainId))
+const nativeTokens = getNativeTokens(Tokens).filter((token) => defaultSwapRouteChainIds.includes(token.chainId))
+export const defaultSwapRouteTokenData: DefaultSwapRouteTokenData = new Map(defaultSwapRouteChainIds.map((id) => [id, defaultSwapRouteTokens.find((token) => token.chainId === id) ?? nativeTokens.find((token) => token.chainId === id)]))

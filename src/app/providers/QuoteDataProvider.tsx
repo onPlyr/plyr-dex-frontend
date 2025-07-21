@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useEffect, useMemo, useReducer, useState } from "react"
+import { createContext, Dispatch, SetStateAction, useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import { formatUnits, parseUnits } from "viem"
 import { useAccount } from "wagmi"
 
@@ -10,8 +10,7 @@ import CoinsIcon from "@/app/components/icons/CoinsIcon"
 import ErrorIcon from "@/app/components/icons/ErrorIcon"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
-import { DefaultUserPreferences } from "@/app/config/preferences"
-import { DefaultSwapRouteConfig } from "@/app/config/swaps"
+import useCellPairs from "@/app/hooks/cells/useCellPairs"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
 import useSwapQuotes, { UseSwapQuotesReturnType } from "@/app/hooks/swap/useSwapQuotes"
 import useTokens from "@/app/hooks/tokens/useTokens"
@@ -19,11 +18,13 @@ import useDebounce from "@/app/hooks/utils/useDebounce"
 import useEventListener from "@/app/hooks/utils/useEventListener"
 import useSessionStorage from "@/app/hooks/utils/useSessionStorage"
 import { getChain, getNetworkModeChainIds } from "@/app/lib/chains"
-import { getSwapNativeTokenAmount } from "@/app/lib/swaps"
+import { getSwapPathData, getSwapPathId } from "@/app/lib/paths"
+import { getSwapNativeTokenAmount, getSwapQuotePriceImpact, getSwapQuotePriceImpactData } from "@/app/lib/swaps"
 import { getTokenAddress } from "@/app/lib/tokens"
+import { SwapPath } from "@/app/types/paths"
 import { NetworkMode, PreferenceType } from "@/app/types/preferences"
 import { StorageKey } from "@/app/types/storage"
-import { SwapMsgData, SwapMsgType, SwapQuote, SwapRoute, SwapRouteJson } from "@/app/types/swaps"
+import { isValidNetworkModeSwapRouteTokenData, isValidSwapRouteTokenData, SwapMsgData, SwapMsgType, SwapQuote, SwapQuotePriceImpact, SwapQuotePriceImpactData, SwapRoute, SwapRouteJson } from "@/app/types/swaps"
 import { isNativeToken, isValidTokenAmount, Token, TokenAmount } from "@/app/types/tokens"
 
 const SwapRouteActionType = {
@@ -41,8 +42,14 @@ interface SwapRouteAction {
     type: SwapRouteActionType,
 }
 
+interface SearchParamsTokenUids {
+    srcUid?: string,
+    dstUid?: string,
+}
+
 interface QuoteDataContextType {
     swapRoute: SwapRoute,
+    swapPath?: SwapPath,
     switchTokens: () => void,
     setSelectedToken: (token?: Token, isDst?: boolean) => void,
     srcAmountInput: string,
@@ -50,6 +57,9 @@ interface QuoteDataContextType {
     useSwapQuotesData: UseSwapQuotesReturnType,
     selectedQuote?: SwapQuote,
     setSelectedQuote: (quote?: SwapQuote) => void,
+    setSearchParamsTokenUids: Dispatch<SetStateAction<SearchParamsTokenUids>>,
+    priceImpactData: SwapQuotePriceImpactData,
+    getPriceImpact: (quote?: SwapQuote) => SwapQuotePriceImpact | undefined,
     swapMsgData?: SwapMsgData,
 }
 
@@ -64,7 +74,6 @@ const swapRouteReducer = (state: SwapRoute, action: SwapRouteAction): SwapRoute 
             const swapRoute: SwapRoute = {
                 ...state,
                 srcData: {
-                    // ...state.srcData,
                     chain: action.srcToken && getChain(action.srcToken.chainId),
                     token: action.srcToken,
                     amount: state.srcData.amount && state.srcData.token && action.srcToken && state.srcData.token.decimals !== action.srcToken.decimals ? parseUnits(formatUnits(state.srcData.amount, state.srcData.token.decimals), action.srcToken.decimals) : state.srcData.amount,
@@ -210,9 +219,7 @@ export const getSwapMsgData = ({
     } : undefined
 }
 
-const isNetworkModeToken = (networkMode: NetworkMode, token?: Token) => {
-    return !!token && getNetworkModeChainIds(networkMode).includes(token.chainId)
-}
+const isNetworkModeToken = (networkMode: NetworkMode, token?: Token) => Boolean(token && getNetworkModeChainIds(networkMode).includes(token.chainId))
 
 const QuoteDataProvider = ({
     children,
@@ -221,10 +228,10 @@ const QuoteDataProvider = ({
 }) => {
 
     const { isConnected } = useAccount()
-    const { getToken, getNativeToken, useBalancesData, getSupportedTokenById } = useTokens()
+    const { tokens, getToken, getNativeToken, useBalancesData, getSearchParamsTokenData, getDefaultNetworkModeTokenData, useTokenPricesData: { getAmountValue } } = useTokens()
     const { getBalance } = useBalancesData
-    const { preferences } = usePreferences()
-    const networkMode = useMemo(() => preferences[PreferenceType.NetworkMode] ?? DefaultUserPreferences[PreferenceType.NetworkMode], [preferences])
+    const { getPreference, setPreference } = usePreferences()
+    const networkMode = useMemo(() => getPreference(PreferenceType.NetworkMode), [getPreference])
 
     const swapRouteSerializer = useCallback((route: SwapRoute): string => {
         return JSON.stringify({
@@ -242,9 +249,11 @@ const QuoteDataProvider = ({
 
     const swapRouteDeserializer = useCallback((value: string): SwapRoute => {
         const route = JSON.parse(value) as SwapRouteJson
+        
         return {
             srcData: {
                 chain: route.srcData.chain && getChain(route.srcData.chain),
+                // @ts-ignore
                 token: route.srcData.tokenAddress && route.srcData.chain && getToken({
                     address: route.srcData.tokenAddress,
                     chainId: route.srcData.chain,
@@ -253,6 +262,7 @@ const QuoteDataProvider = ({
             },
             dstData: {
                 chain: route.dstData.chain && getChain(route.dstData.chain),
+                // @ts-ignore
                 token: route.dstData.tokenAddress && route.dstData.chain && getToken({
                     address: route.dstData.tokenAddress,
                     chainId: route.dstData.chain,
@@ -265,17 +275,11 @@ const QuoteDataProvider = ({
         key: StorageKey.SwapRoute,
         initialValue: {
             srcData: {
-                chain: DefaultSwapRouteConfig[networkMode].srcChain,
-                token: getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain.id),
+                ...getDefaultNetworkModeTokenData(networkMode),
                 amount: BigInt(0),
             },
             dstData: {
-                chain: DefaultSwapRouteConfig[networkMode].dstChain,
-                //token: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain.id),
-                token: getSupportedTokenById({
-                    id: 'gamr',
-                    chainId: DefaultSwapRouteConfig[networkMode].dstChain.id,
-                }),
+                ...getDefaultNetworkModeTokenData(networkMode, true),
             },
         },
         options: {
@@ -288,7 +292,7 @@ const QuoteDataProvider = ({
 
     useEffect(() => {
         setSwapRouteData(swapRoute)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [swapRoute])
 
     const [srcAmountInput, setSrcAmountInputState] = useState("")
@@ -307,16 +311,82 @@ const QuoteDataProvider = ({
         }
     }, [srcAmountInput, srcAmountDebounced])
 
+    const [searchParamsTokenUids, setSearchParamsTokenUids] = useState<SearchParamsTokenUids>({})
+    const [isSearchParamsNetworkModeSwitch, setIsSearchParamsNetworkModeSwitch] = useState(false)
+
+    const searchParamsTokenData = useMemo(() => ({
+        srcData: getSearchParamsTokenData(searchParamsTokenUids?.srcUid),
+        dstData: getSearchParamsTokenData(searchParamsTokenUids?.dstUid),
+    }), [searchParamsTokenUids, getSearchParamsTokenData])
+
     useEffect(() => {
-        if (!isNetworkModeToken(networkMode, swapRouteData.srcData.token) || !isNetworkModeToken(networkMode, swapRouteData.dstData.token)) {
+
+        let srcToken: Token | undefined = undefined
+        let dstToken: Token | undefined = undefined
+        let tokenNetworkMode: NetworkMode | undefined = undefined
+
+        const { srcData, dstData } = searchParamsTokenData
+        const srcDataIsValid = isValidSwapRouteTokenData(srcData)
+        const dstDataIsValid = isValidSwapRouteTokenData(dstData)
+
+        if (srcDataIsValid && dstDataIsValid && srcData.networkMode === dstData.networkMode && srcData.token.uid !== dstData.token.uid) {
+            srcToken = srcData.token
+            dstToken = dstData.token
+            tokenNetworkMode = srcData.networkMode
+        }
+
+        else if (srcDataIsValid) {
+            const srcNetworkModeDstData = getDefaultNetworkModeTokenData(srcData.networkMode, true)
+            srcToken = isValidNetworkModeSwapRouteTokenData(srcNetworkModeDstData) && srcNetworkModeDstData.token.uid === srcData.token.uid ? getDefaultNetworkModeTokenData(srcData.networkMode).token : srcData.token
+            dstToken = srcNetworkModeDstData.token
+            tokenNetworkMode = srcData.networkMode
+        }
+
+        else if (dstDataIsValid) {
+            const dstNetworkModeSrcData = getDefaultNetworkModeTokenData(dstData.networkMode)
+            srcToken = dstNetworkModeSrcData.token
+            dstToken = isValidNetworkModeSwapRouteTokenData(dstNetworkModeSrcData) && dstNetworkModeSrcData.token.uid === dstData.token.uid ? getDefaultNetworkModeTokenData(dstData.networkMode, true).token : dstData.token
+            tokenNetworkMode = dstData.networkMode
+        }
+
+        if (srcToken || dstToken) {
+
+            if (tokenNetworkMode && tokenNetworkMode !== networkMode) {
+                setPreference(PreferenceType.NetworkMode, tokenNetworkMode)
+                setIsSearchParamsNetworkModeSwitch(true)
+            }
+
             dispatchSwapRoute({
-                srcToken: getNativeToken(DefaultSwapRouteConfig[networkMode].srcChain.id),
-                dstToken: getNativeToken(DefaultSwapRouteConfig[networkMode].dstChain.id),
+                srcToken: srcToken,
+                dstToken: dstToken,
+                type: SwapRouteActionType.SetBothTokens,
+            })
+
+            setSrcAmountInput("")
+            setSearchParamsTokenUids({})
+        }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParamsTokenData])
+
+    useEffect(() => {
+        if (isSearchParamsNetworkModeSwitch) {
+            setIsSearchParamsNetworkModeSwitch(false)
+            dispatchSwapRoute({
+                srcToken: swapRoute.srcData.token && getToken(swapRoute.srcData.token),
+                dstToken: swapRoute.dstData.token && getToken(swapRoute.dstData.token),
+                type: SwapRouteActionType.SetBothTokens,
+            })
+        }
+        else if (!isNetworkModeToken(networkMode, swapRouteData.srcData.token) || !isNetworkModeToken(networkMode, swapRouteData.dstData.token)) {
+            dispatchSwapRoute({
+                srcToken: getDefaultNetworkModeTokenData(networkMode).token,
+                dstToken: getDefaultNetworkModeTokenData(networkMode, true).token,
                 type: SwapRouteActionType.SetBothTokens,
             })
             setSrcAmountInput("")
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [networkMode])
 
     const setSelectedToken = useCallback((token?: Token, isDst?: boolean) => {
@@ -327,7 +397,12 @@ const QuoteDataProvider = ({
         })
     }, [])
 
-    const useSwapQuotesData = useSwapQuotes(swapRoute)
+    const { data: cellPairs } = useCellPairs()
+    const swapPathData = useMemo(() => getSwapPathData(tokens, cellPairs), [tokens, cellPairs])
+    const swapPathId = useMemo(() => swapRoute.srcData.token && swapRoute.dstData.token && getSwapPathId({ from: swapRoute.srcData.token, to: swapRoute.dstData.token }), [swapRoute])
+    const swapPath = useMemo(() => swapPathId && swapPathData.get(swapPathId), [swapPathData, swapPathId])
+
+    const useSwapQuotesData = useSwapQuotes(swapRoute, swapPath)
     const { data: swapQuotesData, isFetching: quotesIsFetching, error: quotesError } = useSwapQuotesData
     const [selectedQuote, setSelectedQuoteState] = useState<SwapQuote>()
 
@@ -366,6 +441,9 @@ const QuoteDataProvider = ({
 
     }, [isConnected, swapRoute, quotesIsFetching, quotesError, swapQuotesData?.quotes.length, selectedQuote, getNativeToken, getBalance])
 
+    const priceImpactData = useMemo(() => getSwapQuotePriceImpactData({ quotes: swapQuotesData?.quotes, getAmountValue: getAmountValue }), [getAmountValue, swapQuotesData?.quotes])
+    const getPriceImpact = useCallback((quote?: SwapQuote) => quote && (priceImpactData.get(quote.id) ?? getSwapQuotePriceImpact({ quote: quote, getAmountValue: getAmountValue })), [getAmountValue, priceImpactData])
+
     useEventListener("beforeunload", () => dispatchSwapRoute({
         srcAmount: "",
         type: SwapRouteActionType.SetSrcAmount,
@@ -373,6 +451,7 @@ const QuoteDataProvider = ({
 
     const context: QuoteDataContextType = {
         swapRoute: swapRoute,
+        swapPath: swapPath,
         switchTokens: switchTokens,
         setSelectedToken: setSelectedToken,
         srcAmountInput: srcAmountInput,
@@ -380,6 +459,9 @@ const QuoteDataProvider = ({
         useSwapQuotesData: useSwapQuotesData,
         selectedQuote: selectedQuote,
         setSelectedQuote: setSelectedQuote,
+        setSearchParamsTokenUids: setSearchParamsTokenUids,
+        priceImpactData: priceImpactData,
+        getPriceImpact: getPriceImpact,
         swapMsgData: swapMsgData,
     }
 

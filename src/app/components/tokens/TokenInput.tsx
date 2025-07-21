@@ -12,6 +12,7 @@ import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
+import { PriceImpactLabel } from "@/app/components/swap/PriceImpact"
 import TokenAmountValue from "@/app/components/tokens/TokenAmountValue"
 import TokenBalance from "@/app/components/tokens/TokenBalance"
 import Button from "@/app/components/ui/Button"
@@ -25,7 +26,7 @@ import { getSwapRouteEstGasFee } from "@/app/lib/swaps"
 import { CellFeeType } from "@/app/types/cells"
 import { AnimatedNumberFormatOptions, NumberFormatOptions, NumberFormatType } from "@/app/types/numbers"
 import { StyleDirection, StyleSize } from "@/app/types/styling"
-import { SwapFeeData, SwapRoute } from "@/app/types/swaps"
+import { SwapFeeData, SwapQuotePriceImpact, SwapRoute } from "@/app/types/swaps"
 import { isNativeToken, isValidTokenAmount, Token, TokenAmount } from "@/app/types/tokens"
 
 export interface TokenInputProps extends React.ComponentPropsWithoutRef<"div"> {
@@ -34,6 +35,7 @@ export interface TokenInputProps extends React.ComponentPropsWithoutRef<"div"> {
     setValue?: (value: string) => void,
     amount?: bigint,
     feeData?: SwapFeeData,
+    priceImpact?: SwapQuotePriceImpact,
     isDst?: boolean,
     isDisabled?: boolean,
 }
@@ -141,6 +143,7 @@ const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
     setValue,
     amount,
     feeData,
+    priceImpact,
     isDst = false,
     isDisabled = false,
     ...props
@@ -255,6 +258,7 @@ const TokenInput = React.forwardRef<HTMLDivElement, TokenInputProps>(({
                 {token && (
                     <div className="flex flex-row flex-1 gap-4 text-muted-500">
                         <div className="flex flex-row flex-1 justify-end items-center gap-2">
+                            {isDst && <PriceImpactLabel priceImpact={priceImpact} />}
                             <TokenAmountValue
                                 token={token}
                                 amount={{

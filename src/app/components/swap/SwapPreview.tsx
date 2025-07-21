@@ -10,6 +10,7 @@ import StepIcon from "@/app/components/icons/StepIcon"
 import { ChainImageInline } from "@/app/components/images/ChainImage"
 import { PlatformImage } from "@/app/components/images/PlatformImage"
 import { TokenImage } from "@/app/components/images/TokenImage"
+import { PriceImpactLabel } from "@/app/components/swap/PriceImpact"
 import TokenAmountValue, { InvalidTokenPriceTooltip } from "@/app/components/tokens/TokenAmountValue"
 import DecimalAmount from "@/app/components/ui/DecimalAmount"
 import { Tooltip } from "@/app/components/ui/Tooltip"
@@ -22,11 +23,12 @@ import { getPercentDifferenceFormatted } from "@/app/lib/numbers"
 import { getPlatform } from "@/app/lib/platforms"
 import { NumberFormatType } from "@/app/types/numbers"
 import { StyleDirection } from "@/app/types/styling"
-import { HopEvent, isSwapType, SwapQuote, SwapType, SwapTypeLabel } from "@/app/types/swaps"
+import { HopEvent, isSwapType, SwapQuote, SwapQuotePriceImpact, SwapType, SwapTypeLabel } from "@/app/types/swaps"
 import { isValidTokenAmount } from "@/app/types/tokens"
 
 interface SwapPreviewProps extends React.ComponentPropsWithoutRef<"div"> {
     swap: SwapQuote,
+    priceImpact?: SwapQuotePriceImpact,
     isSelected?: boolean,
     isSwapWidget?: boolean,
     isReviewPage?: boolean,
@@ -104,6 +106,7 @@ EventPreview.displayName = "EventPreview"
 const SwapPreview = React.forwardRef<HTMLDivElement, SwapPreviewProps>(({
     className,
     swap,
+    priceImpact,
     isSelected,
     isSwapWidget,
     isReviewPage,
@@ -146,10 +149,10 @@ const SwapPreview = React.forwardRef<HTMLDivElement, SwapPreviewProps>(({
                         </div>
                         <div className="flex flex-row flex-1 gap-2">
                             <div className="flex flex-col flex-none text-muted-500">
-                                <div className="flex flex-row flex-1 items-end">
+                                <div className="flex flex-row flex-1 items-center">
                                     Est.
                                 </div>
-                                <div className="flex flex-row flex-1 items-end">
+                                <div className="flex flex-row flex-1 items-center">
                                     Min.
                                 </div>
                             </div>
@@ -162,6 +165,7 @@ const SwapPreview = React.forwardRef<HTMLDivElement, SwapPreviewProps>(({
                                         type={NumberFormatType.Precise}
                                         className="font-bold text-lg"
                                     />
+                                    <PriceImpactLabel priceImpact={priceImpact} />
                                 </div>
                                 <div className="flex flex-row flex-1 gap-2 items-center">
                                     <DecimalAmount
@@ -175,7 +179,7 @@ const SwapPreview = React.forwardRef<HTMLDivElement, SwapPreviewProps>(({
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-row shrink flex-wrap gap-2">
+                    <div className="flex flex-row sm:justify-end shrink flex-wrap gap-x-2 gap-y-1">
                         {dstAmountDiff !== undefined ? (
                             <Tooltip
                                 trigger=<div className={twMerge("badge-label normal-case", isNegativeDiff ? "bg-error-500" : "bg-success-500")}>

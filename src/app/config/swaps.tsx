@@ -22,17 +22,18 @@ export const TokenInputPercentOptions = [
 ] as const
 
 export const SwapQuoteConfig = {
-    MaxHops: 2,
-    DefaultMaxHops: 2,
+    MaxHops: 3,
+    DefaultMaxHops: 3,
     QuoteValidMs: 30000,
     AlternativeQuoteSwitchDelayMs: 5000,
     InitiatedBlockBuffer: BigInt(10),
     DefaultFixedNativeFee: 0.001,
     DefaultBaseFeeBps: 10,
+    PriceImpactWarningThresholdPercent: 5,
 } as const
 
 export const YakSwapConfig = {
-    DefaultMaxSteps: 2,
+    DefaultMaxSteps: 3,
     Fee: BigInt(0),
 }
 
@@ -70,7 +71,7 @@ export const HopTypeGasUnits: Record<HopType, HopGasUnitsData> = {
 
 export const DefaultSwapRouteConfig = {
     [NetworkMode.Mainnet]: {
-        srcChain: SupportedChains[plyrPhi.id],
+        srcChain: SupportedChains[avalanche.id],
         dstChain: SupportedChains[plyrPhi.id],
     },
     [NetworkMode.Testnet]: {

@@ -6,7 +6,6 @@ import { Cell } from "@/app/types/cells"
 import { IconFormat } from "@/app/types/styling"
 import { SwapAdapter } from "@/app/types/swaps"
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const wagmiChainIds = wagmiConfig.chains.map((chain) => chain.id)
 export type ChainId = (typeof wagmiChainIds)[number]
 
@@ -22,6 +21,7 @@ export interface Chain extends RainbowKitChain {
     avgBlockTimeSampleRange: bigint,
     adapters?: SwapAdapter[],
     clientData: ClientData,
+    faucet?: URL,
     isDisabled?: boolean,
 }
 
@@ -47,6 +47,4 @@ export type ClientTransportsType = {
     [chainId in ChainId]?: FallbackTransport<Transport[]>
 }
 
-export const isSupportedChainId = (chainId: number): chainId is ChainId => {
-    return wagmiChainIds.includes(chainId as ChainId)
-}
+export const isSupportedChainId = (chainId: number): chainId is ChainId => wagmiChainIds.includes(chainId as ChainId)

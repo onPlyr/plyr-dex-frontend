@@ -5,19 +5,24 @@ import { erc20Abi, getAddress, zeroAddress } from "viem"
 import { readContracts } from "@wagmi/core"
 
 import { DefaultUserPreferences } from "@/app/config/preferences"
-import { Tokens } from "@/app/config/tokens"
+import { DefaultSwapRouteConfig } from "@/app/config/swaps"
+import { defaultSwapRouteTokenData, Tokens } from "@/app/config/tokens"
 import { wagmiConfig } from "@/app/config/wagmi"
 import usePreferences from "@/app/hooks/preferences/usePreferences"
-import { PreferenceType } from "@/app/types/preferences"
+import { NetworkMode, PreferenceType } from "@/app/types/preferences"
 import useBalances, { UseBalancesReturnType } from "@/app/hooks/tokens/useBalances"
 import useTokenPrices, { UseTokenPricesReturnType } from "@/app/hooks/tokens/useTokenPrices"
 import useLocalStorage from "@/app/hooks/utils/useLocalStorage"
-import { getNetworkModeChainIds } from "@/app/lib/chains"
+import { getChain, getChainNetworkMode, getNetworkModeChainIds } from "@/app/lib/chains"
 import { getTokenAddress, getTokenDataMap, getTokenFilterData, getTokensFromDataMap, getTokenUid, getUnsupportedTokenData } from "@/app/lib/tokens"
-import { getParsedError, isEqualAddress } from "@/app/lib/utils"
-import { ChainId } from "@/app/types/chains"
+import { getParsedError, isEqualAddress, isValidAddress } from "@/app/lib/utils"
+import { ChainId, isSupportedChainId } from "@/app/types/chains"
 import { StorageKey } from "@/app/types/storage"
-import { FavouriteTokenData, GetSupportedTokenByIdFunction, GetTokenByIdFunctionArgs, GetTokenFunction, GetTokenFunctionArgs, GetTokenFunctionAsync, isNativeToken, Token, TokenDataMap, TokenJson, TokenUid } from "@/app/types/tokens"
+import { SwapRouteTokenData } from "@/app/types/swaps"
+import {
+    FavouriteTokenData, GetSupportedTokenByIdFunction, GetTokenByIdFunctionArgs, GetTokenByUidFunctionArgs, GetTokenFunction, GetTokenFunctionArgs, GetTokenFunctionAsync,
+    isDefaultSwapRouteToken, isNativeToken, Token, TokenDataMap, TokenJson, TokenUid
+} from "@/app/types/tokens"
 
 interface TokenDataContextType {
     tokens: Token[],
@@ -33,6 +38,8 @@ interface TokenDataContextType {
     favouriteTokenData: FavouriteTokenData,
     getIsFavouriteToken: (token: Token) => boolean,
     setIsFavouriteToken: (token: Token) => void,
+    getSearchParamsTokenData: (uid?: string) => SwapRouteTokenData,
+    getDefaultNetworkModeTokenData: (networkMode: NetworkMode, isDst?: boolean) => SwapRouteTokenData,
     refetch: () => void,
 }
 
@@ -66,6 +73,23 @@ const favouriteTokenDeserializer = (data: string) => new Set(JSON.parse(data) as
 
 const getDataUid = (data: GetTokenFunctionArgs) => data.uid ?? getTokenUid(data.chainId, getTokenAddress(data))
 const isNativeData = (data: GetTokenFunctionArgs) => !data.isCustomToken && isEqualAddress(data.address, zeroAddress)
+
+const parseTokenUidString = (uid?: string): GetTokenByUidFunctionArgs | undefined => {
+
+    const data = uid?.split(":")
+    const chainId = data && parseInt(data[0])
+    const address = data && isValidAddress(data[1]) && getAddress(data[1])
+
+    if (!data || !chainId || !isSupportedChainId(chainId) || !address) {
+        return
+    }
+
+    return {
+        uid: getTokenUid(chainId, address),
+        chainId: chainId,
+        address: address,
+    }
+}
 
 const TokenDataProvider = ({
     children,
@@ -131,6 +155,29 @@ const TokenDataProvider = ({
             return data
         })
     }, [setFavouriteTokenData])
+
+    const getSearchParamsTokenData = useCallback((uid?: string) => {
+
+        const data = parseTokenUidString(uid)
+        const token = data && (tokenData.get(data.uid) || (data.address === zeroAddress && getNativeToken(data.chainId)) || Tokens.find((t) => t.uid === data.uid || (t.chainId === data.chainId && (t.address === data.address || (data.address === zeroAddress && isNativeToken(t))))))
+        
+        return {
+            token: token,
+            chain: token && getChain(token.chainId),
+            networkMode: token && getChainNetworkMode(token.chainId),
+        }
+    }, [tokenData, getNativeToken])
+
+    const getDefaultNetworkModeTokenData = useCallback((networkMode: NetworkMode, isDst?: boolean) => {
+
+        const chain = getChain(isDst ? DefaultSwapRouteConfig[networkMode].dstChain.id : DefaultSwapRouteConfig[networkMode].srcChain.id)
+        const token = chain && (tokens.find((t) => t.chainId === chain.id && isDefaultSwapRouteToken(t)) || defaultSwapRouteTokenData.get(chain.id))
+
+        return {
+            token: token,
+            chain: chain,
+        }
+    }, [tokens])
 
     const getContractTokenData: GetTokenFunctionAsync = useCallback(async (data) => {
 
@@ -206,6 +253,8 @@ const TokenDataProvider = ({
         favouriteTokenData: favouriteTokenData,
         getIsFavouriteToken: getIsFavouriteToken,
         setIsFavouriteToken: setIsFavouriteToken,
+        getSearchParamsTokenData: getSearchParamsTokenData,
+        getDefaultNetworkModeTokenData: getDefaultNetworkModeTokenData,
         refetch: refetch,
     }
 

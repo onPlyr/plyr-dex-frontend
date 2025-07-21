@@ -84,12 +84,9 @@ export const getPercentChangeFormatted = (srcAmount: bigint, dstAmount: bigint, 
     return amountToLocale((parseUnits(srcAmount.toString(), decimals + 2) / dstAmount) - parseUnits("100", decimals), decimals)
 }
 
-export const getPercentDifferenceFormatted = (srcAmount: bigint, dstAmount: bigint, decimals: number, withSign?: boolean) => {
-    if (srcAmount === BigInt(0) || dstAmount === BigInt(0)) {
-        return "0"
-    }
-    return NumberFormat[withSign ? NumberFormatType.PercentWithSign : NumberFormatType.Percent].format(formatUnits(parseUnits((dstAmount - srcAmount).toString(), decimals) / srcAmount, decimals) as Intl.StringNumericLiteral)
-}
+export const getPercentDifference = (srcAmount: bigint, dstAmount: bigint, decimals: number) => srcAmount && dstAmount && (parseUnits((dstAmount - srcAmount).toString(), decimals) / srcAmount)
+export const formatPercentDifference = (amount: bigint, decimals: number, withSign?: boolean) => NumberFormat[withSign ? NumberFormatType.PercentWithSign : NumberFormatType.Percent].format(formatUnits(amount, decimals) as Intl.StringNumericLiteral)
+export const getPercentDifferenceFormatted = (srcAmount: bigint, dstAmount: bigint, decimals: number, withSign?: boolean) => srcAmount && dstAmount ? formatPercentDifference(getPercentDifference(srcAmount, dstAmount, decimals), decimals, withSign) as Intl.StringNumericLiteral : "0"
 
 ////////////////////////////////////////////////////////////////////////////////
 // currency
@@ -97,7 +94,7 @@ export const getPercentDifferenceFormatted = (srcAmount: bigint, dstAmount: bigi
 export const getCurrencyLabel = (currency: Currency) => CurrencyLabel[currency]
 export const getCurrencyFormat = (currency: Currency, amount?: string) => {
     const value = amount ? parseFloat(amount) : 0
-    return value < CurrencyFormatLimit.Default && value !== 0 ? SmCurrencyFormat[currency] : CurrencyFormat[currency]
+    return value && value > -1 && value < CurrencyFormatLimit.Default ? SmCurrencyFormat[currency] : CurrencyFormat[currency]
 }
 
 export const currencyToLocale = ({

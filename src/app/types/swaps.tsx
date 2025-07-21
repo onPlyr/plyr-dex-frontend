@@ -4,7 +4,8 @@ import { PlatformId } from "@/app/config/platforms"
 import { BridgeProvider, BridgePath } from "@/app/types/bridges"
 import { Cell, CellAbiType, CellFeeType, CellInstructions, CellTrade } from "@/app/types/cells"
 import { Chain, ChainId } from "@/app/types/chains"
-import { Token, TokenDataMap } from "@/app/types/tokens"
+import { NetworkMode } from "@/app/types/preferences"
+import { Token, TokenDataMap, ValidTokenAmount } from "@/app/types/tokens"
 import { WithRequired } from "@/app/types/utils"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,6 +43,9 @@ export type SwapHopType = typeof SwapHopType[number]
 
 export const CrossChainHopType = [HopType.Hop, HopType.HopAndCall, HopType.SwapAndHop] as const
 export type CrossChainHopType = typeof CrossChainHopType[number]
+
+export const SameChainHopType = [HopType.SwapAndTransfer] as const
+export type SameChainHopType = typeof SameChainHopType[number]
 
 export const SwapTypeLabel: Record<SwapType, string> = {
     [SwapType.Swap]: "Swap",
@@ -210,6 +214,21 @@ export const isValidSwapRoute = (route: SwapRoute): route is ValidSwapRoute => {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// swap route tokens
+
+interface SwapRouteTokenBaseData {
+    token?: Token,
+    chain?: Chain,
+    networkMode?: NetworkMode,
+}
+type ValidSwapRouteTokenData = Required<SwapRouteTokenBaseData>
+type ValidNetworkModeSwapRouteTokenData = WithRequired<SwapRouteTokenBaseData, "token" | "chain">
+export type SwapRouteTokenData = SwapRouteTokenBaseData | ValidSwapRouteTokenData | ValidNetworkModeSwapRouteTokenData
+
+export const isValidSwapRouteTokenData = (data: SwapRouteTokenData): data is ValidSwapRouteTokenData => Boolean(data.token && data.chain && data.networkMode)
+export const isValidNetworkModeSwapRouteTokenData = (data: SwapRouteTokenData): data is ValidNetworkModeSwapRouteTokenData => Boolean(data.token && data.chain)
+
+////////////////////////////////////////////////////////////////////////////////
 // swaps
 
 export type SwapId = string
@@ -345,8 +364,8 @@ type CrossChainHop = BaseHop<CrossChainHopType>
 type RollbackHop = WithRequired<BaseHop, "rollbackData">
 
 type BaseHopQuote<THopType = HopType, TBaseData = QuoteData> = WithRequired<BaseHop<THopType, TBaseData>, "estGasUnits">
-type SwapHopQuote = BaseHopQuote<SwapHopType>
 type CrossChainHopQuote = BaseHopQuote<CrossChainHopType>
+export type SwapHopQuote = BaseHopQuote<SwapHopType>
 
 type BaseValidHopQuote<THopType = HopType> = BaseHopQuote<THopType, ValidQuoteData>
 type ValidSwapHopQuote = WithRequired<BaseValidHopQuote<SwapHopType>, "trade" | "encodedTrade" | "queryIndex">
@@ -491,3 +510,16 @@ interface BaseGetSwapQuoteDataReturnType<TData = SwapQuoteReturnData> {
 }
 export type GetValidHopQuoteDataReturnType = BaseGetSwapQuoteDataReturnType<GetValidHopQuoteDataReturnData>
 export type GetSwapQuoteDataReturnType = BaseGetSwapQuoteDataReturnType<GetSwapQuoteDataReturnData>
+
+////////////////////////////////////////////////////////////////////////////////
+// price impact
+
+export interface SwapQuotePriceImpact {
+    srcToken: Token,
+    dstToken: Token,
+    value: ValidTokenAmount,
+    percentage: ValidTokenAmount,
+    isNegative: boolean,
+    showWarning: boolean,
+}
+export type SwapQuotePriceImpactData = Map<SwapId, SwapQuotePriceImpact>

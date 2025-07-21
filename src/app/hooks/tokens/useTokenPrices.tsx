@@ -113,7 +113,7 @@ const fetchPrices = async ({
 
         const baseUrl = getBaseUrl()
         const apiPath = baseUrl.endsWith('/api') ? '' : '/api'
-        const url = new URL(`${apiPath}/prices/?${urlParams}`, baseUrl)
+        const url = new URL(`${apiPath}/prices?${urlParams}`, baseUrl)
 
         const response = await fetch(url.href)
 

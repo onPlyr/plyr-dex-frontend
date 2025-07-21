@@ -2,13 +2,14 @@
 
 import { AnimatePresence } from "motion/react"
 import Link from "next/link"
-import React from "react"
+import React, { useMemo } from "react"
 import { twMerge } from "tailwind-merge"
 import { formatUnits } from "viem"
 
 import ArrowIcon from "@/app/components/icons/ArrowIcon"
 import ChevronIcon from "@/app/components/icons/ChevronIcon"
 import RouteIcon from "@/app/components/icons/RouteIcon"
+import { PriceImpactWarning } from "@/app/components/swap/PriceImpact"
 import SwapPreview from "@/app/components/swap/SwapPreview"
 import SwapWidgetAnimation from "@/app/components/swap/SwapWidgetAnimation"
 import UnwrapNativeToken from "@/app/components/swap/UnwrapNativeToken"
@@ -30,8 +31,9 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
     ...props
 }, ref) => {
 
-    const { swapRoute, switchTokens, srcAmountInput, setSrcAmountInput, useSwapQuotesData, selectedQuote, swapMsgData } = useQuoteData()
+    const { swapRoute, switchTokens, srcAmountInput, setSrcAmountInput, useSwapQuotesData, selectedQuote, swapMsgData, getPriceImpact } = useQuoteData()
     const { isPending, data: quoteData } = useSwapQuotesData
+    const priceImpact = useMemo(() => getPriceImpact(selectedQuote), [selectedQuote, getPriceImpact])
 
     return (
         <div
@@ -67,6 +69,7 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
                 route={swapRoute}
                 value={selectedQuote ? formatUnits(selectedQuote.estDstAmount, selectedQuote.dstData.token.decimals) : undefined}
                 amount={selectedQuote?.estDstAmount}
+                priceImpact={priceImpact}
                 isDst={true}
                 isDisabled={showIntro}
             />
@@ -90,8 +93,18 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
                         )}
                     </div>
                     <AnimatePresence mode="wait">
+                        {selectedQuote && priceImpact?.showWarning && (
+                            <SwapWidgetAnimation key={`${selectedQuote.id}-price-impact`}>
+                                <PriceImpactWarning
+                                    className="mb-4"
+                                    priceImpact={priceImpact}
+                                />
+                            </SwapWidgetAnimation>
+                        )}
+                    </AnimatePresence>
+                    <AnimatePresence mode="wait">
                         {selectedQuote && swapMsgData?.isShowErrorWithQuote && (
-                            <SwapWidgetAnimation>
+                            <SwapWidgetAnimation key={`${selectedQuote.id}-error-msg`}>
                                 <AlertDetail
                                     className="mb-4"
                                     type={AlertType.Error}
@@ -106,10 +119,11 @@ const SwapWidget = React.forwardRef<HTMLDivElement, SwapWidgetProps>(({
                             data-selected={true}
                         >
                             <AnimatePresence mode="wait">
-                                <SwapWidgetAnimation key={selectedQuote?.id ?? swapMsgData?.type ?? "empty"}>
+                                <SwapWidgetAnimation key={`quote-${selectedQuote?.id ?? swapMsgData?.type ?? "empty"}`}>
                                     {selectedQuote ? (
                                         <SwapPreview
                                             swap={selectedQuote}
+                                            priceImpact={priceImpact}
                                             isSelected={true}
                                             isSwapWidget={true}
                                         />

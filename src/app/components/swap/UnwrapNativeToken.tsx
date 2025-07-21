@@ -29,7 +29,7 @@ const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.Comp
     const { swapRoute: { srcData: { chain, token } } } = useQuoteData()
     const { switchChain } = useSwitchChain()
     const { refetch: refetchTokens } = useTokens()
-    const unwrapEnabled = !(!connectedChain || !accountAddress || !chain || !token || isNativeToken(token) || !token.wrappedAddress)
+    const unwrapEnabled = !(!connectedChain || !accountAddress || !chain || !token || !isNativeToken(token))
 
     const { data: wrappedBalance, refetch: refetchWrappedBalance } = useReadContract({
         chainId: chain?.id,

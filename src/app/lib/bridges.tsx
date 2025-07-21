@@ -3,7 +3,8 @@ import { Address } from "viem"
 import { TokenBridgePaths } from "@/app/config/tokens"
 import { getChainCanSwap } from "@/app/lib/cells"
 import { getChain } from "@/app/lib/chains"
-import { generateSwapId, getHopTypeEstGasUnits, getMinAmount } from "@/app/lib/swaps"
+import { getHopTypeEstGasUnits } from "@/app/lib/paths"
+import { generateSwapId, getMinAmount } from "@/app/lib/swaps"
 import { isEqualAddress } from "@/app/lib/utils"
 import { BridgePath, BridgePathHopData } from "@/app/types/bridges"
 import { Chain, ChainId } from "@/app/types/chains"
@@ -61,7 +62,7 @@ export const getBridgePathHops = ({
                 srcChain: hopSrcChain,
             }).filter((path) => !prevHop || (path.dstData.chainId !== prevHop.srcData.chain.id || path.dstData.token.id !== prevHop.dstData.token.id))
 
-            if (!isGetHopData || !hopSrcChain || !paths || paths.length === 0) {
+            if (!isGetHopData || !hopSrcChain || !paths || !paths.length) {
                 continue
             }
 

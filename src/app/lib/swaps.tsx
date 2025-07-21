@@ -3,12 +3,13 @@ import { Address, Block, erc20Abi, formatUnits } from "viem"
 import { getGasPrice, readContracts } from "@wagmi/core"
 import { v4 as uuidv4 } from "uuid"
 
-import { durationEstimateNumConfirmations, GasUnits, HopTypeGasUnits, SwapQuoteConfig } from "@/app/config/swaps"
+import { TokenPriceConfig } from "@/app/config/prices"
+import { durationEstimateNumConfirmations, GasUnits, SwapQuoteConfig } from "@/app/config/swaps"
 import { wagmiConfig } from "@/app/config/wagmi"
 import { getApiUrl } from "@/app/lib/apis"
-import { getBridgePathHops } from "@/app/lib/bridges"
-import { getBridgePathCells, getCellAbi, getChainCanSwap, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getEncodedCellTradeData, getQuoteCellInstructions, getSwapCells } from "@/app/lib/cells"
-import { MathBigInt } from "@/app/lib/numbers"
+import { getCellAbi, getDecodedCellTradeData, getEncodedCellRouteData, getEncodedCellTrade, getEncodedCellTradeData, getQuoteCellInstructions } from "@/app/lib/cells"
+import { formatPercentDifference, getPercentDifference, MathBigInt } from "@/app/lib/numbers"
+import { getHopTypeEstGasUnits, getMaxHops } from "@/app/lib/paths"
 import { getPlatform } from "@/app/lib/platforms"
 import { toShort } from "@/app/lib/strings"
 import { getTokenAddress, getTokenDataMap, getUnsupportedTokenData } from "@/app/lib/tokens"
@@ -18,13 +19,14 @@ import { ApiResult, ApiRouteType, ApiSimpleQuoteResultData } from "@/app/types/a
 import { BridgeProvider } from "@/app/types/bridges"
 import { CellFeeType, CellRouteData, CellRouteDataParameter, CellTradeData, CellTradeParameter } from "@/app/types/cells"
 import { Chain } from "@/app/types/chains"
+import { SwapPath } from "@/app/types/paths"
 import { NetworkMode, SlippageConfig } from "@/app/types/preferences"
 import {
-    GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnData, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, HopType, InitiateSwapAction,
-    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapFeeTokenData, SwapId, SwapQuote,
-    SwapQuoteData, SwapRoute, SwapStatus, SwapType,
+    GetSwapQuoteDataReturnType, GetValidHopQuoteDataReturnData, GetValidHopQuoteDataReturnType, Hop, HopApiQuery, HopContractQuery, HopEvent, HopQueryData, HopQueryResult, HopQuote, InitiateSwapAction,
+    isCrossChainHopType, isSwapHopType, isTransferEvent, isValidHopQuote, isValidInitiateSwapQuote, isValidQuoteData, isValidSwapFeeData, isValidSwapQuote, isValidSwapRoute, Swap, SwapFeeData, SwapFeeQuery, SwapFeeTokenData, SwapId, SwapQuote,
+    SwapQuoteData, SwapQuotePriceImpact, SwapQuotePriceImpactData, SwapRoute, SwapStatus, SwapType,
 } from "@/app/types/swaps"
-import { GetNativeTokenFunction, GetSupportedTokenByIdFunction, GetTokenFunction, isNativeToken, isValidTokenAmount, Token, TokenAmount, TokenDataMap } from "@/app/types/tokens"
+import { GetNativeTokenFunction, GetSupportedTokenByIdFunction, GetTokenAmountValueFunction, GetTokenFunction, isNativeToken, isValidTokenAmount, Token, TokenAmount, TokenDataMap } from "@/app/types/tokens"
 
 export const generateSwapId = (): SwapId => {
     return uuidv4()
@@ -46,14 +48,6 @@ export const getSwapQuoteTokenAddresses = (hop: Hop, getSupportedTokenById: GetS
         srcTokenAddress: getTokenAddress(srcToken),
         dstTokenAddress: dstToken && getTokenAddress(dstToken),
     }
-}
-
-export const getMaxHops = (num?: number) => {
-    return num && num <= SwapQuoteConfig.MaxHops ? num : SwapQuoteConfig.DefaultMaxHops
-}
-
-export const getHopTypeEstGasUnits = (type: HopType, estAmount?: bigint) => {
-    return HopTypeGasUnits[type].estBase + (estAmount || HopTypeGasUnits[type].estDefault)
 }
 
 export const getMinAmount = (estAmount?: bigint, slippageBps?: bigint) => {
@@ -142,7 +136,6 @@ export const getSwapNativeTokenAmount = (swap?: Swap) => {
 
 export const getSwapFeeTokenData = (swap: Swap, getNativeToken: GetNativeTokenFunction): SwapFeeTokenData[] | undefined => {
 
-     
     const displayFees = isValidSwapFeeData(swap.feeData) && Object.entries(swap.feeData).filter(([_, amount]) => amount > BigInt(0))
     if (!displayFees || !displayFees.length) {
         return
@@ -259,6 +252,7 @@ export const getInitiateSwapError = ({
 
 export const getSwapQuoteData = async ({
     route,
+    path,
     getApiTokenPair,
     maxNumHops,
     cellRouteData,
@@ -266,6 +260,7 @@ export const getSwapQuoteData = async ({
     getSupportedTokenById,
 }: {
     route: SwapRoute,
+    path: SwapPath,
     getApiTokenPair: GetApiTokenPairFunction,
     maxNumHops?: number,
     cellRouteData?: CellRouteData,
@@ -288,9 +283,10 @@ export const getSwapQuoteData = async ({
 
         const initialHopData = getInitialHopQuoteData({
             route: route,
-            maxHops: maxHops,
+            path: path,
+            // maxHops: maxHops,
             slippageBps: slippageBps,
-            getSupportedTokenById: getSupportedTokenById,
+            // getSupportedTokenById: getSupportedTokenById,
         })
 
         const feeData = await getQuoteFeeData({
@@ -374,8 +370,7 @@ export const getSwapQuoteData = async ({
     }
 
     finally {
-
-        if (swapQuotes.length > 0) {
+        if (swapQuotes.length) {
             swapQuotes.sort((a, b) => parseFloat(formatUnits(b.estDstAmount - a.estDstAmount, route.dstData.token.decimals)))
             swapQuoteData.data = {
                 srcData: {
@@ -400,14 +395,16 @@ export const getSwapQuoteData = async ({
 
 export const getInitialHopQuoteData = ({
     route,
-    maxHops,
+    path,
+    // maxHops,
     slippageBps,
-    getSupportedTokenById,
+    // getSupportedTokenById,
 }: {
     route: SwapRoute,
-    maxHops: number,
+    path: SwapPath,
+    // maxHops: number,
     slippageBps?: bigint,
-    getSupportedTokenById: GetSupportedTokenByIdFunction,
+    // getSupportedTokenById: GetSupportedTokenByIdFunction,
 }) => {
 
     const hopData: Record<SwapId, HopQuote[]> = {}
@@ -415,74 +412,101 @@ export const getInitialHopQuoteData = ({
         return hopData
     }
 
-    const { srcData, dstData } = route
+    path.quotePaths.forEach((pathHops) => hopData[generateSwapId()] = pathHops.map((hop, i) => {
 
-    if (srcData.chain.id === dstData.chain.id && getChainCanSwap(srcData.chain)) {
-        for (const cell of getSwapCells(srcData.chain)) {
-            hopData[generateSwapId()] = [
-                {
-                    srcData: {
-                        chain: srcData.chain,
-                        token: srcData.token,
-                        cell: cell,
-                        estAmount: srcData.amount,
-                        minAmount: srcData.amount,
-                    },
-                    dstData: {
-                        chain: dstData.chain,
-                        token: dstData.token,
-                        cell: cell,
-                    },
-                    type: HopType.SwapAndTransfer,
-                    index: 0,
-                    estGasUnits: getHopTypeEstGasUnits(HopType.SwapAndTransfer),
-                },
-            ]
+        const prevHop = i ? pathHops.at(i - 1) : undefined
+        const isPrevSwap = prevHop && isSwapHopType(prevHop.type)
+        const isSwap = isSwapHopType(hop.type)
+
+        const srcEstAmount = i ? isPrevSwap ? undefined : prevHop?.dstData.estAmount : route.srcData.amount
+        const srcMinAmount = i ? isPrevSwap ? getMinAmount(srcEstAmount, slippageBps) : srcEstAmount : route.srcData.amount
+
+        const dstEstAmount = isSwap ? undefined : srcEstAmount
+        const dstMinAmount = isSwap ? undefined : srcEstAmount
+
+        const hopQuote: HopQuote = {
+            ...hop,
+            srcData: {
+                ...hop.srcData,
+                estAmount: srcEstAmount,
+                minAmount: srcMinAmount,
+            },
+            dstData: {
+                ...hop.dstData,
+                estAmount: dstEstAmount,
+                minAmount: dstMinAmount,
+            },
         }
-    }
 
-    const bridgePathHops = getBridgePathHops({
-        route: route,
-        maxHops: maxHops,
-        slippageBps: slippageBps,
-        getSupportedTokenById: getSupportedTokenById,
-    })
+        return hopQuote
+    }))
 
-    if (!bridgePathHops || bridgePathHops.length === 0) {
-        return hopData
-    }
+    // if (srcData.chain.id === dstData.chain.id && getChainCanSwap(srcData.chain)) {
+    //     for (const cell of getSwapCells(srcData.chain)) {
+    //         hopData[generateSwapId()] = [
+    //             {
+    //                 srcData: {
+    //                     chain: srcData.chain,
+    //                     token: srcData.token,
+    //                     cell: cell,
+    //                     estAmount: srcData.amount,
+    //                     minAmount: srcData.amount,
+    //                 },
+    //                 dstData: {
+    //                     chain: dstData.chain,
+    //                     token: dstData.token,
+    //                     cell: cell,
+    //                 },
+    //                 type: HopType.SwapAndTransfer,
+    //                 index: 0,
+    //                 estGasUnits: getHopTypeEstGasUnits(HopType.SwapAndTransfer),
+    //             },
+    //         ]
+    //     }
+    // }
 
-    for (const pathHops of bridgePathHops) {
+    // const bridgePathHops = getBridgePathHops({
+    //     route: route,
+    //     maxHops: maxHops,
+    //     slippageBps: slippageBps,
+    //     getSupportedTokenById: getSupportedTokenById,
+    // })
 
-        const pathSrcCells = pathHops.map((hop) => getBridgePathCells(hop.srcData.chain, isSwapHopType(hop.type)))
-        const maxHopCells = Math.max(...pathSrcCells.map((cells) => cells.length))
-        const pathSwapIds = Array.from(Array(maxHopCells), () => generateSwapId())
+    // if (!bridgePathHops || bridgePathHops.length === 0) {
+    //     return hopData
+    // }
 
-        for (let quoteNum = 0; quoteNum < pathSwapIds.length; quoteNum++) {
+    // for (const pathHops of bridgePathHops) {
 
-            const swapId = pathSwapIds[quoteNum]
-            hopData[swapId] = []
+    //     const pathSrcCells = pathHops.map((hop) => getBridgePathCells(hop.srcData.chain, isSwapHopType(hop.type)))
+    //     const maxHopCells = Math.max(...pathSrcCells.map((cells) => cells.length))
+    //     const pathSwapIds = Array.from(Array(maxHopCells), () => generateSwapId())
 
-            for (const hop of pathHops) {
+    //     for (let quoteNum = 0; quoteNum < pathSwapIds.length; quoteNum++) {
 
-                const nextHop = pathHops.find((data) => data.index === hop.index + 1)
-                const hopSrcCells = pathSrcCells[hop.index]
-                const hopDstCells = nextHop && isSwapHopType(nextHop.type) ? getSwapCells(hop.dstData.chain) : [hop.dstData.chain.cells[0]]
+    //         const swapId = pathSwapIds[quoteNum]
+    //         hopData[swapId] = []
 
-                hopData[swapId].push({
-                    ...hop,
-                    srcData: {
-                        ...hop.srcData,
-                        cell: hopSrcCells.at(quoteNum) ?? hopSrcCells[0],
-                    },
-                    dstData: {
-                        ...hop.dstData,
-                        cell: hopDstCells.at(quoteNum) ?? hopDstCells[0],
-                    },
-                } as HopQuote)
-            }
-        }
-    }
+    //         for (const hop of pathHops) {
+
+    //             const nextHop = pathHops.find((data) => data.index === hop.index + 1)
+    //             const hopSrcCells = pathSrcCells[hop.index]
+    //             const hopDstCells = nextHop && isSwapHopType(nextHop.type) ? getSwapCells(hop.dstData.chain) : [hop.dstData.chain.cells[0]]
+
+    //             hopData[swapId].push({
+    //                 ...hop,
+    //                 srcData: {
+    //                     ...hop.srcData,
+    //                     cell: hopSrcCells.at(quoteNum) ?? hopSrcCells[0],
+    //                 },
+    //                 dstData: {
+    //                     ...hop.dstData,
+    //                     cell: hopDstCells.at(quoteNum) ?? hopDstCells[0],
+    //                 },
+    //             } as HopQuote)
+    //         }
+    //     }
+    // }
 
     return hopData
 }
@@ -1036,6 +1060,7 @@ export const getHopEventData = ({
             address: tokenOut,
             chainId: hop.srcData.chain.id,
         })
+        // @ts-ignore
         const tradeDstToken = (tradeDstTokenData?.isUnconfirmed && quoteTokens.get(tradeDstTokenData.uid)) || tradeDstTokenData
         const prevHop = hops.at(hop.index - 1)
 
@@ -1080,6 +1105,7 @@ export const getHopEventData = ({
                             type: SwapType.Swap,
                             index: i,
                             hopIndex: hop.index,
+                            // @ts-ignore
                             adapter: adapter,
                             adapterAddress: adapterAddress,
                         })
@@ -1106,6 +1132,7 @@ export const getHopEventData = ({
                     type: SwapType.Swap,
                     index: 0,
                     hopIndex: hop.index,
+                    // @ts-ignore
                     adapter: getSwapAdapter(hop.srcData.chain, hop.srcData.cell.address),
                     adapterAddress: hop.srcData.cell.address,
                 })
@@ -1150,4 +1177,77 @@ export const getHopEventPlatformData = (event: HopEvent) => {
         platform: platform,
         platformName: platformName,
     }
+}
+
+export const getSwapQuotePriceImpact = ({
+    quote,
+    srcAmountValue,
+    getAmountValue,
+}: {
+    quote: SwapQuote,
+    srcAmountValue?: TokenAmount,
+    getAmountValue: GetTokenAmountValueFunction,
+}): SwapQuotePriceImpact | undefined => {
+
+    if (!isValidSwapQuote(quote)) {
+        return
+    }
+
+    const srcValue = srcAmountValue ?? getAmountValue(quote.srcData.token, { amount: quote.srcAmount, formatted: formatUnits(quote.srcAmount, quote.srcData.token.decimals) })
+    const dstValue = getAmountValue(quote.dstData.token, { amount: quote.estDstAmount, formatted: formatUnits(quote.estDstAmount, quote.dstData.token.decimals) })
+
+    if (!isValidTokenAmount(srcValue) || !srcValue.amount || !isValidTokenAmount(dstValue)) {
+        return
+    }
+
+    const difference = dstValue.amount - srcValue.amount
+    const differenceAbs = MathBigInt.abs(difference)
+    const percentage = getPercentDifference(srcValue.amount, dstValue.amount, TokenPriceConfig.Decimals)
+    const percentageFormatted = formatPercentDifference(percentage, TokenPriceConfig.Decimals, true)
+    const isNegative = difference < BigInt(0)
+
+    return {
+        srcToken: quote.srcData.token,
+        dstToken: quote.dstData.token,
+        value: {
+            amount: differenceAbs,
+            formatted: formatUnits(differenceAbs, TokenPriceConfig.Decimals),
+        },
+        percentage: {
+            amount: percentage,
+            formatted: percentageFormatted,
+        },
+        isNegative: isNegative,
+        showWarning: isNegative && Math.abs(parseFloat(percentageFormatted)) >= SwapQuoteConfig.PriceImpactWarningThresholdPercent,
+    }
+}
+
+export const getSwapQuotePriceImpactData = ({
+    quotes,
+    getAmountValue,
+}: {
+    quotes?: SwapQuote[],
+    getAmountValue: GetTokenAmountValueFunction,
+}): SwapQuotePriceImpactData => {
+
+    const data: SwapQuotePriceImpactData = new Map()
+    const srcQuote = quotes?.at(0)
+    const srcAmountValue = srcQuote && getAmountValue(srcQuote.srcData.token, { amount: srcQuote.srcAmount, formatted: formatUnits(srcQuote.srcAmount, srcQuote.srcData.token.decimals) })
+
+    if (!quotes?.length || !srcAmountValue || !isValidTokenAmount(srcAmountValue)) {
+        return data
+    }
+
+    quotes.forEach((quote) => {
+
+        const priceImpact = getSwapQuotePriceImpact({ quote: quote, srcAmountValue: srcAmountValue, getAmountValue: getAmountValue })
+
+        if (!priceImpact) {
+            return
+        }
+
+        data.set(quote.id, priceImpact)
+    })
+
+    return data
 }

@@ -10,11 +10,13 @@ import { TransactionReceipt } from "viem"
 import { useAccount } from "wagmi"
 
 import LoadingIcon from "@/app/components/icons/LoadingIcon"
+import { PriceImpactWarning } from "@/app/components/swap/PriceImpact"
 import QuoteExpiry from "@/app/components/swap/QuoteExpiry"
 import SwapEventTabs from "@/app/components/swap/SwapEventTabs"
 import SwapPreview from "@/app/components/swap/SwapPreview"
 import SwapRecipientInput from "@/app/components/swap/SwapRecipientInput"
 import SwapSlippageInput from "@/app/components/swap/SwapSlippageInput"
+import SwapWidgetAnimation from "@/app/components/swap/SwapWidgetAnimation"
 import Button from "@/app/components/ui/Button"
 import { Page } from "@/app/components/ui/Page"
 import { iconSizes } from "@/app/config/styling"
@@ -49,7 +51,7 @@ const ReviewSwapPage = () => {
     const { getBalance, isInProgress: balanceIsInProgress } = useBalancesData
     const { setSwapHistory, setInitiateSwapData } = useSwapHistory()
     const { getFirmQuote } = useApiData()
-    const { setSrcAmountInput, selectedQuote } = useQuoteData()
+    const { setSrcAmountInput, selectedQuote, getPriceImpact } = useQuoteData()
     const { setNotification, removeNotification } = useNotifications()
     const { openConnectModal } = useConnectModal()
     const router = useRouter()
@@ -69,6 +71,8 @@ const ReviewSwapPage = () => {
 
     const quoteChainIds = useMemo(() => quote ? getSwapChainIds(quote) : [], [quote])
     const { getLatestBlock } = useLatestBlocks(quoteChainIds)
+    const priceImpact = useMemo(() => getPriceImpact(quote), [quote, getPriceImpact])
+
 
     useEffect(() => {
         if (quote) {
@@ -413,6 +417,7 @@ const ReviewSwapPage = () => {
                     <div className="flex flex-col flex-none gap-4">
                         <SwapPreview
                             swap={quote}
+                            priceImpact={priceImpact}
                             isReviewPage={true}
                         />
                         <SwapEventTabs
@@ -472,8 +477,8 @@ const ReviewSwapPage = () => {
                                 </button>
                             }
                             {
-                                plyrId && plyrAvatar && 
-                                <Image src={plyrAvatar+'?img-width=40'} width={40} height={40} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
+                                plyrId && plyrAvatar &&
+                                <Image src={plyrAvatar + '?img-width=40'} width={40} height={40} alt="PLYR Avatar" className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2 md:mr-4 ml-1" />
                             }
                             {
                                 !plyrId && <X className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-4 ml-1" />
@@ -509,6 +514,17 @@ const ReviewSwapPage = () => {
             <AnimatePresence mode="wait">
                 {quote && useSwapSlippageData.showSlippage && (
                     <SwapSlippageInput useSwapSlippageData={useSwapSlippageData} />
+                )}
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
+                {quote && priceImpact?.showWarning && (
+                    <SwapWidgetAnimation key={`${quote.id}-price-impact`}>
+                        <PriceImpactWarning
+                            key={quote.id}
+                            className="mt-4"
+                            priceImpact={priceImpact}
+                        />
+                    </SwapWidgetAnimation>
                 )}
             </AnimatePresence>
         </Page>

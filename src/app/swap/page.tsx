@@ -42,22 +42,29 @@ const SwapPage = () => {
 
     const router = useRouter()
     const searchParams = useSearchParams()
+    const { setSearchParamsTokenUids, useSwapQuotesData: { error: quotesError } } = useQuoteData()
+    const { setNotification } = useNotifications()
     const isShowIntro = !!searchParams.get("intro")?.trim()
+    const srcUid = searchParams.get("from")?.trim()
+    const dstUid = searchParams.get("to")?.trim()
+
     const [showIntro, setShowIntro] = useSessionStorage({
         key: StorageKey.ShowIntro,
         initialValue: isShowIntro,
     })
 
     useEffect(() => {
-        if (isShowIntro) {
-            setShowIntro(true)
+        if (isShowIntro || srcUid || dstUid) {
+            if (isShowIntro) {
+                setShowIntro(true)
+            }
+            if (srcUid || dstUid) {
+                setSearchParamsTokenUids({ srcUid: srcUid, dstUid: dstUid })
+            }
             router.replace("/swap")
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isShowIntro])
-
-    const { useSwapQuotesData: { error: quotesError } } = useQuoteData()
-    const { setNotification } = useNotifications()
+     }, [isShowIntro, srcUid, dstUid])
 
     useEffect(() => {
         if (quotesError) {

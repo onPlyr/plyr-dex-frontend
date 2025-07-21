@@ -11,6 +11,7 @@ import { getSwapQuoteData } from "@/app/lib/swaps"
 import { getParsedError } from "@/app/lib/utils"
 import { GetApiTokenPairFunction } from "@/app/providers/ApiDataProvider"
 import { CellRouteData, CellRouteDataParameter } from "@/app/types/cells"
+import { SwapPath } from "@/app/types/paths"
 import { PreferenceType } from "@/app/types/preferences"
 import { isValidSwapRoute, SwapQuoteData, SwapRoute } from "@/app/types/swaps"
 import { GetSupportedTokenByIdFunction, GetTokenFunction } from "@/app/types/tokens"
@@ -27,6 +28,7 @@ export interface UseSwapQuotesReturnType {
 
 interface FetchQuotesParameters {
     route?: SwapRoute,
+    path?: SwapPath,
     getToken: GetTokenFunction,
     getSupportedTokenById: GetSupportedTokenByIdFunction,
     getApiTokenPair: GetApiTokenPairFunction,
@@ -35,6 +37,7 @@ interface FetchQuotesParameters {
 
 const fetchQuotes = async ({
     route,
+    path,
     getToken,
     getSupportedTokenById,
     getApiTokenPair,
@@ -43,12 +46,13 @@ const fetchQuotes = async ({
 
     try {
 
-        if (!route || !isValidSwapRoute(route)) {
+        if (!route || !isValidSwapRoute(route) || !path) {
             return null
         }
 
         const { data, error } = await getSwapQuoteData({
             route: route,
+            path: path,
             getApiTokenPair: getApiTokenPair,
             cellRouteData: cellRouteData,
             getToken: getToken,
@@ -70,7 +74,7 @@ const fetchQuotes = async ({
     }
 }
 
-const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
+const useSwapQuotes = (route?: SwapRoute, path?: SwapPath): UseSwapQuotesReturnType => {
 
     const { getToken, getSupportedTokenById, setCustomToken } = useTokens()
     const { getApiTokenPair } = useApiData()
@@ -79,13 +83,14 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
     const enabled = useMemo(() => Boolean(route && isValidSwapRoute(route)), [route])
 
     const queryClient = useQueryClient()
-    const queryKey = useMemo(() => ["quotes", route, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData], [route, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData])
+    const queryKey = useMemo(() => ["quotes", route, path, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData], [route, path, getToken, getSupportedTokenById, getApiTokenPair, cellRouteData])
     const previousQueryKey = usePrevious(queryKey)
 
     const { data, isPending, isFetching, error, status, refetch } = useQuery({
         queryKey: queryKey,
         queryFn: async () => fetchQuotes({
             route: route,
+            path: path,
             getToken: getToken,
             getSupportedTokenById: getSupportedTokenById,
             getApiTokenPair: getApiTokenPair,
@@ -106,6 +111,7 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
         if (quoteTokenData) {
             quoteTokenData.forEach((token) => setCustomToken(token))
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quoteTokenData])
 
     useEffect(() => {
@@ -115,6 +121,7 @@ const useSwapQuotes = (route?: SwapRoute): UseSwapQuotesReturnType => {
                 exact: true,
             })
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [queryKey, previousQueryKey])
 
     return {

@@ -15,12 +15,12 @@ export enum CellType {
     Dexalot = "dexalot",
 }
 
-export interface CellTypeData {
+export interface CellTypeData<TCanSwap extends boolean = boolean> {
     type: CellType,
     routeDataParams?: CellRouteDataParameter[],
     tradeParams?: CellTradeParameter[],
     tradeDataParams?: CellTradeDataParameter[],
-    canSwap: boolean,
+    canSwap: TCanSwap,
     apiData?: {
         provider: ApiProvider,
         getQuote: ApiRoute,
@@ -28,9 +28,12 @@ export interface CellTypeData {
     },
 }
 
-export interface Cell extends CellTypeData {
+export interface Cell<TCanSwap extends boolean = boolean> extends CellTypeData<TCanSwap> {
     address: Address,
 }
+
+export type CanSwapCell = Cell<true>
+export const isCanSwapCell = (cell: Cell): cell is CanSwapCell => cell.canSwap
 
 export enum CellRouteDataParameter {
     SlippageBips = "slippageBips",
