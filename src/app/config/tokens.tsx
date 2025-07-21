@@ -553,7 +553,25 @@ const baseTokens: BaseToken[] = [
             [avalanche.id]: {
                 address: "0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7",
             },
+            [plyrPhi.id]: {
+                address: "0xBe02ef740b7a28317AA71BeD8CC0Ba47383393b4",
+            },
         },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x86D1796314A15722ec3d29fbc1a523D950FaA2C7",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xBe02ef740b7a28317AA71BeD8CC0Ba47383393b4",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
     },
     // ZRO //
     {
@@ -966,7 +984,7 @@ const baseTokens: BaseToken[] = [
         name: "GAMR",
         decimals: 18,
         icon: "gamr.png",
-        
+
         chains: {
             [plyrPhi.id]: {
                 address: "0x413F1a8F0A2Bd9b6D31B2CA91c4aa7bC08266731",
