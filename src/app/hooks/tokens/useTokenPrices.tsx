@@ -10,6 +10,9 @@ import { getParsedError, getBaseUrl } from "@/app/lib/utils"
 import { Currency } from "@/app/types/currency"
 import { PreferenceType } from "@/app/types/preferences"
 import { GetTokenAmountFunction, GetTokenAmountValueFunction, isValidTokenAmount, Token, TokenAmount, TokenAmountDataMap, TokenUid } from "@/app/types/tokens"
+import { Tokens } from "@/app/config/tokens"
+import { plyrPhi } from "@/app/config/chains"
+import { avalanche } from "wagmi/chains"
 
 type TokenIdMap = Map<TokenUid, string>
 
@@ -31,36 +34,37 @@ interface FetchPricesParameters {
     initialData: TokenAmountDataMap,
 }
 
+/**
+ * Maps a PLYR token to its Avalanche C-Chain counterpart using bridge configuration
+ */
+const mapPlyrToAvalanche = (token: Token): string | null => {
+    // Only process PLYR tokens (chain 16180)
+    if (token.chainId !== plyrPhi.id) {
+        return null
+    }
+
+    // Find the same token on Avalanche C-Chain
+    const avalancheToken = Tokens.find(t => 
+        t.id === token.id && 
+        t.chainId === avalanche.id
+    )
+
+    if (avalancheToken) {
+        return `${avalanche.id}:${avalancheToken.address}`.toLowerCase()
+    }
+
+    return null
+}
+
 const getPriceApiTokenId = (token: Token, prefix: string = TokenPriceConfig.ApiIdPrefix, separator: string = ":") => {
 
     if (!token.priceId) {
-        switch (token.uid) {
-            // BLUB
-            case '16180:0x528B5C9f4a401B230F6e15014522e1b60a15f342':
-                return '43114:0x0f669808d88B2b0b3D23214DCD2a1cc6A8B1B5cd'.toLowerCase()
-            // KIMBO
-            case '16180:0xcEf949Aaf9a0d91892eb452FB03914F40eAc16dd':
-                return '43114:0x184ff13B3EBCB25Be44e860163A5D8391Dd568c1'.toLowerCase()
-            // WINK
-            case '16180:0x3433DC3a55D9C77315CD939AD775000D31F426D5':
-                return '43114:0x7698A5311DA174A95253Ce86C21ca7272b9B05f8'.toLowerCase()
-            // APEX
-            case '16180:0x612A487212710fCDc022935Ae5757FaCABD2881a':
-                return '43114:0x98B172A09102869adD73116FC92A0A60BFF4778F'.toLowerCase()
-            // JOE
-            case '16180:0xef40C286c6D7c90C19ffcEb54d8C225DAa554C3F':
-                return '43114:0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd'.toLowerCase()
-            // KEY
-            case '16180:0x78DE1332ef4775811fff5000D5A9eBF70a665B5b':
-                return '43114:0xFFFF003a6BAD9b743d658048742935fFFE2b6ED7'.toLowerCase()
-            // GAMR
-            case '16180:0x413F1a8F0A2Bd9b6D31B2CA91c4aa7bC08266731':
-                return '43114:0xEcB70d85aA4dAc4102688c313588710A3f143529'.toLowerCase()
+        // Try to map PLYR token to Avalanche C-Chain
+        const mappedId = mapPlyrToAvalanche(token)
+        if (mappedId) {
+            return mappedId
         }
-
     }
-
-
 
     return (token.priceId ? `${prefix}${separator}${token.priceId}` : token.uid).toLowerCase()
     // if (token.isCustomToken) {
