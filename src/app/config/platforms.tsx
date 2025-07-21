@@ -135,6 +135,14 @@ const basePlatforms: Platform[] = [
             brand: "brand.svg",
         },
     },
+    {
+        id: "blackhole",
+        name: "Blackhole",
+        icon: "square.svg",
+        img: {
+            square: "square.svg",
+        },
+    },
 ] as const
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

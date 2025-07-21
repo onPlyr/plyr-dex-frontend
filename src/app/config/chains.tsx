@@ -269,6 +269,16 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 name: "LFJ Token Mill",
                 platform: "lfj",
             },
+            {
+                address: "0xDfd22ef6D509a982F4e6883CBf00d56d5d0D87F3",
+                name: "Arena DEX",
+                platform: "arena",
+            },
+            {
+                address: "0x864603E7eA6eCF3Ebbb9a1241054887Ea96678F3",
+                name: "Blackhole",
+                platform: "blackhole",
+            },
             // others
             {
                 address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
