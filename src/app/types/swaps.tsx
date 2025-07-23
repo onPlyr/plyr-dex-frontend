@@ -101,6 +101,7 @@ export type SwapMsgType = (typeof SwapMsgType)[keyof typeof SwapMsgType]
 
 export interface SwapMsgData {
     type: SwapMsgType,
+    title?: string,
     msg: React.ReactNode,
     icon: React.ReactNode,
     isShowErrorWithQuote?: boolean,

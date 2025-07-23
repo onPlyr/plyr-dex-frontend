@@ -26,7 +26,7 @@ const SwapButton = React.forwardRef<React.ComponentRef<typeof Button>, React.Com
         const isReview = isConnected && !isDisabled
 
         return {
-            msg: swapMsgData ? swapMsgData.type : !isConnected ? "Connect" : "Review",
+            msg: swapMsgData ? (swapMsgData.title || swapMsgData.type) : !isConnected ? "Connect Wallet" : "Review",
             isDisabled: isDisabled,
             isReview: isReview,
         }

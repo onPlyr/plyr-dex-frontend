@@ -161,6 +161,7 @@ export const getSwapMsgData = ({
 }): SwapMsgData | undefined => {
 
     let msgType: SwapMsgType | undefined = undefined
+    let title: string | undefined = undefined
     let msg: React.ReactNode | undefined = undefined
     let icon: React.ReactNode | undefined = undefined
     let isShowErrorWithQuote = false
@@ -200,9 +201,9 @@ export const getSwapMsgData = ({
     }
     else if (!isValidTokenAmount(srcBalance) || srcBalance.amount < selectedQuote.srcAmount || !isValidTokenAmount(nativeBalance) || (nativeAmount !== undefined && nativeBalance.amount < nativeAmount)) {
         msgType = SwapMsgType.InsufficientBalance
+        title = `Insufficient ${selectedQuote.srcData.token.symbol}`
         msg = `The connected account does not have enough ${route.srcData.token.symbol} to complete this transaction.`
         icon = <AccountIcon />
-        isShowErrorWithQuote = true
     }
     else if (error) {
         msgType = SwapMsgType.IsError
@@ -212,6 +213,7 @@ export const getSwapMsgData = ({
 
     return msgType && msg && icon ? {
         type: msgType,
+        title: title,
         msg: msg,
         icon: icon,
         isShowErrorWithQuote: isShowErrorWithQuote,
