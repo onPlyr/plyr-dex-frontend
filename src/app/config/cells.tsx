@@ -174,6 +174,7 @@ export const cellTypeDefinitions: Record<CellType, CellTypeData> = {
             CellTradeParameter.MinAmountOut,
         ],
         canSwap: true,
+        excludeIfPrevHopIsSwap: true,
         apiData: {
             provider: ApiProvider.Dexalot,
             getQuote: ApiRoute.SimpleQuote,

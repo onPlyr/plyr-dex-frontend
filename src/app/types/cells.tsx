@@ -21,6 +21,7 @@ export interface CellTypeData<TCanSwap extends boolean = boolean> {
     tradeParams?: CellTradeParameter[],
     tradeDataParams?: CellTradeDataParameter[],
     canSwap: TCanSwap,
+    excludeIfPrevHopIsSwap?: boolean,
     apiData?: {
         provider: ApiProvider,
         getQuote: ApiRoute,

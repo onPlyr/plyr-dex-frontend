@@ -178,6 +178,7 @@ export const getSwapPath = ({
                 continue
             }
 
+            const isPrevSwap = isSwapHopType(prevHop.type)
             const isDstChain = isDstChainHopPath({ ...prevHop, dstChainId: dstData.chain.id })
             const isDstToken = isDstChain && isDstTokenHopPath({ ...prevHop, dstToken: dstToken })
             const canAddHop = path.length < maxHops
@@ -192,7 +193,7 @@ export const getSwapPath = ({
                         to: dstToken,
                         index: prevHop.index + 1,
                         type: HopType.SwapAndTransfer,
-                        cells: dstData.swapCells,
+                        cells: dstData.swapCells.filter((cell) => !isPrevSwap || !cell.excludeIfPrevHopIsSwap),
                     })
                     swapPath.paths.push(path)
                 }
@@ -212,7 +213,7 @@ export const getSwapPath = ({
                     srcToken: srcToken,
                     dstToken: dstToken,
                     canSwap: pathSrcData.canSwap,
-                    swapCells: pathSrcData.swapCells,
+                    swapCells: pathSrcData.swapCells.filter((cell) => !isPrevSwap || !cell.excludeIfPrevHopIsSwap),
                     cellPairs: cellPairs,
                     index: prevHop.index + 1
                 })
@@ -230,7 +231,7 @@ export const getSwapPath = ({
                         to: bridgePath.dstData.token,
                         dstToken: dstToken,
                     }),
-                    cells: isSwapHopPath({ from: prevHop.to, to: bridgePath.dstData.token }) ? pathSrcData.swapCells : [pathSrcData.defaultCell],
+                    cells: isSwapHopPath({ from: prevHop.to, to: bridgePath.dstData.token }) ? pathSrcData.swapCells.filter((cell) => !isPrevSwap || !cell.excludeIfPrevHopIsSwap) : [pathSrcData.defaultCell],
                     bridgePath: bridgePath,
                 }])
             })
@@ -258,11 +259,14 @@ export const getSwapPath = ({
                     return
                 }
 
+                const prevHop = hop.index && path.at(hop.index - 1)
                 const nextHop = path.at(hop.index + 1)
+                const isPrevSwap = prevHop && isSwapHopType(prevHop.type)
+                const isSwap = isSwapHopType(hop.type)
                 const isNextSwap = nextHop && isSwapHopType(nextHop.type)
 
                 const srcCell = hop.cells.at(quoteNum) ?? hopSrcData.defaultCell
-                const dstCell = nextHop?.cells.at(quoteNum) || (isNextSwap && hopDstData.swapCells.at(0)) || hopDstData.defaultCell
+                const dstCell = nextHop?.cells.at(quoteNum) || (isNextSwap && hopDstData.swapCells.filter((cell) => !isSwap || !cell.excludeIfPrevHopIsSwap).at(0)) || hopDstData.defaultCell
 
                 const hopValid = isValidHopPathBridgePath({
                     from: hop.from,
@@ -271,7 +275,7 @@ export const getSwapPath = ({
                     dstToken: swapPath.dstToken,
                     canSwap: hopSrcData.canSwap,
                     cell: srcCell,
-                    swapCells: hopSrcData.swapCells,
+                    swapCells: hopSrcData.swapCells.filter((cell) => !isPrevSwap || !cell.excludeIfPrevHopIsSwap),
                     cellPairs: cellPairs,
                     index: hop.index,
                 })
