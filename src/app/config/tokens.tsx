@@ -439,6 +439,37 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // SPEED //
+    {
+        id: "speed",
+        symbol: "SPEED",
+        name: "SPEED",
+        decimals: 18,
+        icon: "speed.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x37B6B53F2C7048F260CeA145Ffa28fA0Ff800fE9",
+            },
+            [plyrPhi.id]: {
+                address: "0x7F04B4b285468bC2671f8C3eB0d1864470f03688",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x1e69e036f10965B872d0E7469c9F6061Dc5b82CF",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x7F04B4b285468bC2671f8C3eB0d1864470f03688",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
     // STEAK //
     {
         id: "steak",
