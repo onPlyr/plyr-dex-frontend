@@ -47,6 +47,12 @@ export const plyrTau = {
             url: "https://subnets-test.avax.network/plyr",
         },
     },
+    contracts: {
+        multicall3: {
+            address: "0xe1B574C6E34a8c27E5a85BFa2d6Ed1A47B64c84f",
+            blockCreated: 2,
+        },
+    },
 } as const satisfies RainbowKitChain
 
 export const plyrPhi = {
@@ -67,6 +73,12 @@ export const plyrPhi = {
         default: {
             name: "PLYR PHI Explorer",
             url: "https://explorer.plyr.network",
+        },
+    },
+    contracts: {
+        multicall3: {
+            address: "0x73dF145c4d33cA1347A67153B807825dDE709784",
+            blockCreated: 1,
         },
     },
 } as const satisfies RainbowKitChain
@@ -395,12 +407,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "plyr",
             },
         ],
-        contracts: {
-            multicall3: {
-                address: "0x73dF145c4d33cA1347A67153B807825dDE709784",
-                blockCreated: 1,
-            },
-        },
     },
     [plyrTau.id]: {
         ...plyrTau,
@@ -429,12 +435,6 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 platform: "plyr",
             },
         ],
-        contracts: {
-            multicall3: {
-                address: "0xe1B574C6E34a8c27E5a85BFa2d6Ed1A47B64c84f",
-                blockCreated: 2,
-            },
-        },
     },
     [coqnet.id]: {
         ...coqnet,
