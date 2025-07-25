@@ -409,7 +409,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         cells: [
             {
                 ...cellTypeDefinitions[CellType.UniV2],
-                address: "0x33234C8083Ff12AFFa0Fed2c854082296046C59d",
+                address: "0xe7b4e80a501D26954a667156cCd12563a49EFA8b",
             },
         ],
         blockchainId: "0x59b5bdd59c9a138861e499f871c3cf10f2517394f6ff77f8067430d57e8e9489",
@@ -424,12 +424,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         },
         adapters: [
             {
-                address: "0x33234C8083Ff12AFFa0Fed2c854082296046C59d",
-                name: "PLYR[SWAP]",
-                platform: "plyr",
-            },
-            {
-                address: "0x41E0e24C4637F254B8039E50c3eFb31c435b8C1D",
+                address: "0xe7b4e80a501D26954a667156cCd12563a49EFA8b",
                 name: "PLYR[SWAP]",
                 platform: "plyr",
             },
@@ -437,7 +432,7 @@ export const SupportedChains: Record<ChainId, Chain> = {
         contracts: {
             multicall3: {
                 address: "0xe1B574C6E34a8c27E5a85BFa2d6Ed1A47B64c84f",
-                blockCreated: 1,
+                blockCreated: 2,
             },
         },
     },
