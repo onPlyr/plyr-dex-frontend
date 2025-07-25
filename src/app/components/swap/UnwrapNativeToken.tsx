@@ -3,12 +3,14 @@
 import { AnimatePresence } from "motion/react"
 import React, { useCallback } from "react"
 import { twMerge } from "tailwind-merge"
-import { erc20Abi } from "viem"
+import { erc20Abi, formatUnits, parseUnits } from "viem"
 import { useAccount, useReadContract, useSwitchChain } from "wagmi"
 
 import ScaleInOut from "@/app/components/animations/ScaleInOut"
 import InfoIcon from "@/app/components/icons/InfoIcon"
 import Button from "@/app/components/ui/Button"
+import { TokenPriceConfig } from "@/app/config/prices"
+import { SwapQuoteConfig } from "@/app/config/swaps"
 import useQuoteData from "@/app/hooks/quotes/useQuoteData"
 import useWriteWithdrawNative from "@/app/hooks/swap/useWriteWithdrawNative"
 import useTokens from "@/app/hooks/tokens/useTokens"
@@ -16,7 +18,7 @@ import { getChain } from "@/app/lib/chains"
 import { amountToLocale } from "@/app/lib/numbers"
 import { getTxActionLabel } from "@/app/lib/txs"
 import { NumberFormatType } from "@/app/types/numbers"
-import { isNativeToken } from "@/app/types/tokens"
+import { isNativeToken, isValidTokenAmount } from "@/app/types/tokens"
 import { TxAction, TxLabelType } from "@/app/types/txs"
 
 const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.ComponentPropsWithoutRef<"div">>(({
@@ -28,7 +30,7 @@ const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.Comp
     const connectedChain = chainId ? getChain(chainId) : undefined
     const { swapRoute: { srcData: { chain, token } } } = useQuoteData()
     const { switchChain } = useSwitchChain()
-    const { refetch: refetchTokens } = useTokens()
+    const { useTokenPricesData: { getAmountValue }, refetch: refetchTokens } = useTokens()
     const unwrapEnabled = !(!connectedChain || !accountAddress || !chain || !token || !isNativeToken(token))
 
     const { data: wrappedBalance, refetch: refetchWrappedBalance } = useReadContract({
@@ -41,6 +43,10 @@ const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.Comp
             enabled: unwrapEnabled,
         },
     })
+
+    const wrappedBalanceValue = unwrapEnabled && wrappedBalance && getAmountValue(token, { amount: wrappedBalance, formatted: formatUnits(wrappedBalance, token.decimals) })
+    const isAboveThreshold = Boolean(wrappedBalanceValue && isValidTokenAmount(wrappedBalanceValue) && wrappedBalanceValue.amount > parseUnits(SwapQuoteConfig.UnwrapNativeThresholdCurrencyValue.toString(), TokenPriceConfig.Decimals))
+    const enabled = unwrapEnabled && !!wrappedBalance && wrappedBalance > BigInt(0) && isAboveThreshold
 
     const unwrapOnSuccess = useCallback(() => {
         refetchTokens()
@@ -55,10 +61,9 @@ const UnwrapNativeToken = React.forwardRef<React.ComponentRef<"div">, React.Comp
         callbacks: {
             onSuccess: unwrapOnSuccess,
         },
-        _enabled: unwrapEnabled,
+        _enabled: enabled,
     })
 
-    const enabled = unwrapEnabled && !!wrappedBalance && wrappedBalance > BigInt(0)
     const switchChainRequired = enabled && connectedChain.id !== chain.id
     const handleSwitchChain = useCallback(() => {
         if (switchChainRequired) {

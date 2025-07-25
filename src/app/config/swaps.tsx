@@ -30,6 +30,7 @@ export const SwapQuoteConfig = {
     DefaultFixedNativeFee: 0.001,
     DefaultBaseFeeBps: 10,
     PriceImpactWarningThresholdPercent: 5,
+    UnwrapNativeThresholdCurrencyValue: 1,
 } as const
 
 export const YakSwapConfig = {
