@@ -3,6 +3,9 @@ import { Address, BaseError, ContractFunctionRevertedError, isAddress, isAddress
 
 import { TxStatusLabel } from "@/app/config/txs"
 import { ReadContractErrorData } from "@/app/types/utils"
+import { isReplaceMsgError, ReplaceMsgErrorData } from "../types/errors"
+
+
 
 export const getStatusLabel = (status: QueryStatus) => {
     return TxStatusLabel[status]
@@ -10,6 +13,10 @@ export const getStatusLabel = (status: QueryStatus) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getParsedError = (error: any): string => {
+
+    if (isReplaceMsgError(error)) {
+        return ReplaceMsgErrorData[error.code]
+    }
 
     const parsed = error?.walk ? error.walk() : error
 

@@ -11,6 +11,8 @@ import { getChain } from "@/app/lib/chains"
 import { getParsedError } from "@/app/lib/utils"
 import { ChainId, isSupportedChainId } from "@/app/types/chains"
 import { NotificationStatus, NotificationType, NotificationTypeData } from "@/app/types/notifications"
+import { isUserRejectedRequestError } from "@/app/types/errors"
+
 
 const defaultConfirmations = 1
 
@@ -220,10 +222,11 @@ const useWriteTransaction = ({
         }
 
         catch (err) {
+            const isUserRejectedTx = isUserRejectedRequestError(err)
             setTransactionNotification({
                 id: useNotificationId,
-                type: errType ?? NotificationType.Error,
-                status: NotificationStatus.Error,
+                type: errType || (isUserRejectedTx && NotificationType.Info) || NotificationType.Error,
+                status: isUserRejectedTx ? NotificationStatus.Info : NotificationStatus.Error,
                 replaceBody: err ? getParsedError(err) : undefined,
                 txHash: txHash,
             })
