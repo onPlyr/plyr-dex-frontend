@@ -279,6 +279,11 @@ export const SupportedChains: Record<ChainId, Chain> = {
                 name: "Blackhole",
                 platform: "blackhole",
             },
+            {
+                address: "0xE3D2c10C2122e6f02C702064015554D468B24D6D",
+                name: "Blackhole",
+                platform: "blackhole",
+            },
             // others
             {
                 address: "0xb2bA8c55d3F033fa33BDFf4ddb620071E5728596",
