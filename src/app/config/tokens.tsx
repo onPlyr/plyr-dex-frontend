@@ -9,6 +9,37 @@ import { BaseToken, DefaultSwapRouteTokenData, isBaseBridgeToken, Token, TokenId
 
 const baseTokens: BaseToken[] = [
     // EXTRA TOKEN ON AVALANCHE //
+    // 3ULL //
+    {
+        id: "3ull",
+        symbol: "3ULL",
+        name: "3ULL",
+        decimals: 18,
+        icon: "3ull.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0xa77e70d0af1ac7ff86726740db1bd065c3566937",
+            },
+            [plyrPhi.id]: {
+                address: "0x3c6eE5eC6ce28848B235cE6e80B3ebDC496096Ce",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xb84627f0FAFd012FC8283718cb8A3c152c672b3a",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x3c6eE5eC6ce28848B235cE6e80B3ebDC496096Ce",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
     // AAVE.e //
     {
         id: "aave",
@@ -272,6 +303,37 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // HATCHY //
+    {
+        id: "hatchy",
+        symbol: "HATCHY",
+        name: "Hatchy",
+        decimals: 18,
+        icon: "hatchy.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x502580fc390606b47fc3b741d6d49909383c28a9",
+            },
+            [plyrPhi.id]: {
+                address: "0xd358c48F939963723518D4d8666174616fCE6B60",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xAeb809E056fA48Ba0A49d21525bbbE73abc43C70",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xd358c48F939963723518D4d8666174616fCE6B60",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
     // HUSKY //
     {
         id: "husky",
@@ -310,6 +372,37 @@ const baseTokens: BaseToken[] = [
                 address: "0xC654721fBf1F374fd9FfA3385Bba2F4932A6af55",
             },
         },
+    },
+    // LAMBO //
+    {
+        id: "lambo",
+        symbol: "LAMBO",
+        name: "Lambo",
+        decimals: 18,
+        icon: "lambo.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x6F43fF77A9C0Cf552b5b653268fBFe26A052429b",
+            },
+            [plyrPhi.id]: {
+                address: "0x01157Ec5ED750CE3C590e3dB678f81D43CC8afae",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x1D1c9Bc4EB65fF52402275a6e64A2773eBF3ed04",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x01157Ec5ED750CE3C590e3dB678f81D43CC8afae",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
     },
     // LINK.e //
     {
@@ -431,13 +524,26 @@ const baseTokens: BaseToken[] = [
         chains: {
             [avalanche.id]: {
                 address: "0xd402298a793948698b9a63311404fbbee944eafd",
-                apiData: {
-                    [ApiProvider.Dexalot]: {
-                        id: "SHRAP",
-                    },
-                },
+            },
+            [plyrPhi.id]: {
+                address: "0xFa018597D0515Fe2418Bf162CBFb6a8Bed13A0C2",
             },
         },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x74a13e40ca94c3f36f869c66f1cb4b47f1225f40",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xFa018597D0515Fe2418Bf162CBFb6a8Bed13A0C2",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
     },
     // SPEED //
     {
