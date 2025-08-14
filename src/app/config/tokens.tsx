@@ -602,6 +602,37 @@ const baseTokens: BaseToken[] = [
             },
         },
     },
+    // SUZAKU //
+    {
+        id: "suz",
+        symbol: "SUZ",
+        name: "SUZAKU",
+        decimals: 18,
+        icon: "suz.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x451532f1c9eb7e4dc2d493db52b682c0acf6f5ef",
+            },
+            [plyrPhi.id]: {
+                address: "0xE9EB6d4Ea760B88ee3Aa1eFA983e3DB264cb2B0c",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0xfca295ED58b8326c03C1D8e27324372E51ea84AB",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xE9EB6d4Ea760B88ee3Aa1eFA983e3DB264cb2B0c",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
     // USDT //
     {
         id: "usdt",
