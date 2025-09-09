@@ -389,7 +389,26 @@ const baseTokens: BaseToken[] = [
             [avalanche.id]: {
                 address: "0x34a528Da3b2EA5c6Ad1796Eba756445D1299a577",
             },
+            [plyrPhi.id]: {
+                address: "0xfe83917166Fe4e57DB928A47ADf2E82AE5D26b4D",
+            },
         },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x6298f91CEEF3e1bb860Ef7F1ed0E26b46A7f1447",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0xfe83917166Fe4e57DB928A47ADf2E82AE5D26b4D",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+
     },
     // JUICY //
     {
