@@ -149,6 +149,37 @@ const baseTokens: BaseToken[] = [
             },
         ],
     },
+    // BOOTY //
+    {
+        id: "booty",
+        symbol: "BOOTY",
+        name: "BOOTY",
+        decimals: 18,
+        icon: "booty.png",
+        chains: {
+            [avalanche.id]: {
+                address: "0x4A5Bb433132B7E7F75D6A9a3e4136bB85CE6E4d5",
+            },
+            [plyrPhi.id]: {
+                address: "0x42729F95451D883c19eE98F148d971F82BF8B8d7",
+            },
+        },
+        bridges: [
+            {
+                home: {
+                    chainId: avalanche.id,
+                    address: "0x6fc98d85764baF3212150d70699189C8FdC07909",
+                    type: BridgeType.Erc20Home,
+                },
+                remote: {
+                    chainId: plyrPhi.id,
+                    address: "0x42729F95451D883c19eE98F148d971F82BF8B8d7",
+                    type: BridgeType.Erc20Remote,
+                },
+                provider: BridgeProvider.ICTT,
+            },
+        ],
+    },
     // BOI //
     {
         id: "boi",
