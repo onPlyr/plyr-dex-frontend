@@ -66,7 +66,7 @@ export const plyrPhi = {
     },
     rpcUrls: {
         default: {
-            http: ["http://54.37.230.93:9650/ext/bc/HUwWdyoExrb1HgVp5X5sh3AWqhYFnKkfXBfGmGL3qjDsnMoR4/rpc"],
+            http: ["https://rpc.plyr.ash.center"],
             //http: ["https://subnets.avax.network/plyr/mainnet/rpc"],
         },
     },
