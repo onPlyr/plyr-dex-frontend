@@ -38,7 +38,8 @@ export const tauChain = defineChain({
 export const phiChain = defineChain({
   id: 16180,
   name: "PLYR PHI",
-  rpc: "https://subnets.avax.network/plyr/mainnet/rpc",
+  rpc: "http://54.37.230.93:9650/ext/bc/HUwWdyoExrb1HgVp5X5sh3AWqhYFnKkfXBfGmGL3qjDsnMoR4/rpc",
+  //rpc: "https://subnets.avax.network/plyr/mainnet/rpc",
   icon: {
     url: "https://plyr.network/logo/plyr_icon_orange.svg",
     width: 48,
