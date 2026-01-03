@@ -66,7 +66,7 @@ export const plyrPhi = {
     },
     rpcUrls: {
         default: {
-            http: ["https://rpc.plyr.ash.center"],
+            http: ["https://rpc.plyr.network"],
             //http: ["https://subnets.avax.network/plyr/mainnet/rpc"],
         },
     },
